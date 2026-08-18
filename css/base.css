@@ -1,0 +1,142 @@
+/* ========== 01-base.css ========== */
+/* 重置、全局樣式、App容器、導航欄、螢幕系統 */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: #f2f2f7;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  user-select: none;
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #f2f2f7;
+}
+
+.screen-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: #f2f2f7;
+  overflow: hidden;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* ===== 導航欄 ===== */
+.nav-bar {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  flex-shrink: 0;
+  position: relative;
+  background: #f2f2f7;
+}
+
+.nav-bar .nav-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 17px;
+  font-weight: 600;
+  color: #1d1d1f;
+  white-space: nowrap;
+}
+
+.nav-bar .nav-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #1d1d1f;
+  cursor: pointer;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-bar .nav-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.nav-bar .nav-right {
+  margin-left: auto;
+}
+
+.nav-bar .nav-group-right {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+}
+
+/* ===== 大標題 & 螢幕主體 ===== */
+.large-title {
+  padding: 2px 20px 14px;
+  font-size: 30px;
+  font-weight: 700;
+  color: #1d1d1f;
+  flex-shrink: 0;
+}
+
+.screen-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== 通用動畫 ===== */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin-ring {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e5ea;
+  border-top-color: #1d1d1f;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.spin-ring.sm {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== 隱藏滾動條 ===== */
+::-webkit-scrollbar {
+  width: 0;
+}

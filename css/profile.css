@@ -1,0 +1,406 @@
+/* ========== 04-profile.css ========== */
+/* iMessage 標籤欄、個人資料 Hero、面具、貼紙管理 */
+
+/* ===== iMessage Bottom Tabs ===== */
+.imsg-bottom-tabs {
+  display: flex;
+  background: rgba(248, 248, 250, .94);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid #e5e5ea;
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.imsg-bottom-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 0 6px;
+  cursor: pointer;
+}
+
+.imsg-bottom-tab svg {
+  width: 24px;
+  height: 24px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+  transition: stroke .2s;
+}
+
+.imsg-bottom-tab span {
+  font-size: 10px;
+  color: #8e8e93;
+  font-weight: 500;
+  transition: color .2s;
+}
+
+.imsg-bottom-tab.active svg {
+  stroke: #1d1d1f;
+}
+
+.imsg-bottom-tab.active span {
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+.imsg-bottom-tab:active {
+  opacity: .6;
+}
+
+.imsg-tab-content {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+}
+
+.imsg-tab-content.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Profile Hero ===== */
+.profile-hero {
+  margin: 20px 16px;
+  background: #1d1d1f;
+  border-radius: 20px;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .2);
+}
+
+.profile-avatar-lg {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, .2);
+  position: relative;
+  transition: transform .15s;
+}
+
+.profile-avatar-lg:active {
+  transform: scale(.95);
+}
+
+.profile-avatar-lg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-lg svg {
+  width: 36px;
+  height: 36px;
+  stroke: rgba(255, 255, 255, .5);
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.profile-avatar-lg input {
+  display: none;
+}
+
+.profile-avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 26px;
+  height: 26px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+}
+
+.profile-avatar-edit svg {
+  width: 12px;
+  height: 12px;
+  stroke: #3a3a3c;
+  fill: none;
+  stroke-width: 2;
+}
+
+.profile-name-area {
+  margin-top: 14px;
+  text-align: center;
+}
+
+.profile-name-display {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+
+.profile-name-display:active {
+  background: rgba(255, 255, 255, .1);
+}
+
+.profile-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, .5);
+  margin-top: 6px;
+}
+
+/* ===== Mask Section ===== */
+.mask-section-header {
+  padding: 20px 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mask-section-header span {
+  font-size: 13px;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-weight: 600;
+}
+
+.mask-section-header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #3a3a3c;
+  font-weight: 600;
+}
+
+.mask-section-header button svg {
+  width: 16px;
+  height: 16px;
+  stroke: #3a3a3c;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* ===== Mask Card ===== */
+.mask-card {
+  margin: 0 16px 10px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+  border: 1px solid #ececec;
+  transition: transform .12s;
+}
+
+.mask-card:active {
+  transform: scale(.98);
+}
+
+.mask-card .mc-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e5e5ea;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mask-card .mc-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mask-card .mc-avatar svg {
+  width: 24px;
+  height: 24px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.mask-card .mc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mask-card .mc-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.mask-card .mc-desc {
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mask-card .mc-chars {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.mask-card .mc-char-tag {
+  padding: 2px 8px;
+  background: #f2f2f7;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #3a3a3c;
+  font-weight: 500;
+}
+
+.mask-card .mc-arrow {
+  color: #c7c7cc;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.mask-empty {
+  text-align: center;
+  padding: 40px 30px;
+  color: #8e8e93;
+}
+
+.mask-empty svg {
+  width: 44px;
+  height: 44px;
+  stroke: #d1d1d6;
+  fill: none;
+  stroke-width: 1;
+  margin-bottom: 10px;
+}
+
+.mask-empty p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ===== Sticker Import ===== */
+.sticker-import-section {
+  margin: 0 16px 16px;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #ececec;
+}
+
+.sticker-import-row {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  gap: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f2f2f7;
+  transition: background .15s;
+}
+
+.sticker-import-row:last-child {
+  border-bottom: none;
+}
+
+.sticker-import-row:active {
+  background: #f9f9fb;
+}
+
+.sticker-import-row svg {
+  width: 22px;
+  height: 22px;
+  stroke: #3a3a3c;
+  fill: none;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.sticker-import-row .sir-info {
+  flex: 1;
+}
+
+.sticker-import-row .sir-title {
+  font-size: 15px;
+  color: #1d1d1f;
+  font-weight: 500;
+}
+
+.sticker-import-row .sir-sub {
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 1px;
+}
+
+.sticker-import-row .sir-arrow {
+  color: #c7c7cc;
+  font-size: 16px;
+}
+
+.sticker-preview-grid {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  flex-wrap: wrap;
+  margin: 0 16px 16px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ececec;
+}
+
+.sticker-preview-grid .sp-item {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  background: #f2f2f7;
+}
+
+.sticker-preview-grid .sp-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sticker-preview-grid .sp-item .sp-del {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  background: #ff3b30;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.sticker-preview-grid .sp-item .sp-del svg {
+  width: 8px;
+  height: 8px;
+  stroke: #fff;
+  stroke-width: 3;
+}

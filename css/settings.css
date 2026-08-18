@@ -1,0 +1,367 @@
+/* ========== 03-settings.css ========== */
+/* 設置頁面 Hero、API 卡片、提示詞卡片 */
+
+.settings-hero {
+  margin: 0 16px 20px;
+  background: linear-gradient(135deg, #1d1d1f 0%, #3a3a3c 100%);
+  border-radius: 16px;
+  padding: 20px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .15);
+}
+
+.settings-hero-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settings-hero-icon svg {
+  width: 26px;
+  height: 26px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.settings-hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-hero-info .sh-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.settings-hero-info .sh-sub {
+  font-size: 12px;
+  opacity: .65;
+}
+
+.settings-hero-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.settings-hero-dot.on {
+  background: #34c759;
+  box-shadow: 0 0 8px rgba(52, 199, 89, .5);
+}
+
+.settings-hero-dot.off {
+  background: #ff3b30;
+  box-shadow: 0 0 8px rgba(255, 59, 48, .3);
+}
+
+/* ===== Section Header Fancy ===== */
+.section-header-fancy {
+  padding: 24px 20px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-header-fancy svg {
+  width: 16px;
+  height: 16px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.section-header-fancy span {
+  font-size: 13px;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-weight: 600;
+}
+
+/* ===== API 卡片 ===== */
+.api-card {
+  margin: 0 16px 12px;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+  border: 1px solid #ececec;
+}
+
+.api-card-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  gap: 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f2f2f7;
+  transition: background .15s;
+}
+
+.api-card-item:last-child {
+  border-bottom: none;
+}
+
+.api-card-item:active {
+  background: #f9f9fb;
+}
+
+.api-card-item .aci-indicator {
+  width: 4px;
+  height: 36px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.api-card-item .aci-indicator.active {
+  background: linear-gradient(180deg, #34c759, #30b855);
+}
+
+.api-card-item .aci-indicator.inactive {
+  background: #e5e5ea;
+}
+
+.api-card-item .aci-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.api-card-item .aci-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.api-card-item .aci-model {
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 2px;
+}
+
+.api-card-item .aci-badge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.api-card-item .aci-badge.on {
+  background: #e8faf0;
+  color: #28a745;
+}
+
+.api-card-item .aci-badge.off {
+  background: #f2f2f7;
+  color: #8e8e93;
+}
+
+.api-card-item .aci-arrow {
+  color: #c7c7cc;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.api-card-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  gap: 8px;
+  cursor: pointer;
+  color: #3a3a3c;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.api-card-add:active {
+  background: #f9f9fb;
+}
+
+.api-card-add svg {
+  width: 18px;
+  height: 18px;
+  stroke: #3a3a3c;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* ===== Settings Section Card ===== */
+.settings-section-card {
+  margin: 0 16px 16px;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+  border: 1px solid #ececec;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f2f2f7;
+  gap: 12px;
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-row-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settings-row-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.settings-row-icon.dark {
+  background: #1d1d1f;
+}
+
+.settings-row-label {
+  flex: 1;
+  font-size: 15px;
+  color: #1d1d1f;
+}
+
+/* ===== Prompt 卡片 ===== */
+.prompt-card {
+  margin: 0 16px 16px;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #ececec;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+}
+
+.prompt-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f2f2f7;
+}
+
+.prompt-card-header span {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.prompt-card-header button {
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #3a3a3c;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.prompt-card-header button:active {
+  opacity: .6;
+}
+
+.prompt-card textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #1d1d1f;
+  resize: none;
+  min-height: 80px;
+  max-height: 200px;
+  font-family: inherit;
+  line-height: 1.5;
+  background: transparent;
+}
+
+.prompt-card textarea::placeholder {
+  color: #c7c7cc;
+}
+
+.prompt-card .prompt-info {
+  padding: 6px 16px 12px;
+  font-size: 11px;
+  color: #8e8e93;
+}
+
+/* ===== URL Status ===== */
+.url-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.url-status .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.url-status .dot.ok {
+  background: #34c759;
+}
+
+.url-status .dot.fail {
+  background: #ff3b30;
+}
+
+.url-status .dot.pending {
+  background: #c7c7cc;
+}
+
+.url-status span {
+  color: #8e8e93;
+}
+
+/* ===== URL Progress ===== */
+.url-progress {
+  margin: 8px 0 0;
+  background: #f2f2f7;
+  border-radius: 6px;
+  overflow: hidden;
+  height: 4px;
+}
+
+.url-progress-bar {
+  height: 100%;
+  background: #1d1d1f;
+  border-radius: 6px;
+  transition: width .3s;
+  width: 0;
+}
+
+.url-status-text {
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 4px;
+  text-align: center;
+}

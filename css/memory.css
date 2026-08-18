@@ -1,0 +1,386 @@
+/* ========== 11-memory.css ========== */
+/* 記憶系統：統計、時間線、角色篩選、心情、照片上傳 */
+
+.mem-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0 16px 16px;
+}
+
+.mem-stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ececec;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .03);
+}
+
+.mem-stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f2f2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mem-stat-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1d1d1f;
+  letter-spacing: -.5px;
+}
+
+.mem-stat-label {
+  font-size: 11px;
+  color: #8e8e93;
+  font-weight: 500;
+}
+
+/* ===== Timeline ===== */
+.mem-timeline {
+  margin: 0 16px;
+  position: relative;
+  padding-left: 20px;
+}
+
+.mem-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 8px;
+  bottom: 8px;
+  width: 1.5px;
+  background: #e5e5ea;
+}
+
+.mem-tl-item {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.mem-tl-item::before {
+  content: '';
+  position: absolute;
+  left: -17px;
+  top: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c7c7cc;
+  border: 2px solid #f2f2f7;
+  z-index: 1;
+}
+
+.mem-tl-item:first-child::before {
+  background: #1d1d1f;
+}
+
+.mem-tl-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #ececec;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+  cursor: pointer;
+  transition: transform .12s;
+}
+
+.mem-tl-card:active {
+  transform: scale(.98);
+}
+
+.mem-tl-photo {
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+}
+
+.mem-tl-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mem-tl-body {
+  padding: 14px 16px;
+}
+
+.mem-tl-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 4px;
+}
+
+.mem-tl-text {
+  font-size: 13px;
+  color: #8e8e93;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.mem-tl-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mem-tl-date {
+  font-size: 11px;
+  color: #c7c7cc;
+  font-weight: 500;
+}
+
+.mem-tl-mood {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f2f2f7;
+  font-size: 10px;
+  color: #3a3a3c;
+  font-weight: 600;
+}
+
+.mem-empty {
+  text-align: center;
+  padding: 40px 30px;
+  color: #8e8e93;
+}
+
+.mem-empty svg {
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.mem-empty p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ===== Memory Edit ===== */
+.mem-photo-upload {
+  margin: 0 16px 16px;
+  height: 160px;
+  border-radius: 14px;
+  background: #f2f2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  border: 1.5px dashed #d1d1d6;
+  transition: opacity .15s;
+}
+
+.mem-photo-upload:active {
+  opacity: .7;
+}
+
+.mem-mood-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 16px 16px;
+}
+
+.mem-mood-tag {
+  padding: 7px 16px;
+  border-radius: 20px;
+  background: #f2f2f7;
+  border: 1.5px solid #e5e5ea;
+  font-size: 13px;
+  color: #3a3a3c;
+  cursor: pointer;
+  transition: all .2s;
+  font-weight: 500;
+}
+
+.mem-mood-tag:active {
+  opacity: .7;
+}
+
+.mem-mood-tag.selected {
+  background: #1d1d1f;
+  border-color: #1d1d1f;
+  color: #fff;
+}
+
+.mem-date-header {
+  padding: 16px 0 6px;
+  font-size: 12px;
+  color: #8e8e93;
+  font-weight: 600;
+  letter-spacing: .3px;
+}
+
+/* ===== Memory Char Filter ===== */
+.mem-char-filter {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mem-char-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.mem-char-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #fff;
+  border: 1.5px solid #e5e5ea;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3a3a3c;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.mem-char-chip:active {
+  opacity: .7;
+}
+
+.mem-char-chip.active {
+  background: #1d1d1f;
+  border-color: #1d1d1f;
+  color: #fff;
+}
+
+.mem-char-chip .mcc-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e5e5ea;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mem-char-chip .mcc-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mem-char-chip .mcc-avatar svg {
+  width: 12px;
+  height: 12px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.mem-char-chip.active .mcc-avatar {
+  background: rgba(255, 255, 255, .15);
+}
+
+.mem-char-chip.active .mcc-avatar svg {
+  stroke: rgba(255, 255, 255, .6);
+}
+
+.mem-char-info-card {
+  margin: 0 16px 16px;
+  background: linear-gradient(135deg, #f8f8fa, #f0f0f5);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #ececec;
+}
+
+.mem-char-info-card .mcic-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #e5e5ea;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+}
+
+.mem-char-info-card .mcic-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mem-char-info-card .mcic-avatar svg {
+  width: 24px;
+  height: 24px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.mem-char-info-card .mcic-info {
+  flex: 1;
+}
+
+.mem-char-info-card .mcic-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.mem-char-info-card .mcic-stats {
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 3px;
+}
+
+/* ===== Memory Type Tags ===== */
+.mem-type-stm {
+  background: #fff3e0;
+  color: #e67e22;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.mem-type-ltm {
+  background: #e8eaf6;
+  color: #5c6bc0;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.mem-type-manual {
+  background: #f2f2f7;
+  color: #8e8e93;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}

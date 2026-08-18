@@ -1,0 +1,178 @@
+/* ========== 10-phone.css ========== */
+/* 手機 App 模擬系統 */
+
+.phone-frame {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 400px;
+  background: linear-gradient(165deg, #1a1a1e 0%, #2c2c30 40%, #1a1a1e 100%);
+  min-height: calc(100vh - 52px);
+  position: relative;
+  overflow-y: auto;
+  padding-bottom: 40px;
+}
+
+.phone-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px 8px;
+  color: rgba(255, 255, 255, .6);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.phone-statusbar-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.phone-statusbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.phone-statusbar svg {
+  width: 14px;
+  height: 14px;
+  stroke: rgba(255, 255, 255, .6);
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.phone-time-display {
+  text-align: center;
+  padding: 20px 0 30px;
+  color: #fff;
+}
+
+.phone-time-display .ptd-time {
+  font-size: 64px;
+  font-weight: 200;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.phone-time-display .ptd-date {
+  font-size: 15px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, .5);
+  margin-top: 6px;
+}
+
+.phone-app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 12px;
+  padding: 0 24px;
+}
+
+.phone-app-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.phone-app-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.phone-app-icon svg {
+  width: 26px;
+  height: 26px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ===== App Icon Colors ===== */
+.phone-app-icon.pi-msg { background: linear-gradient(135deg, #3a3a3c, #48484a); }
+.phone-app-icon.pi-notes { background: linear-gradient(135deg, #4a4a4c, #5a5a5c); }
+.phone-app-icon.pi-photos { background: linear-gradient(135deg, #3a3a3c, #4a4a4c); }
+.phone-app-icon.pi-travel { background: linear-gradient(135deg, #48484a, #58585a); }
+.phone-app-icon.pi-wallet { background: linear-gradient(135deg, #2c2c2e, #3c3c3e); }
+.phone-app-icon.pi-music { background: linear-gradient(135deg, #4a4a4c, #3a3a3c); }
+.phone-app-icon.pi-browser { background: linear-gradient(135deg, #3c3c3e, #4c4c4e); }
+.phone-app-icon.pi-contacts { background: linear-gradient(135deg, #48484a, #3a3a3c); }
+.phone-app-icon.pi-phone { background: linear-gradient(135deg, #3a3a3c, #4a4a4c); }
+.phone-app-icon.pi-shop { background: linear-gradient(135deg, #4a4a4c, #5a5a5c); }
+.phone-app-icon.pi-calendar { background: linear-gradient(135deg, #3c3c3e, #2c2c2e); }
+.phone-app-icon.pi-camera { background: linear-gradient(135deg, #48484a, #58585a); }
+.phone-app-icon.pi-maps { background: linear-gradient(135deg, #3a3a3c, #48484a); }
+.phone-app-icon.pi-weather { background: linear-gradient(135deg, #4a4a4c, #3c3c3e); }
+.phone-app-icon.pi-clock { background: linear-gradient(135deg, #3c3c3e, #4c4c4e); }
+.phone-app-icon.pi-settings { background: linear-gradient(135deg, #48484a, #3a3a3c); }
+.phone-app-icon.pi-files { background: linear-gradient(135deg, #3a3a3c, #4a4a4c); }
+.phone-app-icon.pi-health { background: linear-gradient(135deg, #4a4a4c, #3c3c3e); }
+.phone-app-icon.pi-video { background: linear-gradient(135deg, #3c3c3e, #4c4c4e); }
+.phone-app-icon.pi-recorder { background: linear-gradient(135deg, #48484a, #58585a); }
+
+.phone-app-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, .7);
+  font-weight: 400;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phone-app-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 18px;
+  height: 18px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.phone-dock {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  padding: 12px 24px 20px;
+  background: linear-gradient(transparent, rgba(26, 26, 30, .95) 30%);
+}
+
+.phone-dock .phone-app-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, .08) !important;
+  border: 1px solid rgba(255, 255, 255, .06);
+}
+
+.phone-home-bar {
+  width: 36%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .3);
+  margin: 0 auto;
+}

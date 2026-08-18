@@ -7,7 +7,23 @@
 			content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
 		/>
 		<title>Mizu Phone</title>
-		<link rel="stylesheet" href="css/main.css">
+		<!-- CSS 文件按順序載入 -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/settings.css">
+<link rel="stylesheet" href="css/profile.css">
+<link rel="stylesheet" href="css/characters.css">
+<link rel="stylesheet" href="css/chat.css">
+<link rel="stylesheet" href="css/bubble-menu.css">
+<link rel="stylesheet" href="css/chat-extras.css">
+<link rel="stylesheet" href="css/worldbook.css">
+<link rel="stylesheet" href="css/phone.css">
+<link rel="stylesheet" href="css/memory.css">
+<link rel="stylesheet" href="css/chat-config.css">
+<link rel="stylesheet" href="css/modals.css">
+<link rel="stylesheet" href="css/couple.css">
+<link rel="stylesheet" href="css/components.css">
+
 	</head>
 	<body>
 		<div class="app" id="app">
@@ -2142,6 +2158,8 @@
 
 
 			<!-- SNACKBAR / MODALS / TOAST -->
+			 <div class="toast" id="toast"></div>
+
 			<div class="snackbar" id="snackbar">
 				<span class="snack-text" id="snackbarText"></span>
 				<button
@@ -2260,7 +2278,25 @@
 		</div>
 	</div>
 </div>
-
-<script src="js/main.js"></script>
+<!-- 按順序載入所有 JS 文件 -->
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/api.js"></script>
+<script src="js/prompt.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/characters.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/bubble-menu.js"></script>
+<script src="js/chat-extras.js"></script>
+<script src="js/worldbook.js"></script>
+<script src="js/home.js"></script>
+<script src="js/phone.js"></script>
+<script src="js/memory.js"></script>
+<script src="js/chat-config.js"></script>
+<script src="js/init.js"></script>
 	</body>
 </html>

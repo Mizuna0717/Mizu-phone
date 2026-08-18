@@ -1,0 +1,181 @@
+/* ========== 13-modals.css ========== */
+/* 模態框、Toast、Snackbar */
+
+/* ===== Modal Overlay ===== */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  width: calc(100% - 48px);
+  max-width: 320px;
+  overflow: hidden;
+  animation: modalIn .2s ease;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-title {
+  padding: 20px 20px 8px;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  color: #1d1d1f;
+}
+
+.modal-body {
+  padding: 8px 20px 20px;
+}
+
+.modal-body p {
+  font-size: 14px;
+  color: #3a3a3c;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.modal-body textarea,
+.modal-body input[type=text] {
+  width: 100%;
+  border: 1px solid #d1d1d6;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+}
+
+.modal-body textarea {
+  min-height: 80px;
+}
+
+.modal-body input:focus,
+.modal-body textarea:focus {
+  border-color: #8e8e93;
+}
+
+.modal-body .modal-label {
+  font-size: 13px;
+  color: #8e8e93;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.modal-actions {
+  display: flex;
+  border-top: 1px solid #e5e5ea;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.modal-actions button:active {
+  background: #f2f2f7;
+}
+
+.modal-actions button:first-child {
+  border-right: 1px solid #e5e5ea;
+  color: #8e8e93;
+}
+
+.modal-actions button:last-child {
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+.modal-actions button:only-child {
+  border: none;
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background: #1d1d1f;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  z-index: 500;
+  opacity: 0;
+  transition: all .3s;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: calc(100% - 40px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== Snackbar ===== */
+.snackbar {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 20px);
+  background: #1d1d1f;
+  color: #f2f2f7;
+  padding: 13px 16px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, .25);
+  opacity: 0;
+  transition: all .3s;
+  z-index: 400;
+  max-width: calc(100% - 32px);
+  white-space: nowrap;
+}
+
+.snackbar.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.snackbar .snack-text {
+  font-size: 14px;
+  flex: 1;
+}
+
+.snackbar .snack-action {
+  background: none;
+  border: none;
+  color: #8e8e93;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -1,0 +1,262 @@
+/* ========== 05-characters.css ========== */
+/* 角色列表、列表通用樣式、抽屜篩選 */
+
+/* ===== List Group（通用列表） ===== */
+.list-group {
+  margin: 0 16px 16px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f2f2f7;
+  cursor: pointer;
+  min-height: 44px;
+  gap: 12px;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:active {
+  background: #e5e5ea;
+}
+
+.list-item .li-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e5e5ea;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.list-item .li-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.list-item .li-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-item .li-title {
+  font-size: 16px;
+  color: #1d1d1f;
+  font-weight: 400;
+}
+
+.list-item .li-sub {
+  font-size: 13px;
+  color: #8e8e93;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.list-item .li-arrow {
+  color: #c7c7cc;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.num-badge {
+  min-width: 20px;
+  height: 20px;
+  background: #1d1d1f;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+.section-header {
+  padding: 20px 32px 6px;
+  font-size: 13px;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 50px 30px;
+  color: #8e8e93;
+}
+
+.empty-state svg {
+  width: 48px;
+  height: 48px;
+  stroke: #c7c7cc;
+  fill: none;
+  stroke-width: 1;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ===== Drawer ===== */
+.drawer-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .2);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+  z-index: 50;
+}
+
+.drawer-mask.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 78%;
+  max-width: 300px;
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(20px);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, .1);
+  transform: translateX(100%);
+  transition: transform .32s cubic-bezier(.32, .72, 0, 1);
+  padding: 20px 0;
+  border-left: 1px solid rgba(0, 0, 0, .06);
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-mask.open .drawer-panel {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.drawer-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1d1d1f;
+}
+
+.drawer-close {
+  background: none;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e5e5ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.drawer-close svg {
+  width: 14px;
+  height: 14px;
+  stroke: #3a3a3c;
+  stroke-width: 2;
+  fill: none;
+}
+
+.drawer-section {
+  padding: 16px 20px 8px;
+  font-size: 12px;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-weight: 600;
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.drawer-item:active,
+.drawer-item.active {
+  background: rgba(0, 0, 0, .04);
+}
+
+.drawer-item svg {
+  width: 20px;
+  height: 20px;
+  stroke: #3a3a3c;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.drawer-item span {
+  font-size: 15px;
+  color: #1d1d1f;
+}
+
+.drawer-item .drawer-count {
+  margin-left: auto;
+  font-size: 13px;
+  color: #8e8e93;
+}
+
+.drawer-search {
+  margin: 12px 16px 0;
+  position: relative;
+}
+
+.drawer-search input {
+  width: 100%;
+  padding: 10px 14px 10px 36px;
+  border: none;
+  border-radius: 10px;
+  background: #e5e5ea;
+  font-size: 15px;
+  outline: none;
+  color: #1d1d1f;
+}
+
+.drawer-search input::placeholder {
+  color: #8e8e93;
+}
+
+.drawer-search svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+}
