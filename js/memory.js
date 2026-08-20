@@ -40,32 +40,35 @@ function saveMemoryEntry(charId, memType, title, content) {
   saveState();
 }
 
-// ========== 记忆类型选择 ==========
+// ========== 记忆类型选择（适配 .mem-seg-option）==========
 function selectMemType(el, value) {
-  const ctrl = document.getElementById('memTypeControl');
+  var ctrl = document.getElementById('memTypeControl');
   if (!ctrl) return;
-  ctrl.querySelectorAll('.seg-option').forEach(opt => opt.classList.remove('active'));
+  ctrl.querySelectorAll('.mem-seg-option').forEach(function(opt) {
+    opt.classList.remove('active');
+  });
   el.classList.add('active');
   tmp.memType = value;
 }
 window.selectMemType = selectMemType;
 
 function getSelectedMemType() {
-  const ctrl = document.getElementById('memTypeControl');
+  var ctrl = document.getElementById('memTypeControl');
   if (!ctrl) return 'stm';
-  const active = ctrl.querySelector('.seg-option.active');
+  var active = ctrl.querySelector('.mem-seg-option.active');
   return active ? (active.dataset.value || 'stm') : 'stm';
 }
 
 function setMemTypeControl(value) {
-  const ctrl = document.getElementById('memTypeControl');
+  var ctrl = document.getElementById('memTypeControl');
   if (!ctrl) return;
   tmp.memType = value || 'stm';
-  ctrl.querySelectorAll('.seg-option').forEach(opt => {
+  ctrl.querySelectorAll('.mem-seg-option').forEach(function(opt) {
     if (opt.dataset.value === tmp.memType) opt.classList.add('active');
     else opt.classList.remove('active');
   });
 }
+
 
 // ========== RENDER ==========
 function renderMemCharFilter() {

@@ -2034,14 +2034,16 @@
 					<option value="">— None —</option>
 				</select>
 			</div>
-			<!-- 记忆类型选择：居中显示 -->
+			<!-- 记忆类型选择：iOS 分段横条，居中 -->
 			<div class="form-row mem-type-row">
-				<div class="seg-control" id="memTypeControl" style="flex:none;max-width:220px">
-					<div class="seg-option active" data-value="stm" onclick="selectMemType(this,'stm')">
-						<svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:-1px;margin-right:4px"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg><span data-i18n="stmLabel">Short-term</span>
+				<div class="mem-seg-control" id="memTypeControl">
+					<div class="mem-seg-option active" data-value="stm" onclick="selectMemType(this,'stm')">
+						<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg>
+						<span data-i18n="stmLabel">Short-term</span>
 					</div>
-					<div class="seg-option" data-value="ltm" onclick="selectMemType(this,'ltm')">
-						<svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:-1px;margin-right:4px"><path d="M3 2h10v12H3z" stroke-linejoin="round"/><path d="M6 5h4M6 8h4M6 11h2" stroke-linecap="round"/></svg><span data-i18n="ltmLabel">Long-term</span>
+					<div class="mem-seg-option" data-value="ltm" onclick="selectMemType(this,'ltm')">
+						<svg viewBox="0 0 16 16"><path d="M3 2h10v12H3z" stroke-linejoin="round"/><path d="M6 5h4M6 8h4M6 11h2" stroke-linecap="round"/></svg>
+						<span data-i18n="ltmLabel">Long-term</span>
 					</div>
 				</div>
 			</div>
