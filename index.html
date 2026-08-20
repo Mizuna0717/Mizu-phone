@@ -450,30 +450,49 @@
 
     <!-- ===== 聊天顶栏（头像上、名称下） ===== -->
     <div class="chat-header" id="chatHeaderNormal">
+        <!-- 左：返回 -->
         <button class="ch-back" onclick="nav('screen-imessage')">
-            <svg viewBox="0 0 22 22"><path d="M14 4l-8 7 8 7" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg viewBox="0 0 22 22">
+                <path d="M14 4l-8 7 8 7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </button>
+
+        <!-- 中：头像 + 名称（纵向堆叠居中） -->
         <div class="ch-center" onclick="openHeartVoicePanel()">
             <div class="ch-avatar" id="chatAvatar"></div>
             <span class="ch-name" id="chatName"></span>
             <span class="ch-notes" id="chatNotes"></span>
         </div>
+
+        <!-- 右：三点更多 -->
         <button class="ch-edit" onclick="toggleChatMenu()">
-            <svg viewBox="0 0 22 22"><circle cx="11" cy="5" r="1.5" fill="#1d1d1f" stroke="none"/><circle cx="11" cy="11" r="1.5" fill="#1d1d1f" stroke="none"/><circle cx="11" cy="17" r="1.5" fill="#1d1d1f" stroke="none"/></svg>
+            <svg viewBox="0 0 22 22">
+                <circle cx="11" cy="5"  r="1.5" fill="#1d1d1f" stroke="none"/>
+                <circle cx="11" cy="11" r="1.5" fill="#1d1d1f" stroke="none"/>
+                <circle cx="11" cy="17" r="1.5" fill="#1d1d1f" stroke="none"/>
+            </svg>
         </button>
     </div>
 
     <!-- 多选操作栏 -->
     <div class="bubble-action-bar" id="bubbleActionBar">
-        <button class="bab-close" onclick="exitMultiSelect()"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg></button>
+        <button class="bab-close" onclick="exitMultiSelect()">
+            <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg>
+        </button>
         <span class="bab-count" id="babCount">0</span>
-        <button class="bab-btn" onclick="bookmarkSelected()"><svg viewBox="0 0 18 18"><path d="M4 2h10a1 1 0 011 1v14l-6-3-6 3V3a1 1 0 011-1z"/></svg><span>收藏</span></button>
-        <button class="bab-btn danger" onclick="deleteSelected()"><svg viewBox="0 0 18 18"><path d="M3 5h12M7 5V4a1 1 0 011-1h2a1 1 0 011 1v1M5 5v10a1 1 0 001 1h6a1 1 0 001-1V5"/></svg><span>删除</span></button>
+        <button class="bab-btn" onclick="bookmarkSelected()">
+            <svg viewBox="0 0 18 18"><path d="M4 2h10a1 1 0 011 1v14l-6-3-6 3V3a1 1 0 011-1z"/></svg>
+            <span>收藏</span>
+        </button>
+        <button class="bab-btn danger" onclick="deleteSelected()">
+            <svg viewBox="0 0 18 18"><path d="M3 5h12M7 5V4a1 1 0 011-1h2a1 1 0 011 1v1M5 5v10a1 1 0 001 1h6a1 1 0 001-1V5"/></svg>
+            <span>删除</span>
+        </button>
     </div>
 
     <div class="chat-messages" id="chatMessages"></div>
 
-    <!-- Bubble长按菜单 -->
+    <!-- Bubble 长按菜单 -->
     <div class="bubble-menu-overlay" id="bubbleMenuOverlay" onclick="closeBubbleMenu()"></div>
     <div class="bubble-menu" id="bubbleMenu"></div>
 
@@ -507,7 +526,9 @@
                 <button onclick="document.getElementById('stickerImportInput').click()">+</button>
                 <input type="file" id="stickerImportInput" accept="image/*" multiple onchange="importStickersFromFile(this)" style="display:none"/>
                 <button onclick="closeStickerPanel()">
-                    <svg viewBox="0 0 14 14" style="width:12px;height:12px"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+                    <svg viewBox="0 0 14 14" style="width:12px;height:12px">
+                        <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -518,7 +539,9 @@
     <div class="chat-quote-bar" id="chatQuoteBar">
         <div class="cqb-line"></div>
         <div class="cqb-text" id="cqbText"></div>
-        <button class="cqb-close" onclick="clearQuote()"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg></button>
+        <button class="cqb-close" onclick="clearQuote()">
+            <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg>
+        </button>
     </div>
 
     <!-- ===== 输入栏 ===== -->
@@ -527,13 +550,21 @@
             <svg viewBox="0 0 22 22"><path d="M11 4v14M4 11h14" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
         <button class="chat-btn respond-btn" onclick="triggerResponse()" id="respondBtn">
-            <svg viewBox="0 0 22 22"><path d="M4 18V8a2 2 0 012-2h6l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M12 6v4h4"/><path d="M8 13h6M8 16h4"/></svg>
+            <svg viewBox="0 0 22 22">
+                <path d="M4 18V8a2 2 0 012-2h6l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2z"/>
+                <path d="M12 6v4h4"/>
+                <path d="M8 13h6M8 16h4"/>
+            </svg>
         </button>
         <div class="chat-input-wrap">
             <textarea id="chatInput" placeholder="iMessage" rows="1" oninput="autoGrow(this)"></textarea>
         </div>
+        <!-- 发送按钮：圆形 32px，灰色底，白色纸飞机 -->
         <button class="chat-send-btn" onclick="sendMessage()">
-            <svg viewBox="0 0 16 16"><path d="M3 13l10-5L3 3v4l6 1-6 1z" fill="#fff" stroke="none"/></svg>
+            <svg viewBox="0 0 16 16">
+                <path d="M2.5 8L13 2.5 10 14l-2.5-4.5z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+                <path d="M13 2.5L7.5 9.5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
         </button>
     </div>
 
@@ -642,6 +673,7 @@
     </div>
 
 </div><!-- #screen-chat 结束 -->
+
 
 
 				<!-- WORLDBOOK LIST -->

@@ -1,10 +1,12 @@
 // ========== 11-chat.js ==========
 
-// ========== iMessage 时间格式化 ==========
+// ========== iMessage 时间格式化（英文缩写月份 + 12 小时制）==========
 function fmtChatTime(ts) {
   var d = new Date(ts);
-  var months = ['January','February','March','April','May','June',
-                'July','August','September','October','November','December'];
+  var months = [
+    'Jan','Feb','Mar','Apr','May','Jun',
+    'Jul','Aug','Sep','Oct','Nov','Dec'
+  ];
   var h = d.getHours();
   var ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12;
@@ -13,13 +15,19 @@ function fmtChatTime(ts) {
   return months[d.getMonth()] + ' ' + d.getDate() + ' ' + h + ':' + min + ' ' + ampm;
 }
 
-// ========== 默认头像 SVG ==========
+// ========== 默认头像 SVG（纯线条人物剪影）==========
 function _defaultHeaderAvatar() {
-  return '<svg viewBox="0 0 28 28" style="width:100%;height:100%;display:block"><circle cx="14" cy="11" r="4.5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/><path d="M5 25c0-5 4-9 9-9s9 4 9 9" stroke="#b0b0b0" stroke-width="1.5" fill="none"/></svg>';
+  return '<svg viewBox="0 0 28 28" style="width:100%;height:100%;display:block">' +
+    '<circle cx="14" cy="11" r="4.5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
+    '<path d="M5 25c0-5 4-9 9-9s9 4 9 9" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
+    '</svg>';
 }
 
 function _defaultMsgAvatar() {
-  return '<svg viewBox="0 0 32 32" style="width:100%;height:100%;display:block"><circle cx="16" cy="12" r="5" stroke="#aaa" stroke-width="1.5" fill="none"/><path d="M6 28c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="#aaa" stroke-width="1.5" fill="none"/></svg>';
+  return '<svg viewBox="0 0 32 32" style="width:100%;height:100%;display:block">' +
+    '<circle cx="16" cy="12" r="5" stroke="#aaa" stroke-width="1.5" fill="none"/>' +
+    '<path d="M6 28c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="#aaa" stroke-width="1.5" fill="none"/>' +
+    '</svg>';
 }
 
 function _chatMsgAvatarHtml(src) {
@@ -47,7 +55,11 @@ function wrapBubble(side, avHtml, inner) {
 }
 
 function buildVoiceBubble(content) {
-  return '<div class="msg-bubble voice" onclick="toggleVoiceText(this)"><div class="voice-row"><svg viewBox="0 0 20 20"><polygon points="4,2 18,10 4,18" fill="currentColor" stroke="none"/></svg><div class="voice-wave">' + makeWaveBars() + '</div></div><div class="voice-text">' + esc(content) + '</div></div>';
+  return '<div class="msg-bubble voice" onclick="toggleVoiceText(this)">' +
+    '<div class="voice-row">' +
+    '<svg viewBox="0 0 20 20"><polygon points="4,2 18,10 4,18" fill="currentColor" stroke="none"/></svg>' +
+    '<div class="voice-wave">' + makeWaveBars() + '</div></div>' +
+    '<div class="voice-text">' + esc(content) + '</div></div>';
 }
 
 function buildStickerBubble(url) {
@@ -75,7 +87,10 @@ function buildTransferBubble(amount, note, msgId, isSent, status) {
 }
 
 function buildSimImageBubble(content) {
-  return '<div class="msg-bubble sim-image-msg"><div class="sim-image-box"><svg viewBox="0 0 28 28"><rect x="2" y="2" width="24" height="24" rx="4" stroke-dasharray="3 2"/><path d="M8 14h12M14 8v12"/></svg><div class="sim-desc">' + esc(content) + '</div></div></div>';
+  return '<div class="msg-bubble sim-image-msg"><div class="sim-image-box">' +
+    '<svg viewBox="0 0 28 28"><rect x="2" y="2" width="24" height="24" rx="4" stroke-dasharray="3 2"/>' +
+    '<path d="M8 14h12M14 8v12"/></svg>' +
+    '<div class="sim-desc">' + esc(content) + '</div></div></div>';
 }
 
 function buildImageBubble(src) {
@@ -102,15 +117,24 @@ function buildCallBubble(callType, msgId, isSent, callStatus, callDuration, extr
   } else if (callStatus === 'requesting') {
     statusHtml = '<div class="call-status requesting">请求中</div>';
   } else if (!isSent && !callStatus) {
-    statusHtml = '<div class="call-actions"><button class="call-accept-btn" onclick="event.stopPropagation();acceptCall(\'' + msgId + '\')">接听</button><button class="call-decline-btn" onclick="event.stopPropagation();declineCall(\'' + msgId + '\')">拒绝</button></div>';
+    statusHtml = '<div class="call-actions">' +
+      '<button class="call-accept-btn" onclick="event.stopPropagation();acceptCall(\'' + msgId + '\')">接听</button>' +
+      '<button class="call-decline-btn" onclick="event.stopPropagation();declineCall(\'' + msgId + '\')">拒绝</button>' +
+      '</div>';
   }
   var labelText;
-  if (isSent) labelText = label;
-  else if (!callStatus) {
+  if (isSent) {
+    labelText = label;
+  } else if (!callStatus) {
     var ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
     labelText = (ch ? ch.name : '角色') + ' 邀请你' + label;
-  } else labelText = label;
-  return '<div class="msg-bubble call-msg"' + (extraAttr || '') + '><div class="call-card"><div class="call-icon-wrap">' + icon + '</div><div class="call-info"><div class="call-label">' + labelText + '</div>' + statusHtml + '</div></div></div>';
+  } else {
+    labelText = label;
+  }
+  return '<div class="msg-bubble call-msg"' + (extraAttr || '') + '>' +
+    '<div class="call-card"><div class="call-icon-wrap">' + icon + '</div>' +
+    '<div class="call-info"><div class="call-label">' + labelText + '</div>' +
+    statusHtml + '</div></div></div>';
 }
 
 function buildMsgExtraActions(msgId, isReceived, isRecalled) {
@@ -154,21 +178,21 @@ function translateMsg(msgId) {
 // ========== 三段式回复解析（含翻译）==========
 function parseThreePartReply(raw) {
   var result = { content: raw, innerAction: '', innerThought: '', translation: '' };
-  var replyMatch = raw.match(/【回复】\s*([\s\S]*?)(?=【动作】|【心声】|【翻译】|$)/);
-  var actionMatch = raw.match(/【动作】\s*([\s\S]*?)(?=【回复】|【心声】|【翻译】|$)/);
-  var thoughtMatch = raw.match(/【心声】\s*([\s\S]*?)(?=【回复】|【动作】|【翻译】|$)/);
+  var replyMatch     = raw.match(/【回复】\s*([\s\S]*?)(?=【动作】|【心声】|【翻译】|$)/);
+  var actionMatch    = raw.match(/【动作】\s*([\s\S]*?)(?=【回复】|【心声】|【翻译】|$)/);
+  var thoughtMatch   = raw.match(/【心声】\s*([\s\S]*?)(?=【回复】|【动作】|【翻译】|$)/);
   var translationMatch = raw.match(/【翻译】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|$)/);
   if (replyMatch || actionMatch || thoughtMatch || translationMatch) {
-    if (replyMatch) result.content = replyMatch[1].trim();
-    if (actionMatch) result.innerAction = actionMatch[1].trim();
-    if (thoughtMatch) result.innerThought = thoughtMatch[1].trim();
+    if (replyMatch)      result.content     = replyMatch[1].trim();
+    if (actionMatch)     result.innerAction = actionMatch[1].trim();
+    if (thoughtMatch)    result.innerThought = thoughtMatch[1].trim();
     if (translationMatch) result.translation = translationMatch[1].trim();
   }
   return result;
 }
 
 function processTransferDecision(charId, rawText) {
-  var hasAccept = /\[\s*领取转账\s*\]/.test(rawText);
+  var hasAccept  = /\[\s*领取转账\s*\]/.test(rawText);
   var hasDecline = /\[\s*拒绝转账\s*\]/.test(rawText);
   if (hasAccept || hasDecline) {
     var msgs = state.chats[charId] || [];
@@ -208,17 +232,19 @@ function _computeGroupPositions(msgs) {
     for (var k = i + 1; k < msgs.length; k++) {
       if (msgs[k].type !== 'call-summary') { nextIdx = k; break; }
     }
+
     var prevSameGroup = prevIdx >= 0 &&
       msgs[prevIdx].role === msgs[i].role &&
       (msgs[i].timestamp - msgs[prevIdx].timestamp <= 180000);
+
     var nextSameGroup = nextIdx >= 0 &&
       msgs[nextIdx].role === msgs[i].role &&
       (msgs[nextIdx].timestamp - msgs[i].timestamp <= 180000);
 
-    if (prevSameGroup && nextSameGroup) positions[i] = 'middle';
+    if      (prevSameGroup && nextSameGroup)  positions[i] = 'middle';
     else if (prevSameGroup && !nextSameGroup) positions[i] = 'last';
     else if (!prevSameGroup && nextSameGroup) positions[i] = 'first';
-    else positions[i] = 'solo';
+    else                                      positions[i] = 'solo';
   }
   return positions;
 }
@@ -247,16 +273,15 @@ function renderChat() {
     }
   }
 
-  var ct = document.getElementById('chatMessages');
-  var msgs = state.chats[state.currentCharId] || [];
-
-  var charAv = ch.avatar;
-  var userAv = getUserAv(state.currentCharId);
-  var aH = _chatMsgAvatarHtml(charAv);
-  var uH = _chatMsgAvatarHtml(userAv);
+  var ct      = document.getElementById('chatMessages');
+  var msgs    = state.chats[state.currentCharId] || [];
+  var charAv  = ch.avatar;
+  var userAv  = getUserAv(state.currentCharId);
+  var aH      = _chatMsgAvatarHtml(charAv);
+  var uH      = _chatMsgAvatarHtml(userAv);
 
   var multiClass = bubbleState.multiMode ? ' multi-mode' : '';
-  var charCfg = getCharConfig(state.currentCharId);
+  var charCfg    = getCharConfig(state.currentCharId);
 
   // ——— 计算分组 ———
   var groupPos = _computeGroupPositions(msgs);
@@ -269,55 +294,70 @@ function renderChat() {
       h += '<div class="msg-time">' + fmtChatTime(msg.timestamp) + '</div>';
     }
 
-    var gp = groupPos[i];
+    var gp   = groupPos[i];
     var sent = msg.role === 'user';
     var side = sent ? 'sent' : 'received';
-    var av = sent ? uH : aH;
-    var gpClass = gp === 'system' ? '' : ' group-' + gp;
+    var av   = sent ? uH : aH;
+    var gpClass  = gp === 'system' ? '' : ' group-' + gp;
     var selected = bubbleState.selectedIds.has(msg.id) ? 'selected' : '';
     var checkChecked = bubbleState.selectedIds.has(msg.id) ? 'checked' : '';
-    var checkSvg = '<div class="msg-check ' + checkChecked + '"><svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg></div>';
+    var checkSvg = '<div class="msg-check ' + checkChecked + '">' +
+      '<svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg></div>';
     var isRecalled = msg.recalled || msg.type === 'recalled';
 
     // ——— 系统消息（通话摘要）———
     if (msg.type === 'call-summary') {
-      var refClick = msg.callRefId ? ' onclick="viewCallHistory(\'' + msg.callRefId + '\')"' : '';
-      h += '<div class="msg-system-center" data-msgid="' + msg.id + '"' + refClick + '>' + esc(msg.content) + '</div>';
+      var refClick = msg.callRefId
+        ? ' onclick="viewCallHistory(\'' + msg.callRefId + '\')"'
+        : '';
+      h += '<div class="msg-system-center" data-msgid="' + msg.id + '"' + refClick + '>' +
+        esc(msg.content) + '</div>';
       return;
     }
 
     // ——— 撤回消息 ———
     if (isRecalled) {
       var viewBtn = msg.originalContent
-        ? '<button class="recalled-view-btn" onclick="event.stopPropagation();viewRecalledMsg(\'' + msg.id + '\')"><svg viewBox="0 0 16 16" width="12" height="12"><path d="M2 8s3-4 6-4 6 4 6 4-3 4-6 4-6-4-6-4z"/><circle cx="8" cy="8" r="2"/></svg>查看</button>'
+        ? '<button class="recalled-view-btn" onclick="event.stopPropagation();viewRecalledMsg(\'' + msg.id + '\')">' +
+          '<svg viewBox="0 0 16 16" width="12" height="12"><path d="M2 8s3-4 6-4 6 4 6 4-3 4-6 4-6-4-6-4z"/>' +
+          '<circle cx="8" cy="8" r="2"/></svg>查看</button>'
         : '';
-      h += '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected + '" data-msgid="' + msg.id + '">' +
-        checkSvg + '<div class="msg-avatar">' + av + '</div>' +
+      h += '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected +
+        '" data-msgid="' + msg.id + '">' + checkSvg +
+        '<div class="msg-avatar">' + av + '</div>' +
         '<div class="msg-bubble recalled-bubble">' + esc(msg.content) + viewBtn + '</div></div>';
       return;
     }
 
     // ——— 朋友圈消息 ———
     if (msg.type === 'moment') {
-      h += '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected + '" data-msgid="' + msg.id + '">' +
-        checkSvg + '<div class="msg-avatar">' + av + '</div>' +
-        '<div class="msg-bubble moment-bubble"><svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14"/></svg><span>' + esc(msg.content) + '</span></div></div>';
+      h += '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected +
+        '" data-msgid="' + msg.id + '">' + checkSvg +
+        '<div class="msg-avatar">' + av + '</div>' +
+        '<div class="msg-bubble moment-bubble">' +
+        '<svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6"/>' +
+        '<circle cx="8" cy="8" r="2.5"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14"/></svg>' +
+        '<span>' + esc(msg.content) + '</span></div></div>';
       return;
     }
 
     var quoteHtml = '';
     if (msg.quoteRef) {
       var qm = msgs.find(function(m) { return m.id === msg.quoteRef.id; });
-      quoteHtml = '<div class="msg-quote"><span class="mq-name">' + esc(msg.quoteRef.name) + '</span><br>' + esc((qm ? qm.content : msg.quoteRef.text || '').slice(0, 40)) + '</div>';
+      quoteHtml = '<div class="msg-quote"><span class="mq-name">' + esc(msg.quoteRef.name) +
+        '</span><br>' + esc((qm ? qm.content : msg.quoteRef.text || '').slice(0, 40)) + '</div>';
     }
 
-    var editedMark = msg.edited ? '<span style="font-size:10px;opacity:.4;margin-left:6px">(' + T('edited') + ')</span>' : '';
+    var editedMark = msg.edited
+      ? '<span style="font-size:10px;opacity:.4;margin-left:6px">(' + T('edited') + ')</span>'
+      : '';
     var extras = buildMsgExtraActions(msg.id, !sent, false);
     var hasTranslation = charCfg.translation && msg.translation;
 
     // ——— 构建行前缀 ———
-    var rowOpen = '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected + '" data-msgid="' + msg.id + '">' +
-      checkSvg + '<div class="msg-avatar">' + av + '</div>';
+    var rowOpen = '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected +
+      '" data-msgid="' + msg.id + '">' + checkSvg +
+      '<div class="msg-avatar">' + av + '</div>';
     var rowClose = extras + '</div>';
 
     if (sent) {
@@ -326,7 +366,8 @@ function renderChat() {
       } else if (msg.type === 'sticker') {
         h += rowOpen + buildStickerBubble(msg.content) + rowClose;
       } else if (msg.type === 'transfer') {
-        var d = typeof msg.content === 'string' && msg.content.startsWith('{') ? JSON.parse(msg.content) : msg.content;
+        var d = typeof msg.content === 'string' && msg.content.startsWith('{')
+          ? JSON.parse(msg.content) : msg.content;
         h += rowOpen + buildTransferBubble(d.amount || d, d.note || '', msg.id, true, msg.transferStatus) + rowClose;
       } else if (msg.type === 'image') {
         h += rowOpen + buildImageBubble(msg.dataUrl || msg.content) + rowClose;
@@ -338,17 +379,20 @@ function renderChat() {
           : '';
         h += rowOpen + buildCallBubble(msg.callType || 'voice', msg.id, true, msg.callStatus, msg.callDuration, callClickAttr) + rowClose;
       } else {
-        h += rowOpen + '<div class="msg-bubble" data-bubbleid="' + msg.id + '">' + quoteHtml + fmtMsg(msg.content) + editedMark + '</div>' + rowClose;
+        h += rowOpen + '<div class="msg-bubble" data-bubbleid="' + msg.id + '">' +
+          quoteHtml + fmtMsg(msg.content) + editedMark + '</div>' + rowClose;
       }
     } else {
       // ——— 接收方：解析多段回复 ———
       var segs = parseReplySegments(msg.content, state.stickers);
       var recvExtras = buildMsgExtraActions(msg.id, true, false);
-      var lastTextIdx = segs.reduce(function(acc, seg, idx) { return seg.type === 'text' ? idx : acc; }, -1);
+      var lastTextIdx = segs.reduce(function(acc, seg, idx) {
+        return seg.type === 'text' ? idx : acc;
+      }, -1);
 
       segs.forEach(function(seg, segIdx) {
         var segBubbleId = msg.id + '__seg' + segIdx;
-        var isLastText = segIdx === lastTextIdx;
+        var isLastText  = segIdx === lastTextIdx;
 
         // 多段消息：只有第一段用当前组位置，后续段作为 middle
         var segGpClass = gpClass;
@@ -356,8 +400,9 @@ function renderChat() {
           segGpClass = ' group-middle';
         }
 
-        var segRowOpen = '<div class="msg-row ' + side + segGpClass + multiClass + ' ' + selected + '" data-msgid="' + msg.id + '">' +
-          checkSvg + '<div class="msg-avatar">' + aH + '</div>';
+        var segRowOpen = '<div class="msg-row ' + side + segGpClass + multiClass + ' ' + selected +
+          '" data-msgid="' + msg.id + '">' + checkSvg +
+          '<div class="msg-avatar">' + aH + '</div>';
         var segRowClose = recvExtras + '</div>';
 
         if (seg.type === 'sticker') {
@@ -377,7 +422,9 @@ function renderChat() {
           var bubbleClick = hasTranslation
             ? 'onclick="toggleMsgTranslation(event,\'' + msg.id + '\')"'
             : 'onclick="showMsgPopover(event,\'' + segBubbleId + '\')"';
-          h += segRowOpen + '<div class="msg-bubble" ' + bubbleClick + ' data-bubbleid="' + segBubbleId + '">' + quoteHtml + fmtMsg(seg.content) + editedMark + transHtml + '</div>' + segRowClose;
+          h += segRowOpen + '<div class="msg-bubble" ' + bubbleClick +
+            ' data-bubbleid="' + segBubbleId + '">' + quoteHtml +
+            fmtMsg(seg.content) + editedMark + transHtml + '</div>' + segRowClose;
         }
       });
     }
@@ -427,8 +474,14 @@ function declineTransfer(mid) {
   if (m) { m.transferStatus = 'declined'; saveState(); renderChat(); showToast('已拒绝'); }
 }
 
-function toggleVoiceText(el) { el.querySelector('.voice-text')?.classList.toggle('show'); }
-function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+function toggleVoiceText(el) {
+  el.querySelector('.voice-text')?.classList.toggle('show');
+}
+
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
 
 function sendMessage() {
   var inp = document.getElementById('chatInput');
@@ -447,44 +500,53 @@ function sendMessage() {
 }
 
 function editCharFromChat() {
-  if (state.currentCharId) { state.charEditFrom = 'screen-chat'; editChar(state.currentCharId); }
+  if (state.currentCharId) {
+    state.charEditFrom = 'screen-chat';
+    editChar(state.currentCharId);
+  }
 }
 
 // ========== TRIGGER AI RESPONSE ==========
 async function triggerResponse() {
   if (!state.currentCharId) return;
   var api = state.apis.find(function(a) { return a.id === state.activeApiId; });
-  if (!api?.url) { showErrorModal(T('configApi')); return; }
+  if (!api?.url)  { showErrorModal(T('configApi')); return; }
   if (!api.model) { showErrorModal(T('selectModel')); return; }
   var ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
   if (!ch) return;
+
   var btn = document.getElementById('respondBtn');
   btn.classList.add('loading');
   btn.disabled = true;
-  var ct = document.getElementById('chatMessages');
+
+  var ct  = document.getElementById('chatMessages');
   var typ = document.createElement('div');
   typ.className = 'msg-row received group-solo';
   typ.id = 'typingInd';
-  typ.innerHTML = '<div class="msg-avatar">' + _chatMsgAvatarHtml(ch.avatar) + '</div><div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+  typ.innerHTML = '<div class="msg-avatar">' + _chatMsgAvatarHtml(ch.avatar) + '</div>' +
+    '<div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
   ct.appendChild(typ);
   ct.scrollTop = ct.scrollHeight;
+
   try {
-    var sysPrompt = buildSystemPrompt(ch, state.worldbooks, state.stickers);
-    var charCfg = getCharConfig(state.currentCharId);
+    var sysPrompt    = buildSystemPrompt(ch, state.worldbooks, state.stickers);
+    var charCfg      = getCharConfig(state.currentCharId);
     var contextCount = charCfg.contextCount || 50;
+
     var allChatMsgs = (state.chats[state.currentCharId] || []).map(function(m) {
       if (m.recalled) return { role: m.role, content: '[此消息已撤回]' };
-      if (m.type === 'voice') return { role: m.role, content: '[Voice]: ' + m.content };
-      if (m.type === 'sticker') return { role: m.role, content: '[Sent sticker]' };
+      if (m.type === 'voice')    return { role: m.role, content: '[Voice]: ' + m.content };
+      if (m.type === 'sticker')  return { role: m.role, content: '[Sent sticker]' };
       if (m.type === 'transfer') {
-        var d2 = typeof m.content === 'string' && m.content.startsWith('{') ? JSON.parse(m.content) : m.content;
+        var d2 = typeof m.content === 'string' && m.content.startsWith('{')
+          ? JSON.parse(m.content) : m.content;
         var statusLabel = '';
-        if (m.transferStatus === 'accepted') statusLabel = ' (已领取)';
+        if      (m.transferStatus === 'accepted') statusLabel = ' (已领取)';
         else if (m.transferStatus === 'declined') statusLabel = ' (已拒绝)';
-        else statusLabel = ' (待领取)';
+        else                                      statusLabel = ' (待领取)';
         return { role: m.role, content: '[转账 ¥' + (d2.amount || d2) + (d2.note ? ' ' + d2.note : '') + ']' + statusLabel };
       }
-      if (m.type === 'image') return { role: m.role, content: m.content };
+      if (m.type === 'image')    return { role: m.role, content: m.content };
       if (m.type === 'simImage') return { role: m.role, content: '[Image: ' + m.content + ']' };
       if (m.type === 'call') {
         var ct2 = m.callType === 'video' ? '视频' : '语音';
@@ -495,24 +557,33 @@ async function triggerResponse() {
       }
       return { role: m.role, content: m.content };
     });
+
     var chatMsgs = allChatMsgs.slice(-contextCount);
+
     var reply = await sendChat(api, [
-      { role: 'system', content: sysPrompt },
-      ...chatMsgs
+      { role: 'system', content: sysPrompt },chatMsgs
     ]);
+
     var rawReply = reply || '';
     processTransferDecision(state.currentCharId, rawReply);
+
     var parsed = parseThreePartReply(rawReply);
     parsed.content = stripTransferTags(parsed.content);
-    var splitParts = parsed.content.split('---SPLIT---').map(function(s) { return s.trim(); }).filter(Boolean);
+
+    var splitParts = parsed.content
+      .split('---SPLIT---')
+      .map(function(s) { return s.trim(); })
+      .filter(Boolean);
+
     var translationParts = parsed.translation
       ? parsed.translation.split('---SPLIT---').map(function(s) { return s.trim(); }).filter(Boolean)
       : [];
+
     if (splitParts.length > 1) {
       splitParts.forEach(function(part, idx) {
         var newMsg = { id: uid(), role: 'assistant', content: part, type: 'text', timestamp: Date.now() + idx * 800 };
         if (idx === splitParts.length - 1) {
-          if (parsed.innerAction) newMsg.innerAction = parsed.innerAction;
+          if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
           if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
         }
         if (translationParts.length >= splitParts.length) {
@@ -526,16 +597,17 @@ async function triggerResponse() {
       });
     } else {
       var newMsg = { id: uid(), role: 'assistant', content: parsed.content, type: 'text', timestamp: Date.now() };
-      if (parsed.innerAction) newMsg.innerAction = parsed.innerAction;
+      if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
       if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
-      if (parsed.translation) newMsg.translation = parsed.translation;
+      if (parsed.translation)  newMsg.translation  = parsed.translation;
       state.chats[state.currentCharId].push(newMsg);
     }
+
     if (charCfg.charRecall && Math.random() < 0.15) {
-      var allMsgs = state.chats[state.currentCharId];
-      var newCount = splitParts.length > 1 ? splitParts.length : 1;
+      var allMsgs  = state.chats[state.currentCharId];
+      var newCount  = splitParts.length > 1 ? splitParts.length : 1;
       var batchMsgs = allMsgs.slice(-newCount);
-      var target = batchMsgs[Math.floor(Math.random() * batchMsgs.length)];
+      var target    = batchMsgs[Math.floor(Math.random() * batchMsgs.length)];
       if (target) {
         target.recalled = true;
         target.originalContent = target.content;
@@ -543,6 +615,7 @@ async function triggerResponse() {
         delete target.translation;
       }
     }
+
     saveState();
     checkAutoSummarize();
   } catch (e) {
@@ -557,17 +630,17 @@ async function triggerResponse() {
 }
 
 // ========== 全局绑定 ==========
-window.openChat = openChat;
-window.sendMessage = sendMessage;
-window.triggerResponse = triggerResponse;
-window.editCharFromChat = editCharFromChat;
-window.acceptTransfer = acceptTransfer;
-window.declineTransfer = declineTransfer;
-window.acceptCall = acceptCall;
-window.declineCall = declineCall;
-window.toggleVoiceText = toggleVoiceText;
-window.autoGrow = autoGrow;
-window.recallMessage = recallMessage;
-window.viewRecalledMsg = viewRecalledMsg;
-window.translateMsg = translateMsg;
+window.openChat             = openChat;
+window.sendMessage          = sendMessage;
+window.triggerResponse      = triggerResponse;
+window.editCharFromChat     = editCharFromChat;
+window.acceptTransfer       = acceptTransfer;
+window.declineTransfer      = declineTransfer;
+window.acceptCall           = acceptCall;
+window.declineCall          = declineCall;
+window.toggleVoiceText      = toggleVoiceText;
+window.autoGrow             = autoGrow;
+window.recallMessage        = recallMessage;
+window.viewRecalledMsg      = viewRecalledMsg;
+window.translateMsg         = translateMsg;
 window.toggleMsgTranslation = toggleMsgTranslation;

@@ -28,9 +28,9 @@
 .chat-header .ch-back svg {
   width: 22px;
   height: 22px;
-  stroke: #1d1d1f;
+  stroke: #007aff;
   fill: none;
-  stroke-width: 2;
+  stroke-width: 2.2;
 }
 
 /* 中间区域：头像 + 名称 纵向堆叠居中 */
@@ -106,6 +106,7 @@
 .chat-messages {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 8px 16px 16px;
   display: flex;
   flex-direction: column;
@@ -128,19 +129,30 @@
   gap: 6px;
   max-width: 72%;
   animation: msgIn .25s ease;
+  /* 组内默认 2px 间距 */
   margin-top: 2px;
 }
 
-/* Group spacing: first/solo messages of a new group get extra top margin */
+/* 不同组之间 8px 间距 */
 .msg-row.group-first,
 .msg-row.group-solo {
   margin-top: 8px;
 }
 
-/* First child or after time label: reset top margin */
+/* 紧跟时间标签 / 系统消息 / 列表首条 → 间距缩为 4px */
 .chat-messages > .msg-row:first-child,
 .msg-time + .msg-row,
 .msg-system-center + .msg-row {
+  margin-top: 4px;
+}
+
+/* ☆ 更高特异性：修复 group-first/solo 写在后面覆盖上条规则的问题 */
+.chat-messages > .msg-row.group-first:first-child,
+.chat-messages > .msg-row.group-solo:first-child,
+.msg-time + .msg-row.group-first,
+.msg-time + .msg-row.group-solo,
+.msg-system-center + .msg-row.group-first,
+.msg-system-center + .msg-row.group-solo {
   margin-top: 4px;
 }
 
@@ -161,7 +173,7 @@
   background: #c7c7cc;
   flex-shrink: 0;
   overflow: hidden;
-  align-self: flex-start;
+  align-self: flex-start;          /* 头像与气泡顶部对齐 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -174,7 +186,7 @@
   display: block;
 }
 
-/* Hide avatar for middle and last messages in a group */
+/* 组内中间 / 末条：隐藏头像但保留占位 */
 .msg-row.group-middle .msg-avatar,
 .msg-row.group-last .msg-avatar {
   visibility: hidden;
@@ -197,13 +209,13 @@
   opacity: .7;
 }
 
-/* Sent bubble: white */
+/* 自己（sent）：白色 */
 .msg-row.sent .msg-bubble {
   background: #ffffff;
   color: #1d1d1f;
 }
 
-/* Received bubble: light gray */
+/* 对方（received）：浅灰色 */
 .msg-row.received .msg-bubble {
   background: #e9e9eb;
   color: #1d1d1f;
@@ -211,25 +223,29 @@
 
 /* ===== Bubble Border Radius — Group Position ===== */
 
-/* Received: first or solo → tail at bottom-left */
+/* ---------- received ---------- */
+/* first / solo → 小尾巴在左下 */
 .msg-row.received.group-first .msg-bubble,
 .msg-row.received.group-solo .msg-bubble {
   border-radius: 18px 14px 14px 4px;
+  /* TL 18  TR 14  BR 14  BL 4 */
 }
 
-/* Received: middle & last → uniform */
+/* middle / last → 四角均等 */
 .msg-row.received.group-middle .msg-bubble,
 .msg-row.received.group-last .msg-bubble {
   border-radius: 14px;
 }
 
-/* Sent: first or solo → tail at bottom-right */
+/* ---------- sent ---------- */
+/* first / solo → 小尾巴在右下 */
 .msg-row.sent.group-first .msg-bubble,
 .msg-row.sent.group-solo .msg-bubble {
   border-radius: 14px 18px 4px 14px;
+  /* TL 14  TR 18  BR 4  BL 14 */
 }
 
-/* Sent: middle & last → uniform */
+/* middle / last → 四角均等 */
 .msg-row.sent.group-middle .msg-bubble,
 .msg-row.sent.group-last .msg-bubble {
   border-radius: 14px;
@@ -373,7 +389,7 @@
 
 @keyframes msgIn {
   from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== Chat Input Bar ===== */
@@ -468,6 +484,11 @@
   line-height: 1.4;
   background: transparent;
   font-family: inherit;
+  color: #1d1d1f;
+}
+
+.chat-input-wrap textarea::placeholder {
+  color: #8e8e93;
 }
 
 .chat-send-btn {
@@ -475,7 +496,7 @@
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: #8E8E93;
+  background: #8e8e93;
   cursor: pointer;
   display: flex;
   align-items: center;
