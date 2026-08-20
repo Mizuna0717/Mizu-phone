@@ -561,8 +561,9 @@ async function triggerResponse() {
     var chatMsgs = allChatMsgs.slice(-contextCount);
 
     var reply = await sendChat(api, [
-      { role: 'system', content: sysPrompt },chatMsgs
-    ]);
+   { role: 'system', content: sysPrompt },
+   ...chatMsgs
+ ]);
 
     var rawReply = reply || '';
     processTransferDecision(state.currentCharId, rawReply);
