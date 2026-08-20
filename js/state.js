@@ -96,3 +96,57 @@ function loadState() {
   if (!Array.isArray(state.stickers)) state.stickers = [];
   if (!Array.isArray(state.apis)) state.apis = [];
 }
+
+// ========== 重置 state 到初始默认值 ==========
+function resetState() {
+  state.apis = [];
+  state.activeApiId = null;
+  state.characters = [];
+  state.chats = {};
+  state.worldbooks = [];
+  state.stickers = [];
+  state.unread = {};
+  state.currentCharId = null;
+  state.editingApiId = null;
+  state.editingCharId = null;
+  state.editingWbId = null;
+  state.editingMaskId = null;
+  state.editingMemId = null;
+  state.charEditFrom = 'screen-imessage';
+  state.drawerFilter = 'all';
+  state.drawerSort = 'recent';
+  state.drawerSearch = '';
+  state.lang = 'en';
+  state.userProfile = { name: 'User', avatar: null };
+  state.masks = [];
+  state.memories = [];
+  state.imsgTab = 'messages';
+  state.replyPrompt = (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null;
+  state.charConfig = {};
+  state.phoneData = {};
+  state.bookmarks = [];
+  state.groups = [];
+  state.moments = [];
+
+  // 同时重置临时状态
+  bubbleState.multiMode = false;
+  bubbleState.selectedIds = new Set();
+  bubbleState.quoteMsg = null;
+  bubbleState.editingMsgId = null;
+
+  phoneState.selectedCharId = null;
+  phoneState.currentAppId = null;
+
+  tmp.wbEntries = [];
+  tmp.wbGlobal = false;
+  tmp.charAvatar = null;
+  tmp.tempModels = null;
+  tmp.popoverMsgId = null;
+  tmp.resolvedBase = null;
+  tmp.maskAvatar = null;
+  tmp.imgType = 'real';
+  tmp.realImageData = null;
+  tmp.memPhoto = null;
+  tmp.memMood = '';
+  tmp.expandedGroups = new Set();
+}

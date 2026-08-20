@@ -1,5 +1,4 @@
 // ========== 11-chat.js ==========
-// 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js, 06-api.js, 07-prompt.js, 12-bubble-menu.js, 17-memory.js, 18-chat-config.js
 
 function openChat(cid) {
   state.currentCharId = cid;
@@ -7,7 +6,6 @@ function openChat(cid) {
   if (!state.chats[cid]) state.chats[cid] = [];
   saveState();
   nav('screen-chat');
-  // ★ 启动自动消息定时器（如果已启用）
   if (typeof restartAutoMessageTimer === 'function') restartAutoMessageTimer(cid);
 }
 
@@ -30,12 +28,23 @@ function buildStickerBubble(url) {
 }
 
 function buildTransferBubble(amount, note, msgId, isSent, status) {
-  let h = `<div class="msg-bubble transfer-msg"><div class="transfer-card"><div class="tc-label">${T('transfer')}</div><div class="tc-amount">¥${esc(String(amount))}</div>${note ? `<div class="tc-note">${esc(note)}</div>` : ''}`;
-  if (!isSent && !status) {
-    h += `<div class="transfer-actions"><button class="ta-accept" onclick="event.stopPropagation();acceptTransfer('${msgId}')">${T('accept')}</button><button class="ta-decline" onclick="event.stopPropagation();declineTransfer('${msgId}')">${T('decline')}</button></div>`;
-  } else if (status) {
-    h += `<div class="transfer-status ${status}">${status === 'accepted' ? T('accepted') : T('declined')}</div>`;
+  let h = `<div class="msg-bubble transfer-msg"><div class="transfer-card">`;
+  h += `<div class="tc-label">${T('transfer')}</div>`;
+  h += `<div class="tc-amount">\u00A5${esc(String(amount))}</div>`;
+  if (note) h += `<div class="tc-note">${esc(note)}</div>`;
+
+  if (status) {
+    const label = status === 'accepted' ? '已领取' : '已拒绝';
+    h += `<div class="transfer-status ${status}">${label}</div>`;
+  } else if (isSent) {
+    h += `<div class="transfer-status pending">待领取</div>`;
+  } else {
+    h += `<div class="transfer-actions">`;
+    h += `<button class="ta-accept" onclick="event.stopPropagation();acceptTransfer('${msgId}')">接收</button>`;
+    h += `<button class="ta-decline" onclick="event.stopPropagation();declineTransfer('${msgId}')">拒绝</button>`;
+    h += `</div>`;
   }
+
   h += `</div></div>`;
   return h;
 }
@@ -52,7 +61,8 @@ function buildTextBubble(content, msgId) {
   return `<div class="msg-bubble" data-msgid="${msgId}" onclick="showMsgPopover(event,'${msgId}')">${fmtMsg(content)}</div>`;
 }
 
-function buildCallBubble(callType, msgId, isSent, callStatus) {
+// ★★★ 变更：增加 callDuration 和 extraAttr 参数，处理 ended 状态 ★★★
+function buildCallBubble(callType, msgId, isSent, callStatus, callDuration, extraAttr) {
   const isVideo = callType === 'video';
   const label = isVideo ? '视频通话' : '语音通话';
   const icon = isVideo
@@ -60,10 +70,16 @@ function buildCallBubble(callType, msgId, isSent, callStatus) {
     : `<svg viewBox="0 0 20 20" class="call-type-icon"><path d="M6.6 3H5A2 2 0 003 5c0 7.2 5.8 13 13 13a2 2 0 002-2v-1.6a1.5 1.5 0 00-1-1.4l-2.7-.8a1.5 1.5 0 00-1.5.4l-1 1A9.4 9.4 0 017.4 9l1-1a1.5 1.5 0 00.4-1.5l-.8-2.7A1.5 1.5 0 006.6 3z"/></svg>`;
 
   let statusHtml = '';
-  if (callStatus === 'accepted') statusHtml = `<div class="call-status accepted">已接通</div>`;
-  else if (callStatus === 'declined') statusHtml = `<div class="call-status declined">已拒绝</div>`;
-  else if (callStatus === 'requesting') statusHtml = `<div class="call-status requesting">请求中…</div>`;
-  else if (!isSent && !callStatus) {
+  // ★★★ 变更：新增 ended 状态显示通话时长 ★★★
+  if (callStatus === 'ended') {
+    statusHtml = `<div class="call-status ended">\u901A\u8BDD\u65F6\u957F ${callDuration || '00:00'}</div>`;
+  } else if (callStatus === 'accepted') {
+    statusHtml = `<div class="call-status accepted">已接通</div>`;
+  } else if (callStatus === 'declined') {
+    statusHtml = `<div class="call-status declined">已拒绝</div>`;
+  } else if (callStatus === 'requesting') {
+    statusHtml = `<div class="call-status requesting">请求中</div>`;
+  } else if (!isSent && !callStatus) {
     statusHtml = `<div class="call-actions"><button class="call-accept-btn" onclick="event.stopPropagation();acceptCall('${msgId}')">接听</button><button class="call-decline-btn" onclick="event.stopPropagation();declineCall('${msgId}')">拒绝</button></div>`;
   }
 
@@ -74,28 +90,14 @@ function buildCallBubble(callType, msgId, isSent, callStatus) {
     labelText = (ch ? ch.name : '角色') + ' 邀请你' + label;
   } else labelText = label;
 
-  return `<div class="msg-bubble call-msg"><div class="call-card"><div class="call-icon-wrap">${icon}</div><div class="call-info"><div class="call-label">${labelText}</div>${statusHtml}</div></div></div>`;
+  // ★★★ 变更：使用 extraAttr 支持点击查看历史 ★★★
+  return `<div class="msg-bubble call-msg"${extraAttr || ''}><div class="call-card"><div class="call-icon-wrap">${icon}</div><div class="call-info"><div class="call-label">${labelText}</div>${statusHtml}</div></div></div>`;
 }
 
-// ========== ★ 消息额外操作按钮（翻译 & 撤回）★ ==========
 function buildMsgExtraActions(msgId, isReceived, isRecalled) {
-  if (!state.currentCharId) return '';
-  const cfg = getCharConfig(state.currentCharId);
-  const btns = [];
-
-  if (cfg.translation && !isRecalled) {
-    btns.push(`<button class="msg-translate-btn" onclick="event.stopPropagation();translateMsg('${msgId}')" title="翻译"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M2 3h5M4.5 3v1.5M3 6.5c1 2 3 3.5 5 4"/><path d="M8 6.5c-1 2-3 3.5-5 4"/><path d="M9.5 8l2 5 2-5M10.5 11.5h2"/></svg></button>`);
-  }
-
-  if (isReceived && cfg.charRecall && !isRecalled) {
-    btns.push(`<button class="msg-recall-btn" onclick="event.stopPropagation();recallMessage('${msgId}')" title="撤回"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M5 8l3-3M8 5v5a3 3 0 003 3h1" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`);
-  }
-
-  if (btns.length) return `<div class="msg-extra-actions">${btns.join('')}</div>`;
   return '';
 }
 
-// ★ 撤回消息
 function recallMessage(msgId) {
   const msgs = state.chats[state.currentCharId] || [];
   const msg = msgs.find(m => m.id === msgId);
@@ -103,13 +105,12 @@ function recallMessage(msgId) {
   msg.recalled = true;
   msg.originalContent = msg.content;
   msg.content = '角色撤回了一条消息';
+  delete msg.translation;
   saveState();
   renderChat();
   showToast('消息已撤回');
 }
-  
 
-// ★ 查看撤回原文
 function viewRecalledMsg(msgId) {
   const msgs = state.chats[state.currentCharId] || [];
   const msg = msgs.find(m => m.id === msgId);
@@ -119,25 +120,56 @@ function viewRecalledMsg(msgId) {
   document.getElementById('errorModal').classList.add('show');
 }
 
-
-// ★ 翻译消息（占位）
-function translateMsg(msgId) {
-  showToast('翻译功能开发中');
+function toggleMsgTranslation(event, msgId) {
+  if (event) event.stopPropagation();
+  const container = document.getElementById('chatMessages');
+  container.querySelectorAll('.msg-row[data-msgid="' + msgId + '"] .msg-translation').forEach(function (el) {
+    el.classList.toggle('show');
+  });
 }
 
-// ========== 三段式回复解析 ==========
-function parseThreePartReply(raw) {
-  const result = { content: raw, innerAction: '', innerThought: '' };
-  const replyMatch = raw.match(/【回复】\s*([\s\S]*?)(?=【动作】|【心声】|$)/);
-  const actionMatch = raw.match(/【动作】\s*([\s\S]*?)(?=【回复】|【心声】|$)/);
-  const thoughtMatch = raw.match(/【心声】\s*([\s\S]*?)(?=【回复】|【动作】|$)/);
+function translateMsg(msgId) {
+  toggleMsgTranslation(null, msgId);
+}
 
-  if (replyMatch || actionMatch || thoughtMatch) {
+// ========== 三段式回复解析（含翻译） ==========
+function parseThreePartReply(raw) {
+  const result = { content: raw, innerAction: '', innerThought: '', translation: '' };
+  const replyMatch = raw.match(/【回复】\s*([\s\S]*?)(?=【动作】|【心声】|【翻译】|$)/);
+  const actionMatch = raw.match(/【动作】\s*([\s\S]*?)(?=【回复】|【心声】|【翻译】|$)/);
+  const thoughtMatch = raw.match(/【心声】\s*([\s\S]*?)(?=【回复】|【动作】|【翻译】|$)/);
+  const translationMatch = raw.match(/【翻译】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|$)/);
+
+  if (replyMatch || actionMatch || thoughtMatch || translationMatch) {
     if (replyMatch) result.content = replyMatch[1].trim();
     if (actionMatch) result.innerAction = actionMatch[1].trim();
     if (thoughtMatch) result.innerThought = thoughtMatch[1].trim();
+    if (translationMatch) result.translation = translationMatch[1].trim();
   }
   return result;
+}
+
+function processTransferDecision(charId, rawText) {
+  const hasAccept = /\[\s*领取转账\s*\]/.test(rawText);
+  const hasDecline = /\[\s*拒绝转账\s*\]/.test(rawText);
+
+  if (hasAccept || hasDecline) {
+    const msgs = state.chats[charId] || [];
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].role === 'user' && msgs[i].type === 'transfer' && !msgs[i].transferStatus) {
+        msgs[i].transferStatus = hasAccept ? 'accepted' : 'declined';
+        saveState();
+        break;
+      }
+    }
+  }
+}
+
+function stripTransferTags(contentStr) {
+  return contentStr
+    .replace(/\[\s*领取转账\s*\]/g, '')
+    .replace(/\[\s*拒绝转账\s*\]/g, '')
+    .trim();
 }
 
 // ========== RENDER CHAT ==========
@@ -166,7 +198,6 @@ function renderChat() {
     const checkSvg = `<div class="msg-check ${checkChecked}"><svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg></div>`;
     const isRecalled = msg.recalled || msg.type === 'recalled';
 
-       // ★ 撤回消息（含查看原文按钮）
     if (isRecalled) {
       const viewBtn = msg.originalContent
         ? `<button class="recalled-view-btn" onclick="event.stopPropagation();viewRecalledMsg('${msg.id}')"><svg viewBox="0 0 16 16" width="12" height="12"><path d="M2 8s3-4 6-4 6 4 6 4-3 4-6 4-6-4-6-4z"/><circle cx="8" cy="8" r="2"/></svg>查看</button>`
@@ -178,7 +209,6 @@ function renderChat() {
       return;
     }
 
-        // ★ 朋友圈消息
     if (msg.type === 'moment') {
       h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">
         ${checkSvg}<div class="msg-avatar">${av}</div>
@@ -187,8 +217,13 @@ function renderChat() {
       return;
     }
 
+    // ★★★ 变更：通话摘要 → 居中系统消息，无头像，小尺寸 ★★★
+    if (msg.type === 'call-summary') {
+      const refClick = msg.callRefId ? ` onclick="viewCallHistory('${msg.callRefId}')"` : '';
+      h += `<div class="msg-system-center" data-msgid="${msg.id}"${refClick}>${esc(msg.content)}</div>`;
+      return;
+    }
 
-    // 引用內容
     let quoteHtml = '';
     if (msg.quoteRef) {
       const qm = msgs.find(m => m.id === msg.quoteRef.id);
@@ -197,8 +232,9 @@ function renderChat() {
 
     let editedMark = msg.edited ? '<span style="font-size:10px;opacity:.4;margin-left:6px">(' + T('edited') + ')</span>' : '';
 
-    // ★ 额外操作按钮
     const extras = buildMsgExtraActions(msg.id, !sent, false);
+
+    const hasTranslation = cfg.translation && msg.translation;
 
     if (sent) {
       if (msg.type === 'voice') {
@@ -213,16 +249,24 @@ function renderChat() {
       } else if (msg.type === 'simImage') {
         h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">${checkSvg}<div class="msg-avatar">${av}</div>${buildSimImageBubble(msg.content)}${extras}</div>`;
       } else if (msg.type === 'call') {
-        h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">${checkSvg}<div class="msg-avatar">${av}</div>${buildCallBubble(msg.callType || 'voice', msg.id, true, msg.callStatus)}${extras}</div>`;
+        // ★★★ 变更：结束的通话卡片可点击查看历史记录 ★★★
+        const callClickAttr = (msg.callStatus === 'ended' && msg.callHistory)
+          ? ' onclick="viewCallHistory(\'' + msg.id + '\')" style="cursor:pointer"'
+          : '';
+        h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">${checkSvg}<div class="msg-avatar">${av}</div>${buildCallBubble(msg.callType || 'voice', msg.id, true, msg.callStatus, msg.callDuration, callClickAttr)}${extras}</div>`;
       } else {
         h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">${checkSvg}<div class="msg-avatar">${av}</div><div class="msg-bubble" data-bubbleid="${msg.id}">${quoteHtml}${fmtMsg(msg.content)}${editedMark}</div>${extras}</div>`;
       }
     } else {
-      // 角色消息（segment 拆分）
       const segs = parseReplySegments(msg.content, state.stickers);
       const recvExtras = buildMsgExtraActions(msg.id, true, false);
+
+      const lastTextIdx = segs.reduce(function (acc, seg, idx) { return seg.type === 'text' ? idx : acc; }, -1);
+
       segs.forEach((seg, segIdx) => {
         const segBubbleId = msg.id + '__seg' + segIdx;
+        const isLastText = segIdx === lastTextIdx;
+
         if (seg.type === 'sticker') {
           h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">${checkSvg}<div class="msg-avatar">${aH}</div>${buildStickerBubble(seg.url)}${recvExtras}</div>`;
         } else if (seg.type === 'voice') {
@@ -234,7 +278,14 @@ function renderChat() {
         } else if (seg.type === 'call') {
           h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">${checkSvg}<div class="msg-avatar">${aH}</div>${buildCallBubble(seg.callType, msg.id, false, msg.callStatus)}${recvExtras}</div>`;
         } else {
-          h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">${checkSvg}<div class="msg-avatar">${aH}</div><div class="msg-bubble" data-bubbleid="${segBubbleId}">${quoteHtml}${fmtMsg(seg.content)}${editedMark}</div>${recvExtras}</div>`;
+          const transHtml = (isLastText && hasTranslation)
+            ? `<div class="msg-translation">${esc(msg.translation)}</div>`
+            : '';
+          const bubbleClick = hasTranslation
+            ? `onclick="toggleMsgTranslation(event,'${msg.id}')"`
+            : `onclick="showMsgPopover(event,'${segBubbleId}')"`;
+
+          h += `<div class="msg-row ${side}${multiClass} ${selected}" data-msgid="${msg.id}">${checkSvg}<div class="msg-avatar">${aH}</div><div class="msg-bubble" ${bubbleClick} data-bubbleid="${segBubbleId}">${quoteHtml}${fmtMsg(seg.content)}${editedMark}${transHtml}</div>${recvExtras}</div>`;
         }
       });
     }
@@ -253,9 +304,19 @@ function renderChat() {
   setTimeout(() => ct.scrollTop = ct.scrollHeight, 50);
 }
 
+// ★★★ acceptCall → 接听后打开全屏通话界面 ★★★
 function acceptCall(mid) {
-  const m = (state.chats[state.currentCharId] || []).find(x => x.id === mid);
-  if (m) { m.callStatus = 'accepted'; saveState(); renderChat(); showToast('通话已接通（模拟）'); }
+  const charId = state.currentCharId;
+  const m = (state.chats[charId] || []).find(x => x.id === mid);
+  if (!m) return;
+  m.callStatus = 'accepted';
+  saveState();
+  renderChat();
+  if (typeof openCallInterface === 'function') {
+    openCallInterface(charId, m.callType || 'voice', mid);
+  } else {
+    showToast('通话已接通');
+  }
 }
 
 function declineCall(mid) {
@@ -265,12 +326,12 @@ function declineCall(mid) {
 
 function acceptTransfer(mid) {
   const m = (state.chats[state.currentCharId] || []).find(x => x.id === mid);
-  if (m) { m.transferStatus = 'accepted'; saveState(); renderChat(); showToast(T('accepted')); }
+  if (m) { m.transferStatus = 'accepted'; saveState(); renderChat(); showToast('已领取'); }
 }
 
 function declineTransfer(mid) {
   const m = (state.chats[state.currentCharId] || []).find(x => x.id === mid);
-  if (m) { m.transferStatus = 'declined'; saveState(); renderChat(); }
+  if (m) { m.transferStatus = 'declined'; saveState(); renderChat(); showToast('已拒绝'); }
 }
 
 function toggleVoiceText(el) { el.querySelector('.voice-text')?.classList.toggle('show'); }
@@ -324,13 +385,21 @@ async function triggerResponse() {
       if (m.type === 'sticker') return { role: m.role, content: '[Sent sticker]' };
       if (m.type === 'transfer') {
         const d = typeof m.content === 'string' && m.content.startsWith('{') ? JSON.parse(m.content) : m.content;
-        return { role: m.role, content: `[Transfer ¥${d.amount || d}${d.note ? ' ' + d.note : ''}]${m.transferStatus ? ' (' + m.transferStatus + ')' : ''}` };
+        let statusLabel = '';
+        if (m.transferStatus === 'accepted') statusLabel = ' (已领取)';
+        else if (m.transferStatus === 'declined') statusLabel = ' (已拒绝)';
+        else statusLabel = ' (待领取)';
+        return { role: m.role, content: `[转账 ¥${d.amount || d}${d.note ? ' ' + d.note : ''}]${statusLabel}` };
       }
       if (m.type === 'image') return { role: m.role, content: m.content };
       if (m.type === 'simImage') return { role: m.role, content: `[Image: ${m.content}]` };
       if (m.type === 'call') {
         const ct2 = m.callType === 'video' ? '视频' : '语音';
         return { role: m.role, content: `[${ct2}通话]${m.callStatus ? '(' + m.callStatus + ')' : '(requesting)'}` };
+      }
+      // ★★★ 变更：跳过系统消息（call-summary 等），不送入 API ★★★
+      if (m.role === 'system' || m.type === 'call-summary') {
+        return { role: 'system', content: m.content };
       }
       return { role: m.role, content: m.content };
     });
@@ -340,11 +409,15 @@ async function triggerResponse() {
       ...chatMsgs
     ]);
 
-    // ★★★ 三段式回复解析 ★★★
-    const parsed = parseThreePartReply(reply || '');
+    const rawReply = reply || '';
+    processTransferDecision(state.currentCharId, rawReply);
+    const parsed = parseThreePartReply(rawReply);
+    parsed.content = stripTransferTags(parsed.content);
 
-    // ★★★ 拆分多条消息（---SPLIT---）★★★
     const splitParts = parsed.content.split('---SPLIT---').map(s => s.trim()).filter(Boolean);
+    const translationParts = parsed.translation
+      ? parsed.translation.split('---SPLIT---').map(s => s.trim()).filter(Boolean)
+      : [];
 
     if (splitParts.length > 1) {
       splitParts.forEach((part, i) => {
@@ -355,10 +428,16 @@ async function triggerResponse() {
           type: 'text',
           timestamp: Date.now() + i * 800
         };
-        // 仅最后一条携带 innerAction / innerThought
         if (i === splitParts.length - 1) {
           if (parsed.innerAction) newMsg.innerAction = parsed.innerAction;
           if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
+        }
+        if (translationParts.length >= splitParts.length) {
+          newMsg.translation = translationParts[i];
+        } else if (translationParts.length > 0 && i < translationParts.length) {
+          newMsg.translation = translationParts[i];
+        } else if (parsed.translation && i === splitParts.length - 1 && translationParts.length === 0) {
+          newMsg.translation = parsed.translation;
         }
         state.chats[state.currentCharId].push(newMsg);
       });
@@ -372,7 +451,21 @@ async function triggerResponse() {
       };
       if (parsed.innerAction) newMsg.innerAction = parsed.innerAction;
       if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
+      if (parsed.translation) newMsg.translation = parsed.translation;
       state.chats[state.currentCharId].push(newMsg);
+    }
+
+    if (charCfg.charRecall && Math.random() < 0.15) {
+      const allMsgs = state.chats[state.currentCharId];
+      const newCount = splitParts.length > 1 ? splitParts.length : 1;
+      const batchMsgs = allMsgs.slice(-newCount);
+      const target = batchMsgs[Math.floor(Math.random() * batchMsgs.length)];
+      if (target) {
+        target.recalled = true;
+        target.originalContent = target.content;
+        target.content = '角色撤回了一条消息';
+        delete target.translation;
+      }
     }
 
     saveState();
@@ -387,7 +480,8 @@ async function triggerResponse() {
     renderChat();
   }
 }
-// ========== ★ 全局绑定（修复 iMessage 角色列表 onclick 无法调用）★ ==========
+
+// ========== 全局绑定 ==========
 window.openChat = openChat;
 window.sendMessage = sendMessage;
 window.triggerResponse = triggerResponse;
@@ -401,3 +495,4 @@ window.autoGrow = autoGrow;
 window.recallMessage = recallMessage;
 window.viewRecalledMsg = viewRecalledMsg;
 window.translateMsg = translateMsg;
+window.toggleMsgTranslation = toggleMsgTranslation;

@@ -32,6 +32,9 @@ function getCharConfig(cid) {
   if (cfg.forceControl === undefined) cfg.forceControl = false;
   if (cfg.topPriority === undefined) cfg.topPriority = false;
 
+  // ★★★ 新增：回复语言 ★★★
+  if (cfg.chatLang === undefined) cfg.chatLang = 'zh-CN';
+
   return cfg;
 }
 

@@ -21,7 +21,10 @@ function openChatSettings() {
   document.getElementById('csAutoMsgInterval').value = cfg.autoMessageInterval;
   document.getElementById('csAutoMsgIntervalVal').textContent = cfg.autoMessageInterval;
 
-  // ★★★ 新增三个开关状态初始化 ★★★
+  // ★★★ 新增：语言下拉框 ★★★
+  document.getElementById('csChatLang').value = cfg.chatLang || 'zh-CN';
+
+  // ★★★ 三个功能开关 ★★★
   document.getElementById('csStickersToggle').classList.toggle('on', !!cfg.useStickers);
   document.getElementById('csForceControlToggle').classList.toggle('on', !!cfg.forceControl);
   document.getElementById('csTopPriorityToggle').classList.toggle('on', !!cfg.topPriority);
@@ -50,7 +53,14 @@ function toggleCsToggle(field, toggleId) {
 function updateCsSetting(field, value) {
   if (!state.currentCharId) return;
   const cfg = getCharConfig(state.currentCharId);
-  cfg[field] = parseInt(value) || 1;
+
+  // ★ 字符串类型字段
+  const stringFields = ['chatLang'];
+  if (stringFields.includes(field)) {
+    cfg[field] = value;
+  } else {
+    cfg[field] = parseInt(value) || 1;
+  }
 
   if (field === 'replyMin' && cfg.replyMin > cfg.replyMax) {
     cfg.replyMax = cfg.replyMin;
@@ -72,45 +82,36 @@ function clearChatAndMemories() {
   if (!state.currentCharId) return;
   const charId = state.currentCharId;
 
-  // 查找角色名称用于提示
   const char = state.characters ? state.characters.find(c => c.id === charId) : null;
   const charName = char ? (char.name || '该角色') : '该角色';
 
-  // 确认对话框
   const confirmed = confirm(
-    `⚠️ 确认清空「${charName}」的所有数据？\n\n此操作将删除：\n• 所有聊天记录\n• 所有记忆条目\n• 所有收藏消息\n\n此操作不可撤销！`
+    `确认清空「${charName}」的所有数据？\n\n此操作将删除：\n- 所有聊天记录\n- 所有记忆条目\n- 所有收藏消息\n\n此操作不可撤销！`
   );
   if (!confirmed) return;
 
-  // 1. 清空聊天记录
   if (state.chats) {
     state.chats[charId] = [];
   }
 
-  // 2. 清空该角色的所有记忆
   if (state.memories && Array.isArray(state.memories)) {
     state.memories = state.memories.filter(m => m.charId !== charId);
   }
 
-  // 3. 清空该角色的所有收藏
   if (state.bookmarks && Array.isArray(state.bookmarks)) {
     state.bookmarks = state.bookmarks.filter(b => b.charId !== charId);
   }
 
-  // 4. 重置 charConfig 中的记忆相关计数器
   const cfg = getCharConfig(charId);
   cfg.lastSummaryMsgCount = 0;
   cfg.lastConsolidateCount = 0;
 
-  // 5. 保存状态
   saveState();
 
-  // 6. 刷新聊天界面
   if (typeof renderChat === 'function') {
     try { renderChat(); } catch (e) { console.warn('renderChat error:', e); }
   }
 
-  // 7. 刷新记忆列表（如果函数存在）
   if (typeof renderMemoryList === 'function') {
     try { renderMemoryList(); } catch (e) { console.warn('renderMemoryList error:', e); }
   }
@@ -118,7 +119,6 @@ function clearChatAndMemories() {
     try { renderCfgCharMemories(); } catch (e) { console.warn('renderCfgCharMemories error:', e); }
   }
 
-  // 8. 提示完成
   if (typeof showToast === 'function') {
     showToast('已清空');
   } else {

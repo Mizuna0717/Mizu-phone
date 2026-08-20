@@ -21,21 +21,6 @@ function sendTransfer() {
   saveState();
   closeModal('transferModal');
   renderChat();
-
-  // ★★★ 自动模拟角色 1.5 秒后领取（用户→角色） ★★★
-  const charId = state.currentCharId;
-  setTimeout(() => {
-    const msgs = state.chats[charId] || [];
-    const tMsg = msgs.find(m => m.id === msgId);
-    if (tMsg && !tMsg.transferStatus) {
-      tMsg.transferStatus = 'accepted';
-      saveState();
-      if (state.currentCharId === charId) {
-        renderChat();
-      }
-      showToast('对方已领取');
-    }
-  }, 1500);
 }
 
 // ========== IMAGE MODAL ==========
@@ -189,7 +174,6 @@ function startCall(type) {
   const msgId = uid();
   const label = type === 'video' ? '视频通话' : '语音通话';
 
-  // ★ 发送通话请求消息到聊天中
   state.chats[state.currentCharId].push({
     id: msgId,
     role: 'user',
@@ -202,9 +186,8 @@ function startCall(type) {
 
   saveState();
   renderChat();
-  showToast('正在呼叫…（' + label + '）');
+  showToast('正在呼叫…');
 
-  // ★★★ 角色自动接听：1 秒后自动变为「已接通」★★★
   const charId = state.currentCharId;
   setTimeout(() => {
     const msgs = state.chats[charId] || [];
@@ -214,16 +197,33 @@ function startCall(type) {
       saveState();
       if (state.currentCharId === charId) {
         renderChat();
+        if (typeof openCallInterface === 'function') {
+          openCallInterface(charId, type, msgId);
+        }
       }
-      showToast('通话已接通（模拟）');
     }
-  }, 1000);
+  }, 1500);
 }
 
-// ========== ★★★ 重回确认（+号菜单中的重回） ★★★ ==========
+// ★★★ 修复：定义 acceptCallAndOpen 函数（之前缺失导致 ReferenceError）★★★
+function acceptCallAndOpen(mid) {
+  const charId = state.currentCharId;
+  const m = (state.chats[charId] || []).find(x => x.id === mid);
+  if (!m) return;
+  m.callStatus = 'accepted';
+  saveState();
+  renderChat();
+  if (typeof openCallInterface === 'function') {
+    openCallInterface(charId, m.callType || 'voice', mid);
+  }
+}
+
+// ★ 已移除此处的 acceptCall 重定义，统一由 chat.js 中的 acceptCall 处理
+// ★ chat.js 中的 acceptCall 已直接调用 openCallInterface
+
+// ========== ★★★ 重回确认 ★★★ ==========
 function openReturnConfirm() {
   closePlusMenu();
-  // 检查是否有角色消息可以重新生成
   const msgs = state.chats[state.currentCharId] || [];
   const hasAiMsg = msgs.some(m => m.role === 'assistant');
   if (!hasAiMsg) {
@@ -236,7 +236,6 @@ function openReturnConfirm() {
 function confirmReturn() {
   closeModal('returnConfirmModal');
   const msgs = state.chats[state.currentCharId] || [];
-  // 找到最后一条角色消息
   for (let i = msgs.length - 1; i >= 0; i--) {
     if (msgs[i].role === 'assistant') {
       regenerateMsg(msgs[i].id);
@@ -291,3 +290,6 @@ function closeHeartVoicePanel() {
     document.getElementById('heartVoiceOverlay').classList.remove('show');
   }, 250);
 }
+
+// ========== 全局绑定 ==========
+window.acceptCallAndOpen = acceptCallAndOpen;
