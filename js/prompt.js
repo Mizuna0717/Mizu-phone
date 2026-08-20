@@ -84,12 +84,37 @@ All three sections are MANDATORY. Never omit any section.`;
     p += `\n\n[Current Time]\n当前时间：${timeStr}\n请在回复中自然地反映时间感知（如早晚问候、作息等），但不要刻意提及具体时间数字。`;
   }
 
+  // ★★★ 表情包使用开关注入 ★★★
+  if (charCfg.useStickers) {
+    // 从 state.stickers 中获取可用表情包列表
+    const stickerList = (state.stickers && Array.isArray(state.stickers)) ? state.stickers : [];
+    if (stickerList.length > 0) {
+      const stickerNames = stickerList
+        .map(s => s.name || s.title || s.id || '')
+        .filter(n => n)
+        .slice(0, 50); // 最多列出50个，避免提示词过长
+
+      if (stickerNames.length > 0) {
+        p += `\n\n[Sticker Usage - 表情包]
+你可以在回复中适当使用表情包来丰富表达。在合适的场景下（如表达情绪、调侃、撒娇等），从以下表情包列表中选择一个，并以 [表情:名称] 格式插入到【回复】内容中。
+不要每次都使用表情包，只在自然、合适的时候使用。不要连续使用多个表情包。
+
+可用表情包列表：
+${stickerNames.map(n => `• ${n}`).join('\n')}
+
+使用示例：
+"好的呀 [表情:开心]"
+"你说什么！[表情:震惊]"`;
+      }
+    }
+  }
+
   // ★★★ 回复条数指令注入 ★★★
   if (charCfg.replyMax > 1) {
     p += `\n\n[Reply Count Instructions]\n请根据以下要求决定本次回复的消息条数：最少 ${charCfg.replyMin} 条，最多 ${charCfg.replyMax} 条。请随机选择一个条数，然后将【回复】部分的内容拆分为多条独立消息发送。每条消息之间用 ---SPLIT--- 分隔。每条消息应该是独立的、自然的对话内容。\n例如：\n【回复】\n你好啊！\n---SPLIT---\n最近在干嘛？`;
   }
 
-  // 記憶注入
+  // 记忆注入
   const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'ltm') : [];
   const charSTM = (typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'stm') : []).filter(m => !m.consolidated);
   const charManual = (state.memories || []).filter(m => m.charId === ch.id && !m.memType)
@@ -113,6 +138,7 @@ All three sections are MANDATORY. Never omit any section.`;
 
   return p;
 }
+
 
 // ========== PARSE AI REPLY ==========
 function parseReplySegments(raw, stickerLib) {

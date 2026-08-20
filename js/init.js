@@ -35,6 +35,9 @@ switchImsgTab(state.imsgTab || 'messages');
 try { renderCharList(); } catch (e) {}
 try { renderGroups(); } catch (e) {}
 try { renderMoments(); } catch (e) {}
+try { renderMaskList(); } catch (e) {}
+try { renderProfileInfo(); } catch (e) {}
+try { renderProfileStickers(); } catch (e) {}
 
 updatePhoneTime();
 

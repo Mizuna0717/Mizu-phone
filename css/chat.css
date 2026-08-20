@@ -407,3 +407,17 @@
   fill: none;
   stroke-width: 2;
 }
+/* ★ 清空按钮粘性底部样式 ★ */
+.clear-btn-sticky {
+  z-index: 10;
+}
+
+.clear-btn-sticky .form-btn.danger {
+  box-shadow: 0 -2px 12px rgba(255, 59, 48, 0.15);
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.clear-btn-sticky .form-btn.danger:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}

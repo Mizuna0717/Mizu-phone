@@ -2011,8 +2011,7 @@
 				</select>
 			</div>
 			<!-- ★ 新增：记忆类型选择 -->
-			<div class="form-row">
-				<span class="form-label" data-i18n="memoryType">Type</span>
+			<div class="form-row">				
 				<div class="seg-control" id="memTypeControl" style="flex:1;max-width:220px">
 					<div class="seg-option active" data-value="stm" onclick="selectMemType(this,'stm')">
 						<svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:-1px;margin-right:4px"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg><span data-i18n="stmLabel">Short-term</span>
@@ -2258,13 +2257,47 @@
         </div>
         <div class="form-hint">启用后，角色将按设定间隔自动发送一条消息。</div>
 
-        <div style="height:40px"></div>
+        <!-- ★★★ 7. 表情包 / 强控 / 顶号 三个新开关 ★★★ -->
+        <div class="section-header-fancy">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5.5" cy="6.5" r="1"/><circle cx="10.5" cy="6.5" r="1"/><path d="M5 10.5c.8 1.2 2 1.8 3 1.8s2.2-.6 3-1.8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span>功能</span>
+        </div>
+        <div class="settings-section-card">
+            <!-- 开关一：表情包 -->
+            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7">
+                <span class="toggle-label">角色可以使用表情包库中的表情包</span>
+                <div class="toggle" id="csStickersToggle" onclick="toggleCsToggle('useStickers','csStickersToggle')">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            <!-- 开关二：强控 -->
+            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7">
+                <span class="toggle-label">强控</span>
+                <div class="toggle" id="csForceControlToggle" onclick="toggleCsToggle('forceControl','csForceControlToggle')">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            <!-- 开关三：顶号 -->
+            <div class="toggle-wrap">
+                <span class="toggle-label">顶号</span>
+                <div class="toggle" id="csTopPriorityToggle" onclick="toggleCsToggle('topPriority','csTopPriorityToggle')">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+        <div class="form-hint">表情包：开启后角色会在合适场景使用表情包库中的表情。强控和顶号为预留功能。</div>
+
+        <!-- ★★★ 8. 清空聊天记录按钮（粘性底部） ★★★ -->
+        <div style="height:24px"></div>
+        <div class="clear-btn-sticky" style="position:sticky; bottom:0; background:linear-gradient(transparent, #f2f2f7 12px); padding:18px 16px 24px; margin:0 -16px;">
+            <button class="form-btn danger" onclick="clearChatAndMemories()" style="width:100%; background:#ff3b30; color:#fff; border:none; border-radius:12px; padding:14px 0; font-size:16px; font-weight:600; cursor:pointer;">
+                清空聊天记录
+            </button>
+        </div>
+
     </div>
 </div>
 
-
-			</div>
-			<!-- end screen-container -->
 
 			<!-- DRAWER -->
 			<div class="drawer-mask" id="drawerMask" onclick="if(event.target===this)closeDrawer()">

@@ -28,6 +28,9 @@ function getCharConfig(cid) {
   if (cfg.translation === undefined) cfg.translation = false;
   if (cfg.autoMessage === undefined) cfg.autoMessage = false;
   if (cfg.autoMessageInterval === undefined) cfg.autoMessageInterval = 10;
+  if (cfg.useStickers === undefined) cfg.useStickers = false;
+  if (cfg.forceControl === undefined) cfg.forceControl = false;
+  if (cfg.topPriority === undefined) cfg.topPriority = false;
 
   return cfg;
 }

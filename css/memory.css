@@ -146,19 +146,11 @@
   font-weight: 500;
 }
 
-.mem-tl-mood {
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: #f2f2f7;
-  font-size: 10px;
-  color: #3a3a3c;
-  font-weight: 600;
-}
 
 .mem-empty {
   text-align: center;
   padding: 40px 30px;
-  color: #8e8e93;
+  color: #8e8e93
 }
 
 .mem-empty svg {
@@ -359,8 +351,8 @@
 
 /* ===== Memory Type Tags ===== */
 .mem-type-stm {
-  background: #fff3e0;
-  color: #e67e22;
+  background: #f2f2f7;
+  color: #3a3a3c;
   font-size: 10px;
   padding: 2px 8px;
   border-radius: 4px;
@@ -368,8 +360,8 @@
 }
 
 .mem-type-ltm {
-  background: #e8eaf6;
-  color: #5c6bc0;
+  background: #f2f2f7;
+  color: #3a3a3c;
   font-size: 10px;
   padding: 2px 8px;
   border-radius: 4px;
@@ -378,7 +370,7 @@
 
 .mem-type-manual {
   background: #f2f2f7;
-  color: #8e8e93;
+  color: #3a3a3c;
   font-size: 10px;
   padding: 2px 8px;
   border-radius: 4px;
