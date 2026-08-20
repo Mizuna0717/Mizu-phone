@@ -1964,10 +1964,10 @@
 			</div>
 		</div>
 
-		<!-- 角色切換條 -->
+		<!-- 角色切换条 -->
 		<div class="mem-char-filter" id="memCharFilter"></div>
 
-		<!-- 選中角色的信息卡 -->
+		<!-- 选中角色的信息卡 -->
 		<div id="memCharInfoArea"></div>
 
 		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600" data-i18n="memoryStats">OVERVIEW</div>
@@ -2002,7 +2002,6 @@
 </div>
 
 <!-- MEMORY EDIT -->
-<!-- MEMORY EDIT -->
 <div class="screen" id="screen-memory-edit">
 	<div class="nav-bar">
 		<button class="nav-btn" onclick="nav(tmp.memEditFrom||'screen-memory')">
@@ -2035,9 +2034,9 @@
 					<option value="">— None —</option>
 				</select>
 			</div>
-			<!-- ★ 新增：记忆类型选择 -->
-			<div class="form-row">				
-				<div class="seg-control" id="memTypeControl" style="flex:1;max-width:220px">
+			<!-- 记忆类型选择：居中显示 -->
+			<div class="form-row mem-type-row">
+				<div class="seg-control" id="memTypeControl" style="flex:none;max-width:220px">
 					<div class="seg-option active" data-value="stm" onclick="selectMemType(this,'stm')">
 						<svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:-1px;margin-right:4px"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg><span data-i18n="stmLabel">Short-term</span>
 					</div>
@@ -2061,6 +2060,7 @@
 		<div style="height:40px"></div>
 	</div>
 </div>
+
 
 
 <!-- BOOKMARKS -->
