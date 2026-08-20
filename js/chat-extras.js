@@ -116,9 +116,16 @@ function closeStickerPanel() {
 
 function renderStickerGrid() {
   const g = document.getElementById('stickerGrid');
-  if (!state.stickers.length) { g.innerHTML = '<div class="sticker-empty">No stickers</div>'; return; }
+  if (!state.stickers.length) {
+    g.innerHTML = '<div class="sticker-empty">No stickers</div>';
+    return;
+  }
   g.innerHTML = state.stickers.map(s =>
-    `<div class="sticker-item" onclick="sendSticker('${s.id}')"><img src="${s.dataUrl}"><div class="sticker-name">${esc(s.name)}</div><button class="sticker-del" onclick="event.stopPropagation();delSticker('${s.id}')"><svg viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6"/></svg></button></div>`
+    `<div class="sticker-item" onclick="sendSticker('${s.id}')">` +
+    `<img src="${s.dataUrl}">` +
+    `<div class="sticker-name">${esc(s.name)}</div>` +
+    `<button class="sticker-del" onclick="event.stopPropagation();delSticker('${s.id}')">` +
+    `<svg viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6"/></svg></button></div>`
   ).join('');
 }
 
@@ -142,7 +149,8 @@ function delSticker(sid) {
 function toggleStickerManage() {
   const p = document.getElementById('stickerPanel');
   p.classList.toggle('manage');
-  document.getElementById('stickerManageBtn').textContent = p.classList.contains('manage') ? T('done') : T('manage');
+  document.getElementById('stickerManageBtn').textContent =
+    p.classList.contains('manage') ? T('done') : T('manage');
 }
 
 // ========== CHAT MENU ==========
@@ -150,8 +158,13 @@ function toggleChatMenu() {
   const m = document.getElementById('chatMenu');
   const o = document.getElementById('chatMenuOverlay');
   const isOpen = m.classList.contains('open');
-  if (isOpen) { m.classList.remove('open'); o.classList.remove('show'); }
-  else { m.classList.add('open'); o.classList.add('show'); }
+  if (isOpen) {
+    m.classList.remove('open');
+    o.classList.remove('show');
+  } else {
+    m.classList.add('open');
+    o.classList.add('show');
+  }
 }
 
 function closeChatMenu() {
@@ -159,7 +172,7 @@ function closeChatMenu() {
   document.getElementById('chatMenuOverlay')?.classList.remove('show');
 }
 
-// ========== ★★★ 电话 / 通话模态框 ★★★ ==========
+// ========== 电话 / 通话模态框 ==========
 function openCallModal() {
   closePlusMenu();
   document.getElementById('callModal').classList.add('show');
@@ -205,7 +218,6 @@ function startCall(type) {
   }, 1500);
 }
 
-// ★★★ 修复：定义 acceptCallAndOpen 函数（之前缺失导致 ReferenceError）★★★
 function acceptCallAndOpen(mid) {
   const charId = state.currentCharId;
   const m = (state.chats[charId] || []).find(x => x.id === mid);
@@ -218,10 +230,7 @@ function acceptCallAndOpen(mid) {
   }
 }
 
-// ★ 已移除此处的 acceptCall 重定义，统一由 chat.js 中的 acceptCall 处理
-// ★ chat.js 中的 acceptCall 已直接调用 openCallInterface
-
-// ========== ★★★ 重回确认 ★★★ ==========
+// ========== 重回确认 ==========
 function openReturnConfirm() {
   closePlusMenu();
   const msgs = state.chats[state.currentCharId] || [];
@@ -245,7 +254,7 @@ function confirmReturn() {
   showToast('没有可重新生成的消息');
 }
 
-// ========== 心声面板 ==========
+// ========== 心声面板 — 新增好感度 + 想要做的事 ==========
 function openHeartVoicePanel() {
   const charId = state.currentCharId;
   if (!charId) return;
@@ -253,6 +262,7 @@ function openHeartVoicePanel() {
   const char = state.characters.find(c => c.id === charId);
   if (!char) return;
 
+  // Avatar
   const hvAvatar = document.getElementById('hvAvatar');
   if (char.avatar) {
     hvAvatar.style.backgroundImage = 'url(' + char.avatar + ')';
@@ -263,20 +273,31 @@ function openHeartVoicePanel() {
 
   document.getElementById('hvCharName').textContent = char.name || '角色';
 
+  // Read latest AI message fields
   const msgs = state.chats[charId] || [];
   let latestAction = '';
   let latestThought = '';
+  let latestWannaDo = '';
 
   for (let i = msgs.length - 1; i >= 0; i--) {
     if (msgs[i].role === 'assistant') {
-      latestAction  = msgs[i].innerAction  || '';
-      latestThought = msgs[i].innerThought || '';
+      latestAction   = msgs[i].innerAction  || '';
+      latestThought  = msgs[i].innerThought || '';
+      latestWannaDo  = msgs[i].wannaDo      || '';
       break;
     }
   }
 
-  document.getElementById('hvActionText').textContent  = latestAction  || '（静静地看着你）';
-  document.getElementById('hvThoughtText').textContent = latestThought || '（正在思考……）';
+  // Affection — from charConfig
+  const charCfg = getCharConfig(charId);
+  const affection = typeof charCfg.affection === 'number' ? charCfg.affection : 50;
+
+  // Update DOM
+  document.getElementById('hvAffectionFill').style.width = affection + '%';
+  document.getElementById('hvAffectionNum').textContent   = affection + '%';
+  document.getElementById('hvThoughtText').textContent    = latestThought  || '（正在思考……）';
+  document.getElementById('hvActionText').textContent     = latestAction   || '（静静地看着你）';
+  document.getElementById('hvWannaDoText').textContent    = latestWannaDo  || '（暂时没有特别想做的事）';
 
   document.getElementById('heartVoiceOverlay').classList.add('show');
   requestAnimationFrame(() => {

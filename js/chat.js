@@ -1,6 +1,6 @@
 // ========== 11-chat.js ==========
 
-// ========== iMessage 时间格式化（英文缩写月份 + 12 小时制）==========
+// ========== iMessage 时间格式化 ==========
 function fmtChatTime(ts) {
   var d = new Date(ts);
   var months = [
@@ -15,7 +15,7 @@ function fmtChatTime(ts) {
   return months[d.getMonth()] + ' ' + d.getDate() + ' ' + h + ':' + min + ' ' + ampm;
 }
 
-// ========== 默认头像 SVG（纯线条人物剪影）==========
+// ========== 默认头像 SVG ==========
 function _defaultHeaderAvatar() {
   return '<svg viewBox="0 0 28 28" style="width:100%;height:100%;display:block">' +
     '<circle cx="14" cy="11" r="4.5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
@@ -175,19 +175,36 @@ function translateMsg(msgId) {
   toggleMsgTranslation(null, msgId);
 }
 
-// ========== 三段式回复解析（含翻译）==========
+// ========== 解析：新增【好感】【想要】==========
 function parseThreePartReply(raw) {
-  var result = { content: raw, innerAction: '', innerThought: '', translation: '' };
-  var replyMatch     = raw.match(/【回复】\s*([\s\S]*?)(?=【动作】|【心声】|【翻译】|$)/);
-  var actionMatch    = raw.match(/【动作】\s*([\s\S]*?)(?=【回复】|【心声】|【翻译】|$)/);
-  var thoughtMatch   = raw.match(/【心声】\s*([\s\S]*?)(?=【回复】|【动作】|【翻译】|$)/);
-  var translationMatch = raw.match(/【翻译】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|$)/);
-  if (replyMatch || actionMatch || thoughtMatch || translationMatch) {
-    if (replyMatch)      result.content     = replyMatch[1].trim();
-    if (actionMatch)     result.innerAction = actionMatch[1].trim();
-    if (thoughtMatch)    result.innerThought = thoughtMatch[1].trim();
-    if (translationMatch) result.translation = translationMatch[1].trim();
-  }
+  var result = {
+    content: raw,
+    innerAction: '',
+    innerThought: '',
+    translation: '',
+    affection: '',
+    wannaDo: ''
+  };
+
+  var tags = ['回复','动作','心声','翻译','好感','想要'];
+  var tagPattern = tags.map(function(t) { return '【' + t + '】'; }).join('|');
+  var hasAny = new RegExp(tagPattern).test(raw);
+  if (!hasAny) return result;
+
+  var replyMatch       = raw.match(/【回复】\s*([\s\S]*?)(?=【动作】|【心声】|【翻译】|【好感】|【想要】|$)/);
+  var actionMatch      = raw.match(/【动作】\s*([\s\S]*?)(?=【回复】|【心声】|【翻译】|【好感】|【想要】|$)/);
+  var thoughtMatch     = raw.match(/【心声】\s*([\s\S]*?)(?=【回复】|【动作】|【翻译】|【好感】|【想要】|$)/);
+  var translationMatch = raw.match(/【翻译】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|【好感】|【想要】|$)/);
+  var affectionMatch   = raw.match(/【好感】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|【翻译】|【想要】|$)/);
+  var wannaMatch       = raw.match(/【想要】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|【翻译】|【好感】|$)/);
+
+  if (replyMatch)       result.content      = replyMatch[1].trim();
+  if (actionMatch)      result.innerAction  = actionMatch[1].trim();
+  if (thoughtMatch)     result.innerThought = thoughtMatch[1].trim();
+  if (translationMatch) result.translation  = translationMatch[1].trim();
+  if (affectionMatch)   result.affection    = affectionMatch[1].trim();
+  if (wannaMatch)       result.wannaDo      = wannaMatch[1].trim();
+
   return result;
 }
 
@@ -217,17 +234,14 @@ function stripTransferTags(contentStr) {
 function _computeGroupPositions(msgs) {
   var positions = new Array(msgs.length);
   for (var i = 0; i < msgs.length; i++) {
-    // 系统消息不参与分组
     if (msgs[i].type === 'call-summary') {
       positions[i] = 'system';
       continue;
     }
-    // 找前一条非系统消息
     var prevIdx = -1;
     for (var j = i - 1; j >= 0; j--) {
       if (msgs[j].type !== 'call-summary') { prevIdx = j; break; }
     }
-    // 找后一条非系统消息
     var nextIdx = -1;
     for (var k = i + 1; k < msgs.length; k++) {
       if (msgs[k].type !== 'call-summary') { nextIdx = k; break; }
@@ -254,14 +268,12 @@ function renderChat() {
   var ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
   if (!ch) return;
 
-  // ——— 更新顶栏 ———
   document.getElementById('chatName').textContent = ch.name;
   var avatarEl = document.getElementById('chatAvatar');
   avatarEl.innerHTML = ch.avatar
     ? '<img src="' + ch.avatar + '">'
     : _defaultHeaderAvatar();
 
-  // 备注行
   var notesEl = document.getElementById('chatNotes');
   if (notesEl) {
     var cfg = getCharConfig(state.currentCharId);
@@ -283,13 +295,11 @@ function renderChat() {
   var multiClass = bubbleState.multiMode ? ' multi-mode' : '';
   var charCfg    = getCharConfig(state.currentCharId);
 
-  // ——— 计算分组 ———
   var groupPos = _computeGroupPositions(msgs);
 
   var h = '';
 
   msgs.forEach(function(msg, i) {
-    // ——— 时间标签：第一条 或 与上一条间隔 > 3 分钟 ———
     if (i === 0 || (msg.timestamp - msgs[i - 1].timestamp > 180000)) {
       h += '<div class="msg-time">' + fmtChatTime(msg.timestamp) + '</div>';
     }
@@ -305,7 +315,6 @@ function renderChat() {
       '<svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg></div>';
     var isRecalled = msg.recalled || msg.type === 'recalled';
 
-    // ——— 系统消息（通话摘要）———
     if (msg.type === 'call-summary') {
       var refClick = msg.callRefId
         ? ' onclick="viewCallHistory(\'' + msg.callRefId + '\')"'
@@ -315,7 +324,6 @@ function renderChat() {
       return;
     }
 
-    // ——— 撤回消息 ———
     if (isRecalled) {
       var viewBtn = msg.originalContent
         ? '<button class="recalled-view-btn" onclick="event.stopPropagation();viewRecalledMsg(\'' + msg.id + '\')">' +
@@ -329,7 +337,6 @@ function renderChat() {
       return;
     }
 
-    // ——— 朋友圈消息 ———
     if (msg.type === 'moment') {
       h += '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected +
         '" data-msgid="' + msg.id + '">' + checkSvg +
@@ -354,7 +361,6 @@ function renderChat() {
     var extras = buildMsgExtraActions(msg.id, !sent, false);
     var hasTranslation = charCfg.translation && msg.translation;
 
-    // ——— 构建行前缀 ———
     var rowOpen = '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected +
       '" data-msgid="' + msg.id + '">' + checkSvg +
       '<div class="msg-avatar">' + av + '</div>';
@@ -383,7 +389,6 @@ function renderChat() {
           quoteHtml + fmtMsg(msg.content) + editedMark + '</div>' + rowClose;
       }
     } else {
-      // ——— 接收方：解析多段回复 ———
       var segs = parseReplySegments(msg.content, state.stickers);
       var recvExtras = buildMsgExtraActions(msg.id, true, false);
       var lastTextIdx = segs.reduce(function(acc, seg, idx) {
@@ -394,7 +399,6 @@ function renderChat() {
         var segBubbleId = msg.id + '__seg' + segIdx;
         var isLastText  = segIdx === lastTextIdx;
 
-        // 多段消息：只有第一段用当前组位置，后续段作为 middle
         var segGpClass = gpClass;
         if (segs.length > 1 && segIdx > 0) {
           segGpClass = ' group-middle';
@@ -432,7 +436,6 @@ function renderChat() {
 
   ct.innerHTML = h;
 
-  // ——— 绑定长按事件 ———
   ct.querySelectorAll('.msg-row[data-msgid]').forEach(function(row) {
     var msgId = row.dataset.msgid;
     row.querySelectorAll('.msg-bubble').forEach(function(el) {
@@ -461,17 +464,32 @@ function acceptCall(mid) {
 
 function declineCall(mid) {
   var m = (state.chats[state.currentCharId] || []).find(function(x) { return x.id === mid; });
-  if (m) { m.callStatus = 'declined'; saveState(); renderChat(); showToast('已拒绝通话'); }
+  if (m) {
+    m.callStatus = 'declined';
+    saveState();
+    renderChat();
+    showToast('已拒绝通话');
+  }
 }
 
 function acceptTransfer(mid) {
   var m = (state.chats[state.currentCharId] || []).find(function(x) { return x.id === mid; });
-  if (m) { m.transferStatus = 'accepted'; saveState(); renderChat(); showToast('已领取'); }
+  if (m) {
+    m.transferStatus = 'accepted';
+    saveState();
+    renderChat();
+    showToast('已领取');
+  }
 }
 
 function declineTransfer(mid) {
   var m = (state.chats[state.currentCharId] || []).find(function(x) { return x.id === mid; });
-  if (m) { m.transferStatus = 'declined'; saveState(); renderChat(); showToast('已拒绝'); }
+  if (m) {
+    m.transferStatus = 'declined';
+    saveState();
+    renderChat();
+    showToast('已拒绝');
+  }
 }
 
 function toggleVoiceText(el) {
@@ -561,15 +579,24 @@ async function triggerResponse() {
     var chatMsgs = allChatMsgs.slice(-contextCount);
 
     var reply = await sendChat(api, [
-   { role: 'system', content: sysPrompt },
-   ...chatMsgs
- ]);
+      { role: 'system', content: sysPrompt },
+      ...chatMsgs
+    ]);
 
     var rawReply = reply || '';
     processTransferDecision(state.currentCharId, rawReply);
 
     var parsed = parseThreePartReply(rawReply);
     parsed.content = stripTransferTags(parsed.content);
+
+    // Store affection into charConfig
+    if (parsed.affection) {
+      var affNum = parseInt(parsed.affection, 10);
+      if (!isNaN(affNum)) {
+        charCfg.affection = Math.max(0, Math.min(100, affNum));
+        saveCharConfig();
+      }
+    }
 
     var splitParts = parsed.content
       .split('---SPLIT---')
@@ -586,6 +613,7 @@ async function triggerResponse() {
         if (idx === splitParts.length - 1) {
           if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
           if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
+          if (parsed.wannaDo)      newMsg.wannaDo      = parsed.wannaDo;
         }
         if (translationParts.length >= splitParts.length) {
           newMsg.translation = translationParts[idx];
@@ -600,6 +628,7 @@ async function triggerResponse() {
       var newMsg = { id: uid(), role: 'assistant', content: parsed.content, type: 'text', timestamp: Date.now() };
       if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
       if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
+      if (parsed.wannaDo)      newMsg.wannaDo      = parsed.wannaDo;
       if (parsed.translation)  newMsg.translation  = parsed.translation;
       state.chats[state.currentCharId].push(newMsg);
     }

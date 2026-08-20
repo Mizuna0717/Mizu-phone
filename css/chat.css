@@ -26,7 +26,6 @@
   overflow: visible;
 }
 
-/* ① Top gradient — reduced from ~80px to ~40px */
 .chat-header::before {
   content: "";
   position: absolute;
@@ -46,7 +45,6 @@
   z-index: -1;
 }
 
-/* --- Back Button — 42 px glass circle --- */
 .chat-header .ch-back {
   width: 42px;
   height: 42px;
@@ -73,7 +71,6 @@
   stroke-width: 2.8;
 }
 
-/* --- Center — Large avatar + glass name pill --- */
 .chat-header .ch-center {
   display: flex;
   flex-direction: column;
@@ -108,7 +105,6 @@
   display: block;
 }
 
-/* Name — glass morphism pill with ">" suffix */
 .chat-header .ch-name {
   font-size: 15px;
   font-weight: 600;
@@ -150,7 +146,6 @@
   max-width: 160px;
 }
 
-/* --- Edit / Menu Button — 42 px glass circle --- */
 .chat-header .ch-edit {
   width: 42px;
   height: 42px;
@@ -188,16 +183,15 @@
   background: transparent;
 }
 
-/* Bottom spacer */
 .chat-messages::after {
   content: "";
   display: block;
-  height: 12px;
+  height: 6px;
   flex-shrink: 0;
 }
 
 /* ============================================================
-   TIME LABEL — "iMessage信息" prefix
+   TIME LABEL
    ============================================================ */
 .msg-time {
   display: flex;
@@ -226,7 +220,7 @@
 }
 
 /* ============================================================
-   MESSAGE ROW — Base + Grouping
+   MESSAGE ROW
    ============================================================ */
 .msg-row {
   display: flex;
@@ -237,13 +231,11 @@
   position: relative;
 }
 
-/* Between-group spacing */
 .msg-row.group-first,
 .msg-row.group-solo {
   margin-top: 15px;
 }
 
-/* After time / system / first-child */
 .chat-messages > .msg-row:first-child,
 .msg-time + .msg-row,
 .msg-system-center + .msg-row {
@@ -269,7 +261,7 @@
 }
 
 /* ============================================================
-   AVATAR — Bottom-aligned, visible on last / solo only
+   AVATAR
    ============================================================ */
 .msg-avatar {
   width: 36px;
@@ -323,49 +315,39 @@
   opacity: .7;
 }
 
-/* --- Sent (user): medium gray + white text --- */
 .msg-row.sent .msg-bubble {
   background: #A0A0A0;
   color: #ffffff;
 }
 
-/* --- Received (AI): light gray + black text --- */
 .msg-row.received .msg-bubble {
   background: #E9E9EA;
   color: #000000;
 }
 
 /* ============================================================
-   ⑤ BUBBLE BORDER-RADIUS — Group Position (NO tails)
-   All ::after tails removed. Group-last/solo get a small
-   4px corner on the side closest to the avatar.
+   BUBBLE BORDER-RADIUS — uniform 20px, no tails
    ============================================================ */
-
-/* --- Received: last / solo → bottom-left 4px --- */
-.msg-row.received.group-last .msg-bubble,
-.msg-row.received.group-solo .msg-bubble {
-  border-radius: 20px 20px 20px 4px;
-}
-
-/* --- Received: last / solo → 统一圆角 --- */
 .msg-row.received.group-last .msg-bubble,
 .msg-row.received.group-solo .msg-bubble {
   border-radius: 20px;
 }
 
-/* --- Sent: last / solo → 统一圆角 --- */
+.msg-row.received.group-first .msg-bubble,
+.msg-row.received.group-middle .msg-bubble {
+  border-radius: 20px;
+}
+
 .msg-row.sent.group-last .msg-bubble,
 .msg-row.sent.group-solo .msg-bubble {
   border-radius: 20px;
 }
 
-/* --- Sent: first / middle → uniform 20px --- */
 .msg-row.sent.group-first .msg-bubble,
 .msg-row.sent.group-middle .msg-bubble {
   border-radius: 20px;
 }
 
-/* ⑤ Kill ALL ::after tails globally */
 .msg-bubble::after {
   content: none !important;
   display: none !important;
@@ -459,7 +441,7 @@
 }
 
 /* ============================================================
-   ④ IMAGE BUBBLE — Clean card, 16px radius, subtle shadow
+   IMAGE BUBBLE
    ============================================================ */
 .msg-bubble.image-msg {
   padding: 0 !important;
@@ -480,7 +462,7 @@
 }
 
 /* ============================================================
-   ④ SIM-IMAGE BUBBLE — Minimal placeholder card
+   SIM-IMAGE BUBBLE
    ============================================================ */
 .msg-bubble.sim-image-msg {
   min-width: 160px;
@@ -520,27 +502,17 @@
   word-break: break-word;
 }
 
-/* Override sent/received specific sim-image colors for uniformity */
-.msg-row.sent .sim-image-box {
-  background: #f2f2f7;
-}
-
-.msg-row.sent .sim-image-box svg {
-  stroke: #c7c7cc;
-}
-
-.msg-row.sent .sim-image-box .sim-desc {
-  color: #8e8e93;
-}
-
+.msg-row.sent .sim-image-box,
 .msg-row.received .sim-image-box {
   background: #f2f2f7;
 }
 
+.msg-row.sent .sim-image-box svg,
 .msg-row.received .sim-image-box svg {
   stroke: #c7c7cc;
 }
 
+.msg-row.sent .sim-image-box .sim-desc,
 .msg-row.received .sim-image-box .sim-desc {
   color: #8e8e93;
 }
@@ -588,13 +560,13 @@
 }
 
 /* ============================================================
-   ② INPUT BAR — Moved up, reduced bottom padding
+   INPUT BAR — Further moved up
    ============================================================ */
 .chat-input-bar {
   display: flex;
   align-items: flex-end;
-  padding: 6px 12px;
-  padding-bottom: max(4px, calc(env(safe-area-inset-bottom, 0px) + 2px));
+  padding: 4px 12px 0;
+  padding-bottom: max(0px, env(safe-area-inset-bottom, 0px));
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -605,18 +577,17 @@
   z-index: 30;
 }
 
-/* ① Bottom gradient — reduced from 85px to 40px */
 .chat-input-bar::before {
   content: "";
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 40px;
+  height: 36px;
   background: linear-gradient(
     to top,
     rgba(255, 255, 255, 0.38) 0%,
-    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.20) 50%,
     rgba(255, 255, 255, 0) 100%
   );
   backdrop-filter: blur(10px);
@@ -625,7 +596,6 @@
   z-index: -1;
 }
 
-/* --- Plus / Respond buttons — 30 px glass circles --- */
 .chat-btn {
   width: 30px;
   height: 30px;
@@ -686,7 +656,6 @@
   animation: spin .8s linear infinite;
 }
 
-/* --- Input Wrap — Glass pill with custom placeholder --- */
 .chat-input-wrap {
   flex: 1;
   position: relative;
@@ -716,13 +685,11 @@
   z-index: 2;
 }
 
-/* Hide native placeholder */
 .chat-input-wrap textarea::placeholder {
   color: transparent !important;
   opacity: 0 !important;
 }
 
-/* Custom "iMessage信息" placeholder via ::after */
 .chat-input-wrap::after {
   content: "iMessage\4FE1\606F";
   position: absolute;
@@ -741,9 +708,6 @@
   display: none;
 }
 
-/* ============================================================
-   ③ SEND BUTTON — SVG paper-plane on light gray circle
-   ============================================================ */
 .chat-send-btn {
   width: 30px;
   height: 30px;
@@ -764,7 +728,6 @@
   background: #a0a0a5;
 }
 
-/* Show SVG icon */
 .chat-send-btn svg {
   width: 14px;
   height: 14px;
@@ -843,4 +806,37 @@
 .clear-btn-sticky .form-btn.danger:active {
   opacity: 0.85;
   transform: scale(0.98);
+}
+
+/* ============================================================
+   HEART VOICE — Affection progress bar
+   ============================================================ */
+.hv-affection-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.hv-affection-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.hv-affection-fill {
+  height: 100%;
+  background: #a0a0a5;
+  border-radius: 3px;
+  transition: width .3s ease;
+}
+
+.hv-affection-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3a3a3c;
+  min-width: 36px;
+  text-align: right;
 }
