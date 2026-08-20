@@ -53,7 +53,7 @@ function nav(id) {
   document.getElementById(id).classList.add('active');
   closePlusMenu(); closeStickerPanel(); closeBubbleMenu(); closeChatMenu();
   if (id === 'screen-settings') renderSettings();
-  if (id === 'screen-imessage') { renderCharList(); renderMaskList(); renderProfileInfo(); renderProfileStickers(); }
+  if (id === 'screen-imessage') { switchImsgTab(state.imsgTab || 'messages'); }
   if (id === 'screen-worldbook') renderWbList();
   if (id === 'screen-chat') renderChat();
   if (id === 'screen-home') updateHomeBadge();
@@ -92,4 +92,32 @@ function updatePhoneTime() {
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const del = document.getElementById('phoneDate');
   if (del) del.textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
+}
+// ========== iMessage 标签切换 ==========
+function switchImsgTab(tab) {
+  // ★ 校验 tab 合法性，防止异常值导致所有渲染分支都不命中
+  if (!['messages', 'groups', 'moments', 'profile'].includes(tab)) tab = 'messages';
+  state.imsgTab = tab;
+  saveState();
+               // ★ 新增：持久化当前标签
+  document.querySelectorAll('.imsg-tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.imsg-bottom-tab').forEach(el => el.classList.remove('active'));
+
+  const tabId = 'imsgTab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+  const el = document.getElementById(tabId);
+  if (el) el.classList.add('active');
+
+  const tabBtn = document.querySelector(`.imsg-bottom-tab[data-tab="${tab}"]`);
+  if (tabBtn) tabBtn.classList.add('active');
+
+  // 更新大标题
+  const titleMap = { messages: 'Messages', groups: 'Groups', moments: 'Moments', profile: 'Profile' };
+  const lt = document.getElementById('imsgLargeTitle');
+  if (lt) lt.textContent = titleMap[tab] || 'Messages';
+
+  // 根据标签渲染对应内容
+  if (tab === 'messages') renderCharList();
+  if (tab === 'groups') renderGroups();
+  if (tab === 'moments') renderMoments();
+  if (tab === 'profile') { renderMaskList(); renderProfileInfo(); renderProfileStickers(); }
 }

@@ -14,8 +14,21 @@ function getCharConfig(cid) {
     lastConsolidateCount: 0
   };
   const cfg = state.charConfig[cid];
+  // 已有字段兼容
   if (cfg.consolidateInterval === undefined) cfg.consolidateInterval = 5;
   if (cfg.lastConsolidateCount === undefined) cfg.lastConsolidateCount = 0;
+
+  // ★ 聊天设置新增字段默认值 ★
+  if (cfg.replyMin === undefined) cfg.replyMin = 1;
+  if (cfg.replyMax === undefined) cfg.replyMax = 3;
+  if (cfg.timeAwareness === undefined) cfg.timeAwareness = false;
+  if (cfg.charRecall === undefined) cfg.charRecall = false;
+  if (cfg.autoMoments === undefined) cfg.autoMoments = false;
+  if (cfg.momentsInterval === undefined) cfg.momentsInterval = 6;
+  if (cfg.translation === undefined) cfg.translation = false;
+  if (cfg.autoMessage === undefined) cfg.autoMessage = false;
+  if (cfg.autoMessageInterval === undefined) cfg.autoMessageInterval = 10;
+
   return cfg;
 }
 

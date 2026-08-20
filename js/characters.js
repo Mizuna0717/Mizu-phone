@@ -1,5 +1,4 @@
 // ========== 10-characters.js ==========
-// 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js
 
 // ========== DRAWER ==========
 function openDrawer() { updateDrawerCounts(); document.getElementById('drawerMask').classList.add('open'); }
@@ -53,6 +52,7 @@ function getFilteredChars() {
 
 function renderCharList() {
   const body = document.getElementById('charListBody');
+  if (!body) return;                    // ★ DOM 元素不存在时安全退出
   if (!state.characters.length) {
     body.innerHTML = `<div class="empty-state"><svg viewBox="0 0 48 48"><path d="M12 6h24a2 2 0 012 2v24a2 2 0 01-2 2H20l-8 6v-6h-2a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg><p>${T('noConversations')}<br>${T('tapCreateChar')}</p></div>`;
     return;
@@ -63,7 +63,17 @@ function renderCharList() {
   chars.forEach(ch => {
     const msgs = state.chats[ch.id] || [], last = msgs.length ? msgs[msgs.length - 1] : null;
     const prefix = last ? ({ voice: '🎤', sticker: '🖼', transfer: '💰', image: '📷', simImage: '📷' }[last.type] || '') : '';
-    let lt = last ? prefix + ' ' + (last.content || '').slice(0, 25) : T('startConversation');
+
+    // ★★★ 问题三修复：优先显示 notes 备注，无备注则显示最后一条消息预览 ★★★
+    let lt;
+    if (ch.notes && ch.notes.trim()) {
+      lt = ch.notes.trim();
+    } else if (last) {
+      lt = prefix + ' ' + (last.content || '').slice(0, 25);
+    } else {
+      lt = T('startConversation');
+    }
+
     const ur = state.unread[ch.id] || 0;
     h += `<div class="list-item" onclick="openChat('${ch.id}')"><div class="li-avatar">${charAvatarImg(ch)}</div><div class="li-info"><div class="li-title">${esc(ch.name)}</div><div class="li-sub">${esc(lt)}</div></div>${ur > 0 ? `<div class="num-badge">${ur}</div>` : ''}<span class="li-arrow">›</span></div>`;
   });
@@ -112,14 +122,36 @@ function saveChar() {
   const av = tmp.charAvatar;
   const wbIds = [];
   document.querySelectorAll('#charWbList .checkbox.checked').forEach(cb => wbIds.push(cb.dataset.wbid));
+
   if (state.editingCharId) {
+    // ---- 编辑已有角色 ----
     const ch = state.characters.find(c => c.id === state.editingCharId);
     if (ch) Object.assign(ch, { name, notes, systemPrompt: sp, avatar: av, worldbookIds: wbIds });
   } else {
+    // ---- 新建角色 ----
     const nid = uid();
-    state.characters.push({ id: nid, name, notes, systemPrompt: sp, avatar: av, worldbookIds: wbIds });
+
+    // ★ 确保"Default"分组存在，若不存在则自动创建
+    if (!state.groups) state.groups = [];
+    let defaultGroup = state.groups.find(g => g.name === 'Default');
+    if (!defaultGroup) {
+      defaultGroup = { id: uid(), name: 'Default', charIds: [], createdAt: Date.now() };
+      state.groups.push(defaultGroup);
+    }
+
+    // ★ 新角色自动归入 Default 分组
+    state.characters.push({
+      id: nid,
+      name,
+      notes,
+      systemPrompt: sp,
+      avatar: av,
+      worldbookIds: wbIds,
+      groupId: defaultGroup.id
+    });
     state.chats[nid] = [];
   }
+
   saveState();
   showToast(T('charSaved'));
   nav(state.charEditFrom || 'screen-imessage');

@@ -1,6 +1,4 @@
 // ========== 02-state.js ==========
-// 依賴：01-config.js (DEFAULT_REPLY_PROMPT)
-
 let state = {
   apis: [],
   activeApiId: null,
@@ -27,7 +25,10 @@ let state = {
   replyPrompt: null,
   charConfig: {},
   phoneData: {},
-  bookmarks: []
+  bookmarks: [],
+  // ★ 新增
+  groups: [],
+  moments: []
 };
 
 let bubbleState = {
@@ -53,14 +54,17 @@ let tmp = {
   imgType: 'real',
   realImageData: null,
   memPhoto: null,
-  memMood: ''
+  memMood: '',
+  // ★ 新增
+  expandedGroups: new Set()
 };
 
-// ========== PERSISTENCE ==========
 const SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
-  'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks'
+  'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
+  'groups', 'moments',
+  'imsgTab'                       // ★ 新增：持久化当前标签页
 ];
 
 function saveState() {
@@ -82,4 +86,6 @@ function loadState() {
   if (!state.bookmarks) state.bookmarks = [];
   if (state.replyPrompt == null) state.replyPrompt = DEFAULT_REPLY_PROMPT;
   if (!state.charConfig) state.charConfig = {};
+  if (!state.groups) state.groups = [];
+  if (!state.moments) state.moments = [];
 }

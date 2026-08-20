@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="css/modals.css">
 <link rel="stylesheet" href="css/couple.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/social.css">
 
 	</head>
 	<body>
@@ -276,7 +277,37 @@
 	<div class="imsg-tab-content active" id="imsgTabMessages">
 		<div id="charListBody" style="flex:1;overflow-y:auto"></div>
 	</div>
-	<div class="imsg-tab-content" id="imsgTabProfile">
+	
+<!-- ★ 好友分组标签内容 ★ -->
+<div class="imsg-tab-content" id="imsgTabGroups">
+    <div style="flex:1;overflow-y:auto;padding:16px 16px 20px">
+        <div class="social-tab-header">
+            <span class="social-tab-title">Groups</span>
+            <button class="social-tab-action" onclick="openNewGroupModal()" title="新建分组">
+                <svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+        <div id="groupsListBody"></div>
+    </div>
+</div>
+
+
+<!-- ★ 朋友圈标签内容 ★ -->
+<div class="imsg-tab-content" id="imsgTabMoments">
+    <div style="flex:1;overflow-y:auto;padding:16px 16px 20px">
+        <div class="social-tab-header">
+            <span class="social-tab-title">Moments</span>
+            <button class="social-tab-action" onclick="openNewMomentModal()" title="发布">
+                <svg viewBox="0 0 16 16"><path d="M12 2l2 2M2 12v2h2l8-8-2-2L2 12z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+        </div>
+        <div id="momentsListBody"></div>
+    </div>
+</div>
+
+
+<div class="imsg-tab-content" id="imsgTabProfile">
+
 		<div style="flex:1;overflow-y:auto">
 			<div class="profile-hero">
 				<div class="profile-avatar-lg" onclick="document.getElementById('userAvatarInput').click()">
@@ -328,17 +359,24 @@
 		</div>
 	</div>
 	<div class="imsg-bottom-tabs">
-		<div class="imsg-bottom-tab active" data-tab="messages" onclick="switchImsgTab('messages')">
-			<svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v10a2 2 0 01-2 2H8l-4 3v-3a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
-			<span>Messages</span>
-		</div>
-		<div class="imsg-bottom-tab" data-tab="profile" onclick="switchImsgTab('profile')">
-			<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-			<span>Profile</span>
-		</div>
-	</div>
+    <div class="imsg-bottom-tab active" data-tab="messages" onclick="switchImsgTab('messages')">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v10a2 2 0 01-2 2H8l-4 3v-3a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+        <span>Messages</span>
+    </div>
+    <div class="imsg-bottom-tab" data-tab="groups" onclick="switchImsgTab('groups')">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><path d="M2 20c0-3.5 3-6.5 7-6.5 1.5 0 2.8.4 4 1"/><path d="M14 20c0-3.5 2-6.5 5-6.5s5 3 5 6.5"/></svg>
+        <span>Groups</span>
+    </div>
+    <div class="imsg-bottom-tab" data-tab="moments" onclick="switchImsgTab('moments')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>
+        <span>Moments</span>
+    </div>
+    <div class="imsg-bottom-tab" data-tab="profile" onclick="switchImsgTab('profile')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        <span>Profile</span>
+    </div>
 </div>
-
+</div>
 
 				<!-- CHAR EDIT -->
 				<div class="screen" id="screen-char-edit">
@@ -413,25 +451,37 @@
 
 				<!-- CHAT -->
 <div class="screen" id="screen-chat">
+
+    <!-- 聊天标题栏 -->
     <div class="chat-header" id="chatHeaderNormal">
         <button class="ch-back" onclick="nav('screen-imessage')">
             <svg viewBox="0 0 22 22"><path d="M14 4l-8 7 8 7"/></svg>
         </button>
-        <div class="ch-avatar" id="chatAvatar"></div>
-        <span class="ch-name" id="chatName"></span>
+        <div class="ch-avatar" id="chatAvatar" onclick="openHeartVoicePanel()"></div>
+        <div class="ch-title-wrap" style="display:flex;flex-direction:column;justify-content:center;overflow:hidden;flex:1;min-width:0;">
+            <span class="ch-name" id="chatName"></span>
+            <span class="ch-notes" id="chatNotes" style="font-size:11px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none;"></span>
+        </div>
         <button class="ch-edit" onclick="toggleChatMenu()">
             <svg viewBox="0 0 22 22"><circle cx="11" cy="4" r="1.5"/><circle cx="11" cy="11" r="1.5"/><circle cx="11" cy="18" r="1.5"/></svg>
         </button>
     </div>
+
+    <!-- 多选操作栏 -->
     <div class="bubble-action-bar" id="bubbleActionBar">
         <button class="bab-close" onclick="exitMultiSelect()"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg></button>
         <span class="bab-count" id="babCount">0</span>
         <button class="bab-btn" onclick="bookmarkSelected()"><svg viewBox="0 0 18 18"><path d="M4 2h10a1 1 0 011 1v14l-6-3-6 3V3a1 1 0 011-1z"/></svg><span>收藏</span></button>
         <button class="bab-btn danger" onclick="deleteSelected()"><svg viewBox="0 0 18 18"><path d="M3 5h12M7 5V4a1 1 0 011-1h2a1 1 0 011 1v1M5 5v10a1 1 0 001 1h6a1 1 0 001-1V5"/></svg><span>删除</span></button>
     </div>
+
     <div class="chat-messages" id="chatMessages"></div>
+
+    <!-- Bubble长按菜单 -->
     <div class="bubble-menu-overlay" id="bubbleMenuOverlay" onclick="closeBubbleMenu()"></div>
     <div class="bubble-menu" id="bubbleMenu"></div>
+
+    <!-- 三点菜单 -->
     <div class="chat-menu-overlay" id="chatMenuOverlay" onclick="closeChatMenu()"></div>
     <div class="chat-menu" id="chatMenu">
         <div class="chat-menu-item" onclick="closeChatMenu();editCharFromChat()">
@@ -442,11 +492,20 @@
             <svg viewBox="0 0 18 18"><rect x="2" y="2" width="14" height="14" rx="3"/><path d="M6 7h6M6 10h4M6 13h5"/></svg>
             <span>记忆与上下文</span>
         </div>
-        <div class="chat-menu-item" onclick="closeChatMenu();nav('screen-bookmarks')">
+		                <div class="chat-menu-item" onclick="closeChatMenu();nav('screen-bookmarks')">
             <svg viewBox="0 0 18 18"><path d="M4 2h10a1 1 0 011 1v14l-6-3-6 3V3a1 1 0 011-1z"/></svg>
             <span>收藏</span>
         </div>
+        <div class="chat-menu-item" onclick="closeChatMenu();openChatSettings()">
+            <svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="3"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.2 4.2l1.4 1.4M12.4 12.4l1.4 1.4M4.2 13.8l1.4-1.4M12.4 5.6l1.4-1.4"/></svg>
+            <span>聊天设置</span>
+        </div>
     </div>
+
+
+
+
+    <!-- 贴图面板 -->
     <div class="sticker-panel" id="stickerPanel">
         <div class="sticker-panel-header">
             <span>表情包</span>
@@ -459,11 +518,15 @@
         </div>
         <div class="sticker-grid" id="stickerGrid"></div>
     </div>
+
+    <!-- 引用栏 -->
     <div class="chat-quote-bar" id="chatQuoteBar">
         <div class="cqb-line"></div>
         <div class="cqb-text" id="cqbText"></div>
         <button class="cqb-close" onclick="clearQuote()"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg></button>
     </div>
+
+    <!-- 输入栏 -->
     <div class="chat-input-bar">
         <button class="chat-btn" onclick="togglePlusMenu()">
             <svg viewBox="0 0 22 22"><path d="M11 4v14M4 11h14" stroke-width="2" stroke-linecap="round"/></svg>
@@ -478,8 +541,22 @@
             <svg viewBox="0 0 16 16"><path d="M3 13l10-5L3 3v4l6 1-6 1z" fill="#fff" stroke="none"/></svg>
         </button>
     </div>
+
+    <!-- 加号菜单 -->
     <div class="plus-menu-overlay" id="plusMenuOverlay" onclick="closePlusMenu()"></div>
     <div class="plus-menu" id="plusMenu">
+        <div class="plus-menu-item" onclick="openCallModal()">
+            <svg viewBox="0 0 22 22">
+                <path d="M6.6 3H4.5A1.5 1.5 0 003 4.5c0 8.284 6.716 15 15 15a1.5 1.5 0 001.5-1.5v-2.1a1.5 1.5 0 00-1.05-1.43l-3.15-.9a1.5 1.5 0 00-1.47.37l-1.07 1.07A12.04 12.04 0 017.55 9.84l1.07-1.07a1.5 1.5 0 00.37-1.47l-.9-3.15A1.5 1.5 0 006.66 3z"/>
+            </svg>
+            <span>电话</span>
+        </div>
+        <div class="plus-menu-item" onclick="openReturnConfirm()">
+            <svg viewBox="0 0 22 22">
+                <path d="M4 8l4-4m0 0L4 8m4-4v8a4 4 0 004 4h4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <span>重回</span>
+        </div>
         <div class="plus-menu-item" onclick="openVoiceModal()">
             <svg viewBox="0 0 22 22"><rect x="8" y="2" width="6" height="12" rx="3"/><path d="M4 10a7 7 0 0014 0"/><path d="M11 17v3"/></svg>
             <span>语音</span>
@@ -497,9 +574,95 @@
             <span>图片</span>
         </div>
     </div>
-</div>
 
+    <!-- ===== 电话模态框（居中） ===== -->
+    <div class="modal-overlay center-modal-overlay" id="callModal" onclick="if(event.target===this)closeModal('callModal')">
+        <div class="modal call-modal">
+            <div class="modal-header">
+                <span>选择通话方式</span>
+                <button class="modal-close" onclick="closeModal('callModal')">
+                    <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+                </button>
+            </div>
+            <div class="call-options">
+                <button class="call-option-btn" onclick="startCall('voice')">
+                    <svg viewBox="0 0 40 40" class="call-option-icon">
+                        <path d="M12.6 8H9.5A2.5 2.5 0 007 10.5c0 10.77 8.73 19.5 19.5 19.5a2.5 2.5 0 002.5-2.5v-3.1a2.5 2.5 0 00-1.75-2.38l-4.2-1.2a2.5 2.5 0 00-2.45.62l-1.42 1.42A16.06 16.06 0 0112.12 15.8l1.42-1.42a2.5 2.5 0 00.62-2.45l-1.2-4.2A2.5 2.5 0 0012.6 8z" stroke="#3a3a3c" stroke-width="1.5" fill="none"/>
+                    </svg>
+                    <span>语音通话</span>
+                </button>
+                <button class="call-option-btn" onclick="startCall('video')">
+                    <svg viewBox="0 0 40 40" class="call-option-icon">
+                        <rect x="4" y="10" width="21" height="16" rx="3" stroke="#3a3a3c" stroke-width="1.5" fill="none"/>
+                        <path d="M25 15l9-4v18l-9-4z" stroke="#3a3a3c" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    <span>视频通话</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <!-- ===== 重回确认模态框（居中） ===== -->
+    <div class="modal-overlay center-modal-overlay" id="returnConfirmModal" onclick="if(event.target===this)closeModal('returnConfirmModal')">
+        <div class="modal return-confirm-modal">
+            <div class="modal-header">
+                <span>重回</span>
+                <button class="modal-close" onclick="closeModal('returnConfirmModal')">
+                    <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+                </button>
+            </div>
+            <div class="return-confirm-body">
+                <svg viewBox="0 0 48 48" class="return-confirm-icon">
+                    <path d="M8 16l8-8m0 0L8 16m8-8v16a8 8 0 008 8h8" stroke="#3a3a3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>
+                <p class="return-confirm-text">将删除最后一条AI回复并重新生成，是否继续？</p>
+            </div>
+            <div class="return-confirm-actions">
+                <button class="return-cancel-btn" onclick="closeModal('returnConfirmModal')">取消</button>
+                <button class="return-ok-btn" onclick="confirmReturn()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 心声面板（居中模态卡片） ===== -->
+    <div class="modal-overlay center-modal-overlay" id="heartVoiceOverlay" onclick="if(event.target===this)closeHeartVoicePanel()">
+        <div class="heart-voice-card" id="heartVoicePanel">
+            <div class="hv-header">
+                <span class="hv-title">心声</span>
+                <button class="hv-close" onclick="closeHeartVoicePanel()">
+                    <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+                </button>
+            </div>
+            <div class="hv-avatar-section">
+                <div class="hv-avatar" id="hvAvatar"></div>
+                <div class="hv-char-name" id="hvCharName"></div>
+            </div>
+            <div class="hv-content">
+                <div class="hv-section">
+                    <div class="hv-section-label">
+                        <svg viewBox="0 0 18 18" width="16" height="16">
+                            <path d="M2 9s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z" stroke="#3a3a3c" stroke-width="1.3" fill="none"/>
+                            <circle cx="9" cy="9" r="2" stroke="#3a3a3c" stroke-width="1.3" fill="none"/>
+                        </svg>
+                        <span>当前动作</span>
+                    </div>
+                    <p class="hv-section-text" id="hvActionText">（静静地看着你）</p>
+                </div>
+                <div class="hv-divider"></div>
+                <div class="hv-section">
+                    <div class="hv-section-label">
+                        <svg viewBox="0 0 18 18" width="16" height="16">
+                            <path d="M9 16s-7-4.5-7-9A4 4 0 019 4.5 4 4 0 0116 7c0 4.5-7 9-7 9z" stroke="#3a3a3c" stroke-width="1.3" fill="none" stroke-linejoin="round"/>
+                        </svg>
+                        <span>内心想法</span>
+                    </div>
+                    <p class="hv-section-text hv-thought" id="hvThoughtText">（正在思考……）</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- #screen-chat 结束 -->
 
 				<!-- WORLDBOOK LIST -->
 				<div class="screen" id="screen-worldbook">
@@ -576,210 +739,70 @@
 
 
 				<!-- PHONE -->
-				<div class="screen" id="screen-phone">
-					<div class="nav-bar" style="background:#1a1a1e">
-						<button class="nav-btn" onclick="nav('screen-home')">
-							<svg viewBox="0 0 20 20">
-								<path
-									d="M12 4l-6 6 6 6"
-									stroke="#fff"
-									fill="none"
-									stroke-width="2"
-									stroke-linecap="round"
-								/>
-							</svg>
-						</button>
-						<span
-							class="nav-title"
-							style="color:#fff"
-							id="phoneNavTitle"
-							data-i18n="phone"
-							>Phone</span
-						>
-						<div
-							class="nav-group-right"
-							id="phoneNavRight"
-							style="display:none"
-						>
-							<button
-								class="nav-btn"
-								onclick="regeneratePhone()"
-								title="Regenerate"
-							>
-								<svg viewBox="0 0 20 20">
-									<path
-										d="M14.5 3.5l1 3.5h-3.5"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									/>
-									<path
-										d="M5.5 16.5l-1-3.5h3.5"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.5"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									/>
-									<path
-										d="M15 7a7 7 0 01-1 9.5M5 13a7 7 0 011-9.5"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.5"
-										stroke-linecap="round"
-									/>
-								</svg>
-							</button>
-							<button
-								class="nav-btn"
-								onclick="showPhoneCharSelect()"
-							>
-								<svg viewBox="0 0 20 20">
-									<circle
-										cx="10"
-										cy="6"
-										r="3"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.5"
-									/>
-									<path
-										d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.5"
-										stroke-linecap="round"
-									/>
-								</svg>
-							</button>
-						</div>
-					</div>
+<div class="screen" id="screen-phone">
+    <div class="nav-bar" style="background:#1a1a1e">
+        <button class="nav-btn" onclick="nav('screen-home')">
+            <svg viewBox="0 0 20 20">
+                <path d="M12 4l-6 6 6 6" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <span class="nav-title" style="color:#fff" id="phoneNavTitle" data-i18n="phone">Phone</span>
+        <div class="nav-group-right" id="phoneNavRight" style="display:none">
+            <button class="nav-btn" onclick="regeneratePhone()" title="Regenerate">
+                <svg viewBox="0 0 20 20">
+                    <path d="M14.5 3.5l1 3.5h-3.5" stroke="#fff" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5.5 16.5l-1-3.5h3.5" stroke="#fff" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 7a7 7 0 01-1 9.5M5 13a7 7 0 011-9.5" stroke="#fff" fill="none" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <button class="nav-btn" onclick="showPhoneCharSelect()">
+                <svg viewBox="0 0 20 20">
+                    <circle cx="10" cy="6" r="3" stroke="#fff" fill="none" stroke-width="1.5"/>
+                    <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#fff" fill="none" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
 
-					<!-- Character Selection -->
-					<div id="phoneCharSelect" style="flex:1;overflow-y:auto;background:linear-gradient(180deg,#1a1a1e 0%,#2c2c30 100%);padding:20px 16px">
-	<div style="text-align:center;padding:30px 0 28px">
-		<div style="width:72px;height:72px;margin:0 auto 16px;background:rgba(255,255,255,.05);border-radius:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)">
-			<svg viewBox="0 0 32 32" style="width:36px;height:36px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.2"><rect x="8" y="3" width="16" height="26" rx="3"/><path d="M14 6h4"/><circle cx="16" cy="25" r="1.5"/><path d="M8 8h16M8 23h16"/></svg>
-		</div>
-		<div style="color:#fff;font-size:18px;font-weight:600;margin-bottom:6px">查看谁的手机？</div>
-		<div style="color:rgba(255,255,255,.4);font-size:13px">AI 会根据角色性格生成独特桌面</div>
-	</div>
-	<div id="phoneCharList"></div>
-</div>
+    <!-- 角色选择区域 -->
+    <div id="phoneCharSelect" style="flex:1;overflow-y:auto;background:linear-gradient(180deg,#1a1a1e 0%,#2c2c30 100%);padding:20px 16px">
+        <div style="text-align:center;padding:30px 0 28px">
+            <div style="width:72px;height:72px;margin:0 auto 16px;background:rgba(255,255,255,.05);border-radius:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)">
+                <svg viewBox="0 0 32 32" style="width:36px;height:36px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.2"><rect x="8" y="3" width="16" height="26" rx="3"/><path d="M14 6h4"/><circle cx="16" cy="25" r="1.5"/><path d="M8 8h16M8 23h16"/></svg>
+            </div>
+            <div style="color:#fff;font-size:18px;font-weight:600;margin-bottom:6px">查看谁的手机？</div>
+            <div style="color:rgba(255,255,255,.4);font-size:13px">AI 会根据角色性格生成独特桌面</div>
+        </div>
+        <div id="phoneCharList"></div>
+    </div>
 
+    <!-- 手机框架 -->
+    <div id="phoneFrameWrap" style="display:none;flex:1;overflow-y:auto">
+        <div class="phone-frame" id="phoneFrame">
+            <div class="phone-statusbar">
+                <div class="phone-statusbar-left"><svg viewBox="0 0 14 14"><path d="M1 10l3-6h6l3 6"/><path d="M3 10h8"/></svg><span>LTE</span></div>
+                <div class="phone-statusbar-right"><svg viewBox="0 0 14 14"><path d="M1 4h2v8H1zM5 2h2v10H5zM9 5h2v7H9zM13 7h0"/></svg><svg viewBox="0 0 14 14"><rect x="1" y="4" width="10" height="7" rx="1"/><path d="M12 6.5v2"/></svg><span>85%</span></div>
+            </div>
+            <div class="phone-time-display">
+                <div class="ptd-time" id="phoneTime">09:41</div>
+                <div class="ptd-date" id="phoneDate">Monday, January 1</div>
+            </div>
+            <div style="text-align:center;padding:0 0 20px">
+                <span style="display:inline-block;padding:4px 14px;background:rgba(255,255,255,.06);border-radius:20px;color:rgba(255,255,255,.4);font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;border:1px solid rgba(255,255,255,.06)" id="phoneOwnerName"></span>
+            </div>
+            <div class="phone-app-grid" id="phoneAppGrid"></div>
+            <div class="phone-dock">
+                <div class="phone-app-icon"><svg viewBox="0 0 26 26" stroke="#fff" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4c0 0-2 3-2 5s3 6 6 9 7 5 9 5 5-2 5-2l-3-4-3 2c-1 0-4-2-6-4s-4-5-4-6l2-3L6 4z"/></svg></div>
+                <div class="phone-app-icon"><svg viewBox="0 0 26 26" stroke="#fff" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h18a1 1 0 011 1v11a1 1 0 01-1 1h-8l-5 4v-4H4a1 1 0 01-1-1V5a1 1 0 011-1z"/></svg></div>
+                <div class="phone-app-icon"><svg viewBox="0 0 26 26" stroke="#fff" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="13" r="10"/><path d="M3 13h20"/><path d="M13 3c-3 3-4 6-4 10s1 7 4 10"/><path d="M13 3c3 3 4 6 4 10s-1 7-4 10"/></svg></div>
+                <div class="phone-app-icon"><svg viewBox="0 0 26 26" stroke="#fff" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20V6l12-3v14"/><circle cx="7" cy="20" r="3"/><circle cx="19" cy="17" r="3"/></svg></div>
+            </div>
+            <div class="phone-home-bar"></div>
+        </div>
+    </div>
+</div><!-- ← screen-phone 關閉 -->
 
-					<!-- Phone Frame (hidden until character selected) -->
-					<div id="phoneFrameWrap" style="display:none;flex:1;overflow-y:auto">
-						<div class="phone-frame" id="phoneFrame">
-							<div class="phone-statusbar">
-								<div class="phone-statusbar-left">
-									<svg viewBox="0 0 14 14">
-										<path d="M1 10l3-6h6l3 6" />
-										<path d="M3 10h8" />
-									</svg>
-									<span>LTE</span>
-								</div>
-								<div class="phone-statusbar-right">
-									<svg viewBox="0 0 14 14">
-										<path
-											d="M1 4h2v8H1zM5 2h2v10H5zM9 5h2v7H9zM13 7h0"
-										/>
-									</svg>
-									<svg viewBox="0 0 14 14">
-										<rect
-											x="1"
-											y="4"
-											width="10"
-											height="7"
-											rx="1"
-										/>
-										<path d="M12 6.5v2" />
-									</svg>
-									<span>85%</span>
-								</div>
-							</div>
-							<div class="phone-time-display">
-								<div class="ptd-time" id="phoneTime">09:41</div>
-								<div class="ptd-date" id="phoneDate">
-									Monday, January 1
-								</div>
-							</div>
-							<div style="text-align:center;padding:0 0 20px">
-								<span
-									style="display:inline-block;padding:4px 14px;background:rgba(255,255,255,.06);border-radius:20px;color:rgba(255,255,255,.4);font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;border:1px solid rgba(255,255,255,.06)"
-									id="phoneOwnerName"
-								></span>
-							</div>
-							<div class="phone-app-grid" id="phoneAppGrid"></div>
-							<div class="phone-dock">
-								<div class="phone-app-icon">
-									<svg
-										viewBox="0 0 26 26"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.4"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path
-											d="M6 4c0 0-2 3-2 5s3 6 6 9 7 5 9 5 5-2 5-2l-3-4-3 2c-1 0-4-2-6-4s-4-5-4-6l2-3L6 4z"
-										/>
-									</svg>
-								</div>
-								<div class="phone-app-icon">
-									<svg
-										viewBox="0 0 26 26"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.4"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path
-											d="M4 4h18a1 1 0 011 1v11a1 1 0 01-1 1h-8l-5 4v-4H4a1 1 0 01-1-1V5a1 1 0 011-1z"
-										/>
-									</svg>
-								</div>
-								<div class="phone-app-icon">
-									<svg
-										viewBox="0 0 26 26"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.4"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<circle cx="13" cy="13" r="10" />
-										<path d="M3 13h20" />
-										<path
-											d="M13 3c-3 3-4 6-4 10s1 7 4 10"
-										/>
-										<path
-											d="M13 3c3 3 4 6 4 10s-1 7-4 10"
-										/>
-									</svg>
-								</div>
-								<div class="phone-app-icon">
-									<svg
-										viewBox="0 0 26 26"
-										stroke="#fff"
-										fill="none"
-										stroke-width="1.4"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path d="M9 20V6l12-3v14" />
-										<circle cx="7" cy="20" r="3" />
-										<circle cx="19" cy="17" r="3" />
-									</svg>
-								</div>
-							</div>
-							<div class="phone-home-bar"></div>
-						</div>
-					</div>
-				</div>
+   
 
 				<!-- COUPLE SPACE -->
 				<div class="screen" id="screen-couple">
@@ -1992,6 +2015,18 @@
 					<option value="">— None —</option>
 				</select>
 			</div>
+			<!-- ★ 新增：记忆类型选择 -->
+			<div class="form-row">
+				<span class="form-label" data-i18n="memoryType">Type</span>
+				<div class="seg-control" id="memTypeControl" style="flex:1;max-width:220px">
+					<div class="seg-option active" data-value="stm" onclick="selectMemType(this,'stm')">
+						<svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:-1px;margin-right:4px"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg><span data-i18n="stmLabel">Short-term</span>
+					</div>
+					<div class="seg-option" data-value="ltm" onclick="selectMemType(this,'ltm')">
+						<svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5;vertical-align:-1px;margin-right:4px"><path d="M3 2h10v12H3z" stroke-linejoin="round"/><path d="M6 5h4M6 8h4M6 11h2" stroke-linecap="round"/></svg><span data-i18n="ltmLabel">Long-term</span>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<div class="section-header" data-i18n="memoryContent">CONTENT</div>
@@ -2007,6 +2042,7 @@
 		<div style="height:40px"></div>
 	</div>
 </div>
+
 
 <!-- BOOKMARKS -->
 <div class="screen" id="screen-bookmarks">
@@ -2111,6 +2147,126 @@
         <div style="height:40px"></div>
     </div>
 </div>
+<!-- ★ 新增：聊天设置页面 ★ -->
+<div class="screen" id="screen-chat-settings">
+    <div class="nav-bar">
+        <button class="nav-btn" onclick="nav('screen-chat')">
+            <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <span class="nav-title">聊天设置</span>
+    </div>
+    <div class="large-title">聊天设置</div>
+    <div class="screen-body" style="padding-top:4px">
+
+        <!-- 1. 回复信息数 -->
+        <div class="section-header-fancy">
+            <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+            <span>回复信息数</span>
+        </div>
+        <div class="settings-section-card">
+            <div class="form-row" style="border-bottom:1px solid #f2f2f7">
+                <span class="form-label">最少条数</span>
+                <input class="form-input cs-num-input" type="number" id="csReplyMin" min="1" max="10" value="1" onchange="updateCsSetting('replyMin',this.value)">
+            </div>
+            <div class="form-row">
+                <span class="form-label">最多条数</span>
+                <input class="form-input cs-num-input" type="number" id="csReplyMax" min="1" max="10" value="3" onchange="updateCsSetting('replyMax',this.value)">
+            </div>
+        </div>
+        <div class="form-hint">AI 将在此范围内随机选择回复条数，拆分为多条消息发送。</div>
+
+        <!-- 2. 时间感知 -->
+        <div class="section-header-fancy">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v3.5l2.5 1.5"/></svg>
+            <span>时间感知</span>
+        </div>
+        <div class="settings-section-card">
+            <div class="toggle-wrap">
+                <span class="toggle-label">启用时间感知</span>
+                <div class="toggle" id="csTimeToggle" onclick="toggleCsToggle('timeAwareness','csTimeToggle')">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+        <div class="form-hint">开启后，AI 回复时会知道当前的具体日期和时间。</div>
+
+        <!-- 3. 角色主动撤回 -->
+        <div class="section-header-fancy">
+            <svg viewBox="0 0 16 16"><path d="M4 8l4-4M8 4v6a3 3 0 003 3h2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>角色主动撤回</span>
+        </div>
+        <div class="settings-section-card">
+            <div class="toggle-wrap">
+                <span class="toggle-label">显示撤回按钮</span>
+                <div class="toggle" id="csRecallToggle" onclick="toggleCsToggle('charRecall','csRecallToggle')">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+        <div class="form-hint">开启后，角色消息旁会显示撤回按钮，点击后该消息标记为已撤回。</div>
+
+        <!-- 4. 自动发朋友圈 -->
+        <div class="section-header-fancy">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14"/></svg>
+            <span>自动发朋友圈</span>
+        </div>
+        <div class="settings-section-card">
+            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7">
+                <span class="toggle-label">启用自动发朋友圈</span>
+                <div class="toggle" id="csMomentsToggle" onclick="toggleCsToggle('autoMoments','csMomentsToggle')">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            <div class="range-row">
+                <span class="form-label">间隔（小时）</span>
+                <input type="range" id="csMomentsInterval" min="1" max="24" step="1" value="6" oninput="updateCsSetting('momentsInterval',this.value);document.getElementById('csMomentsIntervalVal').textContent=this.value">
+                <span class="range-val" id="csMomentsIntervalVal">6</span>
+            </div>
+        </div>
+        <button class="form-btn secondary" onclick="forceSendMoment()" style="margin-top:4px">
+            <span>立即发送</span>
+        </button>
+        <div class="form-hint">角色将按设定的间隔自动发一条朋友圈。</div>
+
+        <!-- 5. 翻译 -->
+        <div class="section-header-fancy">
+            <svg viewBox="0 0 16 16"><path d="M2 3h5M4.5 3v1.5M3 6.5c1 2 3 3.5 5 4"/><path d="M8 6.5c-1 2-3 3.5-5 4"/><path d="M9.5 8l2 5 2-5M10.5 11.5h2"/></svg>
+            <span>翻译</span>
+        </div>
+        <div class="settings-section-card">
+            <div class="toggle-wrap">
+                <span class="toggle-label">显示翻译按钮</span>
+                <div class="toggle" id="csTranslateToggle" onclick="toggleCsToggle('translation','csTranslateToggle')">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+        </div>
+        <div class="form-hint">开启后，每条消息旁显示翻译按钮。</div>
+
+        <!-- 6. 自动发消息 -->
+        <div class="section-header-fancy">
+            <svg viewBox="0 0 16 16"><path d="M3 3h10a2 2 0 012 2v6a2 2 0 01-2 2H7l-3 2v-2H3a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M6 7h4M6 10h2"/></svg>
+            <span>自动发消息</span>
+        </div>
+        <div class="settings-section-card">
+            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7">
+                <span class="toggle-label">启用自动发消息</span>
+                <div class="toggle" id="csAutoMsgToggle" onclick="toggleCsToggle('autoMessage','csAutoMsgToggle')">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            <div class="range-row">
+                <span class="form-label">间隔（分钟）</span>
+                <input type="range" id="csAutoMsgInterval" min="1" max="60" step="1" value="10" oninput="updateCsSetting('autoMessageInterval',this.value);document.getElementById('csAutoMsgIntervalVal').textContent=this.value">
+                <span class="range-val" id="csAutoMsgIntervalVal">10</span>
+            </div>
+        </div>
+        <div class="form-hint">启用后，角色将按设定间隔自动发送一条消息。</div>
+
+        <div style="height:40px"></div>
+    </div>
+</div>
+
 
 			</div>
 			<!-- end screen-container -->
@@ -2261,7 +2417,8 @@
 	<div class="modal">
 		<div class="modal-title">编辑消息</div>
 		<div class="modal-body">
-			<textarea id="editMsgInput" style="min-height:80px"></textarea>
+			<!-- ★ 修复：明确 placeholder 为空，禁止浏览器/CSS 显示任何提示文字 -->
+			<textarea id="editMsgInput" placeholder="" style="min-height:80px"></textarea>
 		</div>
 		<div class="modal-actions">
 			<button onclick="closeModal('editMsgModal')">取消</button>
@@ -2269,6 +2426,61 @@
 		</div>
 	</div>
 </div>
+<!-- ★ 新建分组模态框 ★ -->
+<div class="modal-overlay center-modal-overlay" id="newGroupModal" onclick="if(event.target===this)closeModal('newGroupModal')">
+    <div class="social-modal">
+        <div class="modal-header">
+            <span>新建分组</span>
+            <button class="modal-close" onclick="closeModal('newGroupModal')">
+                <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+            </button>
+        </div>
+        <div class="social-modal-body">
+            <input type="text" id="newGroupNameInput" placeholder="分组名称">
+        </div>
+        <div class="social-modal-actions">
+            <button onclick="closeModal('newGroupModal')">取消</button>
+            <button onclick="confirmNewGroup()">创建</button>
+        </div>
+    </div>
+</div>
+
+<!-- ★ 添加角色到分组模态框 ★ -->
+<div class="modal-overlay center-modal-overlay" id="addCharToGroupModal" onclick="if(event.target===this)closeAddCharToGroupModal()">
+    <div class="social-modal" style="max-width:340px">
+        <div class="modal-header">
+            <span id="addCharToGroupTitle">添加角色</span>
+            <button class="modal-close" onclick="closeAddCharToGroupModal()">
+                <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+            </button>
+        </div>
+        <div class="add-char-modal-body" id="addCharToGroupList"></div>
+        <div class="add-char-modal-footer">
+            <button onclick="closeAddCharToGroupModal()">完成</button>
+        </div>
+    </div>
+</div>
+
+<!-- ★ 发布朋友圈模态框 ★ -->
+<div class="modal-overlay center-modal-overlay" id="newMomentModal" onclick="if(event.target===this)closeModal('newMomentModal')">
+    <div class="social-modal">
+        <div class="modal-header">
+            <span>发布朋友圈</span>
+            <button class="modal-close" onclick="closeModal('newMomentModal')">
+                <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+            </button>
+        </div>
+        <div class="social-modal-body">
+            <textarea id="newMomentContent" placeholder="这一刻的想法…"></textarea>
+            <select id="newMomentCharSelect"></select>
+        </div>
+        <div class="social-modal-actions">
+            <button onclick="closeModal('newMomentModal')">取消</button>
+            <button onclick="confirmNewMoment()">发布</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="errorModal">
 	<div class="modal">
 		<div class="modal-title" id="errorModalTitle">错误</div>
@@ -2297,6 +2509,8 @@
 <script src="js/phone.js"></script>
 <script src="js/memory.js"></script>
 <script src="js/chat-config.js"></script>
+<script src="js/chat-settings.js"></script>
+<script src="js/social.js"></script>
 <script src="js/init.js"></script>
 	</body>
 </html>

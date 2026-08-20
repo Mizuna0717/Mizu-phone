@@ -40,6 +40,34 @@ function saveMemoryEntry(charId, memType, title, content) {
   saveState();
 }
 
+// ========== ★ 记忆类型选择 ★ ==========
+function selectMemType(el, value) {
+  const ctrl = document.getElementById('memTypeControl');
+  if (!ctrl) return;
+  ctrl.querySelectorAll('.seg-option').forEach(opt => opt.classList.remove('active'));
+  el.classList.add('active');
+  tmp.memType = value;
+}
+// 全局绑定
+window.selectMemType = selectMemType;
+
+function getSelectedMemType() {
+  const ctrl = document.getElementById('memTypeControl');
+  if (!ctrl) return 'stm';
+  const active = ctrl.querySelector('.seg-option.active');
+  return active ? (active.dataset.value || 'stm') : 'stm';
+}
+
+function setMemTypeControl(value) {
+  const ctrl = document.getElementById('memTypeControl');
+  if (!ctrl) return;
+  tmp.memType = value || 'stm';
+  ctrl.querySelectorAll('.seg-option').forEach(opt => {
+    if (opt.dataset.value === tmp.memType) opt.classList.add('active');
+    else opt.classList.remove('active');
+  });
+}
+
 // ========== RENDER ==========
 function renderMemCharFilter() {
   const el = document.getElementById('memCharFilter');
@@ -202,6 +230,8 @@ function editMemory(id) {
   document.getElementById('deleteMemBtn').style.display = m ? 'block' : 'none';
   tmp.memPhoto = m ? m.photo : null;
   tmp.memMood = m ? (m.mood || '') : '';
+  // ★ 设置记忆类型
+  setMemTypeControl(m ? (m.memType || 'stm') : 'stm');
   const pv = document.getElementById('memPhotoPv'), ph = document.getElementById('memPhotoPh');
   if (tmp.memPhoto) { pv.src = tmp.memPhoto; pv.style.display = 'block'; ph.style.display = 'none'; }
   else { pv.style.display = 'none'; ph.style.display = 'flex'; }
@@ -242,13 +272,15 @@ function saveMemory() {
   const date = document.getElementById('memDate').value;
   const content = document.getElementById('memContent').value.trim();
   const charId = document.getElementById('memCharSelect').value || null;
+  // ★ 读取记忆类型
+  const memType = getSelectedMemType();
   if (!title) { showToast(T('enterName')); return; }
   if (!state.memories) state.memories = [];
   if (state.editingMemId) {
     const m = state.memories.find(x => x.id === state.editingMemId);
-    if (m) Object.assign(m, { title, date, content, mood: tmp.memMood, photo: tmp.memPhoto, charId });
+    if (m) Object.assign(m, { title, date, content, mood: tmp.memMood, photo: tmp.memPhoto, charId, memType });
   } else {
-    state.memories.push({ id: uid(), title, date, content, mood: tmp.memMood, photo: tmp.memPhoto, charId, timestamp: Date.now() });
+    state.memories.push({ id: uid(), title, date, content, mood: tmp.memMood, photo: tmp.memPhoto, charId, memType, timestamp: Date.now() });
   }
   saveState();
   showToast(T('memorySaved'));

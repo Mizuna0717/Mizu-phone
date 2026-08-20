@@ -1,14 +1,13 @@
 // ========== 12-bubble-menu.js ==========
-// 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js, 07-prompt.js (parseReplySegments)
+// 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js, 07-prompt.js
 
 let longPressTimer = null;
 let longPressTarget = null;
 
-function showMsgPopover(event, msgId) {
-  if (bubbleState.multiMode) return;
-}
-
 function initBubbleLongPress(el, msgId) {
+  if (el._bubbleBound) return;
+  el._bubbleBound = true;
+
   el.addEventListener('touchstart', e => {
     longPressTarget = { el, msgId };
     longPressTimer = setTimeout(() => {
@@ -27,31 +26,61 @@ function initBubbleLongPress(el, msgId) {
   el.addEventListener('click', e => {
     if (bubbleState.multiMode) {
       e.stopPropagation();
-      toggleBubbleSelect(msgId);
+      const realId = getRealMsgId(msgId);
+      toggleBubbleSelect(realId);
     }
   });
 }
 
+function getRealMsgId(msgId) {
+  const m = msgId.match(/^(.+)__seg\d+$/);
+  return m ? m[1] : msgId;
+}
+
 function showBubbleMenu(el, msgId) {
-  const msg = (state.chats[state.currentCharId] || []).find(m => m.id === msgId);
+  const realId = getRealMsgId(msgId);
+  const msg = (state.chats[state.currentCharId] || []).find(m => m.id === realId);
   if (!msg) return;
+
   const isSent = msg.role === 'user';
+  const isReceived = msg.role === 'assistant';
   const sc = document.getElementById('screen-chat'), sr = sc.getBoundingClientRect();
   const br = el.getBoundingClientRect();
   const menu = document.getElementById('bubbleMenu');
 
   let items = '';
-  items += `<div class="bm-item" onclick="quoteMsg('${msgId}')"><svg viewBox="0 0 16 16"><path d="M4 8V5a4 4 0 018 0v1"/><path d="M2 8h5v6H2zM9 8h5v6H9z"/></svg>${T('quote')}</div>`;
+
+  // 引用
+  items += `<div class="bm-item" onclick="quoteMsg('${realId}')"><svg viewBox="0 0 16 16"><path d="M4 8V5a4 4 0 018 0v1"/><path d="M2 8h5v6H2zM9 8h5v6H9z"/></svg>${T('quote')}</div>`;
+
+  // 复制
   items += `<div class="bm-item" onclick="copyBubbleMsg('${msgId}')"><svg viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 11H3.5A1.5 1.5 0 012 9.5v-6A1.5 1.5 0 013.5 2h6A1.5 1.5 0 0111 3.5V5"/></svg>${T('copy')}</div>`;
+
+  // 编辑
   items += `<div class="bm-item" onclick="startEditMsg('${msgId}')"><svg viewBox="0 0 16 16"><path d="M11 2l3 3M2 11v3h3L13 6l-3-3L2 11z"/></svg>${T('edit')}</div>`;
-  items += `<div class="bm-item" onclick="toggleBookmarkMsg('${msgId}')"><svg viewBox="0 0 16 16"><path d="M3 1h10a1 1 0 011 1v13l-6-3-6 3V2a1 1 0 011-1z"/></svg>${T('bookmark')}</div>`;
-  items += `<div class="bm-item" onclick="enterMultiSelect('${msgId}')"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>${T('multiSelect')}</div>`;
+
+  // 收藏
+  items += `<div class="bm-item" onclick="toggleBookmarkMsg('${realId}')"><svg viewBox="0 0 16 16"><path d="M3 1h10a1 1 0 011 1v13l-6-3-6 3V2a1 1 0 011-1z"/></svg>${T('bookmark')}</div>`;
+
+  // 多选
+  items += `<div class="bm-item" onclick="enterMultiSelect('${realId}')"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>${T('multiSelect')}</div>`;
+
+  // 撤回（仅用户消息）
   if (isSent) {
-    items += `<div class="bm-item danger" onclick="recallMsg('${msgId}')"><svg viewBox="0 0 16 16"><path d="M3 8l3-3M3 8l3 3M3 8h10"/></svg>${T('recall')}</div>`;
+    items += `<div class="bm-item danger" onclick="recallMsg('${realId}')"><svg viewBox="0 0 16 16"><path d="M3 8l3-3M3 8l3 3M3 8h10"/></svg>${T('recall')}</div>`;
   }
-  items += `<div class="bm-item danger" onclick="deleteBubbleMsg('${msgId}')"><svg viewBox="0 0 16 16"><path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4"/></svg>${T('delete')}</div>`;
+
+  // ★★★ 重回 / 重新生成（仅角色消息）★★★
+  if (isReceived) {
+    items += `<div class="bm-item" onclick="regenerateMsg('${realId}')"><svg viewBox="0 0 16 16"><path d="M2 8a6 6 0 0110.3-4.2"/><path d="M14 2v4h-4"/><path d="M14 8a6 6 0 01-10.3 4.2"/><path d="M2 14v-4h4"/></svg>重回</div>`;
+  }
+
+  // 删除
+  items += `<div class="bm-item danger" onclick="deleteBubbleMsg('${realId}')"><svg viewBox="0 0 16 16"><path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4"/></svg>${T('delete')}</div>`;
 
   menu.innerHTML = items;
+
+  // 定位 — 兼容 sent / received
   let top = br.top - sr.top - menu.offsetHeight - 8;
   let left = isSent ? br.right - sr.left - 170 : br.left - sr.left;
   if (top < 60) top = br.bottom - sr.top + 8;
@@ -90,35 +119,92 @@ function clearQuote() {
 // ===== 複製 =====
 function copyBubbleMsg(msgId) {
   closeBubbleMenu();
-  const msg = (state.chats[state.currentCharId] || []).find(m => m.id === msgId);
-  if (msg?.content) navigator.clipboard?.writeText(msg.content).catch(() => {});
-  showToast(T('copied'));
-}
-
-// ===== 編輯 =====
-function startEditMsg(msgId) {
-  closeBubbleMenu();
   const segMatch = msgId.match(/^(.+)__seg(\d+)$/);
   if (segMatch) {
     const realId = segMatch[1];
     const segIdx = parseInt(segMatch[2]);
     const msg = (state.chats[state.currentCharId] || []).find(m => m.id === realId);
     if (!msg) return;
-    const segs = parseReplySegments(msg.content, state.stickers);
+    const segs = parseReplySegments(msg.content, state.stickers || []);
+    const seg = segs[segIdx];
+    if (seg && seg.content) {
+      navigator.clipboard?.writeText(seg.content).catch(() => {});
+    }
+  } else {
+    const msg = (state.chats[state.currentCharId] || []).find(m => m.id === msgId);
+    if (msg?.content) navigator.clipboard?.writeText(msg.content).catch(() => {});
+  }
+  showToast(T('copied'));
+}
+
+// ===== 編輯 =====
+function startEditMsg(msgId) {
+  closeBubbleMenu();
+  const input = document.getElementById('editMsgInput');
+
+  const segMatch = msgId.match(/^(.+)__seg(\d+)$/);
+  if (segMatch) {
+    const realId = segMatch[1];
+    const segIdx = parseInt(segMatch[2]);
+    const msg = (state.chats[state.currentCharId] || []).find(m => m.id === realId);
+    if (!msg) return;
+    const segs = parseReplySegments(msg.content, state.stickers || []);
     const targetSeg = segs[segIdx];
     if (!targetSeg || targetSeg.type !== 'text') { showToast('无法编辑'); return; }
     bubbleState.editingMsgId = msgId;
-    document.getElementById('editMsgInput').value = targetSeg.content || '';
+    input.value = targetSeg.content || '';
+    input.placeholder = '';
     document.getElementById('editMsgModal').classList.add('show');
-    setTimeout(() => document.getElementById('editMsgInput').focus(), 100);
+    setTimeout(() => input.focus(), 100);
   } else {
     const msg = (state.chats[state.currentCharId] || []).find(m => m.id === msgId);
-    if (!msg || msg.type !== 'text') { showToast('无法编辑'); return; }
+    if (!msg || (msg.type && msg.type !== 'text')) { showToast('无法编辑'); return; }
     bubbleState.editingMsgId = msgId;
-    document.getElementById('editMsgInput').value = msg.content || '';
+    input.value = msg.content || '';
+    input.placeholder = '';
     document.getElementById('editMsgModal').classList.add('show');
-    setTimeout(() => document.getElementById('editMsgInput').focus(), 100);
+    setTimeout(() => input.focus(), 100);
   }
+}
+
+// ===== 確認編輯 =====
+function confirmEditMsg() {
+  const newVal = document.getElementById('editMsgInput').value;
+  const editId = bubbleState.editingMsgId;
+  if (!editId) return;
+
+  const segMatch = editId.match(/^(.+)__seg(\d+)$/);
+
+  if (segMatch) {
+    const realId = segMatch[1];
+    const segIdx = parseInt(segMatch[2]);
+    const msg = (state.chats[state.currentCharId] || []).find(m => m.id === realId);
+    if (!msg) { closeModal('editMsgModal'); return; }
+
+    const segs = parseReplySegments(msg.content, state.stickers || []);
+    if (segIdx < 0 || segIdx >= segs.length) { closeModal('editMsgModal'); return; }
+
+    segs[segIdx].content = newVal;
+
+    msg.content = segs.map(seg => {
+      switch (seg.type) {
+        case 'sticker':  return `[表情:${seg.name}]`;
+        case 'voice':    return `[语音:${seg.content}]`;
+        case 'transfer': return `[转账:${seg.amount}${seg.note ? ':' + seg.note : ''}]`;
+        case 'simImage': return `[图片:${seg.content}]`;
+        case 'call':     return `[通话:${seg.callType === 'video' ? '视频' : '语音'}]`;
+        default:         return seg.content;
+      }
+    }).join('\n');
+  } else {
+    const msg = (state.chats[state.currentCharId] || []).find(m => m.id === editId);
+    if (msg) msg.content = newVal;
+  }
+
+  bubbleState.editingMsgId = null;
+  saveState();
+  closeModal('editMsgModal');
+  renderChat();
 }
 
 // ===== 撤回 =====
@@ -147,6 +233,25 @@ function deleteBubbleMsg(msgId) {
   saveState();
   renderChat();
   showSnackbar(T('msgDeleted'), () => { msgs.splice(idx, 0, del); saveState(); renderChat(); });
+}
+
+// ★★★ 重回 / 重新生成 ★★★
+function regenerateMsg(msgId) {
+  closeBubbleMenu();
+  const msgs = state.chats[state.currentCharId] || [];
+  const idx = msgs.findIndex(m => m.id === msgId);
+  if (idx === -1) return;
+  const msg = msgs[idx];
+  if (msg.role !== 'assistant') return;
+
+  // 删除该条及之后所有消息，保持上下文干净
+  msgs.splice(idx);
+  saveState();
+  renderChat();
+  showToast('正在重新生成…');
+
+  // 重新触发 AI 回复
+  triggerResponse();
 }
 
 // ===== 收藏 =====
@@ -199,9 +304,10 @@ function toggleBubbleSelect(msgId) {
   document.querySelectorAll('.msg-row').forEach(row => {
     const mid = row.dataset.msgid;
     if (mid) {
-      row.classList.toggle('selected', bubbleState.selectedIds.has(mid));
+      const realMid = getRealMsgId(mid);
+      row.classList.toggle('selected', bubbleState.selectedIds.has(realMid));
       const ck = row.querySelector('.msg-check');
-      if (ck) ck.classList.toggle('checked', bubbleState.selectedIds.has(mid));
+      if (ck) ck.classList.toggle('checked', bubbleState.selectedIds.has(realMid));
     }
   });
 }
