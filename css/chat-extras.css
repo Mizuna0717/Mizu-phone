@@ -1,16 +1,17 @@
 /* ========== 08-chat-extras.css ========== */
+/* Glass Morphism Unified Theme */
 
 /* ===== Transfer Bubble ===== */
 .msg-bubble.transfer-msg {
   min-width: 200px;
   padding: 0 !important;
   overflow: hidden;
-  border-radius: 14px !important;
+  border-radius: 18px !important;
 }
 
 .transfer-card {
   padding: 16px;
-  border-radius: 14px;
+  border-radius: 18px;
 }
 
 .msg-row.sent .transfer-card {
@@ -43,7 +44,7 @@
 
 .transfer-actions {
   display: flex;
-  border-top: 1px solid rgba(0, 0, 0, .08);
+  border-top: 1px solid rgba(0, 0, 0, .06);
   margin-top: 12px;
   padding-top: 10px;
   gap: 8px;
@@ -53,28 +54,33 @@
   flex: 1;
   padding: 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  transition: all .15s;
+}
+
+.transfer-actions button:active {
+  transform: scale(.96);
 }
 
 .transfer-actions .ta-accept {
-  background: rgba(52, 199, 89, .15);
+  background: rgba(52, 199, 89, .12);
   color: #28a745;
 }
 
 .transfer-actions .ta-accept:active {
-  background: rgba(52, 199, 89, .25);
+  background: rgba(52, 199, 89, .22);
 }
 
 .transfer-actions .ta-decline {
-  background: rgba(255, 59, 48, .1);
+  background: rgba(255, 59, 48, .08);
   color: #ff3b30;
 }
 
 .transfer-actions .ta-decline:active {
-  background: rgba(255, 59, 48, .2);
+  background: rgba(255, 59, 48, .16);
 }
 
 .transfer-status {
@@ -83,7 +89,7 @@
   font-weight: 600;
   text-align: center;
   padding: 6px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .transfer-status.accepted {
@@ -96,14 +102,13 @@
   color: #ff3b30;
 }
 
-/* ★ 新增：待领取状态 */
 .transfer-status.pending {
-  background: rgba(142, 142, 147, .1);
+  background: rgba(142, 142, 147, .08);
   color: #8e8e93;
 }
 
 .transfer-status.requesting {
-  background: rgba(142, 142, 147, .1);
+  background: rgba(142, 142, 147, .08);
   color: #8e8e93;
 }
 
@@ -117,17 +122,21 @@
 .img-type-btn {
   flex: 1;
   padding: 10px 8px;
-  border: 2px solid #e5e5ea;
-  border-radius: 10px;
-  background: #fff;
+  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.02);
   cursor: pointer;
   text-align: center;
   transition: all .2s;
 }
 
+.img-type-btn:active {
+  transform: scale(.96);
+}
+
 .img-type-btn.active {
-  border-color: #1d1d1f;
-  background: #f9f9fb;
+  border-color: #111;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .img-type-btn svg {
@@ -142,18 +151,19 @@
 
 .img-type-btn span {
   font-size: 12px;
-  color: #1d1d1f;
+  color: #111;
   font-weight: 500;
 }
 
-/* ===== Plus Menu ===== */
+/* ===== Plus Menu — Glass Morphism ===== */
 .plus-menu-overlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, .15);
   z-index: 200;
   display: none;
-  backdrop-filter: blur(1px);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
 .plus-menu-overlay.show {
@@ -162,16 +172,18 @@
 
 .plus-menu {
   position: absolute;
-  bottom: 60px;
+  bottom: 52px;
   left: 8px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, .12);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   z-index: 201;
   min-width: 195px;
   display: none;
-  border: 1px solid #e5e5ea;
 }
 
 .plus-menu.show {
@@ -181,16 +193,17 @@
 
 @keyframes menuIn {
   from { opacity: 0; transform: translateY(8px) scale(.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .plus-menu-item {
   display: flex;
   align-items: center;
-  padding: 14px 18px;
+  padding: 13px 18px;
   gap: 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f2f2f7;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background .15s;
 }
 
 .plus-menu-item:last-child {
@@ -198,32 +211,37 @@
 }
 
 .plus-menu-item:active {
-  background: #f2f2f7;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .plus-menu-item svg {
   width: 22px;
   height: 22px;
-  stroke: #1d1d1f;
+  stroke: #111;
   fill: none;
   stroke-width: 1.5;
+  flex-shrink: 0;
 }
 
 .plus-menu-item span {
   font-size: 15px;
-  color: #1d1d1f;
+  color: #111;
+  font-weight: 500;
 }
 
-/* ===== Sticker Panel ===== */
+/* ===== Sticker Panel — Glass Morphism ===== */
 .sticker-panel {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, .42);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: none;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
   z-index: 150;
   max-height: 300px;
   display: none;
@@ -237,35 +255,37 @@
 
 @keyframes panelUp {
   from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  to   { transform: translateY(0); }
 }
 
 .sticker-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  border-bottom: 1px solid #e5e5ea;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .sticker-panel-header span {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  color: #1d1d1f;
+  color: #111;
 }
 
 .sticker-panel-header button {
-  background: none;
+  background: rgba(0, 0, 0, 0.04);
   border: none;
-  font-size: 14px;
-  color: #3a3a3c;
+  font-size: 13px;
+  color: #111;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 5px 12px;
   font-weight: 500;
+  border-radius: 12px;
+  transition: background .15s;
 }
 
 .sticker-panel-header button:active {
-  opacity: .6;
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .sticker-grid {
@@ -279,21 +299,22 @@
 
 .sticker-item {
   aspect-ratio: 1;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  background: #fff;
+  background: rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  border: 1px solid #f2f2f7;
+  border: 1px solid rgba(0, 0, 0, 0.04);
   gap: 2px;
+  transition: transform .1s;
 }
 
 .sticker-item:active {
-  opacity: .7;
+  transform: scale(.94);
 }
 
 .sticker-item img {
@@ -346,7 +367,7 @@
   padding: 30px;
 }
 
-/* ===== Chat Menu ===== */
+/* ===== Chat Menu — Glass Morphism ===== */
 .chat-menu-overlay {
   position: absolute;
   inset: 0;
@@ -362,16 +383,19 @@
   position: absolute;
   top: 52px;
   right: 12px;
-  background: #fff;
-  border: 1px solid #e5e5ea;
-  border-radius: 14px;
-  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, .14);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   min-width: 210px;
   z-index: 181;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-6px) scale(.96);
   transition: all .18s;
+  overflow: hidden;
 }
 
 .chat-menu.open {
@@ -386,7 +410,7 @@
   padding: 13px 18px;
   gap: 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f2f2f7;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   transition: background .15s;
 }
 
@@ -395,7 +419,7 @@
 }
 
 .chat-menu-item:active {
-  background: #f2f2f7;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .chat-menu-item svg {
@@ -409,10 +433,11 @@
 
 .chat-menu-item span {
   font-size: 15px;
-  color: #1d1d1f;
+  color: #111;
+  font-weight: 500;
 }
 
-/* ===== Msg Popover ===== */
+/* ===== Msg Popover — Glass Morphism ===== */
 .msg-popover-overlay {
   position: absolute;
   inset: 0;
@@ -427,15 +452,18 @@
 .msg-popover {
   position: absolute;
   z-index: 260;
-  background: #fff;
-  border: 1px solid #e5e5ea;
-  border-radius: 12px;
-  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, .14);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   min-width: 140px;
   opacity: 0;
   pointer-events: none;
   transform: translateY(4px) scale(.96);
   transition: all .15s;
+  overflow: hidden;
 }
 
 .msg-popover.open {
@@ -447,12 +475,13 @@
 .msg-popover .pop-item {
   padding: 11px 16px;
   font-size: 14px;
-  color: #1d1d1f;
+  color: #111;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #f2f2f7;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background .15s;
 }
 
 .msg-popover .pop-item:last-child {
@@ -460,7 +489,7 @@
 }
 
 .msg-popover .pop-item:active {
-  background: #f2f2f7;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .msg-popover .pop-item.danger {
@@ -480,7 +509,7 @@
   min-width: 210px;
   padding: 0 !important;
   overflow: hidden;
-  border-radius: 14px !important;
+  border-radius: 18px !important;
 }
 
 .call-card {
@@ -507,12 +536,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,.06);
-  border-radius: 10px;
+  background: rgba(0, 0, 0, .04);
+  border-radius: 12px;
 }
 
 .msg-row.sent .call-icon-wrap {
-  background: rgba(255,255,255,.15);
+  background: rgba(255, 255, 255, .15);
 }
 
 .call-type-icon {
@@ -547,10 +576,10 @@
 }
 
 .call-status.accepted { color: #28a745; }
-.msg-row.sent .call-status.accepted { color: rgba(255,255,255,.85); }
+.msg-row.sent .call-status.accepted { color: rgba(255, 255, 255, .85); }
 .call-status.declined { color: #ff3b30; }
 .call-status.requesting { color: #8e8e93; }
-.msg-row.sent .call-status.requesting { color: rgba(255,255,255,.6); }
+.msg-row.sent .call-status.requesting { color: rgba(255, 255, 255, .6); }
 
 .call-actions {
   display: flex;
@@ -563,38 +592,39 @@
   flex: 1;
   padding: 7px 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all .15s;
 }
 
+.call-accept-btn:active,
+.call-decline-btn:active {
+  transform: scale(.96);
+}
+
 .call-accept-btn {
-  background: rgba(52, 199, 89, .15);
+  background: rgba(52, 199, 89, .12);
   color: #28a745;
 }
 
-.call-accept-btn:active { background: rgba(52, 199, 89, .3); }
-
 .call-decline-btn {
-  background: rgba(255, 59, 48, .1);
+  background: rgba(255, 59, 48, .08);
   color: #ff3b30;
 }
 
-.call-decline-btn:active { background: rgba(255, 59, 48, .2); }
-
-/* ========== 居中模态框 ========== */
+/* ========== 居中模态框 — Glass Morphism ========== */
 .center-modal-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, .35);
+  background: rgba(0, 0, 0, .2);
   z-index: 300;
   display: none;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .center-modal-overlay.show { display: flex; }
@@ -608,9 +638,12 @@
 .call-modal {
   max-width: 300px;
   width: 85%;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 16px 48px rgba(0,0,0,.15);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   animation: modalZoomIn .22s ease;
 }
 
@@ -624,12 +657,12 @@
 .call-modal .modal-header span {
   font-size: 17px;
   font-weight: 700;
-  color: #1d1d1f;
+  color: #111;
 }
 
 .call-options {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   padding: 24px 20px 28px;
   justify-content: center;
 }
@@ -640,17 +673,16 @@
   align-items: center;
   gap: 10px;
   padding: 20px 24px;
-  border: 1.5px solid #e5e5ea;
-  border-radius: 16px;
-  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.02);
   cursor: pointer;
   transition: all .2s;
   min-width: 100px;
 }
 
 .call-option-btn:active {
-  background: #f2f2f7;
-  border-color: #d1d1d6;
+  background: rgba(0, 0, 0, 0.05);
   transform: scale(.96);
 }
 
@@ -667,16 +699,19 @@
 .call-option-btn span {
   font-size: 13px;
   font-weight: 500;
-  color: #1d1d1f;
+  color: #111;
 }
 
 /* ========== 重回确认模态框 ========== */
 .return-confirm-modal {
   max-width: 300px;
   width: 85%;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 16px 48px rgba(0,0,0,.15);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   animation: modalZoomIn .22s ease;
   overflow: hidden;
 }
@@ -691,7 +726,7 @@
 .return-confirm-modal .modal-header span {
   font-size: 17px;
   font-weight: 700;
-  color: #1d1d1f;
+  color: #111;
 }
 
 .return-confirm-body {
@@ -715,7 +750,7 @@
 
 .return-confirm-actions {
   display: flex;
-  border-top: 1px solid #f2f2f7;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .return-cancel-btn,
@@ -730,24 +765,31 @@
   transition: background .15s;
 }
 
-.return-cancel-btn {
-  color: #8e8e93;
-  border-right: 1px solid #f2f2f7;
+.return-cancel-btn:active,
+.return-ok-btn:active {
+  background: rgba(0, 0, 0, 0.04);
 }
 
-.return-cancel-btn:active { background: #f2f2f7; }
+.return-cancel-btn {
+  color: #8e8e93;
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+}
 
-.return-ok-btn { color: #1d1d1f; }
-.return-ok-btn:active { background: #f2f2f7; }
+.return-ok-btn {
+  color: #111;
+}
 
-/* ========== 心声面板 ========== */
+/* ========== 心声面板 — Glass Morphism ========== */
 .heart-voice-card {
   width: 88%;
   max-width: 340px;
   max-height: 70vh;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -772,14 +814,14 @@
 .hv-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1d1d1f;
+  color: #111;
   letter-spacing: -.3px;
 }
 
 .hv-close {
   width: 30px;
   height: 30px;
-  background: #f2f2f7;
+  background: rgba(0, 0, 0, 0.04);
   border: none;
   border-radius: 50%;
   display: flex;
@@ -789,7 +831,7 @@
   transition: background .15s;
 }
 
-.hv-close:active { background: #e5e5ea; }
+.hv-close:active { background: rgba(0, 0, 0, 0.08); }
 
 .hv-close svg {
   width: 12px;
@@ -812,14 +854,14 @@
   background: #e5e5ea;
   background-size: cover;
   background-position: center;
-  border: 2.5px solid #f2f2f7;
-  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  border: 2.5px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .hv-char-name {
   font-size: 15px;
   font-weight: 600;
-  color: #3a3a3c;
+  color: #111;
 }
 
 .hv-content {
@@ -851,27 +893,28 @@
   color: #3a3a3c;
   margin: 0;
   padding: 12px 14px;
-  background: #f9f9fb;
+  background: rgba(0, 0, 0, 0.03);
   border-radius: 12px;
-  border-left: 3px solid #e5e5ea;
+  border-left: 3px solid rgba(0, 0, 0, 0.06);
 }
 
 .hv-section-text.hv-thought {
   font-style: italic;
-  border-left-color: #d1c4e9;
-  background: #faf8ff;
+  border-left-color: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .hv-divider {
   height: 1px;
-  background: #f2f2f7;
+  background: rgba(0, 0, 0, 0.05);
   margin: 2px 0;
 }
 
+/* ===== Modal Close Button — Glass ===== */
 .modal-close {
   width: 28px;
   height: 28px;
-  background: #f2f2f7;
+  background: rgba(0, 0, 0, 0.04);
   border: none;
   border-radius: 50%;
   display: flex;
@@ -881,7 +924,7 @@
   transition: background .15s;
 }
 
-.modal-close:active { background: #e5e5ea; }
+.modal-close:active { background: rgba(0, 0, 0, 0.08); }
 
 .modal-close svg {
   width: 12px;
@@ -928,13 +971,15 @@
   white-space: nowrap;
 }
 
-/* ===== 引用栏 ===== */
+/* ===== 引用栏 — Glass ===== */
 .chat-quote-bar {
   display: none;
   align-items: center;
   padding: 6px 12px;
-  background: #f2f2f7;
-  border-top: 1px solid #e5e5ea;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   font-size: 12px;
   color: #8e8e93;
   gap: 8px;
@@ -944,21 +989,35 @@
 
 .cqb-close {
   margin-left: auto;
-  background: none;
+  background: rgba(0, 0, 0, 0.04);
   border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 16px;
   color: #8e8e93;
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 0;
+  transition: background .15s;
 }
 
-/* ===== 多选操作栏 ===== */
+.cqb-close:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* ===== 多选操作栏 — Glass ===== */
 .bubble-action-bar {
   display: none;
   align-items: center;
-  padding: 0 16px;
+  padding: 8px 16px;
   gap: 12px;
   width: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .bubble-action-bar.show { display: flex; }
@@ -969,7 +1028,7 @@
   font-size: 18px;
   cursor: pointer;
   padding: 4px 8px;
-  color: #3a3a3c;
+  color: #111;
 }
 
 .bubble-action-bar button:active { opacity: .6; }
@@ -977,10 +1036,10 @@
 #babCount {
   font-size: 14px;
   font-weight: 600;
-  color: #1d1d1f;
+  color: #111;
 }
 
-/* ===== Bubble Menu ===== */
+/* ===== Bubble Menu — Glass ===== */
 .bm-overlay {
   position: absolute;
   inset: 0;
@@ -993,10 +1052,12 @@
 .bm-menu {
   position: absolute;
   z-index: 291;
-  background: #fff;
-  border: 1px solid #e5e5ea;
-  border-radius: 12px;
-  box-shadow: 0 12px 40px -6px rgba(0, 0, 0, .16);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   min-width: 160px;
   max-width: 200px;
   opacity: 0;
@@ -1018,14 +1079,14 @@
   padding: 11px 14px;
   gap: 10px;
   font-size: 14px;
-  color: #1d1d1f;
+  color: #111;
   cursor: pointer;
-  border-bottom: 1px solid #f2f2f7;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   transition: background .1s;
 }
 
 .bm-item:last-child { border-bottom: none; }
-.bm-item:active { background: #f2f2f7; }
+.bm-item:active { background: rgba(0, 0, 0, 0.04); }
 .bm-item.danger { color: #ff3b30; }
 
 .bm-item svg {
@@ -1040,22 +1101,23 @@
 }
 
 .msg-row.selected {
-  background: rgba(4, 9, 15, 0.06);
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
 }
 
 /* ============================================
-   ★★★ 撤回气泡 ★★★
+   撤回气泡
    ============================================ */
 .recalled-bubble {
   opacity: .5 !important;
   font-style: italic !important;
   font-size: 12px !important;
   color: #8e8e93 !important;
-  background: #f2f2f7 !important;
+  background: rgba(0, 0, 0, 0.03) !important;
 }
 
 /* ============================================
-   ★★★ 消息额外操作按钮 ★★★
+   消息额外操作按钮
    ============================================ */
 .msg-extra-actions {
   display: flex;
@@ -1070,8 +1132,8 @@
   width: 24px;
   height: 24px;
   border: none;
-  background: rgba(0, 0, 0, .04);
-  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1082,7 +1144,7 @@
 
 .msg-translate-btn:active,
 .msg-recall-btn:active {
-  background: rgba(0, 0, 0, .1);
+  background: rgba(0, 0, 0, 0.08);
   transform: scale(.9);
 }
 
@@ -1096,7 +1158,7 @@
 }
 
 /* ============================================
-   ★★★ 撤回消息「查看原文」按钮 ★★★
+   撤回消息「查看原文」按钮
    ============================================ */
 .recalled-view-btn {
   display: inline-flex;
@@ -1105,8 +1167,8 @@
   margin-left: 8px;
   padding: 2px 8px;
   border: none;
-  background: rgba(0, 0, 0, .06);
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
   font-size: 11px;
   color: #636366;
   cursor: pointer;
@@ -1115,7 +1177,7 @@
 }
 
 .recalled-view-btn:active {
-  background: rgba(0, 0, 0, .12);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .recalled-view-btn svg {
@@ -1127,17 +1189,18 @@
 }
 
 /* ============================================
-   ★★★ 朋友圈消息气泡 ★★★
+   朋友圈消息气泡
    ============================================ */
 .moment-bubble {
   display: flex !important;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, #f9f9fb, #f2f2f7) !important;
-  border: 1px solid #e5e5ea !important;
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
   font-size: 13px !important;
   color: #636366 !important;
   font-style: italic;
+  border-radius: 16px !important;
 }
 
 .moment-bubble svg {
@@ -1148,12 +1211,15 @@
 }
 
 /* ============================================
-   ★★★ 聊天设置页数字输入框 ★★★
+   聊天设置页数字输入框
    ============================================ */
 .cs-num-input {
   width: 60px !important;
   text-align: center;
   -moz-appearance: textfield;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
 }
 
 .cs-num-input::-webkit-outer-spin-button,
@@ -1161,3 +1227,4 @@
   -webkit-appearance: none;
   margin: 0;
 }
+

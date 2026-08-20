@@ -1,16 +1,17 @@
 /* ========== 13-modals.css ========== */
-/* 模態框、Toast、Snackbar */
+/* 模態框、Toast、Snackbar — Glass Morphism Theme */
 
 /* ===== Modal Overlay ===== */
 .modal-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, .35);
+  background: rgba(0, 0, 0, .2);
   z-index: 300;
   display: none;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .modal-overlay.show {
@@ -18,25 +19,29 @@
 }
 
 .modal {
-  background: #fff;
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   width: calc(100% - 48px);
   max-width: 320px;
   overflow: hidden;
-  animation: modalIn .2s ease;
+  animation: modalIn .22s ease;
 }
 
 @keyframes modalIn {
-  from { opacity: 0; transform: scale(.95); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(.92); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .modal-title {
   padding: 20px 20px 8px;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
-  color: #1d1d1f;
+  color: #111;
 }
 
 .modal-body {
@@ -51,17 +56,20 @@
 }
 
 .modal-body textarea,
-.modal-body input[type=text] {
+.modal-body input[type=text],
+.modal-body input[type=number] {
   width: 100%;
-  border: 1px solid #d1d1d6;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 10px 14px;
   font-size: 15px;
   resize: none;
   outline: none;
   font-family: inherit;
-  color: #1d1d1f;
+  color: #111;
   margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  transition: border-color .15s;
 }
 
 .modal-body textarea {
@@ -70,7 +78,8 @@
 
 .modal-body input:focus,
 .modal-body textarea:focus {
-  border-color: #8e8e93;
+  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .modal-body .modal-label {
@@ -82,7 +91,7 @@
 
 .modal-actions {
   display: flex;
-  border-top: 1px solid #e5e5ea;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .modal-actions button {
@@ -92,25 +101,26 @@
   background: none;
   font-size: 16px;
   cursor: pointer;
+  transition: background .15s;
 }
 
 .modal-actions button:active {
-  background: #f2f2f7;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .modal-actions button:first-child {
-  border-right: 1px solid #e5e5ea;
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
   color: #8e8e93;
 }
 
 .modal-actions button:last-child {
-  color: #1d1d1f;
+  color: #111;
   font-weight: 600;
 }
 
 .modal-actions button:only-child {
   border: none;
-  color: #1d1d1f;
+  color: #111;
   font-weight: 600;
 }
 
@@ -120,10 +130,12 @@
   top: 16px;
   left: 50%;
   transform: translateX(-50%) translateY(-10px);
-  background: #1d1d1f;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: #fff;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 14px;
   z-index: 500;
   opacity: 0;
@@ -146,14 +158,16 @@
   left: 50%;
   bottom: 24px;
   transform: translate(-50%, 20px);
-  background: #1d1d1f;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: #f2f2f7;
   padding: 13px 16px;
-  border-radius: 14px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, .25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   opacity: 0;
   transition: all .3s;
   z-index: 400;
@@ -174,7 +188,7 @@
 .snackbar .snack-action {
   background: none;
   border: none;
-  color: #8e8e93;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;

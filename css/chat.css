@@ -1,5 +1,5 @@
 /* ========== 06-chat.css ========== */
-/* Chat — iMessage Theme (adapted from external theme file) */
+/* Chat — iMessage Theme */
 
 /* ===== Screen Container ===== */
 #screen-chat {
@@ -14,7 +14,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: max(14px, env(safe-area-inset-top, 0px)) 16px 14px;
+  padding: max(14px, env(safe-area-inset-top, 0px)) 16px 10px;
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -26,22 +26,22 @@
   overflow: visible;
 }
 
-/* Gradient blur extending below header into message area */
+/* ① Top gradient — reduced from ~80px to ~40px */
 .chat-header::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: -40px;
+  bottom: -10px;
   background: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.42) 0%,
-    rgba(255, 255, 255, 0.42) 65%,
+    rgba(255, 255, 255, 0.50) 0%,
+    rgba(255, 255, 255, 0.35) 50%,
     rgba(255, 255, 255, 0) 100%
   );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   pointer-events: none;
   z-index: -1;
 }
@@ -188,11 +188,11 @@
   background: transparent;
 }
 
-/* Bottom spacer so last message can scroll above input */
+/* Bottom spacer */
 .chat-messages::after {
   content: "";
   display: block;
-  height: 20px;
+  height: 12px;
   flex-shrink: 0;
 }
 
@@ -336,43 +336,39 @@
 }
 
 /* ============================================================
-   BUBBLE TAILS — Image-based, on group-last / group-solo
+   ⑤ BUBBLE BORDER-RADIUS — Group Position (NO tails)
+   All ::after tails removed. Group-last/solo get a small
+   4px corner on the side closest to the avatar.
    ============================================================ */
 
-/* User tail (right side) */
-.msg-row.sent.group-last .msg-bubble:not(.sticker-msg, .image-msg, .voice, .sim-image-msg, .transfer-msg, .call-msg, .moment-bubble, .recalled-bubble)::after,
-.msg-row.sent.group-solo .msg-bubble:not(.sticker-msg, .image-msg, .voice, .sim-image-msg, .transfer-msg, .call-msg, .moment-bubble, .recalled-bubble)::after {
-  content: "";
-  position: absolute;
-  right: 8px;
-  bottom: -7px;
-  width: 13px;
-  height: 13px;
-  background-image: url("https://s1.imagehub.cc/images/2026/08/04/ac2e46187724c1ea235c2f8dcd6161c9.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  pointer-events: none;
-  display: block;
+/* --- Received: last / solo → bottom-left 4px --- */
+.msg-row.received.group-last .msg-bubble,
+.msg-row.received.group-solo .msg-bubble {
+  border-radius: 20px 20px 20px 4px;
 }
 
-/* AI tail (left side) — mirrored + brightness adjusted */
-.msg-row.received.group-last .msg-bubble:not(.sticker-msg, .image-msg, .voice, .sim-image-msg, .transfer-msg, .call-msg, .moment-bubble, .recalled-bubble)::after,
-.msg-row.received.group-solo .msg-bubble:not(.sticker-msg, .image-msg, .voice, .sim-image-msg, .transfer-msg, .call-msg, .moment-bubble, .recalled-bubble)::after {
-  content: "";
-  position: absolute;
-  left: 8px;
-  bottom: -7px;
-  width: 13px;
-  height: 13px;
-  background-image: url("https://s1.imagehub.cc/images/2026/08/04/ac2e46187724c1ea235c2f8dcd6161c9.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  transform: scaleX(-1);
-  filter: brightness(1.45);
-  pointer-events: none;
-  display: block;
+/* --- Received: last / solo → 统一圆角 --- */
+.msg-row.received.group-last .msg-bubble,
+.msg-row.received.group-solo .msg-bubble {
+  border-radius: 20px;
+}
+
+/* --- Sent: last / solo → 统一圆角 --- */
+.msg-row.sent.group-last .msg-bubble,
+.msg-row.sent.group-solo .msg-bubble {
+  border-radius: 20px;
+}
+
+/* --- Sent: first / middle → uniform 20px --- */
+.msg-row.sent.group-first .msg-bubble,
+.msg-row.sent.group-middle .msg-bubble {
+  border-radius: 20px;
+}
+
+/* ⑤ Kill ALL ::after tails globally */
+.msg-bubble::after {
+  content: none !important;
+  display: none !important;
 }
 
 /* ============================================================
@@ -463,63 +459,90 @@
 }
 
 /* ============================================================
-   IMAGE BUBBLE
+   ④ IMAGE BUBBLE — Clean card, 16px radius, subtle shadow
    ============================================================ */
 .msg-bubble.image-msg {
   padding: 0 !important;
-  max-width: 200px;
-  overflow: visible;
+  max-width: 220px;
+  overflow: hidden;
   background: transparent !important;
-  box-shadow: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 16px !important;
 }
 
 .msg-bubble.image-msg img {
-  width: 200px;
-  max-width: 200px;
-  max-height: 200px;
+  width: 100%;
+  max-width: 220px;
+  max-height: 220px;
   display: block;
   object-fit: cover;
-  border-radius: 18px;
+  border-radius: 16px;
 }
 
 /* ============================================================
-   SIM-IMAGE BUBBLE
+   ④ SIM-IMAGE BUBBLE — Minimal placeholder card
    ============================================================ */
 .msg-bubble.sim-image-msg {
   min-width: 160px;
+  max-width: 220px;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
 }
 
 .sim-image-box {
-  background: linear-gradient(135deg, #e8e8ed, #d1d1d6);
-  border-radius: 12px;
-  padding: 20px 16px;
+  background: #f2f2f7;
+  border-radius: 16px;
+  padding: 24px 16px;
   text-align: center;
-  min-height: 80px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 10px;
 }
 
+.sim-image-box svg {
+  width: 28px;
+  height: 28px;
+  stroke: #c7c7cc;
+  fill: none;
+  stroke-width: 1.3;
+}
+
+.sim-image-box .sim-desc {
+  font-size: 12px;
+  color: #8e8e93;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Override sent/received specific sim-image colors for uniformity */
 .msg-row.sent .sim-image-box {
-  background: linear-gradient(135deg, #d5d5da, #c0c0c5);
+  background: #f2f2f7;
 }
 
 .msg-row.sent .sim-image-box svg {
-  stroke: rgba(255, 255, 255, .25);
+  stroke: #c7c7cc;
 }
 
 .msg-row.sent .sim-image-box .sim-desc {
-  color: rgba(255, 255, 255, .6);
+  color: #8e8e93;
+}
+
+.msg-row.received .sim-image-box {
+  background: #f2f2f7;
 }
 
 .msg-row.received .sim-image-box svg {
-  stroke: rgba(0, 0, 0, .25);
+  stroke: #c7c7cc;
 }
 
 .msg-row.received .sim-image-box .sim-desc {
-  color: rgba(0, 0, 0, .6);
+  color: #8e8e93;
 }
 
 /* ============================================================
@@ -565,13 +588,13 @@
 }
 
 /* ============================================================
-   INPUT BAR — Transparent glass with gradient blur
+   ② INPUT BAR — Moved up, reduced bottom padding
    ============================================================ */
 .chat-input-bar {
   display: flex;
   align-items: flex-end;
-  padding: 8px 12px;
-  padding-bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 6px));
+  padding: 6px 12px;
+  padding-bottom: max(4px, calc(env(safe-area-inset-bottom, 0px) + 2px));
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -582,19 +605,19 @@
   z-index: 30;
 }
 
-/* Gradient blur rising from bottom into message area */
+/* ① Bottom gradient — reduced from 85px to 40px */
 .chat-input-bar::before {
   content: "";
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 85px;
+  height: 40px;
   background: linear-gradient(
     to top,
-    rgba(255, 255, 255, 0.32) 0%,
-    rgba(255, 255, 255, 0.32) 24px,
-    rgba(255, 255, 255, 0) 85px
+    rgba(255, 255, 255, 0.38) 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0) 100%
   );
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -718,33 +741,37 @@
   display: none;
 }
 
-/* --- Send Button — External image icon --- */
+/* ============================================================
+   ③ SEND BUTTON — SVG paper-plane on light gray circle
+   ============================================================ */
 .chat-send-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   border: none;
-  background-color: transparent;
-  background-image: url("https://s1.imagehub.cc/images/2026/08/04/57baacc321803be93d8e53e62f6ebb8b.png");
-  background-size: 18px 18px;
-  background-repeat: no-repeat;
-  background-position: center;
+  background: #c7c7cc;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin: 0;
+  margin: 0 0 1px 0;
   padding: 0;
-  transition: opacity .15s;
+  transition: background .15s;
 }
 
 .chat-send-btn:active {
-  opacity: .6;
+  background: #a0a0a5;
 }
 
+/* Show SVG icon */
 .chat-send-btn svg {
-  display: none;
+  width: 14px;
+  height: 14px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.6;
+  display: block;
 }
 
 /* ============================================================
