@@ -30,5 +30,12 @@ document.getElementById('chatInput')?.addEventListener('keydown', function (e) {
 
 updateHomeBadge();
 switchImsgTab(state.imsgTab || 'messages');
+
+// ★ 预渲染所有标签内容，确保切换标签时内容已就绪
+try { renderCharList(); } catch (e) {}
+try { renderGroups(); } catch (e) {}
+try { renderMoments(); } catch (e) {}
+
 updatePhoneTime();
+
 setInterval(updatePhoneTime, 30000);

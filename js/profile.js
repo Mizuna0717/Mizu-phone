@@ -1,22 +1,14 @@
 // ========== 09-profile.js ==========
 // 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js
 
-// ========== iMESSAGE TABS ==========
-function switchImsgTab(tab) {
-  state.imsgTab = tab;
-  document.querySelectorAll('.imsg-bottom-tab').forEach(t =>
-    t.classList.toggle('active', t.dataset.tab === tab)
-  );
-  document.getElementById('imsgTabMessages').classList.toggle('active', tab === 'messages');
-  document.getElementById('imsgTabProfile').classList.toggle('active', tab === 'profile');
-  document.getElementById('drawerBtnNav').style.display = tab === 'messages' ? '' : 'none';
-  document.getElementById('imsgLargeTitle').textContent = tab === 'messages' ? T('messages') : T('myProfile');
+// ★ imsgTabAction 保留在此文件，因为涉及 editMask（profile.js 的职责）
+function imsgTabAction() {
+  if (state.imsgTab === 'messages') createNewChar();
+  else if (state.imsgTab === 'groups') openNewGroupModal();
+  else if (state.imsgTab === 'moments') openNewMomentModal();
+  else if (state.imsgTab === 'profile') editMask(null);
 }
 
-function imsgTabAction() {
-  if (state.imsgTab === 'profile') editMask(null);
-  else createNewChar();
-}
 
 // ========== PROFILE ==========
 function renderProfileInfo() {
@@ -169,6 +161,8 @@ async function startUrlImport() {
 // ========== MASKS ==========
 function renderMaskList() {
   const b = document.getElementById('maskListBody');
+  if (!b) return;                     // ★ DOM 不存在时安全退出
+  if (!Array.isArray(state.masks)) state.masks = [];  // ★ 类型保护
   if (!state.masks.length) {
     b.innerHTML = `<div class="mask-empty"><svg viewBox="0 0 44 44"><rect x="4" y="4" width="36" height="36" rx="8"/></svg><p>${T('noMasks')}<br>${T('noMasksSub')}</p></div>`;
     return;
@@ -199,19 +193,47 @@ function previewMaskAvatar(inp) {
 function renderMaskCharList(sel) {
   const c = document.getElementById('maskCharList');
   if (!state.characters.length) {
-    c.innerHTML = `<div style="padding:14px 16px;color:#8e8e93;font-size:14px">${T('noCharsAvailable')}</div>`;
+    c.innerHTML = `<div class="mask-bind-empty">
+      <svg viewBox="0 0 32 32"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10"/></svg>
+      <span>${T('noCharsAvailable')}</span>
+    </div>`;
     return;
   }
+
+  // 构建"被其他面具占用"的映射
   const ob = {};
   state.masks.forEach(m => {
     if (m.id === state.editingMaskId) return;
     (m.charIds || []).forEach(cid => { ob[cid] = m.name; });
   });
+
   c.innerHTML = state.characters.map(ch => {
-    const bd = ob[ch.id], ck = sel.includes(ch.id), dis = !!bd && !ck;
-    return `<div class="wb-check-item${dis ? ' style="opacity:.5"' : ''}" onclick="${dis ? '' : `this.querySelector('.checkbox').classList.toggle('checked')`}"><div class="checkbox ${ck ? 'checked' : ''}" data-charid="${ch.id}"><svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg></div><div class="li-info"><div class="li-title">${esc(ch.name)}</div>${bd ? `<div class="li-sub">${T('maskBound')}: ${esc(bd)}</div>` : ''}</div></div>`;
+    const bd = ob[ch.id];
+    const ck = sel.includes(ch.id);
+    const dis = !!bd && !ck;
+
+    return `<div class="mask-bind-item${dis ? ' mask-bind-disabled' : ''}"
+                 onclick="${dis ? '' : 'toggleMaskBind(this)'}">
+      <div class="mask-bind-avatar">${charAvatarImg(ch)}</div>
+      <div class="mask-bind-info">
+        <div class="mask-bind-name">${esc(ch.name)}</div>
+        ${bd ? `<div class="mask-bind-status">
+          <svg viewBox="0 0 12 12"><path d="M6 1v4l2.5 1.5"/><circle cx="6" cy="6" r="5"/></svg>
+          <span>${T('maskBound')}: ${esc(bd)}</span>
+        </div>` : ''}
+      </div>
+      <div class="mask-bind-check${ck ? ' checked' : ''}" data-charid="${ch.id}">
+        <svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg>
+      </div>
+    </div>`;
   }).join('');
 }
+
+function toggleMaskBind(el) {
+  const check = el.querySelector('.mask-bind-check');
+  if (check) check.classList.toggle('checked');
+}
+
 
 function saveMask() {
   const name = document.getElementById('maskName').value.trim();
@@ -219,7 +241,8 @@ function saveMask() {
   const persona = document.getElementById('maskPersonaArea').value.trim();
   const av = tmp.maskAvatar;
   const charIds = [];
-  document.querySelectorAll('#maskCharList .checkbox.checked').forEach(cb => charIds.push(cb.dataset.charid));
+    document.querySelectorAll('#maskCharList .mask-bind-check.checked').forEach(cb => charIds.push(cb.dataset.charid));
+
   state.masks.forEach(m => {
     if (m.id === state.editingMaskId) return;
     m.charIds = (m.charIds || []).filter(cid => !charIds.includes(cid));
@@ -230,11 +253,13 @@ function saveMask() {
   } else {
     state.masks.push({ id: uid(), name, persona, avatar: av, charIds });
   }
-  saveState();
+    saveState();
   showToast(T('maskSaved'));
+  // ★ 先设置目标标签，再导航，避免 nav 内部 switchImsgTab 被二次覆盖
+  state.imsgTab = 'profile';
   nav('screen-imessage');
-  switchImsgTab('profile');
 }
+
 
 function deleteMask() {
   if (!state.editingMaskId) return;

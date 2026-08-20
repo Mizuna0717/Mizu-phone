@@ -448,3 +448,253 @@
   color: #8e8e93;
   line-height: 1.6;
 }
+/* ===== Mask Bind Character List ===== */
+.mask-bind-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  gap: 8px;
+}
+.mask-bind-empty svg {
+  width: 28px;
+  height: 28px;
+  stroke: #c7c7cc;
+  fill: none;
+  stroke-width: 1.5;
+}
+.mask-bind-empty span {
+  font-size: 14px;
+  color: #8e8e93;
+}
+
+.mask-bind-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f2f2f7;
+  transition: background .12s;
+}
+.mask-bind-item:last-child {
+  border-bottom: none;
+}
+.mask-bind-item:active {
+  background: #f9f9fb;
+}
+.mask-bind-disabled {
+  opacity: .45;
+  cursor: default;
+}
+.mask-bind-disabled:active {
+  background: transparent;
+}
+
+.mask-bind-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e5e5ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mask-bind-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mask-bind-avatar svg {
+  width: 20px;
+  height: 20px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.mask-bind-info {
+  flex: 1;
+  min-width: 0;
+}
+.mask-bind-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1d1d1f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mask-bind-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #8e8e93;
+}
+.mask-bind-status svg {
+  width: 11px;
+  height: 11px;
+  stroke: #aeaeb2;
+  fill: none;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.mask-bind-check {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #d1d1d6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .18s;
+}
+.mask-bind-check svg {
+  width: 12px;
+  height: 12px;
+  stroke: transparent;
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke .18s;
+}
+.mask-bind-check.checked {
+  background: #1d1d1f;
+  border-color: #1d1d1f;
+}
+.mask-bind-check.checked svg {
+  stroke: #fff;
+}
+/* ===== Worldbook Bind Tag ===== */
+.wb-bind-icon {
+  border-radius: 10px !important;
+}
+.wb-bind-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: #636366;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wb-bind-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 4px;
+  letter-spacing: .3px;
+}
+.wb-tag-global {
+  background: #e8f0fe;
+  color: #3478f6;
+}
+.wb-tag-local {
+  background: #f0f0f5;
+  color: #8e8e93;
+}
+
+/* ===== Mask Card List ===== */
+.mask-card {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ececec;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.mask-card:active {
+  background: #f9f9fb;
+}
+.mc-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f2f2f7;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mc-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mc-avatar svg {
+  width: 24px;
+  height: 24px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+}
+.mc-info {
+  flex: 1;
+  min-width: 0;
+}
+.mc-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-desc {
+  font-size: 13px;
+  color: #8e8e93;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-chars {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.mc-char-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: #f2f2f7;
+  border-radius: 4px;
+  color: #636366;
+  font-weight: 500;
+}
+.mc-arrow {
+  font-size: 18px;
+  color: #c7c7cc;
+  flex-shrink: 0;
+  font-weight: 300;
+}
+.mask-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+.mask-empty svg {
+  width: 44px;
+  height: 44px;
+  stroke: #d1d1d6;
+  fill: none;
+  stroke-width: 1;
+  margin-bottom: 12px;
+}
+.mask-empty p {
+  font-size: 14px;
+  color: #8e8e93;
+  line-height: 1.6;
+}

@@ -101,14 +101,38 @@ function navCharEditBack() { nav(state.charEditFrom || 'screen-imessage'); }
 
 function renderCharWbList(sel) {
   const c = document.getElementById('charWbList');
+  if (!c) return;
   if (!state.worldbooks.length) {
-    c.innerHTML = `<div style="padding:14px 16px;color:#8e8e93;font-size:14px">${T('noWbAvailable')}</div>`;
+    c.innerHTML = `<div class="mask-bind-empty">
+      <svg viewBox="0 0 32 32"><rect x="7" y="4" width="18" height="24" rx="3"/><path d="M12 10h8M12 15h8M12 20h5"/></svg>
+      <span>${T('noWbAvailable')}</span>
+    </div>`;
     return;
   }
-  c.innerHTML = state.worldbooks.map(wb =>
-    `<div class="wb-check-item" onclick="this.querySelector('.checkbox').classList.toggle('checked')"><div class="checkbox ${sel.includes(wb.id) ? 'checked' : ''}" data-wbid="${wb.id}"><svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg></div><div class="li-info"><div class="li-title">${esc(wb.name)}</div><div class="li-sub">${wb.isGlobal ? T('global') : T('local')}</div></div></div>`
-  ).join('');
+  c.innerHTML = state.worldbooks.map(wb => {
+    const ck = sel.includes(wb.id);
+    return `<div class="mask-bind-item" onclick="toggleWbBind(this)">
+      <div class="mask-bind-avatar wb-bind-icon">
+        <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+      </div>
+      <div class="mask-bind-info">
+        <div class="mask-bind-name">${esc(wb.name)}</div>
+        <div class="mask-bind-status">
+          <span class="wb-bind-tag ${wb.isGlobal ? 'wb-tag-global' : 'wb-tag-local'}">${wb.isGlobal ? T('global') : T('local')}</span>
+        </div>
+      </div>
+      <div class="mask-bind-check${ck ? ' checked' : ''}" data-wbid="${wb.id}">
+        <svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg>
+      </div>
+    </div>`;
+  }).join('');
 }
+
+function toggleWbBind(el) {
+  const check = el.querySelector('.mask-bind-check');
+  if (check) check.classList.toggle('checked');
+}
+
 
 function previewCharAvatar(inp) {
   previewAvatarFile(inp, d => { tmp.charAvatar = d; setAvatarPreview('charAvatarPv', 'charAvatarPh', d); });
@@ -121,7 +145,7 @@ function saveChar() {
   const sp = document.getElementById('charPromptArea').value.trim();
   const av = tmp.charAvatar;
   const wbIds = [];
-  document.querySelectorAll('#charWbList .checkbox.checked').forEach(cb => wbIds.push(cb.dataset.wbid));
+    document.querySelectorAll('#charWbList .mask-bind-check.checked').forEach(cb => wbIds.push(cb.dataset.wbid));
 
   if (state.editingCharId) {
     // ---- 编辑已有角色 ----

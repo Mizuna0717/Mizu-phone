@@ -78,14 +78,21 @@ function loadState() {
     const d = JSON.parse(localStorage.getItem('aiphone8'));
     if (d) Object.keys(d).forEach(k => { if (d[k] !== undefined) state[k] = d[k]; });
   } catch (e) {}
-  if (!state.unread) state.unread = {};
-  if (!state.phoneData) state.phoneData = {};
-  if (!state.userProfile) state.userProfile = { name: 'User', avatar: null };
-  if (!state.masks) state.masks = [];
-  if (!state.memories) state.memories = [];
-  if (!state.bookmarks) state.bookmarks = [];
+
+  // ★ 修复：使用 Array.isArray 确保数组字段不会因数据损坏变成 null/object/string
+  if (!Array.isArray(state.characters)) state.characters = [];
+  if (!state.chats || typeof state.chats !== 'object' || Array.isArray(state.chats)) state.chats = {};
+  if (!state.unread || typeof state.unread !== 'object') state.unread = {};
+  if (!state.phoneData || typeof state.phoneData !== 'object') state.phoneData = {};
+  if (!state.userProfile || typeof state.userProfile !== 'object') state.userProfile = { name: 'User', avatar: null };
+  if (!Array.isArray(state.masks)) state.masks = [];
+  if (!Array.isArray(state.memories)) state.memories = [];
+  if (!Array.isArray(state.bookmarks)) state.bookmarks = [];
   if (state.replyPrompt == null) state.replyPrompt = DEFAULT_REPLY_PROMPT;
-  if (!state.charConfig) state.charConfig = {};
-  if (!state.groups) state.groups = [];
-  if (!state.moments) state.moments = [];
+  if (!state.charConfig || typeof state.charConfig !== 'object') state.charConfig = {};
+  if (!Array.isArray(state.groups)) state.groups = [];
+  if (!Array.isArray(state.moments)) state.moments = [];
+  if (!Array.isArray(state.worldbooks)) state.worldbooks = [];
+  if (!Array.isArray(state.stickers)) state.stickers = [];
+  if (!Array.isArray(state.apis)) state.apis = [];
 }

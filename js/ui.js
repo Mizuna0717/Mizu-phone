@@ -51,7 +51,14 @@ function toggleAcc(h) {
 function nav(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  closePlusMenu(); closeStickerPanel(); closeBubbleMenu(); closeChatMenu();
+
+  // ★ 核心修复：try-catch 包裹 close 调用，防止任何一个抛错阻断后续渲染
+  try { closePlusMenu(); } catch (e) {}
+  try { closeStickerPanel(); } catch (e) {}
+  try { closeBubbleMenu(); } catch (e) {}
+  try { closeChatMenu(); } catch (e) {}
+  try { closeGroupMenu(); } catch (e) {}
+
   if (id === 'screen-settings') renderSettings();
   if (id === 'screen-imessage') { switchImsgTab(state.imsgTab || 'messages'); }
   if (id === 'screen-worldbook') renderWbList();
