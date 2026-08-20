@@ -1,5 +1,4 @@
 // ========== 07-prompt.js ==========
-// 依賴：02-state.js, 03-utils.js, 04-i18n.js, 17-memory.js, 18-chat-config.js
 
 function getActiveWorldBooks(ch, wbs) {
   return wbs.filter(wb => wb.isGlobal || (ch.worldbookIds || []).includes(wb.id));
@@ -31,7 +30,6 @@ Usage guidelines:
   "给你发个红包，买杯咖啡 [转账:20:请你喝咖啡]"`;
 }
 
-// ★★★ 查找待处理转账 ★★★
 function getPendingTransfers(charId) {
   const msgs = state.chats[charId] || [];
   return msgs.filter(m => m.role === 'user' && m.type === 'transfer' && !m.transferStatus);
@@ -63,10 +61,8 @@ function buildSystemPrompt(ch, wbs, stickers) {
 
   p += '\n\n' + buildStickerHint(stickers) + buildMultiMediaHint();
 
-  // ====== 获取聊天配置 ======
   const charCfg = getCharConfig(ch.id);
 
-  // ====== ★ 回复语言指令 ★ ======
   const langMap = {
     'zh-CN': '简体中文',
     'zh-TW': '繁體中文',
@@ -78,7 +74,7 @@ function buildSystemPrompt(ch, wbs, stickers) {
   const langName = langMap[chatLang] || '简体中文';
   p += `\n\n[Reply Language]\n请使用${langName}进行所有回复。你的【回复】内容必须使用${langName}书写。`;
 
-  // ====== 三段式输出格式 ======
+  // ⑥ 三段式 + 好感度 + 想要
   let formatInstr = `\n\n[CRITICAL - Response Format]
 You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
 
@@ -89,9 +85,14 @@ You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
 (Your current physical actions, body language, facial expressions at this moment. Write in third person, e.g. "低头微笑，手指轻叩桌面")
 
 【心声】
-(Your TRUE inner thoughts and feelings that you would NEVER say out loud. Be honest, vulnerable, contradictory if needed. e.g. "其实我有点紧张，不想让她发现我在意")`;
+(Your TRUE inner thoughts and feelings that you would NEVER say out loud. Be honest, vulnerable, contradictory if needed. e.g. "其实我有点紧张，不想让她发现我在意")
 
-  // ====== ★ 翻译指令 ★ ======
+【好感】
+(A single integer from 0 to 100 representing your current affection/favorability toward the user. 0 = strongly dislike, 50 = neutral, 100 = deeply in love. Adjust based on conversation context. Output ONLY the number, e.g. "75")
+
+【想要】
+(What you currently want to do most, in one short sentence. e.g. "想和你一起去海边散步" or "想安静地待一会儿")`;
+
   if (charCfg.translation) {
     formatInstr += `
 
@@ -99,10 +100,9 @@ You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
 (Translate only the content of 【回复】 into 简体中文. If the reply already is in 简体中文, translate it into English instead. Only translate the dialogue/text, not media tags like [表情:...], [语音:...], etc. If 【回复】 contains ---SPLIT---, use the same ---SPLIT--- separator in 【翻译】 to match each part.)`;
   }
 
-  formatInstr += `\n\nAll sections above are MANDATORY. Never omit any section.`;
+  formatInstr += `\n\nAll sections above are MANDATORY. Never omit any section. You MUST always include 【好感】 and 【想要】 in every reply.`;
   p += formatInstr;
 
-  // ★★★ 时间感知注入 ★★★
   if (charCfg.timeAwareness) {
     const now = new Date();
     const timeStr = now.toLocaleString('zh-CN', {
@@ -113,7 +113,6 @@ You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
     p += `\n\n[Current Time]\n当前时间：${timeStr}\n请在回复中自然地反映时间感知（如早晚问候、作息等），但不要刻意提及具体时间数字。`;
   }
 
-  // ★★★ 表情包使用开关注入 ★★★
   if (charCfg.useStickers) {
     const stickerList = (state.stickers && Array.isArray(state.stickers)) ? state.stickers : [];
     if (stickerList.length > 0) {
@@ -121,7 +120,6 @@ You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
         .map(s => s.name || s.title || s.id || '')
         .filter(n => n)
         .slice(0, 50);
-
       if (stickerNames.length > 0) {
         p += `\n\n[Sticker Usage - 表情包]
 你可以在回复中适当使用表情包来丰富表达。在合适的场景下（如表达情绪、调侃、撒娇等），从以下表情包列表中选择一个，并以 [表情:名称] 格式插入到【回复】内容中。
@@ -137,7 +135,6 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
     }
   }
 
-  // ★★★ 回复条数指令注入 ★★★
   if (charCfg.replyMax > 1) {
     p += `\n\n[Reply Count Instructions]\n请根据以下要求决定本次回复的消息条数：最少 ${charCfg.replyMin} 条，最多 ${charCfg.replyMax} 条。请随机选择一个条数，然后将【回复】部分的内容拆分为多条独立消息发送。每条消息之间用 ---SPLIT--- 分隔。每条消息应该是独立的、自然的对话内容。\n例如：\n【回复】\n你好啊！\n---SPLIT---\n最近在干嘛？`;
     if (charCfg.translation) {
@@ -145,12 +142,10 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
     }
   }
 
-  // ★★★ 角色主动撤回提示 ★★★
   if (charCfg.charRecall) {
     p += `\n\n[Recall Hint]\n你有时候会在发完消息后犹豫是否说得合适，偶尔会撤回自己刚发的消息。这是你的性格特点之一。（系统会自动处理撤回概率，你不需要在回复中标注撤回。）`;
   }
 
-  // ★★★ 转账决策指令 ★★★
   const pendingTransfers = getPendingTransfers(ch.id);
   if (pendingTransfers.length > 0) {
     const latest = pendingTransfers[pendingTransfers.length - 1];
@@ -178,7 +173,6 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
 示例（拒绝）：
 "这我可不能收，你拿回去吧 [拒绝转账]"`;
   } else {
-    // 即使没有待处理转账，也提供通用指令
     p += `\n\n[Transfer Rules - 转账规则]
 当你在聊天记录中看到用户的转账消息标记为"(待领取)"时，请在下一次回复中决定是否领取：
 - 领取：在【回复】中加入 [领取转账]
@@ -186,7 +180,6 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
 标签会被系统自动移除。如果转账已标记为"(已领取)"或"(已拒绝)"，无需再次处理。`;
   }
 
-  // 记忆注入
   const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'ltm') : [];
   const charSTM = (typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'stm') : []).filter(m => !m.consolidated);
   const charManual = (state.memories || []).filter(m => m.charId === ch.id && !m.memType)
@@ -211,8 +204,6 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
   return p;
 }
 
-
-// ========== PARSE AI REPLY ==========
 function parseReplySegments(raw, stickerLib) {
   const parts = [];
   const regex = /\[(?:表情|sticker)[:：]\s*([^\]]+)\]|\[(?:语音|voice)[:：]\s*([^\]]+)\]|\[(?:转账|transfer)[:：]\s*([^\]]+)\]|\[(?:图片|image)[:：]\s*([^\]]+)\]|\[(?:通话|call)[:：]\s*([^\]]+)\]/gi;

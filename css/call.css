@@ -39,7 +39,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: env(safe-area-inset-top, 20px) 0 env(safe-area-inset-bottom, 20px);
+  padding: env(safe-area-inset-top, 20px) 0 env(safe-area-inset-bottom, 0px);
 }
 
 .call-top {
@@ -100,15 +100,58 @@
 .call-input-send { width: 34px; height: 34px; border-radius: 50%; border: none; background: rgba(255,255,255,.15); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
 .call-input-send:active { background: rgba(255,255,255,.25); }
 
-.call-controls { padding: 12px 24px 8px; flex-shrink: 0; }
+/* ② Call controls — moved up aggressively */
+.call-controls {
+  padding: 8px 20px 4px;
+  flex-shrink: 0;
+}
 .call-controls.hidden { display: none; }
-.call-ctrl-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px 0; max-width: 300px; margin: 0 auto; }
-.call-ctrl-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
-.call-ctrl-item span { font-size: 11px; color: rgba(255,255,255,.6); font-weight: 500; }
-.call-ctrl-btn { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; transition: all .15s; border: 1px solid rgba(255,255,255,.08); }
+
+.call-ctrl-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 0;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.call-ctrl-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.call-ctrl-item span {
+  font-size: 10px;
+  color: rgba(255,255,255,.6);
+  font-weight: 500;
+}
+
+.call-ctrl-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+  border: 1px solid rgba(255,255,255,.08);
+}
 .call-ctrl-btn:active { transform: scale(.92); }
 .call-ctrl-btn.active { background: rgba(255,255,255,.85); }
-.call-ctrl-btn svg { width: 24px; height: 24px; stroke: rgba(255,255,255,.85); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ③ Call button icons — thicker strokes */
+.call-ctrl-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: rgba(255,255,255,.85);
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .call-ctrl-btn.active svg { stroke: #1d1d1f; }
 
 .call-end-btn { background: #ff3b30 !important; border-color: transparent !important; }
@@ -118,7 +161,7 @@
 .call-msg-bubble .typing-indicator { padding: 4px 0; }
 .call-msg-bubble .typing-indicator span { background: rgba(255,255,255,.5); }
 
-/* ===== ★ 长按删除菜单 ===== */
+/* ===== Long-press delete menu ===== */
 .call-delete-overlay {
   position: absolute;
   inset: 0;
@@ -165,5 +208,3 @@
   color: #ff453a;
   font-weight: 500;
 }
-
-
