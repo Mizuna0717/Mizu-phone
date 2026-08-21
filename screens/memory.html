@@ -1,0 +1,29 @@
+<!-- MEMORY LIST -->
+<div class="screen" id="screen-memory">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-home')"><svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+		<span class="nav-title" data-i18n="memory">Memory</span>
+		<button class="nav-btn nav-right" onclick="editMemory(null)"><svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+	</div>
+	<div class="large-title" data-i18n="memories">Memory</div>
+	<div class="screen-body">
+		<div style="margin:0 16px 20px;background:linear-gradient(135deg,#1d1d1f,#3a3a3c);border-radius:20px;padding:28px 24px;color:#fff;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.2)">
+			<div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.03)"></div>
+			<div style="display:flex;align-items:center;gap:14px;position:relative">
+				<div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.3"><rect x="4" y="2" width="16" height="20" rx="2.5"/><rect x="6.5" y="4.5" width="11" height="9" rx="1"/><path d="M9 17h6"/></svg></div>
+				<div><div style="font-size:20px;font-weight:700;margin-bottom:3px" data-i18n="memoryTitle">Memory Box</div><div style="font-size:12px;color:rgba(255,255,255,.4)" data-i18n="memorySub">Cherish every moment</div></div>
+			</div>
+		</div>
+		<div class="mem-char-filter" id="memCharFilter"></div>
+		<div id="memCharInfoArea"></div>
+		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600" data-i18n="memoryStats">OVERVIEW</div>
+		<div class="mem-stats-grid">
+			<div class="mem-stat-card"><div class="mem-stat-icon"><svg viewBox="0 0 20 20" style="width:18px;height:18px;stroke:#3a3a3c;fill:none;stroke-width:1.5"><rect x="3" y="3" width="14" height="14" rx="3"/><path d="M3 10h14"/><path d="M10 3v14"/></svg></div><div class="mem-stat-num" id="memStatTotal">0</div><div class="mem-stat-label" data-i18n="totalMemories">Total</div></div>
+			<div class="mem-stat-card"><div class="mem-stat-icon"><svg viewBox="0 0 20 20" style="width:18px;height:18px;stroke:#3a3a3c;fill:none;stroke-width:1.5"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/></svg></div><div class="mem-stat-num" id="memStatFirst" style="font-size:13px">—</div><div class="mem-stat-label" data-i18n="firstMemory">First Memory</div></div>
+			<div class="mem-stat-card"><div class="mem-stat-icon"><svg viewBox="0 0 20 20" style="width:18px;height:18px;stroke:#3a3a3c;fill:none;stroke-width:1.5"><path d="M4 15l4-4 3 3 5-6"/><path d="M14 8h4v4"/></svg></div><div class="mem-stat-num" id="memStatStreak">0</div><div class="mem-stat-label" data-i18n="thisMonth">This Month</div></div>
+		</div>
+		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600" data-i18n="memoryTimeline">TIMELINE</div>
+		<div id="memoryListBody"></div>
+		<div style="height:40px"></div>
+	</div>
+</div>
