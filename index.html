@@ -3022,6 +3022,108 @@
 		</div>
 	</div>
 </div>
+<!-- ===== CREATE ACTION SHEET (Messages 页 "+" 菜单) ===== -->
+<style>
+  /* ---- Create Action Sheet ---- */
+  #createActionSheet{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+  #createActionSheet.show{opacity:1;pointer-events:auto}
+  #createActionSheet .cas-bg{position:absolute;inset:0;background:rgba(0,0,0,.4)}
+  #createActionSheet .cas-panel{position:relative;width:100%;max-width:500px;padding:8px;transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)}
+  #createActionSheet.show .cas-panel{transform:translateY(0)}
+  #createActionSheet .cas-group{background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-radius:14px;overflow:hidden;margin-bottom:8px}
+  #createActionSheet .cas-item{display:flex;align-items:center;justify-content:center;gap:8px;padding:17px 16px;font-size:17px;color:#007aff;cursor:pointer;border-bottom:.5px solid #e5e5ea;-webkit-tap-highlight-color:transparent}
+  #createActionSheet .cas-item:last-child{border-bottom:none}
+  #createActionSheet .cas-item:active{background:rgba(0,0,0,.06)}
+  #createActionSheet .cas-cancel{background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-radius:14px;padding:17px 16px;text-align:center;font-size:17px;font-weight:600;color:#007aff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  #createActionSheet .cas-cancel:active{background:rgba(245,245,245,.96)}
+
+  /* ---- Create Group Modal ---- */
+  #createGroupModal{position:fixed;inset:0;z-index:2100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s}
+  #createGroupModal.show{opacity:1;pointer-events:auto}
+  #createGroupModal .cgm-box{background:#fff;border-radius:16px;width:92%;max-width:420px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;transform:scale(.92);transition:transform .28s cubic-bezier(.32,.72,0,1)}
+  #createGroupModal.show .cgm-box{transform:scale(1)}
+  #createGroupModal .cgm-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:.5px solid #e5e5ea}
+  #createGroupModal .cgm-header-btn{background:none;border:none;font-size:15px;font-family:inherit;cursor:pointer;padding:4px 8px;border-radius:6px}
+  #createGroupModal .cgm-header-cancel{color:#8e8e93}
+  #createGroupModal .cgm-header-done{color:#fff;background:#007aff;font-weight:600;border-radius:8px;padding:6px 16px}
+  #createGroupModal .cgm-header-done:active{background:#005ecb}
+  #createGroupModal .cgm-header-title{font-size:16px;font-weight:600;color:#1d1d1f}
+  #createGroupModal .cgm-body{padding:16px;overflow-y:auto;flex:1}
+  #createGroupModal .cgm-label{font-size:13px;color:#8e8e93;font-weight:500;text-transform:uppercase;margin-bottom:6px}
+  #createGroupModal .cgm-input{width:100%;padding:11px 14px;border:1px solid #e5e5ea;border-radius:10px;font-size:16px;font-family:inherit;box-sizing:border-box;outline:none;transition:border-color .15s}
+  #createGroupModal .cgm-input:focus{border-color:#007aff}
+  #createGroupModal .cgm-charlist{max-height:46vh;overflow-y:auto;border:1px solid #e5e5ea;border-radius:12px;margin-top:4px}
+
+  /* ---- Leave Group Confirm Modal ---- */
+  #leaveGroupConfirmModal{position:fixed;inset:0;z-index:2200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s}
+  #leaveGroupConfirmModal.show{opacity:1;pointer-events:auto}
+  #leaveGroupConfirmModal .lgc-box{background:#fff;border-radius:14px;width:280px;text-align:center;overflow:hidden;transform:scale(.9);transition:transform .25s cubic-bezier(.32,.72,0,1)}
+  #leaveGroupConfirmModal.show .lgc-box{transform:scale(1)}
+  #leaveGroupConfirmModal .lgc-body{padding:20px 16px 12px}
+  #leaveGroupConfirmModal .lgc-title{font-size:17px;font-weight:600;color:#1d1d1f;margin-bottom:6px}
+  #leaveGroupConfirmModal .lgc-msg{font-size:13px;color:#8e8e93;line-height:1.4}
+  #leaveGroupConfirmModal .lgc-actions{display:flex;border-top:.5px solid #e5e5ea}
+  #leaveGroupConfirmModal .lgc-btn{flex:1;padding:14px 0;font-size:17px;border:none;background:none;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+  #leaveGroupConfirmModal .lgc-btn:first-child{border-right:.5px solid #e5e5ea;color:#007aff}
+  #leaveGroupConfirmModal .lgc-btn:last-child{color:#ff3b30;font-weight:600}
+  #leaveGroupConfirmModal .lgc-btn:active{background:rgba(0,0,0,.05)}
+</style>
+
+<!-- Create Action Sheet -->
+<div id="createActionSheet">
+  <div class="cas-bg" onclick="closeCreateActionSheet()"></div>
+  <div class="cas-panel">
+    <div class="cas-group">
+      <div class="cas-item" onclick="closeCreateActionSheet();createNewChar()">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#007aff;fill:none;stroke-width:1.5;flex-shrink:0">
+          <circle cx="12" cy="8" r="4.5"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+        </svg>
+        Create Character
+      </div>
+      <div class="cas-item" onclick="closeCreateActionSheet();openCreateGroupModal()">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#007aff;fill:none;stroke-width:1.5;flex-shrink:0">
+          <circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="3"/>
+          <path d="M2 22c0-4 3.2-7 7-7s7 3 7 7"/><path d="M16 22c0-3.2 2-5.5 5-5.5"/>
+        </svg>
+        Create Group
+      </div>
+    </div>
+    <div class="cas-cancel" onclick="closeCreateActionSheet()">Cancel</div>
+  </div>
+</div>
+
+<!-- Create Group Modal -->
+<div id="createGroupModal">
+  <div class="cgm-box">
+    <div class="cgm-header">
+      <button class="cgm-header-btn cgm-header-cancel" onclick="closeModal('createGroupModal')">Cancel</button>
+      <span class="cgm-header-title">New Group</span>
+      <button class="cgm-header-btn cgm-header-done" onclick="confirmCreateGroup()">Create</button>
+    </div>
+    <div class="cgm-body">
+      <div class="cgm-label">Group Name</div>
+      <input id="createGroupName" class="cgm-input" type="text" value="New Group" placeholder="Enter group name">
+      <div style="height:18px"></div>
+      <div class="cgm-label">Select Members <span style="font-weight:400;text-transform:none">(at least 2)</span></div>
+      <div id="createGroupCharList" class="cgm-charlist"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Group Confirm Modal -->
+<div id="leaveGroupConfirmModal">
+  <div class="lgc-box">
+    <div class="lgc-body">
+      <div class="lgc-title">Leave Group</div>
+      <div class="lgc-msg">Are you sure you want to leave this group? Chat history will be deleted.</div>
+    </div>
+    <div class="lgc-actions">
+      <button class="lgc-btn" onclick="closeModal('leaveGroupConfirmModal')">Cancel</button>
+      <button class="lgc-btn" onclick="leaveGroup()">Leave</button>
+    </div>
+  </div>
+</div>
+
 <!-- ★★★ 全屏通话界面 ★★★ -->
 <div class="call-screen" id="callScreen">
   <div class="call-bg" id="callBg"></div>
