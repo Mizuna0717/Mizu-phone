@@ -1,80 +1,172 @@
 // ========== social.js ==========
-// 好友分组 & 朋友圈
+// Groups (chat groups + folder groups) & Moments
 
-// ============ 工具 ============
+// ============ Utilities ============
 function socialRelativeTime(ts) {
   const diff = Date.now() - ts;
   const sec = Math.floor(diff / 1000);
-  if (sec < 60) return '刚刚';
+  if (sec < 60) return 'Just now';
   const min = Math.floor(sec / 60);
-  if (min < 60) return min + '分钟前';
+  if (min < 60) return min + 'm ago';
   const hr = Math.floor(min / 60);
-  if (hr < 24) return hr + '小时前';
+  if (hr < 24) return hr + 'h ago';
   const day = Math.floor(hr / 24);
-  if (day === 1) return '昨天';
-  if (day < 30) return day + '天前';
+  if (day === 1) return 'Yesterday';
+  if (day < 30) return day + 'd ago';
   return new Date(ts).toLocaleDateString();
 }
 
-// ============ GROUPS ============
+// ============ GROUPS (Chat Groups + Folder Groups) ============
 
 function renderGroups() {
   const container = document.getElementById('groupsListBody');
   if (!container) return;
 
-  if (!state.groups.length) {
-    container.innerHTML = `
-      <div class="social-empty">
-        <svg viewBox="0 0 48 48"><circle cx="16" cy="14" r="5"/><circle cx="32" cy="14" r="5"/>
-        <path d="M6 32c0-5 4-9 10-9s10 4 10 9"/><path d="M22 32c0-5 4-9 10-9s10 4 10 9"/></svg>
-        <p>暂无分组，点击 + 创建</p>
-      </div>`;
+  // Separate chat groups and folder groups
+  const chatGroups = (state.groups || []).filter(g => g.isGroup === true);
+  const folderGroups = (state.groups || []).filter(g => !g.isGroup);
+
+  if (!chatGroups.length && !folderGroups.length) {
+    container.innerHTML =
+      '<div class="social-empty">' +
+        '<svg viewBox="0 0 48 48" style="width:48px;height:48px;stroke:#d1d1d6;fill:none;stroke-width:1.5;display:block;margin:0 auto 12px">' +
+          '<circle cx="16" cy="14" r="5"/><circle cx="32" cy="14" r="5"/>' +
+          '<path d="M6 32c0-5 4-9 10-9s10 4 10 9"/><path d="M22 32c0-5 4-9 10-9s10 4 10 9"/>' +
+        '</svg>' +
+        '<p style="color:#8e8e93;font-size:14px;text-align:center">No groups yet<br><span style="font-size:12px">Tap + to create one</span></p>' +
+      '</div>';
     return;
   }
 
   let h = '';
-  state.groups.forEach(g => {
-    const chars = state.characters.filter(c => c.groupId === g.id);
-    const expanded = tmp.expandedGroups && tmp.expandedGroups.has(g.id);
-    h += `<div class="group-card" data-gid="${g.id}">
-      <div class="group-card-header" onclick="toggleGroupExpand('${g.id}')">
-        <div class="group-card-icon">
-          <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="7" r="3"/>
-          <path d="M2 20c0-3.5 3-6.5 7-6.5 1.5 0 2.8.4 4 1"/><path d="M14 20c0-3.5 2-6.5 5-6.5s5 3 5 6.5"/></svg>
-        </div>
-        <div class="group-card-info">
-          <div class="group-card-name">${esc(g.name)}</div>
-          <div class="group-card-count">${chars.length}人</div>
-        </div>
-        <div class="group-card-actions">
-          <button class="group-more-btn" onclick="event.stopPropagation();showGroupMenu('${g.id}',event)" title="更多">
-            <svg viewBox="0 0 16 16"><circle cx="4" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="12" cy="8" r="1.2"/></svg>
-          </button>
-          <span class="group-expand-arrow ${expanded ? 'expanded' : ''}">
-            <svg viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-        </div>
-      </div>
-      ${expanded ? buildGroupCharList(g.id, chars) : ''}
-    </div>`;
-  });
+
+  // ---- Chat Groups Section ----
+  if (chatGroups.length) {
+    h += '<div style="padding:0 4px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px">' +
+      '<svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5">' +
+      '<circle cx="6" cy="5" r="2.5"/><circle cx="11" cy="5" r="2.5"/>' +
+      '<path d="M1 14c0-3 2-5 5-5s5 2 5 5"/><path d="M9 14c0-3 1.5-5 4-5s4 2 4 5"/></svg>' +
+      '<span>CHAT GROUPS</span></div>';
+
+    chatGroups.forEach(g => {
+      const members = (g.members || []).map(mid => state.characters.find(c => c.id === mid)).filter(Boolean);
+      const memberCount = members.length;
+      const msgs = state.chats[g.id] || [];
+      const lastMsg = msgs.length ? msgs[msgs.length - 1] : null;
+      const ur = state.unread[g.id] || 0;
+
+      // Build member avatar preview (up to 4)
+      let memberAvsHtml = '<div style="display:flex;align-items:center">';
+      members.slice(0, 4).forEach((m, idx) => {
+        memberAvsHtml += '<div style="width:24px;height:24px;border-radius:50%;overflow:hidden;border:2px solid #fff;' +
+          (idx > 0 ? 'margin-left:-6px;' : '') +
+          'position:relative;z-index:' + (4 - idx) + ';background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+        if (m.avatar) {
+          memberAvsHtml += '<img src="' + m.avatar + '" style="width:100%;height:100%;object-fit:cover;display:block">';
+        } else {
+          memberAvsHtml += '<svg viewBox="0 0 20 20" style="width:12px;height:12px;stroke:#b0b0b0;fill:none;stroke-width:1.5"><circle cx="10" cy="8" r="3"/><path d="M4 18c0-3 2.5-5.5 6-5.5s6 2.5 6 5.5"/></svg>';
+        }
+        memberAvsHtml += '</div>';
+      });
+      if (members.length > 4) {
+        memberAvsHtml += '<div style="width:24px;height:24px;border-radius:50%;background:#f2f2f7;border:2px solid #fff;margin-left:-6px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#8e8e93;font-weight:600;flex-shrink:0">+' + (members.length - 4) + '</div>';
+      }
+      memberAvsHtml += '</div>';
+
+      // Last message preview
+      let preview = '';
+      if (lastMsg) {
+        let senderChar = lastMsg.senderId ? state.characters.find(c => c.id === lastMsg.senderId) : null;
+        let senderPrefix = lastMsg.role === 'user' ? 'You: ' : (senderChar ? senderChar.name + ': ' : '');
+        preview = senderPrefix + (lastMsg.content || '').slice(0, 30);
+      } else {
+        preview = memberCount + ' members';
+      }
+
+      h += '<div style="margin-bottom:10px;background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #ececec;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.03)" onclick="openChat(\'' + g.id + '\')">';
+      h += '<div style="width:48px;height:48px;border-radius:50%;background:#f2f2f7;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">';
+      if (g.avatar) {
+        h += '<img src="' + g.avatar + '" style="width:100%;height:100%;object-fit:cover;display:block">';
+      } else {
+        h += groupAvatarHtml(g);
+      }
+      h += '</div>';
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="font-size:16px;font-weight:500;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(g.name) + '</div>';
+      h += '<div style="font-size:12px;color:#8e8e93;margin-top:4px;display:flex;align-items:center;gap:8px">';
+      h += memberAvsHtml;
+      h += '<span>' + memberCount + ' members</span>';
+      h += '</div>';
+      if (preview) {
+        h += '<div style="font-size:12px;color:#b0b0b5;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(preview) + '</div>';
+      }
+      h += '</div>';
+      if (ur > 0) {
+        h += '<div class="num-badge">' + ur + '</div>';
+      }
+      h += '<span style="color:#c7c7cc;font-size:16px">&rsaquo;</span>';
+      h += '</div>';
+    });
+  }
+
+  // ---- Folder Groups Section ----
+  if (folderGroups.length) {
+    h += '<div style="padding:16px 4px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px">' +
+      '<svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5">' +
+      '<path d="M2 4h4l2 2h6a1 1 0 011 1v6a1 1 0 01-1 1H2a1 1 0 01-1-1V5a1 1 0 011-1z"/></svg>' +
+      '<span>FOLDERS</span></div>';
+
+    folderGroups.forEach(g => {
+      const chars = state.characters.filter(c => c.groupId === g.id);
+      const expanded = tmp.expandedGroups && tmp.expandedGroups.has(g.id);
+      h += '<div class="group-card" data-gid="' + g.id + '">' +
+        '<div class="group-card-header" onclick="toggleGroupExpand(\'' + g.id + '\')">' +
+        '<div class="group-card-icon">' +
+        '<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="7" r="3"/>' +
+        '<path d="M2 20c0-3.5 3-6.5 7-6.5 1.5 0 2.8.4 4 1"/><path d="M14 20c0-3.5 2-6.5 5-6.5s5 3 5 6.5"/></svg>' +
+        '</div>' +
+        '<div class="group-card-info">' +
+        '<div class="group-card-name">' + esc(g.name) + '</div>' +
+        '<div class="group-card-count">' + chars.length + ' characters</div>' +
+        '</div>' +
+        '<div class="group-card-actions">' +
+        '<button class="group-more-btn" onclick="event.stopPropagation();showGroupMenu(\'' + g.id + '\',event)" title="More">' +
+        '<svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="4" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="12" cy="8" r="1.2"/></svg>' +
+        '</button>' +
+        '<span class="group-expand-arrow ' + (expanded ? 'expanded' : '') + '">' +
+        '<svg viewBox="0 0 16 16" style="width:12px;height:12px;stroke:#c7c7cc;fill:none;stroke-width:2"><path d="M6 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</span></div></div>' +
+        (expanded ? buildGroupCharList(g.id, chars) : '') +
+        '</div>';
+    });
+  }
+
+  // If only chat groups exist and none exist, show empty for folder too
+  if (!chatGroups.length && !folderGroups.length) {
+    h = '<div class="social-empty">' +
+      '<svg viewBox="0 0 48 48" style="width:48px;height:48px;stroke:#d1d1d6;fill:none;stroke-width:1.5;display:block;margin:0 auto 12px">' +
+      '<circle cx="16" cy="14" r="5"/><circle cx="32" cy="14" r="5"/>' +
+      '<path d="M6 32c0-5 4-9 10-9s10 4 10 9"/><path d="M22 32c0-5 4-9 10-9s10 4 10 9"/>' +
+      '</svg>' +
+      '<p style="color:#8e8e93;font-size:14px;text-align:center">No groups yet<br><span style="font-size:12px">Tap + to create one</span></p>' +
+      '</div>';
+  }
 
   container.innerHTML = h;
 }
 
 function buildGroupCharList(gid, chars) {
   if (!chars.length) {
-    return `<div class="group-char-list"><div class="group-char-empty">暂无角色</div></div>`;
+    return '<div class="group-char-list"><div class="group-char-empty">No characters</div></div>';
   }
   let h = '<div class="group-char-list">';
   chars.forEach(ch => {
-    h += `<div class="group-char-item">
-      <div class="group-char-av" onclick="openChat('${ch.id}')">${charAvatarImg(ch)}</div>
-      <span class="group-char-name" onclick="openChat('${ch.id}')">${esc(ch.name)}</span>
-      <button class="group-char-remove" onclick="removeCharFromGroup('${ch.id}','${gid}')" title="移除">
-        <svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke-linecap="round"/></svg>
-      </button>
-    </div>`;
+    h += '<div class="group-char-item">' +
+      '<div class="group-char-av" onclick="openChat(\'' + ch.id + '\')">' + charAvatarImg(ch) + '</div>' +
+      '<span class="group-char-name" onclick="openChat(\'' + ch.id + '\')">' + esc(ch.name) + '</span>' +
+      '<button class="group-char-remove" onclick="removeCharFromGroup(\'' + ch.id + '\',\'' + gid + '\')" title="Remove">' +
+      '<svg viewBox="0 0 12 12" style="width:10px;height:10px;stroke:#8e8e93;fill:none;stroke-width:2"><path d="M3 3l6 6M9 3l-6 6" stroke-linecap="round"/></svg>' +
+      '</button></div>';
   });
   h += '</div>';
   return h;
@@ -89,10 +181,10 @@ function toggleGroupExpand(gid) {
 
 function removeCharFromGroup(charId, gid) {
   const ch = state.characters.find(c => c.id === charId);
-  if (ch) { ch.groupId = null; saveState(); renderGroups(); showToast('已移除'); }
+  if (ch) { ch.groupId = null; saveState(); renderGroups(); showToast('Removed'); }
 }
 
-// --- 新建分组 ---
+// --- New folder group ---
 function openNewGroupModal() {
   document.getElementById('newGroupNameInput').value = '';
   document.getElementById('newGroupModal').classList.add('show');
@@ -100,32 +192,27 @@ function openNewGroupModal() {
 
 function confirmNewGroup() {
   const name = document.getElementById('newGroupNameInput').value.trim();
-  if (!name) { showToast('请输入分组名称'); return; }
+  if (!name) { showToast('Please enter a folder name'); return; }
 
-  // ★ 创建新分组并记录其 id
   const newGroupId = uid();
   state.groups.push({ id: newGroupId, name, charIds: [], createdAt: Date.now() });
   saveState();
 
   closeModal('newGroupModal');
   renderGroups();
-  showToast('分组已创建');
+  showToast('Folder created');
 
-  // ★ 自动弹出"添加角色"面板，方便立即勾选
   setTimeout(() => {
     openAddCharToGroupModal(newGroupId);
   }, 300);
 }
 
-// --- 分组菜单（重命名/删除/添加角色） ---
- // --- 分组浮动菜单 ---
-// --- 分组浮动菜单（重构版）---
+// --- Folder group context menu ---
 function showGroupMenu(gid, evt) {
   closeGroupMenu();
   const g = state.groups.find(x => x.id === gid);
   if (!g) return;
 
-  // ★ 单一 wrapper 同时充当遮罩 + 菜单容器，避免兄弟层级点击冲突
   const wrapper = document.createElement('div');
   wrapper.id = 'groupMenuWrapper';
   wrapper.style.cssText = 'position:fixed;inset:0;z-index:999;';
@@ -133,26 +220,21 @@ function showGroupMenu(gid, evt) {
   const menu = document.createElement('div');
   menu.id = 'groupContextMenu';
   menu.className = 'group-context-menu';
-  menu.innerHTML = `
-    <div class="group-context-item" data-action="members">
-      <svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="2.5"/><circle cx="14" cy="7" r="2.5"/>
-      <path d="M1 17c0-3 2.5-5.5 6-5.5s6 2.5 6 5.5"/><path d="M12 17c0-3 2-5.5 5-5.5s5 2.5 5 5.5"/></svg>
-      <span>管理成员</span>
-    </div>
-    <div class="group-context-item" data-action="rename">
-      <svg viewBox="0 0 20 20"><path d="M13.5 3.5l3 3M4 13l-1 4 4-1 9-9-3-3-9 9z"/></svg>
-      <span>重命名</span>
-    </div>
-    <div class="group-context-item group-context-danger" data-action="delete">
-      <svg viewBox="0 0 20 20"><path d="M5 5h10M8 5V3h4v2M6 5v11a1 1 0 001 1h6a1 1 0 001-1V5"/></svg>
-      <span>删除分组</span>
-    </div>`;
+  menu.innerHTML =
+    '<div class="group-context-item" data-action="members">' +
+      '<svg viewBox="0 0 20 20" style="width:16px;height:16px;stroke:#3a3a3c;fill:none;stroke-width:1.5"><circle cx="7" cy="7" r="2.5"/><circle cx="14" cy="7" r="2.5"/>' +
+      '<path d="M1 17c0-3 2.5-5.5 6-5.5s6 2.5 6 5.5"/><path d="M12 17c0-3 2-5.5 5-5.5s5 2.5 5 5.5"/></svg>' +
+      '<span>Manage Members</span></div>' +
+    '<div class="group-context-item" data-action="rename">' +
+      '<svg viewBox="0 0 20 20" style="width:16px;height:16px;stroke:#3a3a3c;fill:none;stroke-width:1.5"><path d="M13.5 3.5l3 3M4 13l-1 4 4-1 9-9-3-3-9 9z"/></svg>' +
+      '<span>Rename</span></div>' +
+    '<div class="group-context-item group-context-danger" data-action="delete">' +
+      '<svg viewBox="0 0 20 20" style="width:16px;height:16px;stroke:#ff3b30;fill:none;stroke-width:1.5"><path d="M5 5h10M8 5V3h4v2M6 5v11a1 1 0 001 1h6a1 1 0 001-1V5"/></svg>' +
+      '<span>Delete Folder</span></div>';
 
-  // ★ 菜单放在 wrapper 内部（父子关系），stopPropagation 阻止冒泡到 wrapper
   wrapper.appendChild(menu);
   document.body.appendChild(wrapper);
 
-  // 定位到按钮下方
   const btn = evt ? (evt.currentTarget || evt.target.closest('.group-more-btn') || evt.target) : null;
   if (btn) {
     const rect = btn.getBoundingClientRect();
@@ -162,15 +244,13 @@ function showGroupMenu(gid, evt) {
 
   requestAnimationFrame(() => menu.classList.add('show'));
 
-  // ★ 用 addEventListener 替代内联 onclick，确保事件绑定可靠
   menu.addEventListener('click', function (e) {
-    e.stopPropagation();                       // ★ 阻止冒泡到 wrapper
+    e.stopPropagation();
     const item = e.target.closest('.group-context-item');
     if (!item) return;
     const action = item.dataset.action;
     closeGroupMenu();
 
-    // ★ setTimeout 确保 DOM 清理完毕后再弹 prompt/confirm
     setTimeout(() => {
       const grp = state.groups.find(x => x.id === gid);
       if (!grp) return;
@@ -178,26 +258,25 @@ function showGroupMenu(gid, evt) {
       if (action === 'members') {
         openAddCharToGroupModal(gid);
       } else if (action === 'rename') {
-        const newName = prompt('输入新名称：', grp.name);
+        const newName = prompt('Enter new name:', grp.name);
         if (newName && newName.trim()) {
           grp.name = newName.trim();
           saveState();
           renderGroups();
-          showToast('已重命名');
+          showToast('Renamed');
         }
       } else if (action === 'delete') {
-        if (confirm('确定删除分组「' + grp.name + '」？角色不会被删除。')) {
+        if (confirm('Delete folder "' + grp.name + '"? Characters will not be deleted.')) {
           state.characters.forEach(ch => { if (ch.groupId === gid) ch.groupId = null; });
           state.groups = state.groups.filter(x => x.id !== gid);
           saveState();
           renderGroups();
-          showToast('分组已删除');
+          showToast('Folder deleted');
         }
       }
     }, 50);
   });
 
-  // ★ 点击 wrapper（空白遮罩区域）关闭菜单
   wrapper.addEventListener('click', function (e) {
     if (e.target === wrapper) closeGroupMenu();
   });
@@ -208,7 +287,6 @@ function closeGroupMenu() {
   if (w) w.remove();
 }
 
-
 function openAddCharToGroupModal(gid) {
   const g = state.groups.find(x => x.id === gid);
   if (!g) return;
@@ -217,19 +295,18 @@ function openAddCharToGroupModal(gid) {
   const body = document.getElementById('addCharToGroupList');
   const ungrouped = state.characters.filter(c => !c.groupId || c.groupId === gid);
   if (!ungrouped.length) {
-    body.innerHTML = '<div style="padding:20px;text-align:center;color:#8e8e93">没有可添加的角色</div>';
+    body.innerHTML = '<div style="padding:20px;text-align:center;color:#8e8e93">No characters to add</div>';
   } else {
     body.innerHTML = ungrouped.map(ch => {
       const inGroup = ch.groupId === gid;
-      return `<div class="add-char-row" onclick="toggleCharInGroup('${ch.id}',this)">
-        <div class="add-char-check ${inGroup ? 'checked' : ''}"><svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg></div>
-        <div class="add-char-av">${charAvatarImg(ch)}</div>
-        <span>${esc(ch.name)}</span>
-      </div>`;
+      return '<div class="add-char-row" onclick="toggleCharInGroup(\'' + ch.id + '\',this)">' +
+        '<div class="add-char-check ' + (inGroup ? 'checked' : '') + '"><svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+        '<div class="add-char-av">' + charAvatarImg(ch) + '</div>' +
+        '<span>' + esc(ch.name) + '</span></div>';
     }).join('');
   }
 
-  document.getElementById('addCharToGroupTitle').textContent = `添加到「${g.name}」`;
+  document.getElementById('addCharToGroupTitle').textContent = 'Add to "' + g.name + '"';
   document.getElementById('addCharToGroupModal').classList.add('show');
 }
 
@@ -256,12 +333,14 @@ function renderMoments() {
   if (!container) return;
 
   if (!state.moments.length) {
-    container.innerHTML = `
-      <div class="social-empty">
-        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/><circle cx="24" cy="24" r="8"/>
-        <path d="M24 6v4M24 38v4M6 24h4M38 24h4"/></svg>
-        <p>暂无朋友圈动态<br>快来发布第一条吧~</p>
-      </div>`;
+    container.innerHTML =
+      '<div class="social-empty">' +
+        '<svg viewBox="0 0 48 48" style="width:48px;height:48px;stroke:#d1d1d6;fill:none;stroke-width:1.5;display:block;margin:0 auto 12px">' +
+          '<circle cx="24" cy="24" r="18"/><circle cx="24" cy="24" r="8"/>' +
+          '<path d="M24 6v4M24 38v4M6 24h4M38 24h4"/>' +
+        '</svg>' +
+        '<p style="color:#8e8e93;font-size:14px;text-align:center">No moments yet<br><span style="font-size:12px">Share your first moment</span></p>' +
+      '</div>';
     return;
   }
 
@@ -270,46 +349,42 @@ function renderMoments() {
   sorted.forEach(m => {
     const ch = state.characters.find(c => c.id === m.charId);
     const isUser = !m.charId || m.charId === 'user';
-    const name = isUser ? (state.userProfile.name || 'User') : (ch ? ch.name : '系统');
+    const name = isUser ? (state.userProfile.name || 'User') : (ch ? ch.name : 'System');
     const avHtml = isUser
-      ? (state.userProfile.avatar ? `<img src="${state.userProfile.avatar}">` : `<svg viewBox="0 0 32 32"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10"/></svg>`)
-      : (ch && ch.avatar ? `<img src="${ch.avatar}">` : `<svg viewBox="0 0 32 32"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10"/></svg>`);
+      ? (state.userProfile.avatar ? '<img src="' + state.userProfile.avatar + '">' : '<svg viewBox="0 0 32 32" style="width:100%;height:100%"><circle cx="16" cy="12" r="5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10" stroke="#b0b0b0" stroke-width="1.5" fill="none"/></svg>')
+      : (ch && ch.avatar ? '<img src="' + ch.avatar + '">' : '<svg viewBox="0 0 32 32" style="width:100%;height:100%"><circle cx="16" cy="12" r="5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10" stroke="#b0b0b0" stroke-width="1.5" fill="none"/></svg>');
 
     const liked = (m.likes || []).includes('user');
     const likeCount = (m.likes || []).length;
     const commentCount = (m.comments || []).length;
 
-    // 内容展开/收起
     const isLong = m.content.length > 120;
-    const shortContent = isLong ? m.content.slice(0, 120) + '' : m.content;
+    const shortContent = isLong ? m.content.slice(0, 120) + '...' : m.content;
 
-    h += `<div class="moment-card" data-mid="${m.id}">
-      <div class="moment-header">
-        <div class="moment-av"${ch ? ` onclick="openChat('${ch.id}')"` : ''}>${avHtml}</div>
-        <div class="moment-meta">
-          <div class="moment-name"${ch ? ` onclick="openChat('${ch.id}')"` : ''}>${esc(name)}</div>
-          <div class="moment-time">${socialRelativeTime(m.timestamp)}</div>
-        </div>
-        <button class="moment-delete-btn" onclick="deleteMoment('${m.id}')" title="删除">
-          <svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-      <div class="moment-body">
-        <span class="moment-text" id="mt_${m.id}">${esc(shortContent)}</span>
-        ${isLong ? `<button class="moment-expand-btn" onclick="toggleMomentExpand('${m.id}',this)">展开</button>` : ''}
-      </div>
-      <div class="moment-actions-bar">
-        <button class="moment-action-btn ${liked ? 'liked' : ''}" onclick="toggleMomentLike('${m.id}')">
-          <svg viewBox="0 0 20 20"><path d="M10 17s-7-4.5-7-9a4 4 0 018 0 4 4 0 018 0c0 4.5-7 9-7 9z"/></svg>
-          <span>${likeCount || ''}</span>
-        </button>
-        <button class="moment-action-btn" onclick="toggleMomentComment('${m.id}')">
-          <svg viewBox="0 0 20 20"><path d="M3 3h14a2 2 0 012 2v8a2 2 0 01-2 2H9l-4 3v-3H3a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
-          <span>${commentCount || ''}</span>
-        </button>
-      </div>
-      ${buildMomentComments(m)}
-    </div>`;
+    h += '<div class="moment-card" data-mid="' + m.id + '">' +
+      '<div class="moment-header">' +
+      '<div class="moment-av"' + (ch ? ' onclick="openChat(\'' + ch.id + '\')"' : '') + '>' + avHtml + '</div>' +
+      '<div class="moment-meta">' +
+      '<div class="moment-name"' + (ch ? ' onclick="openChat(\'' + ch.id + '\')"' : '') + '>' + esc(name) + '</div>' +
+      '<div class="moment-time">' + socialRelativeTime(m.timestamp) + '</div>' +
+      '</div>' +
+      '<button class="moment-delete-btn" onclick="deleteMoment(\'' + m.id + '\')" title="Delete">' +
+      '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:2"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg></button>' +
+      '</div>' +
+      '<div class="moment-body">' +
+      '<span class="moment-text" id="mt_' + m.id + '">' + esc(shortContent) + '</span>' +
+      (isLong ? '<button class="moment-expand-btn" onclick="toggleMomentExpand(\'' + m.id + '\',this)">Expand</button>' : '') +
+      '</div>' +
+      '<div class="moment-actions-bar">' +
+      '<button class="moment-action-btn ' + (liked ? 'liked' : '') + '" onclick="toggleMomentLike(\'' + m.id + '\')">' +
+      '<svg viewBox="0 0 20 20" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5"><path d="M10 17s-7-4.5-7-9a4 4 0 018 0 4 4 0 018 0c0 4.5-7 9-7 9z"/></svg>' +
+      '<span>' + (likeCount || '') + '</span></button>' +
+      '<button class="moment-action-btn" onclick="toggleMomentComment(\'' + m.id + '\')">' +
+      '<svg viewBox="0 0 20 20" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5"><path d="M3 3h14a2 2 0 012 2v8a2 2 0 01-2 2H9l-4 3v-3H3a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>' +
+      '<span>' + (commentCount || '') + '</span></button>' +
+      '</div>' +
+      buildMomentComments(m) +
+      '</div>';
   });
 
   container.innerHTML = h;
@@ -317,22 +392,19 @@ function renderMoments() {
 
 function buildMomentComments(m) {
   const comments = m.comments || [];
-  let h = `<div class="moment-comments" id="mc_${m.id}" style="display:${comments.length ? 'block' : 'none'}">`;
+  let h = '<div class="moment-comments" id="mc_' + m.id + '" style="display:' + (comments.length ? 'block' : 'none') + '">';
   comments.forEach(c => {
     const cch = state.characters.find(x => x.id === c.charId);
-    const cName = c.charId === 'user' ? (state.userProfile.name || 'User') : (cch ? cch.name : '匿名');
-    h += `<div class="moment-comment-item">
-      <span class="mci-name"${cch ? ` onclick="openChat('${cch.id}')"` : ''}>${esc(cName)}</span>
-      <span class="mci-text">${esc(c.content)}</span>
-    </div>`;
+    const cName = c.charId === 'user' ? (state.userProfile.name || 'User') : (cch ? cch.name : 'Anonymous');
+    h += '<div class="moment-comment-item">' +
+      '<span class="mci-name"' + (cch ? ' onclick="openChat(\'' + cch.id + '\')"' : '') + '>' + esc(cName) + '</span>' +
+      '<span class="mci-text">' + esc(c.content) + '</span></div>';
   });
-  h += `</div>
-  <div class="moment-comment-input" id="mci_${m.id}" style="display:none">
-    <input type="text" placeholder="写评论…" id="mcinput_${m.id}" onkeydown="if(event.key==='Enter')sendMomentComment('${m.id}')">
-    <button onclick="sendMomentComment('${m.id}')">
-      <svg viewBox="0 0 16 16"><path d="M3 13l10-5L3 3v4l6 1-6 1z" fill="#1d1d1f" stroke="none"/></svg>
-    </button>
-  </div>`;
+  h += '</div>' +
+    '<div class="moment-comment-input" id="mci_' + m.id + '" style="display:none">' +
+    '<input type="text" placeholder="Write a comment..." id="mcinput_' + m.id + '" onkeydown="if(event.key===\'Enter\')sendMomentComment(\'' + m.id + '\')">' +
+    '<button onclick="sendMomentComment(\'' + m.id + '\')">' +
+    '<svg viewBox="0 0 16 16" style="width:14px;height:14px"><path d="M3 13l10-5L3 3v4l6 1-6 1z" fill="#1d1d1f" stroke="none"/></svg></button></div>';
   return h;
 }
 
@@ -340,12 +412,12 @@ function toggleMomentExpand(mid, btn) {
   const m = state.moments.find(x => x.id === mid);
   if (!m) return;
   const el = document.getElementById('mt_' + mid);
-  if (btn.textContent === '展开') {
+  if (btn.textContent === 'Expand') {
     el.textContent = m.content;
-    btn.textContent = '收起';
+    btn.textContent = 'Collapse';
   } else {
-    el.textContent = m.content.slice(0, 120) + '…';
-    btn.textContent = '展开';
+    el.textContent = m.content.slice(0, 120) + '...';
+    btn.textContent = 'Expand';
   }
 }
 
@@ -385,14 +457,14 @@ function sendMomentComment(mid) {
 }
 
 function deleteMoment(mid) {
-  if (!confirm('确定删除这条动态？')) return;
+  if (!confirm('Delete this moment?')) return;
   state.moments = state.moments.filter(x => x.id !== mid);
   saveState();
   renderMoments();
-  showToast('已删除');
+  showToast('Deleted');
 }
 
-// --- 发布朋友圈 ---
+// --- Post moment ---
 function openNewMomentModal() {
   document.getElementById('newMomentContent').value = '';
   document.getElementById('newMomentCharSelect').innerHTML = buildMomentCharOptions();
@@ -400,23 +472,22 @@ function openNewMomentModal() {
 }
 
 function buildMomentCharOptions() {
-  let h = `<option value="user">我自己</option>`;
+  let h = '<option value="user">Myself</option>';
   state.characters.forEach(ch => {
-    h += `<option value="${ch.id}">${esc(ch.name)}</option>`;
+    h += '<option value="' + ch.id + '">' + esc(ch.name) + '</option>';
   });
   return h;
 }
 
 function confirmNewMoment() {
   const content = document.getElementById('newMomentContent').value.trim();
-  if (!content) { showToast('请输入内容'); return; }
+  if (!content) { showToast('Please enter content'); return; }
   const charId = document.getElementById('newMomentCharSelect').value || 'user';
   addMoment(charId, content);
   closeModal('newMomentModal');
-  showToast('发布成功');
+  showToast('Posted');
 }
 
-// 添加朋友圈动态（可从外部调用）
 function addMoment(charId, content) {
   state.moments.push({
     id: uid(),
@@ -430,24 +501,23 @@ function addMoment(charId, content) {
   if (state.imsgTab === 'moments') renderMoments();
 }
 
-// ★ 自动发朋友圈（从 chat-settings 调用）
 function forceSendMoment() {
   const cid = state.currentCharId;
-  if (!cid) { showToast('请先打开角色聊天'); return; }
+  if (!cid) { showToast('Open a character chat first'); return; }
   const ch = state.characters.find(c => c.id === cid);
   if (!ch) return;
 
   const templates = [
-    '今天天气真好~',
-    '好想吃火锅啊',
-    '刚看了一部好看的电影',
-    '生活就是这样，充满了小惊喜',
-    '今天也要加油呀！',
-    '一个人的下午，有点安静',
-    '新的一天，新的心情',
-    '最近有点忙，但很充实',
+    'What a beautiful day today!',
+    'Really craving some good food right now',
+    'Just watched an amazing movie',
+    'Life is full of little surprises',
+    'Another day, another adventure!',
+    'A quiet afternoon, feeling peaceful',
+    'New day, new mood',
+    'Been busy lately, but feeling fulfilled',
   ];
   const text = templates[Math.floor(Math.random() * templates.length)];
   addMoment(cid, text);
-  showToast(ch.name + ' 发了一条朋友圈');
+  showToast(ch.name + ' posted a moment');
 }

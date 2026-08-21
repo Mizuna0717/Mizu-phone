@@ -1,6 +1,6 @@
 // ========== 11-chat.js ==========
 
-// ========== iMessage 时间格式化 ==========
+// ========== iMessage time format ==========
 function fmtChatTime(ts) {
   var d = new Date(ts);
   var months = [
@@ -15,11 +15,20 @@ function fmtChatTime(ts) {
   return months[d.getMonth()] + ' ' + d.getDate() + ' ' + h + ':' + min + ' ' + ampm;
 }
 
-// ========== 默认头像 SVG ==========
+// ========== Default avatar SVGs ==========
 function _defaultHeaderAvatar() {
   return '<svg viewBox="0 0 28 28" style="width:100%;height:100%;display:block">' +
     '<circle cx="14" cy="11" r="4.5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
     '<path d="M5 25c0-5 4-9 9-9s9 4 9 9" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
+    '</svg>';
+}
+
+function _defaultGroupHeaderAvatar() {
+  return '<svg viewBox="0 0 28 28" style="width:100%;height:100%;display:block">' +
+    '<circle cx="10" cy="10" r="3.5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
+    '<circle cx="18" cy="10" r="3.5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
+    '<path d="M3 22c0-4 3-7 7-7s7 3 7 7" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
+    '<path d="M14 22c0-4 2-7 5-7s5 3 5 7" stroke="#b0b0b0" stroke-width="1.5" fill="none"/>' +
     '</svg>';
 }
 
@@ -41,7 +50,9 @@ function openChat(cid) {
   if (!state.chats[cid]) state.chats[cid] = [];
   saveState();
   nav('screen-chat');
-  if (typeof restartAutoMessageTimer === 'function') restartAutoMessageTimer(cid);
+  if (!isGroupChat(cid) && typeof restartAutoMessageTimer === 'function') {
+    restartAutoMessageTimer(cid);
+  }
 }
 
 function getUserAv(cid) {
@@ -72,14 +83,14 @@ function buildTransferBubble(amount, note, msgId, isSent, status) {
   h += '<div class="tc-amount">\u00A5' + esc(String(amount)) + '</div>';
   if (note) h += '<div class="tc-note">' + esc(note) + '</div>';
   if (status) {
-    var label = status === 'accepted' ? '已领取' : '已拒绝';
+    var label = status === 'accepted' ? 'Accepted' : 'Declined';
     h += '<div class="transfer-status ' + status + '">' + label + '</div>';
   } else if (isSent) {
-    h += '<div class="transfer-status pending">待领取</div>';
+    h += '<div class="transfer-status pending">Pending</div>';
   } else {
     h += '<div class="transfer-actions">';
-    h += '<button class="ta-accept" onclick="event.stopPropagation();acceptTransfer(\'' + msgId + '\')">接收</button>';
-    h += '<button class="ta-decline" onclick="event.stopPropagation();declineTransfer(\'' + msgId + '\')">拒绝</button>';
+    h += '<button class="ta-accept" onclick="event.stopPropagation();acceptTransfer(\'' + msgId + '\')">Accept</button>';
+    h += '<button class="ta-decline" onclick="event.stopPropagation();declineTransfer(\'' + msgId + '\')">Decline</button>';
     h += '</div>';
   }
   h += '</div></div>';
@@ -88,8 +99,8 @@ function buildTransferBubble(amount, note, msgId, isSent, status) {
 
 function buildSimImageBubble(content) {
   return '<div class="msg-bubble sim-image-msg"><div class="sim-image-box">' +
-    '<svg viewBox="0 0 28 28"><rect x="2" y="2" width="24" height="24" rx="4" stroke-dasharray="3 2"/>' +
-    '<path d="M8 14h12M14 8v12"/></svg>' +
+    '<svg viewBox="0 0 28 28"><rect x="2" y="2" width="24" height="24" rx="4" stroke-dasharray="3 2" stroke="#c7c7cc" stroke-width="1.3" fill="none"/>' +
+    '<path d="M8 14h12M14 8v12" stroke="#c7c7cc" stroke-width="1.3" fill="none"/></svg>' +
     '<div class="sim-desc">' + esc(content) + '</div></div></div>';
 }
 
@@ -103,23 +114,23 @@ function buildTextBubble(content, msgId) {
 
 function buildCallBubble(callType, msgId, isSent, callStatus, callDuration, extraAttr) {
   var isVideo = callType === 'video';
-  var label = isVideo ? '视频通话' : '语音通话';
+  var label = isVideo ? 'Video Call' : 'Voice Call';
   var icon = isVideo
-    ? '<svg viewBox="0 0 20 20" class="call-type-icon"><rect x="2" y="5" width="11" height="10" rx="1.5"/><path d="M13 7.5l5-2.5v10l-5-2.5z"/></svg>'
-    : '<svg viewBox="0 0 20 20" class="call-type-icon"><path d="M6.6 3H5A2 2 0 003 5c0 7.2 5.8 13 13 13a2 2 0 002-2v-1.6a1.5 1.5 0 00-1-1.4l-2.7-.8a1.5 1.5 0 00-1.5.4l-1 1A9.4 9.4 0 017.4 9l1-1a1.5 1.5 0 00.4-1.5l-.8-2.7A1.5 1.5 0 006.6 3z"/></svg>';
+    ? '<svg viewBox="0 0 20 20" class="call-type-icon"><rect x="2" y="5" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M13 7.5l5-2.5v10l-5-2.5z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>'
+    : '<svg viewBox="0 0 20 20" class="call-type-icon"><path d="M6.6 3H5A2 2 0 003 5c0 7.2 5.8 13 13 13a2 2 0 002-2v-1.6a1.5 1.5 0 00-1-1.4l-2.7-.8a1.5 1.5 0 00-1.5.4l-1 1A9.4 9.4 0 017.4 9l1-1a1.5 1.5 0 00.4-1.5l-.8-2.7A1.5 1.5 0 006.6 3z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>';
   var statusHtml = '';
   if (callStatus === 'ended') {
-    statusHtml = '<div class="call-status ended">\u901A\u8BDD\u65F6\u957F ' + (callDuration || '00:00') + '</div>';
+    statusHtml = '<div class="call-status ended">Duration ' + (callDuration || '00:00') + '</div>';
   } else if (callStatus === 'accepted') {
-    statusHtml = '<div class="call-status accepted">已接通</div>';
+    statusHtml = '<div class="call-status accepted">Connected</div>';
   } else if (callStatus === 'declined') {
-    statusHtml = '<div class="call-status declined">已拒绝</div>';
+    statusHtml = '<div class="call-status declined">Declined</div>';
   } else if (callStatus === 'requesting') {
-    statusHtml = '<div class="call-status requesting">请求中</div>';
+    statusHtml = '<div class="call-status requesting">Requesting...</div>';
   } else if (!isSent && !callStatus) {
     statusHtml = '<div class="call-actions">' +
-      '<button class="call-accept-btn" onclick="event.stopPropagation();acceptCall(\'' + msgId + '\')">接听</button>' +
-      '<button class="call-decline-btn" onclick="event.stopPropagation();declineCall(\'' + msgId + '\')">拒绝</button>' +
+      '<button class="call-accept-btn" onclick="event.stopPropagation();acceptCall(\'' + msgId + '\')">Accept</button>' +
+      '<button class="call-decline-btn" onclick="event.stopPropagation();declineCall(\'' + msgId + '\')">Decline</button>' +
       '</div>';
   }
   var labelText;
@@ -127,7 +138,7 @@ function buildCallBubble(callType, msgId, isSent, callStatus, callDuration, extr
     labelText = label;
   } else if (!callStatus) {
     var ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
-    labelText = (ch ? ch.name : '角色') + ' 邀请你' + label;
+    labelText = (ch ? ch.name : 'Character') + ' invites ' + label;
   } else {
     labelText = label;
   }
@@ -147,18 +158,18 @@ function recallMessage(msgId) {
   if (!msg) return;
   msg.recalled = true;
   msg.originalContent = msg.content;
-  msg.content = '角色撤回了一条消息';
+  msg.content = 'Message recalled';
   delete msg.translation;
   saveState();
   renderChat();
-  showToast('消息已撤回');
+  showToast('Message recalled');
 }
 
 function viewRecalledMsg(msgId) {
   var msgs = state.chats[state.currentCharId] || [];
   var msg = msgs.find(function(m) { return m.id === msgId; });
   if (!msg || !msg.originalContent) return;
-  document.getElementById('errorModalTitle').textContent = '撤回的消息';
+  document.getElementById('errorModalTitle').textContent = 'Recalled Message';
   document.getElementById('errorModalBody').textContent = msg.originalContent;
   document.getElementById('errorModal').classList.add('show');
 }
@@ -175,7 +186,7 @@ function translateMsg(msgId) {
   toggleMsgTranslation(null, msgId);
 }
 
-// ========== 解析：新增【好感】【想要】==========
+// ========== Parse three-part reply ==========
 function parseThreePartReply(raw) {
   var result = {
     content: raw,
@@ -230,7 +241,7 @@ function stripTransferTags(contentStr) {
     .trim();
 }
 
-// ========== 计算消息分组位置 ==========
+// ========== Compute group positions ==========
 function _computeGroupPositions(msgs) {
   var positions = new Array(msgs.length);
   for (var i = 0; i < msgs.length; i++) {
@@ -263,8 +274,152 @@ function _computeGroupPositions(msgs) {
   return positions;
 }
 
+// ========== Group chat: compute positions by sender ==========
+function _computeGroupChatPositions(msgs) {
+  var positions = new Array(msgs.length);
+  for (var i = 0; i < msgs.length; i++) {
+    if (msgs[i].type === 'call-summary') {
+      positions[i] = 'system';
+      continue;
+    }
+    var mySender = msgs[i].role === 'user' ? '__user__' : (msgs[i].senderId || '__unknown__');
+
+    var prevIdx = -1;
+    for (var j = i - 1; j >= 0; j--) {
+      if (msgs[j].type !== 'call-summary') { prevIdx = j; break; }
+    }
+    var nextIdx = -1;
+    for (var k = i + 1; k < msgs.length; k++) {
+      if (msgs[k].type !== 'call-summary') { nextIdx = k; break; }
+    }
+
+    var prevSender = prevIdx >= 0 ? (msgs[prevIdx].role === 'user' ? '__user__' : (msgs[prevIdx].senderId || '__unknown__')) : null;
+    var nextSender = nextIdx >= 0 ? (msgs[nextIdx].role === 'user' ? '__user__' : (msgs[nextIdx].senderId || '__unknown__')) : null;
+
+    var prevSameGroup = prevSender !== null && prevSender === mySender && (msgs[i].timestamp - msgs[prevIdx].timestamp <= 180000);
+    var nextSameGroup = nextSender !== null && nextSender === mySender && (msgs[nextIdx].timestamp - msgs[i].timestamp <= 180000);
+
+    if      (prevSameGroup && nextSameGroup)  positions[i] = 'middle';
+    else if (prevSameGroup && !nextSameGroup) positions[i] = 'last';
+    else if (!prevSameGroup && nextSameGroup) positions[i] = 'first';
+    else                                      positions[i] = 'solo';
+  }
+  return positions;
+}
+
+// ========== Pick a group responder ==========
+function pickGroupResponder(groupId) {
+  var grp = getGroupById(groupId);
+  if (!grp || !grp.members || !grp.members.length) return null;
+  var idx = Math.floor(Math.random() * grp.members.length);
+  return state.characters.find(function(c) { return c.id === grp.members[idx]; }) || null;
+}
+
+// ========== RENDER GROUP CHAT ==========
+function renderGroupChat(grp) {
+  document.getElementById('chatName').textContent = grp.name;
+  var avatarEl = document.getElementById('chatAvatar');
+  avatarEl.innerHTML = grp.avatar
+    ? '<img src="' + grp.avatar + '">'
+    : _defaultGroupHeaderAvatar();
+
+  var notesEl = document.getElementById('chatNotes');
+  if (notesEl) notesEl.style.display = 'none';
+
+  var ct      = document.getElementById('chatMessages');
+  var msgs    = state.chats[grp.id] || [];
+  var userAv  = state.userProfile.avatar;
+  var uH      = _chatMsgAvatarHtml(userAv);
+
+  var groupPos = _computeGroupChatPositions(msgs);
+  var multiClass = bubbleState.multiMode ? ' multi-mode' : '';
+
+  var h = '';
+
+  msgs.forEach(function(msg, i) {
+    if (i === 0 || (msg.timestamp - msgs[i - 1].timestamp > 180000)) {
+      h += '<div class="msg-time">' + fmtChatTime(msg.timestamp) + '</div>';
+    }
+
+    var gp   = groupPos[i];
+    var sent = msg.role === 'user';
+    var side = sent ? 'sent' : 'received';
+    var gpClass = gp === 'system' ? '' : ' group-' + gp;
+
+    if (msg.type === 'call-summary') {
+      h += '<div class="msg-system-center" data-msgid="' + msg.id + '">' + esc(msg.content) + '</div>';
+      return;
+    }
+
+    // Determine sender avatar and name for received messages
+    var avHtml = uH;
+    var senderName = '';
+    if (!sent) {
+      var senderChar = msg.senderId ? state.characters.find(function(c) { return c.id === msg.senderId; }) : null;
+      avHtml = senderChar ? _chatMsgAvatarHtml(senderChar.avatar) : _chatMsgAvatarHtml(null);
+      senderName = senderChar ? senderChar.name : 'Unknown';
+    }
+
+    // Show sender name label for first/solo received messages in a group
+    if (!sent && (gp === 'first' || gp === 'solo')) {
+      h += '<div style="font-size:11px;color:#8e8e93;margin-left:44px;margin-bottom:2px;margin-top:8px">' + esc(senderName) + '</div>';
+    }
+
+    var selected = bubbleState.selectedIds.has(msg.id) ? 'selected' : '';
+    var checkChecked = bubbleState.selectedIds.has(msg.id) ? 'checked' : '';
+    var checkSvg = '<div class="msg-check ' + checkChecked + '">' +
+      '<svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+
+    var rowOpen = '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected +
+      '" data-msgid="' + msg.id + '">' + checkSvg +
+      '<div class="msg-avatar">' + avHtml + '</div>';
+    var rowClose = '</div>';
+
+    if (msg.type === 'voice') {
+      h += rowOpen + buildVoiceBubble(msg.content) + rowClose;
+    } else if (msg.type === 'sticker') {
+      h += rowOpen + buildStickerBubble(msg.content) + rowClose;
+    } else if (msg.type === 'image') {
+      h += rowOpen + buildImageBubble(msg.dataUrl || msg.content) + rowClose;
+    } else if (msg.type === 'simImage') {
+      h += rowOpen + buildSimImageBubble(msg.content) + rowClose;
+    } else if (msg.type === 'transfer') {
+      var d = typeof msg.content === 'string' && msg.content.startsWith('{')
+        ? JSON.parse(msg.content) : msg.content;
+      h += rowOpen + buildTransferBubble(d.amount || d, d.note || '', msg.id, sent, msg.transferStatus) + rowClose;
+    } else if (msg.type === 'call') {
+      h += rowOpen + buildCallBubble(msg.callType || 'voice', msg.id, sent, msg.callStatus, msg.callDuration) + rowClose;
+    } else {
+      var editedMark = msg.edited
+        ? '<span style="font-size:10px;opacity:.4;margin-left:6px">(edited)</span>'
+        : '';
+      h += rowOpen + '<div class="msg-bubble" data-bubbleid="' + msg.id + '">' +
+        fmtMsg(msg.content) + editedMark + '</div>' + rowClose;
+    }
+  });
+
+  ct.innerHTML = h;
+
+  ct.querySelectorAll('.msg-row[data-msgid]').forEach(function(row) {
+    var msgId = row.dataset.msgid;
+    row.querySelectorAll('.msg-bubble').forEach(function(el) {
+      var bid = el.dataset.bubbleid || msgId;
+      if (typeof initBubbleLongPress === 'function') initBubbleLongPress(el, bid);
+    });
+  });
+
+  setTimeout(function() { ct.scrollTop = ct.scrollHeight; }, 50);
+}
+
 // ========== RENDER CHAT ==========
 function renderChat() {
+  // Check if this is a group chat
+  var grp = getGroupById(state.currentCharId);
+  if (grp) {
+    renderGroupChat(grp);
+    return;
+  }
+
   var ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
   if (!ch) return;
 
@@ -312,7 +467,7 @@ function renderChat() {
     var selected = bubbleState.selectedIds.has(msg.id) ? 'selected' : '';
     var checkChecked = bubbleState.selectedIds.has(msg.id) ? 'checked' : '';
     var checkSvg = '<div class="msg-check ' + checkChecked + '">' +
-      '<svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7"/></svg></div>';
+      '<svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
     var isRecalled = msg.recalled || msg.type === 'recalled';
 
     if (msg.type === 'call-summary') {
@@ -327,8 +482,8 @@ function renderChat() {
     if (isRecalled) {
       var viewBtn = msg.originalContent
         ? '<button class="recalled-view-btn" onclick="event.stopPropagation();viewRecalledMsg(\'' + msg.id + '\')">' +
-          '<svg viewBox="0 0 16 16" width="12" height="12"><path d="M2 8s3-4 6-4 6 4 6 4-3 4-6 4-6-4-6-4z"/>' +
-          '<circle cx="8" cy="8" r="2"/></svg>查看</button>'
+          '<svg viewBox="0 0 16 16" width="12" height="12"><path d="M2 8s3-4 6-4 6 4 6 4-3 4-6 4-6-4-6-4z" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
+          '<circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>View</button>'
         : '';
       h += '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected +
         '" data-msgid="' + msg.id + '">' + checkSvg +
@@ -342,8 +497,8 @@ function renderChat() {
         '" data-msgid="' + msg.id + '">' + checkSvg +
         '<div class="msg-avatar">' + av + '</div>' +
         '<div class="msg-bubble moment-bubble">' +
-        '<svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6"/>' +
-        '<circle cx="8" cy="8" r="2.5"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14"/></svg>' +
+        '<svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/>' +
+        '<circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>' +
         '<span>' + esc(msg.content) + '</span></div></div>';
       return;
     }
@@ -440,7 +595,7 @@ function renderChat() {
     var msgId = row.dataset.msgid;
     row.querySelectorAll('.msg-bubble').forEach(function(el) {
       var bid = el.dataset.bubbleid || msgId;
-      initBubbleLongPress(el, bid);
+      if (typeof initBubbleLongPress === 'function') initBubbleLongPress(el, bid);
     });
   });
 
@@ -458,7 +613,7 @@ function acceptCall(mid) {
   if (typeof openCallInterface === 'function') {
     openCallInterface(charId, m.callType || 'voice', mid);
   } else {
-    showToast('通话已接通');
+    showToast('Call connected');
   }
 }
 
@@ -468,7 +623,7 @@ function declineCall(mid) {
     m.callStatus = 'declined';
     saveState();
     renderChat();
-    showToast('已拒绝通话');
+    showToast('Call declined');
   }
 }
 
@@ -478,7 +633,7 @@ function acceptTransfer(mid) {
     m.transferStatus = 'accepted';
     saveState();
     renderChat();
-    showToast('已领取');
+    showToast('Accepted');
   }
 }
 
@@ -488,7 +643,7 @@ function declineTransfer(mid) {
     m.transferStatus = 'declined';
     saveState();
     renderChat();
-    showToast('已拒绝');
+    showToast('Declined');
   }
 }
 
@@ -518,10 +673,13 @@ function sendMessage() {
 }
 
 function editCharFromChat() {
-  if (state.currentCharId) {
-    state.charEditFrom = 'screen-chat';
-    editChar(state.currentCharId);
+  if (!state.currentCharId) return;
+  if (isGroupChat(state.currentCharId)) {
+    showToast('Group settings coming soon');
+    return;
   }
+  state.charEditFrom = 'screen-chat';
+  editChar(state.currentCharId);
 }
 
 // ========== TRIGGER AI RESPONSE ==========
@@ -530,8 +688,19 @@ async function triggerResponse() {
   var api = state.apis.find(function(a) { return a.id === state.activeApiId; });
   if (!api?.url)  { showErrorModal(T('configApi')); return; }
   if (!api.model) { showErrorModal(T('selectModel')); return; }
-  var ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
-  if (!ch) return;
+
+  var isGroup = isGroupChat(state.currentCharId);
+  var ch;
+  var responderId = null;
+
+  if (isGroup) {
+    ch = pickGroupResponder(state.currentCharId);
+    if (!ch) { showToast('No members in this group'); return; }
+    responderId = ch.id;
+  } else {
+    ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
+    if (!ch) return;
+  }
 
   var btn = document.getElementById('respondBtn');
   btn.classList.add('loading');
@@ -548,30 +717,47 @@ async function triggerResponse() {
 
   try {
     var sysPrompt    = buildSystemPrompt(ch, state.worldbooks, state.stickers);
-    var charCfg      = getCharConfig(state.currentCharId);
+
+    // For group chats, add group context info
+    if (isGroup) {
+      var grp = getGroupById(state.currentCharId);
+      var otherNames = (grp.members || []).map(function(mid) {
+        var mc = state.characters.find(function(c) { return c.id === mid; });
+        return mc ? mc.name : 'Unknown';
+      }).filter(function(n) { return n !== ch.name; });
+      sysPrompt += '\n\n[Group Chat Context] You are ' + ch.name + ' in a group chat called "' + grp.name + '". Other members: ' + otherNames.join(', ') + '. Stay in character as ' + ch.name + '.';
+    }
+
+    var charCfg      = isGroup ? {} : getCharConfig(state.currentCharId);
     var contextCount = charCfg.contextCount || 50;
 
     var allChatMsgs = (state.chats[state.currentCharId] || []).map(function(m) {
-      if (m.recalled) return { role: m.role, content: '[此消息已撤回]' };
+      if (m.recalled) return { role: m.role, content: '[Message recalled]' };
       if (m.type === 'voice')    return { role: m.role, content: '[Voice]: ' + m.content };
       if (m.type === 'sticker')  return { role: m.role, content: '[Sent sticker]' };
       if (m.type === 'transfer') {
         var d2 = typeof m.content === 'string' && m.content.startsWith('{')
           ? JSON.parse(m.content) : m.content;
         var statusLabel = '';
-        if      (m.transferStatus === 'accepted') statusLabel = ' (已领取)';
-        else if (m.transferStatus === 'declined') statusLabel = ' (已拒绝)';
-        else                                      statusLabel = ' (待领取)';
-        return { role: m.role, content: '[转账 ¥' + (d2.amount || d2) + (d2.note ? ' ' + d2.note : '') + ']' + statusLabel };
+        if      (m.transferStatus === 'accepted') statusLabel = ' (Accepted)';
+        else if (m.transferStatus === 'declined') statusLabel = ' (Declined)';
+        else                                      statusLabel = ' (Pending)';
+        return { role: m.role, content: '[Transfer $' + (d2.amount || d2) + (d2.note ? ' ' + d2.note : '') + ']' + statusLabel };
       }
       if (m.type === 'image')    return { role: m.role, content: m.content };
       if (m.type === 'simImage') return { role: m.role, content: '[Image: ' + m.content + ']' };
       if (m.type === 'call') {
-        var ct2 = m.callType === 'video' ? '视频' : '语音';
-        return { role: m.role, content: '[' + ct2 + '通话]' + (m.callStatus ? '(' + m.callStatus + ')' : '(requesting)') };
+        var ct2 = m.callType === 'video' ? 'Video' : 'Voice';
+        return { role: m.role, content: '[' + ct2 + ' Call]' + (m.callStatus ? '(' + m.callStatus + ')' : '(requesting)') };
       }
       if (m.role === 'system' || m.type === 'call-summary') {
         return { role: 'system', content: m.content };
+      }
+      // For group messages, prepend sender name
+      if (isGroup && m.role === 'assistant' && m.senderId) {
+        var sc = state.characters.find(function(c) { return c.id === m.senderId; });
+        var sn = sc ? sc.name : 'Unknown';
+        return { role: m.role, content: '[' + sn + ']: ' + m.content };
       }
       return { role: m.role, content: m.content };
     });
@@ -579,8 +765,7 @@ async function triggerResponse() {
     var chatMsgs = allChatMsgs.slice(-contextCount);
 
     var reply = await sendChat(api, [
-      { role: 'system', content: sysPrompt },
-      ...chatMsgs
+      { role: 'system', content: sysPrompt },chatMsgs
     ]);
 
     var rawReply = reply || '';
@@ -589,8 +774,8 @@ async function triggerResponse() {
     var parsed = parseThreePartReply(rawReply);
     parsed.content = stripTransferTags(parsed.content);
 
-    // Store affection into charConfig
-    if (parsed.affection) {
+    // Store affection into charConfig (only for single chats)
+    if (!isGroup && parsed.affection) {
       var affNum = parseInt(parsed.affection, 10);
       if (!isNaN(affNum)) {
         charCfg.affection = Math.max(0, Math.min(100, affNum));
@@ -610,6 +795,7 @@ async function triggerResponse() {
     if (splitParts.length > 1) {
       splitParts.forEach(function(part, idx) {
         var newMsg = { id: uid(), role: 'assistant', content: part, type: 'text', timestamp: Date.now() + idx * 800 };
+        if (isGroup && responderId) newMsg.senderId = responderId;
         if (idx === splitParts.length - 1) {
           if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
           if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
@@ -626,6 +812,7 @@ async function triggerResponse() {
       });
     } else {
       var newMsg = { id: uid(), role: 'assistant', content: parsed.content, type: 'text', timestamp: Date.now() };
+      if (isGroup && responderId) newMsg.senderId = responderId;
       if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
       if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
       if (parsed.wannaDo)      newMsg.wannaDo      = parsed.wannaDo;
@@ -633,7 +820,7 @@ async function triggerResponse() {
       state.chats[state.currentCharId].push(newMsg);
     }
 
-    if (charCfg.charRecall && Math.random() < 0.15) {
+    if (!isGroup && charCfg.charRecall && Math.random() < 0.15) {
       var allMsgs  = state.chats[state.currentCharId];
       var newCount  = splitParts.length > 1 ? splitParts.length : 1;
       var batchMsgs = allMsgs.slice(-newCount);
@@ -641,13 +828,13 @@ async function triggerResponse() {
       if (target) {
         target.recalled = true;
         target.originalContent = target.content;
-        target.content = '角色撤回了一条消息';
+        target.content = 'Message recalled';
         delete target.translation;
       }
     }
 
     saveState();
-    checkAutoSummarize();
+    if (!isGroup) checkAutoSummarize();
   } catch (e) {
     showErrorModal(friendlyError(e));
   } finally {
@@ -659,7 +846,7 @@ async function triggerResponse() {
   }
 }
 
-// ========== 全局绑定 ==========
+// ========== Global bindings ==========
 window.openChat             = openChat;
 window.sendMessage          = sendMessage;
 window.triggerResponse      = triggerResponse;
@@ -674,3 +861,4 @@ window.recallMessage        = recallMessage;
 window.viewRecalledMsg      = viewRecalledMsg;
 window.translateMsg         = translateMsg;
 window.toggleMsgTranslation = toggleMsgTranslation;
+window.pickGroupResponder   = pickGroupResponder;
