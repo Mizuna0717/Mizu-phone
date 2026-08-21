@@ -1,0 +1,32 @@
+<!-- MASK EDIT -->
+<div class="screen" id="screen-mask-edit">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-imessage');switchImsgTab('profile')">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+		<span class="nav-title" id="maskEditTitle">新建面具</span>
+	</div>
+	<div class="screen-body" style="padding-top:8px">
+		<div class="avatar-upload" onclick="document.getElementById('maskAvatarInput').click()">
+			<svg viewBox="0 0 32 32" id="maskAvatarPh"><rect x="4" y="4" width="24" height="24" rx="6"/><path d="M12 16a2 2 0 014 0c0 2-2 3-2 5"/><circle cx="14" cy="24" r="1"/></svg>
+			<img id="maskAvatarPv" style="display:none"/>
+			<input type="file" id="maskAvatarInput" accept="image/*" onchange="previewMaskAvatar(this)"/>
+		</div>
+		<div class="form-group">
+			<div class="form-row">
+				<span class="form-label">名称</span>
+				<input class="form-input" id="maskName" placeholder="面具名称"/>
+			</div>
+		</div>
+		<div class="section-header">人设</div>
+		<div class="form-textarea">
+			<textarea id="maskPersonaArea" placeholder="你是谁？" style="min-height:120px"></textarea>
+		</div>
+		<div class="section-header">绑定角色</div>
+		<div class="form-hint">每个角色只能绑定一个面具。</div>
+		<div class="form-group" id="maskCharList"></div>
+		<button class="form-btn primary" onclick="saveMask()" style="margin-top:16px">保存</button>
+		<button class="form-btn danger" id="deleteMaskBtn" onclick="deleteMask()" style="display:none">删除面具</button>
+		<div style="height:40px"></div>
+	</div>
+</div>
