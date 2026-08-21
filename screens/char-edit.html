@@ -1,0 +1,35 @@
+<!-- CHAR EDIT -->
+<div class="screen" id="screen-char-edit">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="navCharEditBack()">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+		<span class="nav-title" id="charEditTitle">新建角色</span>
+	</div>
+	<div class="screen-body" style="padding-top:8px">
+		<div class="avatar-upload" onclick="document.getElementById('charAvatarInput').click()">
+			<svg viewBox="0 0 32 32" id="charAvatarPh"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10"/></svg>
+			<img id="charAvatarPv" style="display:none"/>
+			<input type="file" id="charAvatarInput" accept="image/*" onchange="previewCharAvatar(this)"/>
+		</div>
+		<div class="form-group">
+			<div class="form-row">
+				<span class="form-label">名称</span>
+				<input class="form-input" id="charName" placeholder="角色名"/>
+			</div>
+			<div class="form-row">
+				<span class="form-label">备注</span>
+				<input class="form-input" id="charNotes" placeholder="备注"/>
+			</div>
+		</div>
+		<div class="section-header">角色设定</div>
+		<div class="form-textarea">
+			<textarea id="charPromptArea" placeholder="角色性格..."></textarea>
+		</div>
+		<div class="section-header">世界书绑定</div>
+		<div class="form-group" id="charWbList"></div>
+		<button class="form-btn primary" onclick="saveChar()" style="margin-top:8px">保存</button>
+		<button class="form-btn danger" id="deleteCharBtn" onclick="deleteChar()" style="display:none">删除角色</button>
+		<div style="height:40px"></div>
+	</div>
+</div>
