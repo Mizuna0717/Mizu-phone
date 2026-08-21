@@ -4,125 +4,199 @@
 		<button class="nav-btn" onclick="nav('screen-chat')"><svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
 		<span class="nav-title" data-i18n="chatSettings">Chat Settings</span>
 	</div>
-	<div class="screen-body" style="padding-top:16px">
+	<div class="screen-body" style="padding-top:8px">
 
 		<!-- REPLY COUNT -->
-		<div class="section-header" data-i18n="csReplyCount">REPLY COUNT</div>
-		<div class="form-group">
-			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
-				<span class="form-label" data-i18n="csMinReplies">Minimum</span>
-				<input class="form-input cs-num-input" type="number" id="csReplyMin" min="1" max="10" value="1" onchange="updateCsSetting('replyMin',this.value)">
-			</div>
-			<div class="form-row">
-				<span class="form-label" data-i18n="csMaxReplies">Maximum</span>
-				<input class="form-input cs-num-input" type="number" id="csReplyMax" min="1" max="10" value="3" onchange="updateCsSetting('replyMax',this.value)">
+		<div class="cs-section-header">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h8M2 12h10" stroke-linecap="round"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csReplyCount">Reply Count</span>
+				<span class="cs-section-sub" data-i18n="csReplyHint">AI will randomly choose a count within this range</span>
 			</div>
 		</div>
-		<div class="cs-hint" data-i18n="csReplyHint">AI will randomly choose a reply count within this range, split into multiple messages.</div>
+		<div class="cs-card">
+			<div class="cs-row">
+				<span class="cs-row-label" data-i18n="csMinReplies">Minimum</span>
+				<div class="cs-num-wrap">
+					<button class="cs-num-btn" onclick="csNumStep('csReplyMin',-1)"><svg viewBox="0 0 14 14"><path d="M3 7h8" stroke-linecap="round"/></svg></button>
+					<input class="cs-num-display" type="number" id="csReplyMin" min="1" max="10" value="1" onchange="updateCsSetting('replyMin',this.value)">
+					<button class="cs-num-btn" onclick="csNumStep('csReplyMin',1)"><svg viewBox="0 0 14 14"><path d="M7 3v8M3 7h8" stroke-linecap="round"/></svg></button>
+				</div>
+			</div>
+			<div class="cs-row cs-row-last">
+				<span class="cs-row-label" data-i18n="csMaxReplies">Maximum</span>
+				<div class="cs-num-wrap">
+					<button class="cs-num-btn" onclick="csNumStep('csReplyMax',-1)"><svg viewBox="0 0 14 14"><path d="M3 7h8" stroke-linecap="round"/></svg></button>
+					<input class="cs-num-display" type="number" id="csReplyMax" min="1" max="10" value="3" onchange="updateCsSetting('replyMax',this.value)">
+					<button class="cs-num-btn" onclick="csNumStep('csReplyMax',1)"><svg viewBox="0 0 14 14"><path d="M7 3v8M3 7h8" stroke-linecap="round"/></svg></button>
+				</div>
+			</div>
+		</div>
 
 		<!-- TIME AWARENESS -->
-		<div class="section-header" data-i18n="csTimeAwareness">TIME AWARENESS</div>
-		<div class="form-group">
-			<div class="form-row">
-				<span class="form-label" data-i18n="csEnableTime">Enable Time Awareness</span>
+		<div class="cs-section-header">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 2.5" stroke-linecap="round"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csTimeAwareness">Time Awareness</span>
+				<span class="cs-section-sub" data-i18n="csTimeHint">AI will know current date and time when replying</span>
+			</div>
+		</div>
+		<div class="cs-card">
+			<div class="cs-row cs-row-last">
+				<span class="cs-row-label" data-i18n="csEnableTime">Enable Time Awareness</span>
 				<div class="toggle" id="csTimeToggle" onclick="toggleCsToggle('timeAwareness','csTimeToggle')"><div class="toggle-knob"></div></div>
 			</div>
 		</div>
-		<div class="cs-hint" data-i18n="csTimeHint">When enabled, AI will know the current date and time when replying.</div>
 
 		<!-- CHARACTER RECALL -->
-		<div class="section-header" data-i18n="csCharRecall">CHARACTER RECALL</div>
-		<div class="form-group">
-			<div class="form-row">
-				<span class="form-label" data-i18n="csEnableRecall">Enable Character Recall</span>
+		<div class="cs-section-header">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><path d="M2 4c0-1.1.9-2 2-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-3 2.5V12a2 2 0 01-1-1.7V4z"/><path d="M5 6h6M5 9h4" stroke-linecap="round"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csCharRecall">Character Recall</span>
+				<span class="cs-section-sub" data-i18n="csRecallHint">Character may occasionally recall a sent message</span>
+			</div>
+		</div>
+		<div class="cs-card">
+			<div class="cs-row cs-row-last">
+				<span class="cs-row-label" data-i18n="csEnableRecall">Enable Character Recall</span>
 				<div class="toggle" id="csRecallToggle" onclick="toggleCsToggle('charRecall','csRecallToggle')"><div class="toggle-knob"></div></div>
 			</div>
 		</div>
-		<div class="cs-hint" data-i18n="csRecallHint">When enabled, the character may occasionally recall a sent message.</div>
 
 		<!-- AUTO-PUBLISH MOMENTS -->
-		<div class="section-header" data-i18n="csAutoMoments">AUTO-PUBLISH MOMENTS</div>
-		<div class="form-group">
-			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
-				<span class="form-label" data-i18n="csEnableMoments">Auto-publish Moments</span>
+		<div class="cs-section-header">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M5.5 8l2 2 3.5-4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csAutoMoments">Auto-publish Moments</span>
+				<span class="cs-section-sub" data-i18n="csMomentsHint">Character will auto-publish at the set interval</span>
+			</div>
+		</div>
+		<div class="cs-card">
+			<div class="cs-row">
+				<span class="cs-row-label" data-i18n="csEnableMoments">Auto-publish Moments</span>
 				<div class="toggle" id="csMomentsToggle" onclick="toggleCsToggle('autoMoments','csMomentsToggle')"><div class="toggle-knob"></div></div>
 			</div>
-			<div class="form-row cs-range-row">
-				<span class="form-label" data-i18n="csIntervalHours">Interval (hours)</span>
-				<div class="cs-range-control">
-					<input type="range" class="cs-range" id="csMomentsInterval" min="1" max="24" step="1" value="6" oninput="updateCsSetting('momentsInterval',this.value);document.getElementById('csMomentsIntervalVal').textContent=this.value">
-					<span class="cs-range-value" id="csMomentsIntervalVal">6</span>
+			<div class="cs-row cs-row-last">
+				<span class="cs-row-label" data-i18n="csIntervalHours">Interval (hours)</span>
+				<div class="cs-range-group">
+					<input type="range" id="csMomentsInterval" min="1" max="24" step="1" value="6" oninput="updateCsSetting('momentsInterval',this.value);document.getElementById('csMomentsIntervalVal').textContent=this.value">
+					<span class="cs-range-val" id="csMomentsIntervalVal">6</span>
 				</div>
 			</div>
 		</div>
-		<button class="form-btn cs-btn-secondary" onclick="forceSendMoment()" data-i18n="csForcePublish">Force Publish</button>
-		<div class="cs-hint" data-i18n="csMomentsHint">Character will auto-publish a Moment at the set interval.</div>
+		<button class="cs-action-btn" onclick="forceSendMoment()">
+			<svg viewBox="0 0 16 16"><path d="M2 14l1.5-5L12 3 8.5 12.5 6.5 10z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			<span data-i18n="csForcePublish">Force Publish Now</span>
+		</button>
 
 		<!-- REPLY LANGUAGE -->
-		<div class="section-header" data-i18n="csReplyLanguage">REPLY LANGUAGE</div>
-		<div class="form-group">
-			<div class="form-row">
-				<span class="form-label" data-i18n="csLanguage">Language</span>
-				<select class="form-select" id="csChatLang" onchange="updateCsSetting('chatLang',this.value)">
-					<option value="zh-CN">简体中文</option>
-					<option value="zh-TW">繁體中文</option>
-					<option value="ko">한국어</option>
-					<option value="ja">日本語</option>
-					<option value="en">English</option>
-				</select>
+		<div class="cs-section-header">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><path d="M2 3h6M5 3v7M3 6.5c0 0 1 3.5 4.5 3.5"/><path d="M9 6l2.5 7L14 6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.8 10h3.4" stroke-linecap="round"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csReplyLanguage">Reply Language</span>
+				<span class="cs-section-sub" data-i18n="csLangHint">Choose the language character uses when replying</span>
 			</div>
 		</div>
-		<div class="cs-hint" data-i18n="csLangHint">Choose the language the character uses when replying.</div>
+		<div class="cs-card">
+			<div class="cs-row cs-row-last">
+				<span class="cs-row-label" data-i18n="csLanguage">Language</span>
+				<div class="cs-select-wrap">
+					<select class="cs-select" id="csChatLang" onchange="updateCsSetting('chatLang',this.value)">
+						<option value="zh-CN">简体中文</option>
+						<option value="zh-TW">繁體中文</option>
+						<option value="ko">한국어</option>
+						<option value="ja">日本語</option>
+						<option value="en">English</option>
+					</select>
+					<svg class="cs-select-arrow" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				</div>
+			</div>
+		</div>
 
 		<!-- TRANSLATION -->
-		<div class="section-header" data-i18n="csTranslation">TRANSLATION</div>
-		<div class="form-group">
-			<div class="form-row">
-				<span class="form-label" data-i18n="csEnableTranslation">Enable Translation</span>
+		<div class="cs-section-header">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><rect x="1" y="1" width="9" height="9" rx="2"/><path d="M12 6v7a2 2 0 01-2 2H3"/><path d="M3.5 4.5h4M5.5 4.5v4" stroke-linecap="round"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csTranslation">Translation</span>
+				<span class="cs-section-sub" data-i18n="csTranslateHint">Messages will include a translation; tap bubble to view</span>
+			</div>
+		</div>
+		<div class="cs-card">
+			<div class="cs-row cs-row-last">
+				<span class="cs-row-label" data-i18n="csEnableTranslation">Enable Translation</span>
 				<div class="toggle" id="csTranslateToggle" onclick="toggleCsToggle('translation','csTranslateToggle')"><div class="toggle-knob"></div></div>
 			</div>
 		</div>
-		<div class="cs-hint" data-i18n="csTranslateHint">When enabled, character messages will include a translation. Tap the bubble to view.</div>
 
 		<!-- AUTO MESSAGE -->
-		<div class="section-header" data-i18n="csAutoMessage">AUTO MESSAGE</div>
-		<div class="form-group">
-			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
-				<span class="form-label" data-i18n="csEnableAutoMsg">Enable Auto Message</span>
+		<div class="cs-section-header">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><path d="M13 7A5 5 0 103 7"/><path d="M8 7v4" stroke-linecap="round"/><circle cx="8" cy="13" r="1"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csAutoMessage">Auto Message</span>
+				<span class="cs-section-sub" data-i18n="csAutoMsgHint">Character will auto-send a message at the set interval</span>
+			</div>
+		</div>
+		<div class="cs-card">
+			<div class="cs-row">
+				<span class="cs-row-label" data-i18n="csEnableAutoMsg">Enable Auto Message</span>
 				<div class="toggle" id="csAutoMsgToggle" onclick="toggleCsToggle('autoMessage','csAutoMsgToggle')"><div class="toggle-knob"></div></div>
 			</div>
-			<div class="form-row cs-range-row">
-				<span class="form-label" data-i18n="csIntervalMinutes">Interval (minutes)</span>
-				<div class="cs-range-control">
-					<input type="range" class="cs-range" id="csAutoMsgInterval" min="1" max="60" step="1" value="10" oninput="updateCsSetting('autoMessageInterval',this.value);document.getElementById('csAutoMsgIntervalVal').textContent=this.value">
-					<span class="cs-range-value" id="csAutoMsgIntervalVal">10</span>
+			<div class="cs-row cs-row-last">
+				<span class="cs-row-label" data-i18n="csIntervalMinutes">Interval (minutes)</span>
+				<div class="cs-range-group">
+					<input type="range" id="csAutoMsgInterval" min="1" max="60" step="1" value="10" oninput="updateCsSetting('autoMessageInterval',this.value);document.getElementById('csAutoMsgIntervalVal').textContent=this.value">
+					<span class="cs-range-val" id="csAutoMsgIntervalVal">10</span>
 				</div>
 			</div>
 		</div>
-		<div class="cs-hint" data-i18n="csAutoMsgHint">When enabled, the character will auto-send a message at the set interval.</div>
 
 		<!-- FEATURES -->
-		<div class="section-header" data-i18n="csFeatures">FEATURES</div>
-		<div class="form-group">
-			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
-				<span class="form-label" data-i18n="csUseStickers">Use Sticker Library</span>
+		<div class="cs-section-header">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><path d="M6 2l1.5 3H11l-2.5 2.5L9.5 11 6 8.5 2.5 11l1-3.5L1 5h3.5z" stroke-linejoin="round"/><path d="M12 6v6M9 9h6" stroke-linecap="round"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csFeatures">Features</span>
+				<span class="cs-section-sub" data-i18n="csFeatureHint">Extra capabilities for this character</span>
+			</div>
+		</div>
+		<div class="cs-card">
+			<div class="cs-row">
+				<div class="cs-row-label-col">
+					<span class="cs-row-label" data-i18n="csUseStickers">Use Sticker Library</span>
+					<span class="cs-row-sublabel">Character uses stickers when appropriate</span>
+				</div>
 				<div class="toggle" id="csStickersToggle" onclick="toggleCsToggle('useStickers','csStickersToggle')"><div class="toggle-knob"></div></div>
 			</div>
-			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
-				<span class="form-label" data-i18n="csForceControl">Force Control</span>
+			<div class="cs-row">
+				<div class="cs-row-label-col">
+					<span class="cs-row-label" data-i18n="csForceControl">Force Control</span>
+					<span class="cs-row-sublabel">Reserved feature</span>
+				</div>
 				<div class="toggle" id="csForceControlToggle" onclick="toggleCsToggle('forceControl','csForceControlToggle')"><div class="toggle-knob"></div></div>
 			</div>
-			<div class="form-row">
-				<span class="form-label" data-i18n="csTopPriority">Top Priority</span>
+			<div class="cs-row cs-row-last">
+				<div class="cs-row-label-col">
+					<span class="cs-row-label" data-i18n="csTopPriority">Top Priority</span>
+					<span class="cs-row-sublabel">Reserved feature</span>
+				</div>
 				<div class="toggle" id="csTopPriorityToggle" onclick="toggleCsToggle('topPriority','csTopPriorityToggle')"><div class="toggle-knob"></div></div>
 			</div>
 		</div>
-		<div class="cs-hint" data-i18n="csFeatureHint">Stickers: character uses stickers from library when appropriate. Force Control and Top Priority are reserved features.</div>
 
 		<!-- DANGER ZONE -->
-		<div class="section-header" data-i18n="csDangerZone">DANGER ZONE</div>
-		<button class="form-btn danger" onclick="clearChatAndMemories()" data-i18n="csClearAll">Clear Chat & Memories</button>
+		<div class="cs-section-header cs-section-danger">
+			<div class="cs-section-icon"><svg viewBox="0 0 16 16"><path d="M8 2L1.5 13h13z" stroke-linejoin="round"/><path d="M8 7v3" stroke-linecap="round"/><circle cx="8" cy="11.5" r=".6" fill="#ff3b30" stroke="none"/></svg></div>
+			<div class="cs-section-text">
+				<span class="cs-section-title" data-i18n="csDangerZone">Danger Zone</span>
+				<span class="cs-section-sub">Irreversible actions</span>
+			</div>
+		</div>
+		<div class="cs-card cs-card-danger">
+			<div class="cs-row cs-row-last cs-row-danger" onclick="clearChatAndMemories()">
+				<span class="cs-row-label cs-danger-text" data-i18n="csClearAll">Clear Chat & Memories</span>
+				<svg class="cs-danger-arrow" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</div>
+		</div>
 
-		<div style="height:40px"></div>
+		<div style="height:48px"></div>
 	</div>
 </div>

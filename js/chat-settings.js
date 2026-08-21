@@ -6,7 +6,7 @@ var _autoMsgTimers = {};
 var _autoMomentsTimers = {};
 var _forceMomentBusy = false;
 
-/* ★ Stepper helper for the number inputs */
+/* Stepper helper for the number inputs */
 function csNumStep(inputId, delta) {
   var el = document.getElementById(inputId);
   if (!el) return;
@@ -16,7 +16,6 @@ function csNumStep(inputId, delta) {
   val = Math.min(max, Math.max(min, val + delta));
   el.value = val;
 
-  // Determine field name from input ID
   var fieldMap = { csReplyMin: 'replyMin', csReplyMax: 'replyMax' };
   var field = fieldMap[inputId];
   if (field) updateCsSetting(field, val);

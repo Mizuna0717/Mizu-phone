@@ -504,7 +504,7 @@
   stroke-width: 1.5;
 }
 
-/* ========== 通话气泡样式 ========== */
+/* ========== Call Bubble ========== */
 .msg-bubble.call-msg {
   min-width: 210px;
   padding: 0 !important;
@@ -614,7 +614,7 @@
   color: #ff3b30;
 }
 
-/* ========== 居中模态框 — Glass Morphism ========== */
+/* ========== Center Modal — Glass Morphism ========== */
 .center-modal-overlay {
   position: absolute;
   inset: 0;
@@ -634,7 +634,7 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* ========== 电话模态框 ========== */
+/* ========== Call Modal ========== */
 .call-modal {
   max-width: 300px;
   width: 85%;
@@ -702,7 +702,7 @@
   color: #111;
 }
 
-/* ========== 重回确认模态框 ========== */
+/* ========== Return Confirm Modal ========== */
 .return-confirm-modal {
   max-width: 300px;
   width: 85%;
@@ -779,7 +779,7 @@
   color: #111;
 }
 
-/* ========== 心声面板 — Glass Morphism ========== */
+/* ========== Heart Voice Panel — Glass Morphism ========== */
 .heart-voice-card {
   width: 88%;
   max-width: 340px;
@@ -971,7 +971,7 @@
   white-space: nowrap;
 }
 
-/* ===== 引用栏 — Glass ===== */
+/* ===== Quote Bar — Glass ===== */
 .chat-quote-bar {
   display: none;
   align-items: center;
@@ -1008,7 +1008,7 @@
   background: rgba(0, 0, 0, 0.08);
 }
 
-/* ===== 多选操作栏 — Glass ===== */
+/* ===== Multi-select Action Bar — Glass ===== */
 .bubble-action-bar {
   display: none;
   align-items: center;
@@ -1105,9 +1105,7 @@
   border-radius: 12px;
 }
 
-/* ============================================
-   撤回气泡
-   ============================================ */
+/* ===== Recalled Bubble ===== */
 .recalled-bubble {
   opacity: .5 !important;
   font-style: italic !important;
@@ -1116,9 +1114,7 @@
   background: rgba(0, 0, 0, 0.03) !important;
 }
 
-/* ============================================
-   消息额外操作按钮
-   ============================================ */
+/* ===== Message Extra Actions ===== */
 .msg-extra-actions {
   display: flex;
   gap: 4px;
@@ -1157,9 +1153,7 @@
   stroke-linejoin: round;
 }
 
-/* ============================================
-   撤回消息「查看原文」按钮
-   ============================================ */
+/* ===== Recalled View Button ===== */
 .recalled-view-btn {
   display: inline-flex;
   align-items: center;
@@ -1188,9 +1182,7 @@
   stroke-linejoin: round;
 }
 
-/* ============================================
-   朋友圈消息气泡
-   ============================================ */
+/* ===== Moment Bubble ===== */
 .moment-bubble {
   display: flex !important;
   align-items: center;
@@ -1210,9 +1202,7 @@
   flex-shrink: 0;
 }
 
-/* ============================================
-   聊天设置页数字输入框
-   ============================================ */
+/* ===== Old .cs-num-input (legacy, keep for safety) ===== */
 .cs-num-input {
   width: 60px !important;
   text-align: center;
@@ -1228,12 +1218,13 @@
   margin: 0;
 }
 
-/* ========== chat-settings.css ========== */
-/* Chat Settings page — refined, matches Memory Settings style */
 
 /* =========================================================
-   Section Headers
+   CHAT SETTINGS — Refined Card Layout
+   Matches Memory Settings visual language
    ========================================================= */
+
+/* ---- Section Headers ---- */
 .cs-section-header {
   display: flex;
   align-items: center;
@@ -1265,7 +1256,8 @@
 .cs-section-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
+  min-width: 0;
 }
 
 .cs-section-title {
@@ -1280,6 +1272,7 @@
   color: #888;
   font-weight: 400;
   letter-spacing: .1px;
+  line-height: 1.4;
 }
 
 /* Danger section accent */
@@ -1295,9 +1288,7 @@
   color: #ff3b30;
 }
 
-/* =========================================================
-   Card Container
-   ========================================================= */
+/* ---- Card Container ---- */
 .cs-card {
   margin: 0 16px;
   background: #fff;
@@ -1311,9 +1302,7 @@
   border-color: #ffe0de;
 }
 
-/* =========================================================
-   Row
-   ========================================================= */
+/* ---- Row ---- */
 .cs-row {
   display: flex;
   align-items: center;
@@ -1332,6 +1321,7 @@
   font-size: 15px;
   color: #333;
   font-weight: 500;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
@@ -1351,9 +1341,7 @@
   line-height: 1.3;
 }
 
-/* =========================================================
-   Danger Row (clickable)
-   ========================================================= */
+/* ---- Danger Row (clickable) ---- */
 .cs-row-danger {
   cursor: pointer;
   transition: background .12s;
@@ -1378,9 +1366,7 @@
   opacity: .6;
 }
 
-/* =========================================================
-   Number Input (stepper style)
-   ========================================================= */
+/* ---- Number Input (stepper style) ---- */
 .cs-num-wrap {
   display: flex;
   align-items: center;
@@ -1415,6 +1401,7 @@
   stroke: #636366;
   fill: none;
   stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .cs-num-display {
@@ -1436,9 +1423,7 @@
   margin: 0;
 }
 
-/* =========================================================
-   Range Group (slider + value)
-   ========================================================= */
+/* ---- Range Group (slider + value) ---- */
 .cs-range-group {
   display: flex;
   align-items: center;
@@ -1481,9 +1466,7 @@
   border-radius: 6px;
 }
 
-/* =========================================================
-   Select Dropdown
-   ========================================================= */
+/* ---- Select Dropdown ---- */
 .cs-select-wrap {
   position: relative;
   display: flex;
@@ -1526,9 +1509,7 @@
   pointer-events: none;
 }
 
-/* =========================================================
-   Action Button (Publish Now)
-   ========================================================= */
+/* ---- Action Button (Force Publish) ---- */
 .cs-action-btn {
   display: flex;
   align-items: center;
@@ -1563,12 +1544,12 @@
   stroke: #636366;
   fill: none;
   stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   flex-shrink: 0;
 }
 
-/* =========================================================
-   Hint Text
-   ========================================================= */
+/* ---- Hint Text ---- */
 .cs-hint {
   margin: 6px 32px 4px;
   font-size: 12px;
@@ -1577,9 +1558,7 @@
   letter-spacing: .05px;
 }
 
-/* =========================================================
-   Responsive: tighter on small screens
-   ========================================================= */
+/* ---- Responsive ---- */
 @media (max-width: 380px) {
   .cs-range-group {
     max-width: 160px;
