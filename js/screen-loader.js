@@ -1,16 +1,10 @@
 /**
- * ScreenLoader — 启动时并行 fetch 所有 HTML 片段，注入 DOM 后再按序加载 JS。
- * 全部完成后现有代码无需任何改动即可正常运行。
+ * ScreenLoader v2 — 容错 + 兼容 file:// 协议
  */
 (async function () {
     const screenContainer = document.getElementById('screenContainer');
     const app = document.getElementById('app');
 
-    /* ──────────────────────────────────────
-     *  1. 声明所有片段（顺序与原 HTML 一致）
-     * ────────────────────────────────────── */
-
-    // 注入到 .screen-container 内部的片段
     const screenFragments = [
         'screens/home.html',
         'screens/settings.html',
@@ -39,41 +33,90 @@
         'screens/chat-settings.html',
     ];
 
-    // 注入到 #app 内部（screen-container 之后）的全局片段
     const globalFragments = [
         'screens/drawer.html',
         'screens/modals.html',
         'screens/call-screen.html',
     ];
 
-    /* ──────────────────────────────────────
-     *  2. 并行拉取所有 HTML 片段
-     * ────────────────────────────────────── */
-    const fetchText = (url) => fetch(url).then((r) => {
-        if (!r.ok) throw new Error(`Failed to load ${url}: ${r.status}`);
-        return r.text();
-    });
+    /* ── 加载单个文件（fetch 失败自动回退 XHR） ── */
+    function loadFragment(url) {
+        return new Promise(function (resolve) {
 
-    const [screenHtmls, globalHtmls] = await Promise.all([
-        Promise.all(screenFragments.map(fetchText)),
-        Promise.all(globalFragments.map(fetchText)),
-    ]);
+            // 方法1: 用 fetch
+            if (typeof fetch === 'function' && location.protocol !== 'file:') {
+                fetch(url)
+                    .then(function (r) {
+                        if (!r.ok) throw new Error(r.status);
+                        return r.text();
+                    })
+                    .then(resolve)
+                    .catch(function () {
+                        // fetch 失败，回退到 XHR
+                        loadByXHR(url, resolve);
+                    });
+            } else {
+                // file:// 协议直接用 XHR
+                loadByXHR(url, resolve);
+            }
+        });
+    }
 
-    /* ──────────────────────────────────────
-     *  3. 按序注入 DOM
-     * ────────────────────────────────────── */
-    screenHtmls.forEach((html) => {
-        screenContainer.insertAdjacentHTML('beforeend', html);
-    });
+    function loadByXHR(url, resolve) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 0 || xhr.status === 200) {
+                    resolve(xhr.responseText || '');
+                } else {
+                    console.warn('⚠️ 无法加载:', url, '状态:', xhr.status);
+                    resolve('<!-- 加载失败: ' + url + ' -->');
+                }
+            }
+        };
+        xhr.onerror = function () {
+            console.warn('⚠️ XHR 失败:', url);
+            resolve('<!-- 加载失败: ' + url + ' -->');
+        };
+        try {
+            xhr.send();
+        } catch (e) {
+            console.warn('⚠️ 发送失败:', url, e);
+            resolve('<!-- 加载失败: ' + url + ' -->');
+        }
+    }
 
-    globalHtmls.forEach((html) => {
-        app.insertAdjacentHTML('beforeend', html);
-    });
+    /* ── 逐个加载，不用 Promise.all（一个失败不影响其他） ── */
+    console.log('📦 开始加载页面片段...');
 
-    /* ──────────────────────────────────────
-     *  4. 按序加载 JS（保持依赖顺序）
-     * ────────────────────────────────────── */
-    const scripts = [
+    // 加载 screen 片段
+    for (var i = 0; i < screenFragments.length; i++) {
+        var html = await loadFragment(screenFragments[i]);
+        if (html && html.indexOf('加载失败') === -1) {
+            screenContainer.insertAdjacentHTML('beforeend', html);
+            console.log('✅', screenFragments[i]);
+        } else {
+            console.error('❌', screenFragments[i]);
+        }
+    }
+
+    // 加载全局片段（注入到 toast 之前）
+    var toast = document.getElementById('toast');
+    for (var j = 0; j < globalFragments.length; j++) {
+        var ghtml = await loadFragment(globalFragments[j]);
+        if (ghtml && ghtml.indexOf('加载失败') === -1) {
+            toast.insertAdjacentHTML('beforebegin', ghtml);
+            console.log('✅', globalFragments[j]);
+        } else {
+            console.error('❌', globalFragments[j]);
+        }
+    }
+
+    console.log('📦 片段加载完成，开始加载 JS...');
+
+    /* ── 按序加载全部 JS ── */
+    var scripts = [
         'js/config.js',
         'js/state.js',
         'js/utils.js',
@@ -99,13 +142,21 @@
         'js/init.js',
     ];
 
-    for (const src of scripts) {
-        await new Promise((resolve, reject) => {
-            const s = document.createElement('script');
-            s.src = src;
-            s.onload = resolve;
-            s.onerror = () => reject(new Error(`Script load failed: ${src}`));
+    for (var k = 0; k < scripts.length; k++) {
+        await new Promise(function (resolve) {
+            var s = document.createElement('script');
+            s.src = scripts[k];
+            s.onload = function () {
+                console.log('✅ JS:', scripts[k]);
+                resolve();
+            };
+            s.onerror = function () {
+                console.error('❌ JS:', scripts[k]);
+                resolve(); // 不阻塞后续
+            };
             document.body.appendChild(s);
         });
     }
+
+    console.log('🚀 全部加载完成');
 })();
