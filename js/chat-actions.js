@@ -73,10 +73,6 @@ function closeChatMenu() {
   if (overlay) overlay.classList.remove('show');
 }
 
-/**
- * [兜底] 万一 DOM 被清空，用 JS 重建静态菜单
- * ★ 记忆设置跳转已修正为 screen-chat-config
- */
 function _rebuildMenuDOM(menu) {
   var items = [
     { label: '记忆设置', action: "closeChatMenu();nav('screen-chat-config')",
@@ -300,6 +296,180 @@ function editCharFromChat() {
 }
 
 
+// ══════════════════════════════════════════════════════════
+//  ★★★ 重回（Regenerate）— 整轮重新生成修复 ★★★
+// ══════════════════════════════════════════════════════════
+
+/**
+ * regenerateLastTurn(bubbleId)
+ *
+ * bubbleId 可以是：
+ *   - 纯消息 ID  （如 "abc123"）
+ *   - 带分段后缀 （如 "abc123__seg0"）
+ *
+ * 逻辑：
+ *  1. 从 bubbleId 提取真实 msgId
+ *  2. 在 state.chats 中定位该消息
+ *  3. 向前 / 向后扩展，找出同一轮（连续 assistant 消息）的 **全部** 消息
+ *  4. 全部移除
+ *  5. 用当前 API 重新生成，插回原位置
+ */
+async function regenerateLastTurn(bubbleId) {
+  var charId = state.currentCharId;
+  if (!charId) return;
+  if (typeof isGroupChat === 'function' && isGroupChat(charId)) {
+    showToast('群聊暂不支持重回');
+    return;
+  }
+
+  /* ① 提取真实 msgId */
+  var msgId = String(bubbleId);
+  var segSep = msgId.indexOf('__seg');
+  if (segSep >= 0) msgId = msgId.substring(0, segSep);
+
+  var msgs = state.chats[charId];
+  if (!msgs || !msgs.length) return;
+
+  /* ② 定位目标消息 */
+  var targetIdx = -1;
+  for (var i = 0; i < msgs.length; i++) {
+    if (msgs[i].id === msgId) { targetIdx = i; break; }
+  }
+  if (targetIdx < 0) return;
+  if (msgs[targetIdx].role !== 'assistant') {
+    showToast('只能对AI消息使用重回');
+    return;
+  }
+
+  /* ③ 找整轮边界：连续的 assistant 消息（跳过 call-summary 等系统类型） */
+  function _isNormalAssistant(m) {
+    return m && m.role === 'assistant' && m.type !== 'call-summary';
+  }
+
+  var turnStart = targetIdx;
+  while (turnStart > 0 && _isNormalAssistant(msgs[turnStart - 1])) {
+    turnStart--;
+  }
+
+  var turnEnd = targetIdx;
+  while (turnEnd < msgs.length - 1 && _isNormalAssistant(msgs[turnEnd + 1])) {
+    turnEnd++;
+  }
+
+  var turnCount = turnEnd - turnStart + 1;
+  console.log('[regenerate] 轮次范围 idx ' + turnStart + '~' + turnEnd + '，共 ' + turnCount + ' 条');
+
+  /* ④ 移除整轮 */
+  msgs.splice(turnStart, turnCount);
+  saveState();
+  renderChat();
+
+  /* ⑤ 准备重新生成 */
+  var api = state.apis ? state.apis.find(function(a) { return a.id === state.activeApiId; }) : null;
+  if (!api || !api.url || !api.model) {
+    showToast('请先配置API');
+    return;
+  }
+
+  var ch = state.characters.find(function(c) { return c.id === charId; });
+  if (!ch) { showToast('角色不存在'); return; }
+
+  /* 上下文：取移除后、turnStart 之前的消息（最多 30 条） */
+  var ctxEnd = Math.min(turnStart, msgs.length);
+  var ctxSlice = msgs.slice(Math.max(0, ctxEnd - 30), ctxEnd);
+  var apiCtx = ctxSlice.map(function(m) {
+    return {
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.recalled ? '[已撤回]' : (m.content || '')
+    };
+  });
+
+  var sysPrompt = '';
+  if (typeof buildSystemPrompt === 'function') {
+    sysPrompt = buildSystemPrompt(ch, state.worldbooks, state.stickers);
+  }
+
+  /* ⑥ 在聊天区显示打字指示器 */
+  var ct = document.getElementById('chatMessages');
+  var typingRow = document.createElement('div');
+  typingRow.className = 'msg-row received';
+  typingRow.id = 'regenTypingIndicator';
+
+  var charAv = ch.avatar;
+  var avHtml = charAv
+    ? '<img src="' + charAv + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+    : '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="8" r="4" stroke="#999" fill="none" stroke-width="1.5"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7" stroke="#999" fill="none" stroke-width="1.5"/></svg>';
+  typingRow.innerHTML =
+    '<div class="msg-avatar">' + avHtml + '</div>' +
+    '<div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+  if (ct) {
+    ct.appendChild(typingRow);
+    ct.scrollTop = ct.scrollHeight;
+  }
+
+  /* ⑦ 调用 API */
+  try {
+    var allApiMsgs = [{ role: 'system', content: sysPrompt }].concat(apiCtx);
+    var reply = await sendChat(api, allApiMsgs);
+
+    /* 移除打字指示器 */
+    var ti = document.getElementById('regenTypingIndicator');
+    if (ti) ti.remove();
+
+    if (!reply) {
+      showToast('AI 返回为空，请重试');
+      return;
+    }
+
+    /* ⑧ 解析 & 插入新消息 */
+    var parsed = (typeof parseThreePartReply === 'function')
+      ? parseThreePartReply(reply)
+      : { content: reply, innerThought: '', innerAction: '' };
+
+    var content = (parsed.content || '')
+      .replace(/\[\s*领取转账\s*\]/g, '')
+      .replace(/\[\s*拒绝转账\s*\]/g, '')
+      .trim();
+    if (!content) content = '';
+
+    /* 支持 ---SPLIT--- 多段 */
+    var parts = content.split(/---SPLIT---/).map(function(s) { return s.trim(); }).filter(Boolean);
+
+    var insertIdx = turnStart;
+    parts.forEach(function(part, pi) {
+      var newMsg = {
+        id: uid(),
+        role: 'assistant',
+        content: part,
+        type: 'text',
+        timestamp: Date.now() + pi * 100
+      };
+      msgs.splice(insertIdx + pi, 0, newMsg);
+    });
+
+    saveState();
+    renderChat();
+
+    /* 自动翻译 */
+    if (typeof getCharConfig === 'function' && typeof autoTranslateMsg === 'function') {
+      var cfg = getCharConfig(charId);
+      if (cfg && cfg.translation && parts.length > 0) {
+        var lastInserted = msgs[insertIdx + parts.length - 1];
+        if (lastInserted) autoTranslateMsg(lastInserted.id);
+      }
+    }
+
+    showToast('已重新生成');
+
+  } catch (e) {
+    var ti2 = document.getElementById('regenTypingIndicator');
+    if (ti2) ti2.remove();
+    showToast('重新生成失败');
+    console.error('[regenerateLastTurn] error:', e);
+  }
+}
+
+
 // ══════════════════════════════════════════════
 //  全局导出（防覆盖）
 // ══════════════════════════════════════════════
@@ -339,4 +509,10 @@ function editCharFromChat() {
   window.translateMsg         = translateMsg;
   window.toggleMsgTranslation = toggleMsgTranslation;
   window.exportCurrentChat    = exportCurrentChat;
+
+  // ★★★ 重回 — 整轮重新生成 ★★★
+  window.regenerateLastTurn   = regenerateLastTurn;
+  // 兼容：如果 bubble-menu 里调用的是 regenerateMsg / regenBubble，统一指向同一函数
+  window.regenerateMsg        = regenerateLastTurn;
+  window.regenBubble          = regenerateLastTurn;
 })();
