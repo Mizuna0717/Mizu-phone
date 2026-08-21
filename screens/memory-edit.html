@@ -1,0 +1,35 @@
+<!-- MEMORY EDIT -->
+<div class="screen" id="screen-memory-edit">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav(tmp.memEditFrom||'screen-memory')"><svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+		<span class="nav-title" id="memEditTitle" data-i18n="addMemory">New Memory</span>
+	</div>
+	<div class="screen-body" style="padding-top:16px">
+		<div class="mem-photo-upload" onclick="document.getElementById('memPhotoInput').click()">
+			<div id="memPhotoPh" style="display:flex;flex-direction:column;align-items:center;gap:6px">
+				<svg viewBox="0 0 32 32" style="width:32px;height:32px;stroke:#c7c7cc;fill:none;stroke-width:1.3"><rect x="4" y="6" width="24" height="18" rx="3"/><circle cx="12" cy="14" r="3"/><path d="M4 20l6-5 4 3 6-7 8 9"/></svg>
+				<span style="font-size:12px;color:#c7c7cc" data-i18n="tapAddPhoto">Tap to add photo</span>
+			</div>
+			<img id="memPhotoPv" style="display:none;width:100%;height:100%;object-fit:cover">
+			<input type="file" id="memPhotoInput" accept="image/*" onchange="previewMemPhoto(this)" style="display:none">
+		</div>
+		<div class="form-group">
+			<div class="form-row"><span class="form-label" data-i18n="memoryTitle2">Title</span><input class="form-input" id="memTitle" placeholder="What happened?"></div>
+			<div class="form-row"><span class="form-label" data-i18n="memoryDate">Date</span><input class="form-input" id="memDate" type="date"></div>
+			<div class="form-row"><span class="form-label" data-i18n="character">Character</span><select class="form-select" id="memCharSelect"><option value="">— None —</option></select></div>
+			<div class="form-row mem-type-row">
+				<div class="mem-seg-control" id="memTypeControl">
+					<div class="mem-seg-option active" data-value="stm" onclick="selectMemType(this,'stm')"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 2" stroke-linecap="round"/></svg><span data-i18n="stmLabel">Short-term</span></div>
+					<div class="mem-seg-option" data-value="ltm" onclick="selectMemType(this,'ltm')"><svg viewBox="0 0 16 16"><path d="M3 2h10v12H3z" stroke-linejoin="round"/><path d="M6 5h4M6 8h4M6 11h2" stroke-linecap="round"/></svg><span data-i18n="ltmLabel">Long-term</span></div>
+				</div>
+			</div>
+		</div>
+		<div class="section-header" data-i18n="memoryContent">CONTENT</div>
+		<div class="form-textarea"><textarea id="memContent" placeholder="Record this moment..." style="min-height:120px"></textarea></div>
+		<div class="section-header" data-i18n="memoryMood">MOOD</div>
+		<div class="mem-mood-grid" id="memMoodGrid"></div>
+		<button class="form-btn primary" onclick="saveMemory()" style="margin-top:16px" data-i18n="save">Save</button>
+		<button class="form-btn danger" id="deleteMemBtn" onclick="deleteMemory()" style="display:none" data-i18n="deleteMemory">Delete Memory</button>
+		<div style="height:40px"></div>
+	</div>
+</div>
