@@ -117,11 +117,11 @@
   border-radius: 3px;
 }
 
-/* ===== Dock ===== */
+/* ===== Dock（支持 3 個圖標） ===== */
 .home-dock {
   display: flex;
   justify-content: center;
-  gap: 32px;
+  gap: 28px;
   padding: 8px 20px calc(env(safe-area-inset-bottom, 4px) + 6px);
   background: transparent;
   backdrop-filter: none;

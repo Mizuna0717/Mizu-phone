@@ -901,6 +901,302 @@
     </div>
 </div><!-- ← screen-phone 關閉 -->
 
+<!-- MEETING -->
+<div class="screen" id="screen-meeting">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-home')">
+			<svg viewBox="0 0 20 20">
+				<path
+					d="M12 4l-6 6 6 6"
+					stroke="#1d1d1f"
+					fill="none"
+					stroke-width="2"
+					stroke-linecap="round"
+				/>
+			</svg>
+		</button>
+		<span class="nav-title">Meeting</span>
+	</div>
+	<div class="large-title">Meeting</div>
+	<div class="screen-body">
+
+		<!-- Today Section Header -->
+		<div
+			style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px"
+		>
+			<svg
+				viewBox="0 0 16 16"
+				style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"
+			>
+				<circle cx="8" cy="8" r="6" />
+				<path d="M8 5v3l2.5 1.5" />
+			</svg>
+			<span>TODAY</span>
+		</div>
+
+		<!-- Today Meeting Cards -->
+		<div
+			style="margin:0 16px 10px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec;box-shadow:0 1px 4px rgba(0,0,0,.03)"
+		>
+			<!-- Meeting 1 -->
+			<div
+				style="display:flex;align-items:center;padding:14px 16px;gap:14px;border-bottom:1px solid #f2f2f7"
+			>
+				<div
+					style="width:4px;height:40px;border-radius:2px;background:#8e8e93;flex-shrink:0"
+				></div>
+				<div style="flex:1;min-width:0">
+					<div
+						style="font-size:15px;font-weight:500;color:#1d1d1f"
+					>
+						Weekly Team Sync
+					</div>
+					<div
+						style="font-size:12px;color:#8e8e93;margin-top:3px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="7" r="5.5" />
+							<path d="M7 4v3l2 1.5" />
+						</svg>
+						<span>09:00 &ndash; 09:30</span>
+					</div>
+					<div
+						style="font-size:11px;color:#b0b0b5;margin-top:4px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#b0b0b5;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="5" r="2.5" />
+							<path d="M2.5 13c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+						</svg>
+						<span>Alice, Bob, Carol</span>
+					</div>
+				</div>
+				<span style="color:#c7c7cc;font-size:16px">&rsaquo;</span>
+			</div>
+
+			<!-- Meeting 2 -->
+			<div
+				style="display:flex;align-items:center;padding:14px 16px;gap:14px;border-bottom:1px solid #f2f2f7"
+			>
+				<div
+					style="width:4px;height:40px;border-radius:2px;background:#b0b0b5;flex-shrink:0"
+				></div>
+				<div style="flex:1;min-width:0">
+					<div
+						style="font-size:15px;font-weight:500;color:#1d1d1f"
+					>
+						Design Review
+					</div>
+					<div
+						style="font-size:12px;color:#8e8e93;margin-top:3px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="7" r="5.5" />
+							<path d="M7 4v3l2 1.5" />
+						</svg>
+						<span>11:00 &ndash; 11:45</span>
+					</div>
+					<div
+						style="font-size:11px;color:#b0b0b5;margin-top:4px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#b0b0b5;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="5" r="2.5" />
+							<path d="M2.5 13c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+						</svg>
+						<span>David, Emma</span>
+					</div>
+				</div>
+				<span style="color:#c7c7cc;font-size:16px">&rsaquo;</span>
+			</div>
+
+			<!-- Meeting 3 -->
+			<div
+				style="display:flex;align-items:center;padding:14px 16px;gap:14px"
+			>
+				<div
+					style="width:4px;height:40px;border-radius:2px;background:#c7c7cc;flex-shrink:0"
+				></div>
+				<div style="flex:1;min-width:0">
+					<div
+						style="font-size:15px;font-weight:500;color:#1d1d1f"
+					>
+						1:1 with Manager
+					</div>
+					<div
+						style="font-size:12px;color:#8e8e93;margin-top:3px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="7" r="5.5" />
+							<path d="M7 4v3l2 1.5" />
+						</svg>
+						<span>14:00 &ndash; 14:30</span>
+					</div>
+					<div
+						style="font-size:11px;color:#b0b0b5;margin-top:4px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#b0b0b5;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="5" r="2.5" />
+							<path d="M2.5 13c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+						</svg>
+						<span>Frank</span>
+					</div>
+				</div>
+				<span style="color:#c7c7cc;font-size:16px">&rsaquo;</span>
+			</div>
+		</div>
+
+		<!-- Upcoming Section Header -->
+		<div
+			style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px"
+		>
+			<svg
+				viewBox="0 0 16 16"
+				style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"
+			>
+				<rect x="2" y="3" width="12" height="11" rx="1.5" />
+				<path d="M5 1v4M11 1v4M2 7h12" />
+			</svg>
+			<span>UPCOMING</span>
+		</div>
+
+		<!-- Upcoming Meeting Cards -->
+		<div
+			style="margin:0 16px 16px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec;box-shadow:0 1px 4px rgba(0,0,0,.03)"
+		>
+			<!-- Upcoming 1 -->
+			<div
+				style="display:flex;align-items:center;padding:14px 16px;gap:14px;border-bottom:1px solid #f2f2f7"
+			>
+				<div
+					style="width:4px;height:40px;border-radius:2px;background:#d1d1d6;flex-shrink:0"
+				></div>
+				<div style="flex:1;min-width:0">
+					<div
+						style="font-size:15px;font-weight:500;color:#1d1d1f"
+					>
+						Sprint Planning
+					</div>
+					<div
+						style="font-size:12px;color:#8e8e93;margin-top:3px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="7" r="5.5" />
+							<path d="M7 4v3l2 1.5" />
+						</svg>
+						<span>Tomorrow, 10:00 &ndash; 11:00</span>
+					</div>
+					<div
+						style="font-size:11px;color:#b0b0b5;margin-top:4px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#b0b0b5;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="5" r="2.5" />
+							<path d="M2.5 13c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+						</svg>
+						<span>Full Team</span>
+					</div>
+				</div>
+				<span style="color:#c7c7cc;font-size:16px">&rsaquo;</span>
+			</div>
+
+			<!-- Upcoming 2 -->
+			<div
+				style="display:flex;align-items:center;padding:14px 16px;gap:14px"
+			>
+				<div
+					style="width:4px;height:40px;border-radius:2px;background:#d1d1d6;flex-shrink:0"
+				></div>
+				<div style="flex:1;min-width:0">
+					<div
+						style="font-size:15px;font-weight:500;color:#1d1d1f"
+					>
+						Client Presentation
+					</div>
+					<div
+						style="font-size:12px;color:#8e8e93;margin-top:3px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="7" r="5.5" />
+							<path d="M7 4v3l2 1.5" />
+						</svg>
+						<span>Wed, 15:00 &ndash; 16:00</span>
+					</div>
+					<div
+						style="font-size:11px;color:#b0b0b5;margin-top:4px;display:flex;align-items:center;gap:6px"
+					>
+						<svg
+							viewBox="0 0 14 14"
+							style="width:12px;height:12px;stroke:#b0b0b5;fill:none;stroke-width:1.4;flex-shrink:0"
+						>
+							<circle cx="7" cy="5" r="2.5" />
+							<path d="M2.5 13c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+						</svg>
+						<span>Alice, Grace, Henry</span>
+					</div>
+				</div>
+				<span style="color:#c7c7cc;font-size:16px">&rsaquo;</span>
+			</div>
+		</div>
+
+		<!-- Empty Summary Section -->
+		<div
+			style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px"
+		>
+			<svg
+				viewBox="0 0 16 16"
+				style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"
+			>
+				<path d="M2 4h12M2 8h8M2 12h5" />
+			</svg>
+			<span>NOTES</span>
+		</div>
+		<div
+			style="text-align:center;padding:30px;color:#8e8e93;font-size:14px"
+		>
+			<svg
+				viewBox="0 0 44 44"
+				style="width:40px;height:40px;stroke:#d1d1d6;fill:none;stroke-width:1;margin-bottom:8px;display:block;margin:0 auto 8px"
+			>
+				<rect x="8" y="4" width="28" height="36" rx="3" />
+				<path d="M14 14h16M14 20h12M14 26h8" />
+			</svg>
+			<div style="line-height:1.5">
+				No meeting notes yet<br /><span style="font-size:12px"
+					>Notes will appear here after meetings</span
+				>
+			</div>
+		</div>
+
+		<div style="height:40px"></div>
+	</div>
+</div>
+
+
    
 
 				<!-- COUPLE SPACE -->
