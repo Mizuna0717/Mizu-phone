@@ -1,0 +1,68 @@
+<!-- FORUM -->
+<div class="screen" id="screen-forum">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-home')">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+		<span class="nav-title" data-i18n="forum">Forum</span>
+		<button class="nav-btn nav-right" onclick="">
+			<svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+	</div>
+	<div class="large-title" data-i18n="forum">Forum</div>
+	<div class="screen-body">
+		<div style="margin:0 16px 16px;position:relative">
+			<svg viewBox="0 0 18 18" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="8" r="5.5"/><path d="M12 12l4 4"/></svg>
+			<input placeholder="Search topics..." data-i18n="searchTopics" style="width:100%;padding:10px 14px 10px 36px;border:none;border-radius:10px;background:#fff;font-size:15px;outline:none;color:#1d1d1f;border:1px solid #ececec">
+		</div>
+		<div style="display:flex;gap:8px;padding:0 16px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+			<div style="padding:6px 14px;background:#1d1d1f;color:#fff;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0">All</div>
+			<div style="padding:6px 14px;background:#fff;color:#3a3a3c;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0;border:1px solid #e5e5ea">Character Share</div>
+			<div style="padding:6px 14px;background:#fff;color:#3a3a3c;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0;border:1px solid #e5e5ea">Tips</div>
+			<div style="padding:6px 14px;background:#fff;color:#3a3a3c;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0;border:1px solid #e5e5ea">Help</div>
+			<div style="padding:6px 14px;background:#fff;color:#3a3a3c;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0;border:1px solid #e5e5ea">Off-Topic</div>
+		</div>
+		<div style="margin:0 16px 12px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
+			<div style="padding:16px;border-bottom:1px solid #f2f2f7;cursor:pointer">
+				<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+					<div style="width:32px;height:32px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="6" r="3"/><path d="M3 14c0-3 2-5 5-5s5 2 5 5"/></svg></div>
+					<span style="font-size:13px;color:#8e8e93">Anonymous</span>
+					<span style="font-size:11px;color:#c7c7cc;margin-left:auto">2h ago</span>
+				</div>
+				<div style="font-size:16px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Best practices for character prompts?</div>
+				<div style="font-size:13px;color:#8e8e93;line-height:1.4">Looking for tips on writing more engaging character prompts. How do you make them feel more alive</div>
+				<div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:#8e8e93">
+					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M7 12C7 12 2 9 2 6a3 3 0 016 0 3 3 0 016 0c0 3-5 6-5 6h-2z"/></svg>24</span>
+					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H6l-3 2V10H2a1 1 0 01-1-1V3a1 1 0 011-1z"/></svg>8</span>
+				</div>
+			</div>
+			<div style="padding:16px;border-bottom:1px solid #f2f2f7;cursor:pointer">
+				<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+					<div style="width:32px;height:32px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="6" r="3"/><path d="M3 14c0-3 2-5 5-5s5 2 5 5"/></svg></div>
+					<span style="font-size:13px;color:#8e8e93">Anonymous</span>
+					<span style="font-size:11px;color:#c7c7cc;margin-left:auto">5h ago</span>
+				</div>
+				<div style="font-size:16px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Sharing my OC — Yuki, the quiet artist</div>
+				<div style="font-size:13px;color:#8e8e93;line-height:1.4">Created a character who's a shy art student. Spent a lot of time on the world book</div>
+				<div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:#8e8e93">
+					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M7 12C7 12 2 9 2 6a3 3 0 016 0 3 3 0 016 0c0 3-5 6-5 6h-2z"/></svg>42</span>
+					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H6l-3 2V10H2a1 1 0 01-1-1V3a1 1 0 011-1z"/></svg>15</span>
+				</div>
+			</div>
+			<div style="padding:16px;cursor:pointer">
+				<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+					<div style="width:32px;height:32px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="6" r="3"/><path d="M3 14c0-3 2-5 5-5s5 2 5 5"/></svg></div>
+					<span style="font-size:13px;color:#8e8e93">Anonymous</span>
+					<span style="font-size:11px;color:#c7c7cc;margin-left:auto">1d ago</span>
+				</div>
+				<div style="font-size:16px;font-weight:600;color:#1d1d1f;margin-bottom:4px">How to use worldbooks effectively?</div>
+				<div style="font-size:13px;color:#8e8e93;line-height:1.4">I have trouble understanding when to use global vs local worldbooks...</div>
+				<div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:#8e8e93">
+					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M7 12C7 12 2 9 2 6a3 3 0 016 0 3 3 0 016 0c0 3-5 6-5 6h-2z"/></svg>18</span>
+					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H6l-3 2V10H2a1 1 0 01-1-1V3a1 1 0 011-1z"/></svg>6</span>
+				</div>
+			</div>
+		</div>
+		<div style="height:40px"></div>
+	</div>
+</div>
