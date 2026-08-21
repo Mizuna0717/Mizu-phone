@@ -385,74 +385,254 @@
   stroke-width: 3;
 }
 
+
 /* =========================================================
-   多账号 — 创建模态框
+   ★★★ 创建账号模态框 — 全新美化样式
    ========================================================= */
-.acct-create-dialog {
-  max-width: 320px;
+
+/* 卡片容器 */
+.acct-modal-card {
+  width: 92%;
+  max-width: 400px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, .08),
+    0 1px 4px rgba(0, 0, 0, .04);
+  overflow: hidden;
+  animation: acctModalIn .28s cubic-bezier(.2, .9, .3, 1);
 }
 
-.acct-create-body {
+@keyframes acctModalIn {
+  from {
+    opacity: 0;
+    transform: scale(.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 顶栏 */
+.acct-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+}
+
+.acct-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333333;
+  letter-spacing: -.2px;
+}
+
+.acct-modal-close {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+
+.acct-modal-close:hover {
+  background: #e5e5e5;
+}
+
+.acct-modal-close:active {
+  background: #d8d8d8;
+}
+
+.acct-modal-close svg {
+  width: 12px;
+  height: 12px;
+  stroke: #888888;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* 内容区 */
+.acct-modal-body {
+  padding: 24px 24px 8px;
+}
+
+/* 头像区域 */
+.acct-modal-avatar-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 0 8px;
-  gap: 6px;
+  margin-bottom: 24px;
 }
 
-.acct-create-avatar {
-  width: 80px;
-  height: 80px;
+.acct-modal-avatar {
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  background: #f2f2f7;
+  background: #fafafa;
+  border: 2px dashed #ddd;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   overflow: hidden;
-  border: 2px dashed #d1d1d6;
-  transition: border-color .2s, transform .15s;
   position: relative;
+  transition: border-color .2s, background .2s, transform .15s;
 }
 
-.acct-create-avatar:hover { border-color: #8e8e93; }
-.acct-create-avatar:active { transform: scale(.95); }
+.acct-modal-avatar:hover {
+  border-color: #bbb;
+  background: #f5f5f5;
+}
 
-.acct-create-avatar svg {
-  width: 32px;
-  height: 32px;
-  stroke: #c7c7cc;
+.acct-modal-avatar:active {
+  transform: scale(.95);
+}
+
+.acct-modal-avatar svg {
+  width: 34px;
+  height: 34px;
+  stroke: #ccc;
   fill: none;
-  stroke-width: 1.5;
+  stroke-width: 1.2;
 }
 
-.acct-create-avatar img {
+.acct-modal-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   position: absolute;
   inset: 0;
+  border-radius: 50%;
 }
 
-.acct-create-hint {
+/* 相机角标 */
+.acct-modal-avatar-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 26px;
+  height: 26px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+  pointer-events: none;
+}
+
+.acct-modal-avatar-badge svg {
+  width: 13px;
+  height: 13px;
+  stroke: #888;
+  fill: none;
+  stroke-width: 1.4;
+}
+
+.acct-modal-avatar-hint {
   font-size: 12px;
-  color: #8e8e93;
-  margin-bottom: 10px;
+  color: #bbb;
+  margin-top: 8px;
+  letter-spacing: .2px;
 }
 
-.acct-create-body .modal-input {
+/* 输入框组 */
+.acct-modal-input-group {
+  margin-bottom: 8px;
+}
+
+.acct-modal-input-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+
+.acct-modal-input {
   width: 100%;
   box-sizing: border-box;
+  border: none;
+  border-bottom: 1.5px solid #e0e0e0;
+  outline: none;
+  font-size: 16px;
+  color: #333;
+  padding: 10px 0;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: border-color .2s;
 }
 
-.modal-primary {
-  color: #007aff !important;
-  font-weight: 600 !important;
+.acct-modal-input::placeholder {
+  color: #bbb;
+  font-weight: 400;
 }
+
+.acct-modal-input:focus {
+  border-bottom-color: #999;
+}
+
+/* 底部按钮 */
+.acct-modal-footer {
+  display: flex;
+  padding: 16px 24px 20px;
+  gap: 12px;
+}
+
+.acct-modal-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background .15s, transform .1s;
+}
+
+.acct-modal-btn:active {
+  transform: scale(.97);
+}
+
+.acct-modal-btn.cancel {
+  background: #f5f5f5;
+  color: #888;
+}
+
+.acct-modal-btn.cancel:hover {
+  background: #ececec;
+}
+
+.acct-modal-btn.confirm {
+  background: #333;
+  color: #fff;
+}
+
+.acct-modal-btn.confirm:hover {
+  background: #444;
+}
+
+.acct-modal-btn.confirm:active {
+  background: #555;
+}
+
 
 /* =========================================================
-   多账号 — 左侧抽屉
+   ★★★ 账号切换抽屉 — 全新美化样式
    ========================================================= */
+
+/* 遮罩容器 */
 .acct-drawer-mask {
   position: fixed;
   inset: 0;
@@ -475,7 +655,7 @@
 }
 
 .acct-drawer-mask.visible .acct-drawer-overlay {
-  background: rgba(0, 0, 0, .35);
+  background: rgba(0, 0, 0, .3);
 }
 
 /* 面板 */
@@ -486,12 +666,12 @@
   bottom: 0;
   width: 280px;
   max-width: 80vw;
-  background: #f8f8fa;
+  background: #ffffff;
   transform: translateX(-100%);
   transition: transform .3s cubic-bezier(.4, 0, .2, 1);
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, .08);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, .06);
   z-index: 1;
 }
 
@@ -499,76 +679,127 @@
   transform: translateX(0);
 }
 
-/* 头部 */
+/* ★ 抽屉头部 */
 .acct-drawer-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 16px 16px 12px;
-  border-bottom: 1px solid #e5e5ea;
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid #f0f0f0;
   flex-shrink: 0;
 }
 
-.acct-drawer-header h3 {
-  font-size: 18px;
+.acct-drawer-header-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.acct-drawer-label {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-weight: 600;
+}
+
+.acct-drawer-title {
+  font-size: 20px;
   font-weight: 700;
-  color: #1d1d1f;
+  color: #333;
   margin: 0;
+  letter-spacing: -.3px;
 }
 
 .acct-drawer-close {
   width: 30px;
   height: 30px;
   border: none;
-  background: #e5e5ea;
+  background: #f0f0f0;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background .15s;
+  flex-shrink: 0;
+  margin-top: 4px;
 }
 
-.acct-drawer-close:active { background: #d1d1d6; }
+.acct-drawer-close:hover {
+  background: #e5e5e5;
+}
+
+.acct-drawer-close:active {
+  background: #d8d8d8;
+}
 
 .acct-drawer-close svg {
   width: 12px;
   height: 12px;
-  stroke: #3a3a3c;
+  stroke: #888;
   fill: none;
   stroke-width: 2;
 }
 
-/* 列表 */
+/* ★ 账号列表 */
 .acct-drawer-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 8px 12px;
 }
 
-/* 单个账号条目 */
+/* ★ 单条账号 */
 .acct-item {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: 12px 12px;
   gap: 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f2f2f7;
+  border-radius: 12px;
+  min-height: 56px;
+  box-sizing: border-box;
+  margin-bottom: 2px;
   transition: background .15s;
+  border-bottom: none;
+  position: relative;
 }
 
-.acct-item:last-child { border-bottom: none; }
-.acct-item:active { background: #eaeaef; }
+.acct-item:hover {
+  background: #fafafa;
+}
 
+.acct-item:active {
+  background: #f0f0f0;
+}
+
+/* ★ 选中 / 当前账号 */
 .acct-item.active {
-  background: #f0f0f5;
+  background: #f5f5f5;
 }
 
+.acct-item.active .acct-item-name {
+  font-weight: 700;
+  color: #333;
+}
+
+/* ★ 不加 border-bottom，用间距代替 */
+.acct-item + .acct-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 60px;
+  right: 12px;
+  height: 1px;
+  background: #f0f0f0;
+}
+
+/* ★ 头像 */
 .acct-item-avatar {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: #e5e5ea;
+  background: #f0f0f0;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -583,37 +814,50 @@
 }
 
 .acct-item-avatar svg {
-  width: 22px;
-  height: 22px;
-  stroke: #8e8e93;
+  width: 20px;
+  height: 20px;
+  stroke: #bbb;
   fill: none;
   stroke-width: 1.5;
 }
 
+/* ★ 信息 */
 .acct-item-info {
   flex: 1;
   min-width: 0;
 }
 
 .acct-item-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1d1d1f;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.3;
 }
 
 .acct-item-label {
   font-size: 11px;
-  color: #8e8e93;
+  color: #888;
   margin-top: 2px;
+  letter-spacing: .2px;
+}
+
+/* ★ 对勾标记 */
+.acct-item-check-wrap {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .acct-item-check {
-  width: 20px;
-  height: 20px;
-  stroke: #34c759;
+  width: 18px;
+  height: 18px;
+  stroke: #333;
   fill: none;
   stroke-width: 2.5;
   flex-shrink: 0;
@@ -621,36 +865,49 @@
   stroke-linejoin: round;
 }
 
+/* ★ 删除按钮 */
 .acct-item-del {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border: none;
-  background: none;
+  background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 8px;
   flex-shrink: 0;
   transition: background .15s;
 }
 
-.acct-item-del:active { background: rgba(255, 59, 48, .12); }
+.acct-item-del:hover {
+  background: rgba(0, 0, 0, .04);
+}
+
+.acct-item-del:hover svg {
+  stroke: #ff3b30;
+}
+
+.acct-item-del:active {
+  background: rgba(255, 59, 48, .08);
+}
 
 .acct-item-del svg {
   width: 15px;
   height: 15px;
-  stroke: #ff3b30;
+  stroke: #ccc;
   fill: none;
-  stroke-width: 1.5;
+  stroke-width: 1.4;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: stroke .2s;
 }
 
-/* 底部 */
+/* ★ 底部 */
 .acct-drawer-footer {
-  padding: 12px 16px;
-  border-top: 1px solid #e5e5ea;
+  padding: 12px 16px 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0));
+  border-top: 1px solid #f0f0f0;
   flex-shrink: 0;
 }
 
@@ -659,27 +916,36 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 12px;
-  background: #fff;
-  border: 1px solid #e5e5ea;
+  gap: 8px;
+  padding: 13px 16px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
   border-radius: 12px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: #007aff;
-  transition: background .15s;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background .15s, transform .1s;
 }
 
-.acct-drawer-add:active { background: #f2f2f7; }
+.acct-drawer-add:hover {
+  background: #efefef;
+}
+
+.acct-drawer-add:active {
+  background: #e8e8e8;
+  transform: scale(.98);
+}
 
 .acct-drawer-add svg {
-  width: 16px;
-  height: 16px;
-  stroke: #007aff;
+  width: 15px;
+  height: 15px;
+  stroke: #888;
   fill: none;
   stroke-width: 2;
 }
+
 
 /* =========================================================
    账号统计行（角色/对话/动态数量）

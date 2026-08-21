@@ -113,44 +113,71 @@
 	</div>
 </div>
 
-<!-- ★ 修复：modal-mask → modal-overlay center-modal-overlay -->
+<!-- ★ 美化：创建账号模态框 — 重新设计结构 -->
 <div class="modal-overlay center-modal-overlay" id="accountCreateModal" onclick="if(event.target===this)closeModal('accountCreateModal')">
-	<div class="modal acct-create-dialog">
-		<div class="modal-title">创建新账号</div>
-		<div class="acct-create-body">
-			<div class="acct-create-avatar" onclick="document.getElementById('acctAvatarInput').click()">
-				<svg viewBox="0 0 32 32" id="acctAvatarPh">
-					<circle cx="16" cy="12" r="5"/>
-					<path d="M6 28c0-6 4-10 10-10s10 4 10 10"/>
-				</svg>
-				<img id="acctAvatarPv" style="display:none"/>
-				<input type="file" id="acctAvatarInput" accept="image/*" onchange="previewAccountAvatar(this)" style="display:none"/>
-			</div>
-			<div class="acct-create-hint">点击添加头像</div>
-			<input id="acctNameInput" class="modal-input" placeholder="账号名称（如：工作号）"/>
+	<div class="acct-modal-card">
+		<!-- 顶栏：标题 + 关闭按钮 -->
+		<div class="acct-modal-header">
+			<span class="acct-modal-title">创建新账号</span>
+			<button class="acct-modal-close" onclick="closeModal('accountCreateModal')">
+				<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
 		</div>
-		<div class="modal-actions">
-			<button onclick="closeModal('accountCreateModal')">取消</button>
-			<button onclick="confirmCreateAccount()" class="modal-primary">确认创建</button>
+		<!-- 头像区 -->
+		<div class="acct-modal-body">
+			<div class="acct-modal-avatar-wrap">
+				<div class="acct-modal-avatar" onclick="document.getElementById('acctAvatarInput').click()">
+					<svg viewBox="0 0 32 32" id="acctAvatarPh">
+						<circle cx="16" cy="12" r="5"/>
+						<path d="M6 28c0-6 4-10 10-10s10 4 10 10"/>
+					</svg>
+					<img id="acctAvatarPv" style="display:none"/>
+					<input type="file" id="acctAvatarInput" accept="image/*" onchange="previewAccountAvatar(this)" style="display:none"/>
+					<!-- 相机角标 -->
+					<div class="acct-modal-avatar-badge">
+						<svg viewBox="0 0 16 16">
+							<path d="M6 3l-1 2H3a1 1 0 00-1 1v7a1 1 0 001 1h10a1 1 0 001-1V6a1 1 0 00-1-1h-2l-1-2H6z"/>
+							<circle cx="8" cy="9" r="2.5"/>
+						</svg>
+					</div>
+				</div>
+				<div class="acct-modal-avatar-hint">点击设置头像</div>
+			</div>
+			<!-- 名称输入 -->
+			<div class="acct-modal-input-group">
+				<label class="acct-modal-input-label">账号名称</label>
+				<input id="acctNameInput" class="acct-modal-input" placeholder="例如：工作号、日常号" maxlength="20"/>
+			</div>
+		</div>
+		<!-- 底部操作 -->
+		<div class="acct-modal-footer">
+			<button class="acct-modal-btn cancel" onclick="closeModal('accountCreateModal')">取消</button>
+			<button class="acct-modal-btn confirm" onclick="confirmCreateAccount()">确认创建</button>
 		</div>
 	</div>
 </div>
 
-<!-- 账号切换抽屉 -->
+<!-- ★ 美化：账号切换抽屉 — 重新设计结构 -->
 <div class="acct-drawer-mask" id="acctDrawerMask">
 	<div class="acct-drawer-overlay" onclick="closeAccountDrawer()"></div>
 	<div class="acct-drawer-panel">
+		<!-- 抽屉顶部 -->
 		<div class="acct-drawer-header">
-			<h3>账号切换</h3>
+			<div class="acct-drawer-header-inner">
+				<span class="acct-drawer-label">切换账号</span>
+				<h3 class="acct-drawer-title">我的账号</h3>
+			</div>
 			<button class="acct-drawer-close" onclick="closeAccountDrawer()">
-				<svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg>
+				<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round" stroke-linejoin="round"/></svg>
 			</button>
 		</div>
+		<!-- 账号列表 -->
 		<div class="acct-drawer-list" id="acctDrawerList"></div>
+		<!-- 底部操作 -->
 		<div class="acct-drawer-footer">
 			<button class="acct-drawer-add" onclick="closeAccountDrawer();openAccountCreateModal()">
 				<svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke-linecap="round"/></svg>
-				<span>添加账号</span>
+				<span>添加新账号</span>
 			</button>
 		</div>
 	</div>

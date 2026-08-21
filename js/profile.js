@@ -283,15 +283,12 @@ function saveMask() {
     state.masks.push({ id: uid(), name: name, persona: persona, avatar: av, charIds: charIds });
   }
 
-  // ★ 先保存数据
   saveState();
   showToast(T('maskSaved'));
 
-  // ★ 先设标签再导航，并在导航后强制刷新列表
   state.imsgTab = 'profile';
   nav('screen-imessage');
 
-  // ★ 额外保险：延迟刷新确保 DOM 已就绪
   setTimeout(function() {
     try { renderMaskList(); } catch(e) {}
   }, 100);
@@ -309,7 +306,7 @@ function deleteMask() {
 }
 
 // =============================================
-//  多账号 — 创建模态框
+//  多账号 — 创建模态框（★ 适配新 HTML 类名）
 // =============================================
 function openAccountCreateModal() {
   tmp.acctAvatar = null;
@@ -320,7 +317,7 @@ function openAccountCreateModal() {
   var inp = document.getElementById('acctNameInput');
   if (inp) inp.value = '';
   document.getElementById('accountCreateModal').classList.add('show');
-  setTimeout(function () { if (inp) inp.focus(); }, 150);
+  setTimeout(function () { if (inp) inp.focus(); }, 200);
 }
 
 function previewAccountAvatar(fileInput) {
@@ -344,15 +341,12 @@ function confirmCreateAccount() {
 
   var avatar = tmp.acctAvatar || null;
 
-  // 保存当前账号数据
   saveState();
 
-  // 创建新账号
   var acct = createAccount(name, avatar);
 
   closeModal('accountCreateModal');
 
-  // 自动切换到新账号
   switchAccount(acct.id);
   reloadUI(false);
   switchImsgTab('profile');
@@ -360,14 +354,13 @@ function confirmCreateAccount() {
 }
 
 // =============================================
-//  多账号 — 抽屉切换
+//  多账号 — 抽屉切换（★ 适配新 HTML 结构）
 // =============================================
 function openAccountDrawer() {
   renderAccountDrawerList();
   var mask = document.getElementById('acctDrawerMask');
   if (!mask) return;
   mask.classList.add('show');
-  // 用 rAF 保证 display:block 生效后再加 visible 以触发过渡动画
   requestAnimationFrame(function () {
     requestAnimationFrame(function () {
       mask.classList.add('visible');
@@ -382,6 +375,7 @@ function closeAccountDrawer() {
   setTimeout(function () { mask.classList.remove('show'); }, 320);
 }
 
+/* ★ 重写：生成美化版账号列表 */
 function renderAccountDrawerList() {
   var accounts = getAllAccounts();
   var currentId = accountStore.currentAccountId;
@@ -395,22 +389,33 @@ function renderAccountDrawerList() {
       ? '<img src="' + a.avatar + '" alt="">'
       : '<svg viewBox="0 0 32 32"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10"/></svg>';
 
+    /* ★ 右侧：当前账号显示对勾，其他账号显示删除按钮 */
     var rightHtml = '';
     if (isCurrent) {
-      rightHtml = '<svg class="acct-item-check" viewBox="0 0 16 16"><path d="M3 8l4 4 6-7"/></svg>';
+      rightHtml =
+        '<div class="acct-item-check-wrap">' +
+          '<svg class="acct-item-check" viewBox="0 0 16 16"><path d="M3 8l4 4 6-7"/></svg>' +
+        '</div>';
     } else if (accounts.length > 1) {
-      rightHtml = '<button class="acct-item-del" data-acctid="' + a.id + '" onclick="event.stopPropagation();handleDeleteAccount(\'' + a.id + '\')">' +
-        '<svg viewBox="0 0 16 16"><path d="M4 4h8l-.7 8.5a1 1 0 01-1 .5h-4.6a1 1 0 01-1-.5L4 4zM6.5 2h3M3 4h10"/></svg></button>';
+      rightHtml =
+        '<button class="acct-item-del" data-acctid="' + a.id + '" onclick="event.stopPropagation();handleDeleteAccount(\'' + a.id + '\')" title="删除账号">' +
+          '<svg viewBox="0 0 16 16">' +
+            '<path d="M4.5 4.5h7l-.6 7.5a1 1 0 01-1 .9H6.1a1 1 0 01-1-.9L4.5 4.5z"/>' +
+            '<path d="M6.5 2.5h3"/>' +
+            '<path d="M3 4.5h10"/>' +
+          '</svg>' +
+        '</button>';
     }
 
-    return '<div class="acct-item' + (isCurrent ? ' active' : '') + '" onclick="performAccountSwitch(\'' + a.id + '\')">' +
-      '<div class="acct-item-avatar">' + avatarInner + '</div>' +
-      '<div class="acct-item-info">' +
-        '<div class="acct-item-name">' + esc(a.name) + '</div>' +
-        (isCurrent ? '<div class="acct-item-label">当前使用</div>' : '') +
-      '</div>' +
-      rightHtml +
-    '</div>';
+    return '' +
+      '<div class="acct-item' + (isCurrent ? ' active' : '') + '" onclick="performAccountSwitch(\'' + a.id + '\')">' +
+        '<div class="acct-item-avatar">' + avatarInner + '</div>' +
+        '<div class="acct-item-info">' +
+          '<div class="acct-item-name">' + esc(a.name) + '</div>' +
+          (isCurrent ? '<div class="acct-item-label">当前使用中</div>' : '') +
+        '</div>' +
+        rightHtml +
+      '</div>';
   }).join('');
 }
 
@@ -422,22 +427,17 @@ function performAccountSwitch(id) {
 
   console.log('[UI] 切换前 | 账号:', accountStore.currentAccountId, '| 角色:', state.characters.length, '| 面具:', state.masks.length);
 
-  // ★ 1. 显式保存当前账号（确保最新数据入库）
   saveState();
 
-  // ★ 2. 切换账号
   var ok = switchAccount(id);
   if (!ok) { showToast('切换失败'); return; }
 
   console.log('[UI] 切换后 | 账号:', accountStore.currentAccountId, '| 角色:', state.characters.length, '| 面具:', state.masks.length);
 
-  // ★ 3. 关闭抽屉
   closeAccountDrawer();
 
-  // ★ 4. 刷新 UI（skipSave=true 避免意外覆盖）
   reloadUI(false);
 
-  // ★ 5. 切到 Profile（skipSave）
   switchImsgTab('profile', true);
 
   var acct = getCurrentAccount();
@@ -456,9 +456,7 @@ function handleDeleteAccount(id) {
   var wasName = target.name;
   deleteAccount(id);
 
-  // 刷新抽屉列表
   renderAccountDrawerList();
-  // 如果删除的是当前账号，deleteAccount 内部已自动切换
   reloadUI(false);
   switchImsgTab('profile');
   showToast('已删除: ' + wasName);
