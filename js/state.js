@@ -26,7 +26,6 @@ let state = {
   charConfig: {},
   phoneData: {},
   bookmarks: [],
-  // ★ 新增
   groups: [],
   moments: []
 };
@@ -55,8 +54,9 @@ let tmp = {
   realImageData: null,
   memPhoto: null,
   memMood: '',
-  // ★ 新增
-  expandedGroups: new Set()
+  expandedGroups: new Set(),
+  addCharGroupId: null,
+  createGroupSelected: new Set()
 };
 
 const SAVE_KEYS = [
@@ -64,7 +64,7 @@ const SAVE_KEYS = [
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
   'groups', 'moments',
-  'imsgTab'                       // ★ 新增：持久化当前标签页
+  'imsgTab'
 ];
 
 function saveState() {
@@ -79,7 +79,6 @@ function loadState() {
     if (d) Object.keys(d).forEach(k => { if (d[k] !== undefined) state[k] = d[k]; });
   } catch (e) {}
 
-  // ★ 修复：使用 Array.isArray 确保数组字段不会因数据损坏变成 null/object/string
   if (!Array.isArray(state.characters)) state.characters = [];
   if (!state.chats || typeof state.chats !== 'object' || Array.isArray(state.chats)) state.chats = {};
   if (!state.unread || typeof state.unread !== 'object') state.unread = {};
@@ -97,7 +96,6 @@ function loadState() {
   if (!Array.isArray(state.apis)) state.apis = [];
 }
 
-// ========== 重置 state 到初始默认值 ==========
 function resetState() {
   state.apis = [];
   state.activeApiId = null;
@@ -128,7 +126,6 @@ function resetState() {
   state.groups = [];
   state.moments = [];
 
-  // 同时重置临时状态
   bubbleState.multiMode = false;
   bubbleState.selectedIds = new Set();
   bubbleState.quoteMsg = null;
@@ -149,4 +146,6 @@ function resetState() {
   tmp.memPhoto = null;
   tmp.memMood = '';
   tmp.expandedGroups = new Set();
+  tmp.addCharGroupId = null;
+  tmp.createGroupSelected = new Set();
 }
