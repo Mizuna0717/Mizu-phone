@@ -1,0 +1,60 @@
+<!-- THEME -->
+<div class="screen" id="screen-theme">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-home')">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+		<span class="nav-title">Theme</span>
+	</div>
+	<div class="large-title">Theme</div>
+	<div class="screen-body">
+		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600">外观</div>
+		<div style="margin:0 16px 16px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
+			<div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f2f2f7;gap:12px">
+				<span style="flex:1;font-size:15px;color:#1d1d1f">模式</span>
+				<div class="seg-control">
+					<div class="seg-option active" style="padding:6px 12px">Light</div>
+					<div class="seg-option" style="padding:6px 12px">Dark</div>
+					<div class="seg-option" style="padding:6px 12px">Auto</div>
+				</div>
+			</div>
+		</div>
+		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600">强调色</div>
+		<div style="margin:0 16px 16px;background:#fff;border-radius:14px;padding:16px;border:1px solid #ececec;display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+			<div style="width:40px;height:40px;border-radius:50%;background:#1d1d1f;cursor:pointer;border:3px solid #1d1d1f;box-shadow:0 0 0 2px #fff inset"></div>
+			<div style="width:40px;height:40px;border-radius:50%;background:#636366;cursor:pointer;border:3px solid transparent"></div>
+			<div style="width:40px;height:40px;border-radius:50%;background:#8e8e93;cursor:pointer;border:3px solid transparent"></div>
+			<div style="width:40px;height:40px;border-radius:50%;background:#48484a;cursor:pointer;border:3px solid transparent"></div>
+			<div style="width:40px;height:40px;border-radius:50%;background:#2c2c2e;cursor:pointer;border:3px solid transparent"></div>
+			<div style="width:40px;height:40px;border-radius:50%;background:#aeaeb2;cursor:pointer;border:3px solid transparent"></div>
+		</div>
+		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600">聊天气泡</div>
+		<div style="margin:0 16px 16px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
+			<div style="padding:16px">
+				<div style="background:#e8e8ed;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px">
+					<div style="display:flex;gap:8px;max-width:70%"><div style="padding:8px 12px;background:#fff;border-radius:14px;border-bottom-left-radius:4px;font-size:14px;color:#1d1d1f">你好</div></div>
+					<div style="display:flex;gap:8px;max-width:70%;align-self:flex-end;flex-direction:row-reverse"><div style="padding:8px 12px;background:#1d1d1f;border-radius:14px;border-bottom-right-radius:4px;font-size:14px;color:#fff">嗨！</div></div>
+				</div>
+			</div>
+			<div style="display:flex;align-items:center;padding:12px 16px;border-top:1px solid #f2f2f7;gap:12px">
+				<span style="flex:1;font-size:15px;color:#1d1d1f">气泡样式</span>
+				<div class="seg-control">
+					<div class="seg-option active" style="padding:6px 10px;font-size:12px">默认</div>
+					<div class="seg-option" style="padding:6px 10px;font-size:12px">柔和</div>
+					<div class="seg-option" style="padding:6px 10px;font-size:12px">简约</div>
+				</div>
+			</div>
+		</div>
+		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600">字体</div>
+		<div style="margin:0 16px 16px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
+			<div style="display:flex;align-items:center;padding:14px 16px;gap:12px">
+				<span style="flex:1;font-size:15px;color:#1d1d1f">字号</span>
+				<span style="font-size:13px;color:#8e8e93;width:28px;text-align:center;font-weight:600">15</span>
+			</div>
+			<div style="padding:0 16px 14px">
+				<input type="range" min="12" max="20" value="15" style="width:100%;appearance:none;-webkit-appearance:none;height:4px;background:#e5e5ea;border-radius:2px;outline:none"/>
+			</div>
+		</div>
+		<div style="height:40px"></div>
+	</div>
+</div>
