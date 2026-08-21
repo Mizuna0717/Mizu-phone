@@ -126,7 +126,7 @@ function buildCallBubble(callType, msgId, isSent, callStatus, callDuration, extr
   } else if (callStatus === 'declined') {
     statusHtml = '<div class="call-status declined">Declined</div>';
   } else if (callStatus === 'requesting') {
-    statusHtml = '<div class="call-status requesting">Requesting...</div>';
+    statusHtml = '<div class="call-status requesting">Requesting</div>';
   } else if (!isSent && !callStatus) {
     statusHtml = '<div class="call-actions">' +
       '<button class="call-accept-btn" onclick="event.stopPropagation();acceptCall(\'' + msgId + '\')">Accept</button>' +
@@ -307,12 +307,58 @@ function _computeGroupChatPositions(msgs) {
   return positions;
 }
 
-// ========== Pick a group responder ==========
+// ========== Pick a group responder (kept for backward compat) ==========
 function pickGroupResponder(groupId) {
   var grp = getGroupById(groupId);
   if (!grp || !grp.members || !grp.members.length) return null;
   var idx = Math.floor(Math.random() * grp.members.length);
   return state.characters.find(function(c) { return c.id === grp.members[idx]; }) || null;
+}
+
+// ========== Build per-character chat messages for group API call ==========
+function _buildGroupChatMsgsForChar(groupId, targetCharId, contextCount) {
+  var grp = getGroupById(groupId);
+  var userName = (grp && grp.userNickname) ? grp.userNickname : (state.userProfile.name || 'User');
+  var rawMsgs = (state.chats[groupId] || []);
+
+  var transformed = rawMsgs.map(function(m) {
+    var content = m.content;
+    if (m.recalled) content = '[Message recalled]';
+    else if (m.type === 'voice') content = '[Voice]: ' + m.content;
+    else if (m.type === 'sticker') content = '[Sent sticker]';
+    else if (m.type === 'transfer') {
+      var d;
+      try {
+        d = typeof m.content === 'string' && m.content.startsWith('{')
+          ? JSON.parse(m.content) : m.content;
+      } catch(e) { d = m.content; }
+      content = '[Transfer $' + (d.amount || d) + ']';
+    }
+    else if (m.type === 'image') content = '[Image]';
+    else if (m.type === 'simImage') content = '[Image: ' + m.content + ']';
+    else if (m.type === 'call') {
+      var ct2 = m.callType === 'video' ? 'Video' : 'Voice';
+      content = '[' + ct2 + ' Call]';
+    }
+    else if (m.role === 'system' || m.type === 'call-summary') {
+      return { role: 'system', content: m.content };
+    }
+
+    if (m.role === 'user') {
+      return { role: 'user', content: '[' + userName + ']: ' + content };
+    }
+
+    // Assistant messages
+    if (m.senderId === targetCharId) {
+      return { role: 'assistant', content: content };
+    } else {
+      var sc = state.characters.find(function(c) { return c.id === m.senderId; });
+      var sn = sc ? sc.name : 'Unknown';
+      return { role: 'user', content: '[' + sn + ']: ' + content };
+    }
+  });
+
+  return transformed.slice(-(contextCount || 50));
 }
 
 // ========== RENDER GROUP CHAT ==========
@@ -324,7 +370,13 @@ function renderGroupChat(grp) {
     : _defaultGroupHeaderAvatar();
 
   var notesEl = document.getElementById('chatNotes');
-  if (notesEl) notesEl.style.display = 'none';
+  if (notesEl) {
+    notesEl.textContent = (grp.members || []).length + ' members';
+    notesEl.style.display = 'block';
+  }
+
+  // Update chat menu items for group
+  if (typeof updateChatMenuItems === 'function') updateChatMenuItems();
 
   var ct      = document.getElementById('chatMessages');
   var msgs    = state.chats[grp.id] || [];
@@ -370,9 +422,14 @@ function renderGroupChat(grp) {
     var checkSvg = '<div class="msg-check ' + checkChecked + '">' +
       '<svg viewBox="0 0 14 14"><path d="M2 7l4 4 6-7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
 
+    // For received messages, make avatar clickable to show heart voice
+    var avatarOnclick = (!sent && msg.role === 'assistant')
+      ? ' onclick="openGroupMsgHeartVoice(\'' + msg.id + '\')" style="cursor:pointer"'
+      : '';
+
     var rowOpen = '<div class="msg-row ' + side + gpClass + multiClass + ' ' + selected +
       '" data-msgid="' + msg.id + '">' + checkSvg +
-      '<div class="msg-avatar">' + avHtml + '</div>';
+      '<div class="msg-avatar"' + avatarOnclick + '>' + avHtml + '</div>';
     var rowClose = '</div>';
 
     if (msg.type === 'voice') {
@@ -393,8 +450,39 @@ function renderGroupChat(grp) {
       var editedMark = msg.edited
         ? '<span style="font-size:10px;opacity:.4;margin-left:6px">(edited)</span>'
         : '';
-      h += rowOpen + '<div class="msg-bubble" data-bubbleid="' + msg.id + '">' +
-        fmtMsg(msg.content) + editedMark + '</div>' + rowClose;
+
+      // For received messages, parse reply segments
+      if (!sent) {
+        var segs = parseReplySegments(msg.content, state.stickers);
+        segs.forEach(function(seg, segIdx) {
+          var segBubbleId = msg.id + '__seg' + segIdx;
+          var segGpClass = gpClass;
+          if (segs.length > 1 && segIdx > 0) segGpClass = ' group-middle';
+
+          var segRowOpen = '<div class="msg-row ' + side + segGpClass + multiClass + ' ' + selected +
+            '" data-msgid="' + msg.id + '">' + checkSvg +
+            '<div class="msg-avatar"' + avatarOnclick + '>' + avHtml + '</div>';
+          var segRowClose = '</div>';
+
+          if (seg.type === 'sticker') {
+            h += segRowOpen + buildStickerBubble(seg.url) + segRowClose;
+          } else if (seg.type === 'voice') {
+            h += segRowOpen + buildVoiceBubble(seg.content) + segRowClose;
+          } else if (seg.type === 'simImage') {
+            h += segRowOpen + buildSimImageBubble(seg.content) + segRowClose;
+          } else if (seg.type === 'transfer') {
+            h += segRowOpen + buildTransferBubble(seg.amount, seg.note, msg.id, false, msg.transferStatus) + segRowClose;
+          } else if (seg.type === 'call') {
+            h += segRowOpen + buildCallBubble(seg.callType, msg.id, false, msg.callStatus) + segRowClose;
+          } else {
+            h += segRowOpen + '<div class="msg-bubble" data-bubbleid="' + segBubbleId + '">' +
+              fmtMsg(seg.content) + editedMark + '</div>' + segRowClose;
+          }
+        });
+      } else {
+        h += rowOpen + '<div class="msg-bubble" data-bubbleid="' + msg.id + '">' +
+          fmtMsg(msg.content) + editedMark + '</div>' + rowClose;
+      }
     }
   });
 
@@ -439,6 +527,9 @@ function renderChat() {
       notesEl.style.display = 'none';
     }
   }
+
+  // Update chat menu items for single chat
+  if (typeof updateChatMenuItems === 'function') updateChatMenuItems();
 
   var ct      = document.getElementById('chatMessages');
   var msgs    = state.chats[state.currentCharId] || [];
@@ -675,7 +766,7 @@ function sendMessage() {
 function editCharFromChat() {
   if (!state.currentCharId) return;
   if (isGroupChat(state.currentCharId)) {
-    showToast('Group settings coming soon');
+    openGroupManagePanel();
     return;
   }
   state.charEditFrom = 'screen-chat';
@@ -690,17 +781,119 @@ async function triggerResponse() {
   if (!api.model) { showErrorModal(T('selectModel')); return; }
 
   var isGroup = isGroupChat(state.currentCharId);
-  var ch;
-  var responderId = null;
 
   if (isGroup) {
-    ch = pickGroupResponder(state.currentCharId);
-    if (!ch) { showToast('No members in this group'); return; }
-    responderId = ch.id;
+    await _triggerGroupResponse(api);
   } else {
-    ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
-    if (!ch) return;
+    await _triggerSingleResponse(api);
   }
+}
+
+// ========== GROUP RESPONSE (all members reply) ==========
+async function _triggerGroupResponse(api) {
+  var grp = getGroupById(state.currentCharId);
+  if (!grp || !grp.members || !grp.members.length) {
+    showToast('No members in this group');
+    return;
+  }
+
+  // Collect all member characters
+  var memberChars = [];
+  (grp.members || []).forEach(function(mid) {
+    var mc = state.characters.find(function(c) { return c.id === mid; });
+    if (mc) memberChars.push(mc);
+  });
+
+  if (!memberChars.length) {
+    showToast('No valid members in this group');
+    return;
+  }
+
+  var btn = document.getElementById('respondBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  var ct = document.getElementById('chatMessages');
+
+  // Show typing indicator with all member names
+  var typWrap = document.createElement('div');
+  typWrap.id = 'typingInd';
+
+  var nameLabel = document.createElement('div');
+  nameLabel.style.cssText = 'font-size:11px;color:#8e8e93;margin-left:44px;margin-bottom:2px;margin-top:8px';
+  nameLabel.textContent = memberChars.map(function(c) { return c.name; }).join(', ') + ' typing...';
+  typWrap.appendChild(nameLabel);
+
+  var typRow = document.createElement('div');
+  typRow.className = 'msg-row received group-solo';
+  typRow.innerHTML = '<div class="msg-avatar">' + _chatMsgAvatarHtml(memberChars[0].avatar) + '</div>' +
+    '<div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+  typWrap.appendChild(typRow);
+
+  ct.appendChild(typWrap);
+  ct.scrollTop = ct.scrollHeight;
+
+  try {
+    var contextCount = 50;
+
+    // Build per-character prompts
+    var charPrompts = memberChars.map(function(mc) {
+      var sysPrompt = buildGroupSystemPrompt(mc, grp, state.worldbooks, state.stickers);
+      var chatMsgs = _buildGroupChatMsgsForChar(state.currentCharId, mc.id, contextCount);
+      return {
+        charId: mc.id,
+        messages: [{ role: 'system', content: sysPrompt }].concat(chatMsgs)
+      };
+    });
+
+    // Send all API calls simultaneously
+    var results = await sendGroupChats(api, charPrompts);
+
+    // Process results
+    var baseTime = Date.now();
+    results.forEach(function(result, idx) {
+      if (!result || !result.reply) return;
+
+      var rawReply = result.reply;
+      var parsed = parseThreePartReply(rawReply);
+      var content = parsed.content.replace(/---SPLIT---/g, '\n').trim();
+      content = stripTransferTags(content);
+
+      var newMsg = {
+        id: uid(),
+        role: 'assistant',
+        content: content,
+        type: 'text',
+        timestamp: baseTime + (idx + 1) * 500,
+        senderId: result.charId,
+        innerAction: parsed.innerAction || '',
+        innerThought: parsed.innerThought || '',
+        wannaDo: parsed.wannaDo || ''
+      };
+
+      state.chats[state.currentCharId].push(newMsg);
+    });
+
+    if (results.length === 0) {
+      showToast('All API calls failed');
+    }
+
+    saveState();
+  } catch (e) {
+    showErrorModal(friendlyError(e));
+  } finally {
+    var ti = document.getElementById('typingInd');
+    if (ti) ti.remove();
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    renderChat();
+  }
+}
+
+// ========== SINGLE RESPONSE (original logic) ==========
+async function _triggerSingleResponse(api) {
+  var ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
+  if (!ch) return;
 
   var btn = document.getElementById('respondBtn');
   btn.classList.add('loading');
@@ -717,18 +910,7 @@ async function triggerResponse() {
 
   try {
     var sysPrompt    = buildSystemPrompt(ch, state.worldbooks, state.stickers);
-
-    // For group chats, add group context info
-    if (isGroup) {
-      var grp = getGroupById(state.currentCharId);
-      var otherNames = (grp.members || []).map(function(mid) {
-        var mc = state.characters.find(function(c) { return c.id === mid; });
-        return mc ? mc.name : 'Unknown';
-      }).filter(function(n) { return n !== ch.name; });
-      sysPrompt += '\n\n[Group Chat Context] You are ' + ch.name + ' in a group chat called "' + grp.name + '". Other members: ' + otherNames.join(', ') + '. Stay in character as ' + ch.name + '.';
-    }
-
-    var charCfg      = isGroup ? {} : getCharConfig(state.currentCharId);
+    var charCfg      = getCharConfig(state.currentCharId);
     var contextCount = charCfg.contextCount || 50;
 
     var allChatMsgs = (state.chats[state.currentCharId] || []).map(function(m) {
@@ -753,12 +935,6 @@ async function triggerResponse() {
       if (m.role === 'system' || m.type === 'call-summary') {
         return { role: 'system', content: m.content };
       }
-      // For group messages, prepend sender name
-      if (isGroup && m.role === 'assistant' && m.senderId) {
-        var sc = state.characters.find(function(c) { return c.id === m.senderId; });
-        var sn = sc ? sc.name : 'Unknown';
-        return { role: m.role, content: '[' + sn + ']: ' + m.content };
-      }
       return { role: m.role, content: m.content };
     });
 
@@ -774,8 +950,7 @@ async function triggerResponse() {
     var parsed = parseThreePartReply(rawReply);
     parsed.content = stripTransferTags(parsed.content);
 
-    // Store affection into charConfig (only for single chats)
-    if (!isGroup && parsed.affection) {
+    if (parsed.affection) {
       var affNum = parseInt(parsed.affection, 10);
       if (!isNaN(affNum)) {
         charCfg.affection = Math.max(0, Math.min(100, affNum));
@@ -795,7 +970,6 @@ async function triggerResponse() {
     if (splitParts.length > 1) {
       splitParts.forEach(function(part, idx) {
         var newMsg = { id: uid(), role: 'assistant', content: part, type: 'text', timestamp: Date.now() + idx * 800 };
-        if (isGroup && responderId) newMsg.senderId = responderId;
         if (idx === splitParts.length - 1) {
           if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
           if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
@@ -812,7 +986,6 @@ async function triggerResponse() {
       });
     } else {
       var newMsg = { id: uid(), role: 'assistant', content: parsed.content, type: 'text', timestamp: Date.now() };
-      if (isGroup && responderId) newMsg.senderId = responderId;
       if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
       if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
       if (parsed.wannaDo)      newMsg.wannaDo      = parsed.wannaDo;
@@ -820,7 +993,7 @@ async function triggerResponse() {
       state.chats[state.currentCharId].push(newMsg);
     }
 
-    if (!isGroup && charCfg.charRecall && Math.random() < 0.15) {
+    if (charCfg.charRecall && Math.random() < 0.15) {
       var allMsgs  = state.chats[state.currentCharId];
       var newCount  = splitParts.length > 1 ? splitParts.length : 1;
       var batchMsgs = allMsgs.slice(-newCount);
@@ -834,7 +1007,7 @@ async function triggerResponse() {
     }
 
     saveState();
-    if (!isGroup) checkAutoSummarize();
+    checkAutoSummarize();
   } catch (e) {
     showErrorModal(friendlyError(e));
   } finally {

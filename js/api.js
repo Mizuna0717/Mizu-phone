@@ -34,7 +34,22 @@ async function fetchModelList(u, k) {
   throw l || new Error(T('errUnknown'));
 }
 
+function _flattenMsgs(msgs) {
+  var result = [];
+  for (var i = 0; i < msgs.length; i++) {
+    if (Array.isArray(msgs[i])) {
+      for (var j = 0; j < msgs[i].length; j++) {
+        result.push(msgs[i][j]);
+      }
+    } else {
+      result.push(msgs[i]);
+    }
+  }
+  return result;
+}
+
 async function sendChat(cfg, msgs) {
+  var flatMsgs = _flattenMsgs(msgs);
   const c = cfg._resolvedBase ? [cfg._resolvedBase] : getCandidates(cfg.url);
   let l = null;
   for (const b of c) {
@@ -44,7 +59,7 @@ async function sendChat(cfg, msgs) {
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
         body: JSON.stringify({
           model: cfg.model || 'gpt-3.5-turbo',
-          messages: msgs,
+          messages: flatMsgs,
           temperature: cfg.temperature ?? 0.8,
           stream: false
         })
@@ -56,4 +71,17 @@ async function sendChat(cfg, msgs) {
     } catch (e) { l = e; }
   }
   throw l || new Error(T('errUnknown'));
+}
+
+async function sendGroupChats(cfg, charPrompts) {
+  var settled = await Promise.allSettled(
+    charPrompts.map(function(cp) {
+      return sendChat(cfg, cp.messages).then(function(reply) {
+        return { charId: cp.charId, reply: reply };
+      });
+    })
+  );
+  return settled
+    .filter(function(r) { return r.status === 'fulfilled'; })
+    .map(function(r) { return r.value; });
 }

@@ -204,6 +204,137 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
   return p;
 }
 
+// ========== Group Chat System Prompt ==========
+function buildGroupSystemPrompt(targetChar, grp, wbs, stickers) {
+  let p = '';
+  if (state.replyPrompt) p += state.replyPrompt + '\n\n';
+  if (targetChar.systemPrompt) p += targetChar.systemPrompt;
+
+  const mask = getMaskForChar(targetChar.id);
+  if (mask?.persona) {
+    p += `\n\n[User Identity]\n${mask.persona}`;
+    if (mask.name) p += `\nUser: ${mask.name}`;
+  } else if (state.userProfile.name && state.userProfile.name !== 'User') {
+    p += `\nUser: ${state.userProfile.name}`;
+  }
+
+  // Group context
+  p += `\n\n[Group Chat Context]`;
+  p += `\nThis is a group chat named "${grp.name}".`;
+  p += `\nYou are playing the role of **${targetChar.name}**. You MUST respond ONLY as ${targetChar.name}. Do NOT speak for other characters.`;
+
+  if (grp.userNickname) {
+    p += `\nThe user goes by the nickname "${grp.userNickname}" in this group.`;
+  }
+
+  p += `\n\nGroup members and their personas:`;
+  (grp.members || []).forEach(mid => {
+    const mc = state.characters.find(c => c.id === mid);
+    if (!mc) return;
+    p += `\n\n--- ${mc.name}${mc.id === targetChar.id ? ' (YOU)' : ''} ---`;
+    if (mc.id === targetChar.id) {
+      p += `\n(See your full persona above)`;
+    } else if (mc.systemPrompt) {
+      const brief = mc.systemPrompt.length > 500
+        ? mc.systemPrompt.slice(0, 500) + '...'
+        : mc.systemPrompt;
+      p += `\n${brief}`;
+    }
+  });
+
+  // World books
+  const books = getActiveWorldBooks(targetChar, wbs);
+  if (books.length) {
+    p += '\n\n[World Setting]';
+    books.forEach(wb => {
+      p += `\n· ${wb.name}`;
+      if (wb.content) p += `：${wb.content}`;
+      if (wb.entries?.length) wb.entries.forEach(e => {
+        if (e.keyword || e.content) p += `\n  - ${e.keyword || ''}${e.content ? ': ' + e.content : ''}`;
+      });
+    });
+  }
+
+  p += '\n\n' + buildStickerHint(stickers) + buildMultiMediaHint();
+
+  // Language
+  const charCfg = getCharConfig(targetChar.id);
+  const langMap = {
+    'zh-CN': '简体中文',
+    'zh-TW': '繁體中文',
+    'ko': '한국어',
+    'ja': '日本語',
+    'en': 'English'
+  };
+  const chatLang = charCfg.chatLang || 'zh-CN';
+  const langName = langMap[chatLang] || '简体中文';
+  p += `\n\n[Reply Language]\n请使用${langName}进行所有回复。你的【回复】内容必须使用${langName}书写。`;
+
+  // Three-part format (group version: no 好感 / 翻译)
+  p += `\n\n[CRITICAL - Response Format]
+You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
+
+【回复】
+(Your spoken dialogue as ${targetChar.name}, visible reactions, and narrative content. This is what appears in the group chat. MUST be written in ${langName}. You may include [表情:name], [语音:content], [图片:description] tags here when appropriate.)
+
+【动作】
+(Your current physical actions, body language, facial expressions at this moment. Write in third person.)
+
+【心声】
+(Your TRUE inner thoughts and feelings that you would NEVER say out loud. Be honest and authentic.)
+
+【想要】
+(What you currently want to do most, in one short sentence.)
+
+All sections above are MANDATORY. Never omit any section.
+You are ONLY ${targetChar.name}. Do NOT generate responses for other characters. Do NOT use ---SPLIT---.`;
+
+  // Time awareness
+  if (charCfg.timeAwareness) {
+    const now = new Date();
+    const timeStr = now.toLocaleString('zh-CN', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      weekday: 'long', hour12: false
+    });
+    p += `\n\n[Current Time]\n当前时间：${timeStr}`;
+  }
+
+  // Sticker usage
+  if (charCfg.useStickers) {
+    const stickerList = (state.stickers && Array.isArray(state.stickers)) ? state.stickers : [];
+    if (stickerList.length > 0) {
+      const stickerNames = stickerList
+        .map(s => s.name || s.title || s.id || '')
+        .filter(n => n)
+        .slice(0, 50);
+      if (stickerNames.length > 0) {
+        p += `\n\n[Sticker Usage]
+可用表情包：${stickerNames.join(' / ')}
+使用格式：[表情:名称]，只在自然合适时使用。`;
+      }
+    }
+  }
+
+  // Memories
+  const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'ltm') : [];
+  const charSTM = (typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'stm') : []).filter(m => !m.consolidated);
+
+  if (charLTM.length || charSTM.length) {
+    p += `\n\n[Character Memories for ${targetChar.name}]`;
+    if (charLTM.length) {
+      p += '\n— Long-term Memories —\n';
+      charLTM.slice(0, 5).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
+    }
+    if (charSTM.length) {
+      p += '\n— Recent Memories —\n';
+      charSTM.slice(0, 8).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
+    }
+  }
+
+  return p;
+}
+
 function parseReplySegments(raw, stickerLib) {
   const parts = [];
   const regex = /\[(?:表情|sticker)[:：]\s*([^\]]+)\]|\[(?:语音|voice)[:：]\s*([^\]]+)\]|\[(?:转账|transfer)[:：]\s*([^\]]+)\]|\[(?:图片|image)[:：]\s*([^\]]+)\]|\[(?:通话|call)[:：]\s*([^\]]+)\]/gi;
