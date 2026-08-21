@@ -1,0 +1,61 @@
+<!-- SETTINGS -->
+<div class="screen" id="screen-settings">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-home')">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+		<span class="nav-title">Settings</span>
+	</div>
+	<div class="large-title">Settings</div>
+	<div class="screen-body">
+		<div class="settings-hero">
+			<div class="settings-hero-icon">
+				<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+			</div>
+			<div class="settings-hero-info">
+				<div class="sh-title" id="heroApiName">未配置 API</div>
+				<div class="sh-sub" id="heroApiModel">—</div>
+			</div>
+			<div class="settings-hero-dot off" id="heroApiDot"></div>
+		</div>
+		<div class="section-header-fancy">
+			<svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+			<span>API 配置</span>
+		</div>
+		<div id="apiListInline"></div>
+		<div class="section-header-fancy">
+			<svg viewBox="0 0 16 16"><path d="M2 4l6 3 6-3M2 8l6 3 6-3M2 12l6 3 6-3"/></svg>
+			<span>回复提示词</span>
+		</div>
+		<div class="prompt-card">
+			<div class="prompt-card-header">
+				<span>系统提示词</span>
+				<button onclick="resetReplyPrompt()">重置</button>
+			</div>
+			<textarea id="replyPromptArea" oninput="saveReplyPrompt()" placeholder="回复指令"></textarea>
+			<div class="prompt-info">每次AI请求时一起发送，控制回复风格。</div>
+		</div>
+		<div class="section-header-fancy">
+			<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>
+			<span>通用</span>
+		</div>
+		<div class="settings-section-card">
+			<div class="settings-row">
+				<div class="settings-row-icon dark">
+					<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="7"/><path d="M5.5 9h7M9 5.5v7"/></svg>
+				</div>
+				<span class="settings-row-label">语言</span>
+				<div class="seg-control">
+					<div class="seg-option" data-lang="en" onclick="setLang('en')">EN</div>
+					<div class="seg-option" data-lang="zh" onclick="setLang('zh')">CH</div>
+				</div>
+			</div>
+		</div>
+		<div class="section-header-fancy">
+			<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M6 6.5a2 2 0 013.5 1.5c0 1.5-2 1.5-2 3M8 13h.01"/></svg>
+			<span>帮助</span>
+		</div>
+		<div class="accordion-group" id="helpAccordion"></div>
+		<div style="height:40px"></div>
+	</div>
+</div>

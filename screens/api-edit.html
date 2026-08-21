@@ -1,0 +1,57 @@
+<!-- API EDIT -->
+<div class="screen" id="screen-api-edit">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-settings')">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+		<span class="nav-title" id="apiEditTitle">添加 API</span>
+	</div>
+	<div class="screen-body" style="padding-top:16px">
+		<div class="form-group">
+			<div class="form-row">
+				<span class="form-label">名称</span>
+				<input class="form-input" id="apiName" placeholder="My API"/>
+			</div>
+			<div class="form-row">
+				<span class="form-label">URL</span>
+				<input class="form-input" id="apiUrl" placeholder="https://api.example.com"/>
+			</div>
+			<div class="form-row">
+				<span class="form-label">密钥</span>
+				<input class="form-input" id="apiKey" placeholder="sk-..." type="password"/>
+			</div>
+			<div class="url-status" id="urlStatus">
+				<div class="dot pending"></div>
+				<span>未测试</span>
+			</div>
+		</div>
+		<div class="form-hint">/v1 自动识别</div>
+		<button class="form-btn secondary" onclick="fetchModels()" id="fetchModelsBtn">
+			<span id="fetchBtnText">拉取模型</span>
+		</button>
+		<div class="form-group" id="modelSelectGroup" style="display:none">
+			<div class="form-row">
+				<span class="form-label">模型</span>
+				<select class="form-select" id="modelSelect"></select>
+			</div>
+		</div>
+		<div class="section-header">高级设置</div>
+		<div class="form-group">
+			<div class="range-row">
+				<span class="form-label">Temp</span>
+				<input type="range" id="apiTemp" min="0" max="2" step="0.1" value="0.8" oninput="document.getElementById('apiTempVal').textContent=this.value"/>
+				<span class="range-val" id="apiTempVal">0.8</span>
+			</div>
+		</div>
+		<div class="split-dropdown">
+			<div class="split-btn-wrap">
+				<button class="split-main" onclick="saveApi(false)">保存</button>
+				<button class="split-arrow" onclick="toggleSplitMenu()">▾</button>
+			</div>
+			<div class="split-menu" id="splitMenu">
+				<div class="split-opt" onclick="saveApi(true)">保存并激活</div>
+			</div>
+		</div>
+		<button class="form-btn danger" id="deleteApiBtn" onclick="deleteApi()" style="display:none">删除 API</button>
+	</div>
+</div>
