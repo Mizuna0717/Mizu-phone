@@ -1,0 +1,38 @@
+<!-- CHAT CONFIG -->
+<div class="screen" id="screen-chat-config">
+    <div class="nav-bar">
+        <button class="nav-btn" onclick="nav('screen-chat')"><svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <span class="nav-title" data-i18n="chatSettings">Chat Settings</span>
+    </div>
+    <div class="large-title" id="chatConfigTitle" data-i18n="memoryContext">Memory & Context</div>
+    <div class="screen-body" style="padding-top:4px">
+        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 6h6M5 9h4"/></svg><span data-i18n="shortTermMemory">SHORT-TERM MEMORY</span></div>
+        <div class="settings-section-card">
+            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7"><span class="toggle-label" data-i18n="autoSummarize">Auto Summarize</span><div class="toggle" id="cfgAutoMemToggle" onclick="toggleCfgAutoMem()"><div class="toggle-knob"></div></div></div>
+            <div class="range-row"><span class="form-label" data-i18n="interval">Interval</span><input type="range" id="cfgMemInterval" min="10" max="100" step="5" value="20" oninput="updateCfgMemInterval(this.value)"><span class="range-val" id="cfgMemIntervalVal">20</span></div>
+        </div>
+        <div class="form-hint" data-i18n="autoSummarizeHint">Auto-summarize conversation every N messages and save as short-term memory.</div>
+        <button class="form-btn secondary" onclick="manualSummarize()" id="manualSumBtn" style="margin-top:4px"><span id="manualSumBtnText" data-i18n="manualSummarize">Summarize Now</span></button>
+        <div class="form-hint" data-i18n="manualSummarizeHint">Manually summarize recent conversation into a short-term memory.</div>
+        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h8M2 12h5"/><circle cx="13" cy="10" r="3"/></svg><span data-i18n="longTermMemory">LONG-TERM MEMORY</span></div>
+        <div class="settings-section-card">
+            <div class="range-row"><span class="form-label" data-i18n="consolidateInterval">Merge Every</span><input type="range" id="cfgConsolidateInterval" min="3" max="20" step="1" value="5" oninput="updateCfgConsolidateInterval(this.value)"><span class="range-val" id="cfgConsolidateIntervalVal">5</span></div>
+        </div>
+        <div class="form-hint" data-i18n="consolidateHint">How many short-term memories to consolidate into one long-term memory.</div>
+        <button class="form-btn secondary" onclick="manualConsolidate()" id="consolidateBtn" style="margin-top:4px"><span id="consolidateBtnText" data-i18n="consolidateNow">Consolidate Now</span></button>
+        <div class="form-hint" data-i18n="consolidateNowHint">Manually merge recent short-term memories into a long-term memory.</div>
+        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12"/></svg><span data-i18n="contextWindow">CONTEXT WINDOW</span></div>
+        <div class="settings-section-card">
+            <div class="range-row"><span class="form-label" data-i18n="messages">Messages</span><input type="range" id="cfgContextCount" min="10" max="200" step="10" value="50" oninput="updateCfgContextCount(this.value)"><span class="range-val" id="cfgContextCountVal">50</span></div>
+        </div>
+        <div class="form-hint" data-i18n="contextHint">Number of recent messages sent to AI as context.</div>
+        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 6h6M5 9h4M5 12h3"/></svg><span data-i18n="charMemories">CHARACTER MEMORIES</span></div>
+        <div class="cfg-mem-type-tabs" id="cfgMemTypeTabs">
+            <div class="cfg-mem-type-tab active" data-memtype="all" onclick="setCfgMemTypeFilter('all',this)">All</div>
+            <div class="cfg-mem-type-tab" data-memtype="stm" onclick="setCfgMemTypeFilter('stm',this)"><span data-i18n="stmLabel">STM</span></div>
+            <div class="cfg-mem-type-tab" data-memtype="ltm" onclick="setCfgMemTypeFilter('ltm',this)"><span data-i18n="ltmLabel">LTM</span></div>
+        </div>
+        <div id="cfgCharMemList"></div>
+        <div style="height:40px"></div>
+    </div>
+</div>
