@@ -1,0 +1,126 @@
+<!-- ========== 全局弹窗合集 ========== -->
+
+<div class="modal-overlay" id="voiceModal">
+	<div class="modal">
+		<div class="modal-title">语音消息</div>
+		<div class="modal-body"><textarea id="voiceText" placeholder="内容"></textarea></div>
+		<div class="modal-actions"><button onclick="closeModal('voiceModal')">取消</button><button onclick="sendVoice()">发送</button></div>
+	</div>
+</div>
+
+<div class="modal-overlay" id="transferModal">
+	<div class="modal">
+		<div class="modal-title">转账</div>
+		<div class="modal-body">
+			<span class="modal-label">金额</span><input type="text" id="transferAmount" placeholder="0.00" inputmode="decimal"/>
+			<span class="modal-label">备注</span><input type="text" id="transferNote" placeholder="选填"/>
+		</div>
+		<div class="modal-actions"><button onclick="closeModal('transferModal')">取消</button><button onclick="sendTransfer()">发送</button></div>
+	</div>
+</div>
+
+<div class="modal-overlay" id="imageModal">
+	<div class="modal">
+		<div class="modal-title">图片</div>
+		<div class="modal-body">
+			<div class="img-type-row">
+				<div class="img-type-btn active" id="imgTypeReal" onclick="setImgType('real')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2.5"/><path d="M3 17l5-5 3 3 5-6 5 8"/></svg><span>真实</span></div>
+				<div class="img-type-btn" id="imgTypeSim" onclick="setImgType('sim')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke-dasharray="3 2"/><path d="M8 12h8M12 8v8"/></svg><span>模拟</span></div>
+			</div>
+			<div id="imgRealArea">
+				<input type="file" id="realImageInput" accept="image/*" style="display:none" onchange="previewRealImage(this)"/>
+				<div style="border:2px dashed #d1d1d6;border-radius:12px;padding:20px;text-align:center;cursor:pointer" onclick="document.getElementById('realImageInput').click()">
+					<svg viewBox="0 0 24 24" style="width:32px;height:32px;stroke:#c7c7cc;fill:none;stroke-width:1.5;margin-bottom:6px"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+					<div style="font-size:13px;color:#8e8e93">点击选择</div>
+				</div>
+				<img id="realImagePreview" style="display:none;width:100%;border-radius:10px;margin-top:8px"/>
+			</div>
+			<div id="imgSimArea" style="display:none">
+				<textarea id="simImageText" placeholder="描述这张图片..." style="width:100%;border:1px solid #d1d1d6;border-radius:10px;padding:10px 12px;font-size:15px;resize:none;outline:none;min-height:80px;font-family:inherit;color:#1d1d1f"></textarea>
+			</div>
+		</div>
+		<div class="modal-actions"><button onclick="closeModal('imageModal')">取消</button><button onclick="sendImage()">发送</button></div>
+	</div>
+</div>
+
+<div class="modal-overlay" id="urlImportModal">
+	<div class="modal" style="max-width:340px">
+		<div class="modal-title">URL 导入</div>
+		<div class="modal-body">
+			<span class="modal-label">每行一个URL</span>
+			<textarea id="urlImportText" placeholder="https://example.com/1.png&#10;https://example.com/2.png" style="min-height:120px"></textarea>
+			<div class="url-progress" id="urlProgress" style="display:none"><div class="url-progress-bar" id="urlProgressBar"></div></div>
+			<div class="url-status-text" id="urlStatusText" style="display:none"></div>
+		</div>
+		<div class="modal-actions"><button onclick="closeModal('urlImportModal')">取消</button><button onclick="startUrlImport()" id="urlImportBtn">导入</button></div>
+	</div>
+</div>
+
+<div class="modal-overlay" id="nameModal">
+	<div class="modal">
+		<div class="modal-title">编辑名称</div>
+		<div class="modal-body"><input type="text" id="nameModalInput" placeholder="名称"/></div>
+		<div class="modal-actions"><button onclick="closeModal('nameModal')">取消</button><button onclick="confirmEditUserName()">保存</button></div>
+	</div>
+</div>
+
+<div class="modal-overlay" id="editMsgModal">
+	<div class="modal">
+		<div class="modal-title">编辑消息</div>
+		<div class="modal-body"><textarea id="editMsgInput" placeholder="" style="min-height:80px"></textarea></div>
+		<div class="modal-actions"><button onclick="closeModal('editMsgModal')">取消</button><button onclick="confirmEditMsg()">保存</button></div>
+	</div>
+</div>
+
+<div class="modal-overlay center-modal-overlay" id="newGroupModal" onclick="if(event.target===this)closeModal('newGroupModal')">
+    <div class="social-modal">
+        <div class="modal-header"><span>新建分组</span><button class="modal-close" onclick="closeModal('newGroupModal')"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
+        <div class="social-modal-body"><input type="text" id="newGroupNameInput" placeholder="分组名称"></div>
+        <div class="social-modal-actions"><button onclick="closeModal('newGroupModal')">取消</button><button onclick="confirmNewGroup()">创建</button></div>
+    </div>
+</div>
+
+<div class="modal-overlay center-modal-overlay" id="addCharToGroupModal" onclick="if(event.target===this)closeAddCharToGroupModal()">
+    <div class="social-modal" style="max-width:340px">
+        <div class="modal-header"><span id="addCharToGroupTitle">添加角色</span><button class="modal-close" onclick="closeAddCharToGroupModal()"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
+        <div class="add-char-modal-body" id="addCharToGroupList"></div>
+        <div class="add-char-modal-footer"><button onclick="closeAddCharToGroupModal()">完成</button></div>
+    </div>
+</div>
+
+<div class="modal-overlay center-modal-overlay" id="newMomentModal" onclick="if(event.target===this)closeModal('newMomentModal')">
+    <div class="social-modal">
+        <div class="modal-header"><span>发布朋友圈</span><button class="modal-close" onclick="closeModal('newMomentModal')"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
+        <div class="social-modal-body">
+            <textarea id="newMomentContent" placeholder="这一刻的想法…"></textarea>
+            <select id="newMomentCharSelect"></select>
+        </div>
+        <div class="social-modal-actions"><button onclick="closeModal('newMomentModal')">取消</button><button onclick="confirmNewMoment()">发布</button></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="errorModal">
+	<div class="modal">
+		<div class="modal-title" id="errorModalTitle">错误</div>
+		<div class="modal-body"><p id="errorModalBody"></p></div>
+		<div class="modal-actions"><button onclick="closeModal('errorModal')">确定</button></div>
+	</div>
+</div>
+
+<!-- Create Action Sheet (v2) -->
+<div id="createActionSheet">
+  <div class="cas-bg" onclick="closeCreateActionSheet()"></div>
+  <div class="cas-panel">
+    <div class="cas-group">
+      <div class="cas-item" onclick="closeCreateActionSheet();createNewChar()">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#007aff;fill:none;stroke-width:1.5;flex-shrink:0"><circle cx="12" cy="8" r="4.5"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        Create Character
+      </div>
+      <div class="cas-item" onclick="closeCreateActionSheet();openCreateGroupModal()">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#007aff;fill:none;stroke-width:1.5;flex-shrink:0"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="3"/><path d="M2 22c0-4 3.2-7 7-7s7 3 7 7"/><path d="M16 22c0-3.2 2-5.5 5-5.5"/></svg>
+        Create Group
+      </div>
+    </div>
+    <div class="cas-cancel" onclick="closeCreateActionSheet()">Cancel</div>
+  </div>
+</div>
