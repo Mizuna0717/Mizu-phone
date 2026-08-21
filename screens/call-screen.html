@@ -1,0 +1,40 @@
+<!-- 全屏通话界面 -->
+<div class="call-screen" id="callScreen">
+  <div class="call-bg" id="callBg"></div>
+  <div class="call-container">
+    <div class="call-top">
+      <div class="call-avatar-large" id="callAvatar"></div>
+      <div class="call-name" id="callName"></div>
+      <div class="call-timer" id="callTimer">00:00</div>
+      <div class="call-type-label" id="callTypeLabel"></div>
+    </div>
+    <div class="call-messages" id="callMessages"></div>
+    <div class="call-thought-bar" id="callThoughtBar">
+      <div class="call-thought-icon"><svg viewBox="0 0 16 16" width="12" height="12"><path d="M8 1C4.1 1 1 3.6 1 7c0 1.8 1 3.4 2.6 4.4L3 14l3-1.6c.6.2 1.3.3 2 .3 3.9 0 7-2.6 7-6S11.9 1 8 1z"/></svg></div>
+      <div class="call-thought-text" id="callThoughtText"></div>
+    </div>
+    <div class="call-input-bar" id="callInputBar">
+      <div class="call-input-wrap"><textarea id="callInput" placeholder="说点什么..." rows="1" oninput="autoGrowCallInput(this)"></textarea></div>
+      <button class="call-input-send" onclick="sendCallMessage()"><svg viewBox="0 0 20 20"><path d="M4 10l12-6-6 12-2-6z" stroke="#fff" fill="none" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="call-action-bar" id="callActionBar">
+      <div class="call-input-wrap"><textarea id="callActionInput" placeholder="描述动作..." rows="1" oninput="autoGrowCallInput(this)"></textarea></div>
+      <button class="call-input-send" onclick="sendCallAction()"><svg viewBox="0 0 20 20"><path d="M4 10l12-6-6 12-2-6z" stroke="#fff" fill="none" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="call-controls" id="callControlsLive">
+      <div class="call-ctrl-grid">
+        <div class="call-ctrl-item" onclick="callGenReply()"><div class="call-ctrl-btn" id="callGenBtn"><svg viewBox="0 0 24 24"><path d="M5 12l14-7-7 14-2-7z"/></svg></div><span>回复</span></div>
+        <div class="call-ctrl-item" onclick="toggleCallType()"><div class="call-ctrl-btn" id="callFacetimeBtn"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M15 10l5-3v10l-5-3z"/></svg></div><span id="callFacetimeLabel">FaceTime</span></div>
+        <div class="call-ctrl-item" onclick="toggleCallThought()"><div class="call-ctrl-btn" id="callThoughtBtn"><svg viewBox="0 0 24 24"><path d="M20.8 14.4c.8-1.2 1.2-2.6 1.2-4.1C22 5.6 17.5 2 12 2S2 5.6 2 10.3c0 2.5 1.2 4.7 3.2 6.2L4 20l4.2-2.2c1.2.4 2.5.7 3.8.7 5.5 0 10-3.6 10-8.1z"/><circle cx="8" cy="10" r="1"/><circle cx="12" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg></div><span>心声</span></div>
+        <div class="call-ctrl-item" onclick="toggleCallInput()"><div class="call-ctrl-btn" id="callInputBtn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h6M7 16h8"/></svg></div><span>输入</span></div>
+        <div class="call-ctrl-item" onclick="endCallInterface()"><div class="call-ctrl-btn call-end-btn"><svg viewBox="0 0 24 24"><path d="M3.7 11.1C5.3 9.4 8.4 7 12 7s6.7 2.4 8.3 4.1a1.5 1.5 0 01-.1 2.1l-2.1 1.8a1.5 1.5 0 01-1.8.1l-2.2-1.5a1.5 1.5 0 01-.6-1.2V11a6.4 6.4 0 00-3 0v2.4c0 .5-.2.9-.6 1.2l-2.2 1.5a1.5 1.5 0 01-1.8-.1l-2.1-1.8a1.5 1.5 0 01-.1-2.1z"/></svg></div><span>结束</span></div>
+        <div class="call-ctrl-item" onclick="toggleCallAction()"><div class="call-ctrl-btn" id="callActionBtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></div><span id="callActionLabel">更多</span></div>
+      </div>
+    </div>
+    <div class="call-controls hidden" id="callControlsHistory">
+      <div style="display:flex;justify-content:center;padding:12px 0">
+        <div class="call-ctrl-item" onclick="closeCallHistory()"><div class="call-ctrl-btn" style="background:rgba(255,255,255,.2)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></div><span>关闭</span></div>
+      </div>
+    </div>
+  </div>
+</div>
