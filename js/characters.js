@@ -290,6 +290,7 @@ function saveChar() {
     var ch = state.characters.find(function(c) { return c.id === state.editingCharId; });
     if (ch) Object.assign(ch, { name: name, notes: notes, systemPrompt: sp, avatar: av, worldbookIds: wbIds });
   } else {
+    // ★ 使用防碰撞 uid
     var nid = uid();
     if (!state.groups) state.groups = [];
     var defaultGroup = state.groups.find(function(g) { return g.name === 'Default' && !g.isGroup; });
@@ -299,12 +300,22 @@ function saveChar() {
     }
     state.characters.push({ id: nid, name: name, notes: notes, systemPrompt: sp, avatar: av, worldbookIds: wbIds, groupId: defaultGroup.id });
     state.chats[nid] = [];
+    console.log('[saveChar] 新建角色:', name, '| ID:', nid, '| 角色总数:', state.characters.length);
   }
 
+  // ★ 保存并导航
   saveState();
   showToast(T('charSaved'));
-  nav(state.charEditFrom || 'screen-imessage');
+
+  var target = state.charEditFrom || 'screen-imessage';
+  nav(target);
+
+  // ★ 额外保险：延迟刷新
+  setTimeout(function() {
+    try { renderCharList(); } catch(e) {}
+  }, 100);
 }
+
 
 function deleteChar() {
   if (!state.editingCharId) return;

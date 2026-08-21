@@ -49,7 +49,7 @@ function toggleAcc(h) {
 
 // ========== NAVIGATION ==========
 function nav(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
 
   try { closePlusMenu(); }    catch (e) {}
@@ -58,15 +58,16 @@ function nav(id) {
   try { closeChatMenu(); }    catch (e) {}
   try { closeGroupMenu(); }   catch (e) {}
 
-  if (id === 'screen-settings') renderSettings();
-  if (id === 'screen-imessage') { switchImsgTab(state.imsgTab || 'messages'); }
-  if (id === 'screen-worldbook') renderWbList();
-  if (id === 'screen-chat') renderChat();
-  if (id === 'screen-home') updateHomeBadge();
-  if (id === 'screen-memory') renderMemoryList();
-  if (id === 'screen-chat-config') openChatConfig();
-  if (id === 'screen-bookmarks') renderBookmarkList();
+  if (id === 'screen-settings') try { renderSettings(); } catch(e) {}
+  if (id === 'screen-imessage') switchImsgTab(state.imsgTab || 'messages', true); // ★ skipSave
+  if (id === 'screen-worldbook') try { renderWbList(); } catch(e) {}
+  if (id === 'screen-chat') try { renderChat(); } catch(e) {}
+  if (id === 'screen-home') try { updateHomeBadge(); } catch(e) {}
+  if (id === 'screen-memory') try { renderMemoryList(); } catch(e) {}
+  if (id === 'screen-chat-config') try { openChatConfig(); } catch(e) {}
+  if (id === 'screen-bookmarks') try { renderBookmarkList(); } catch(e) {}
 }
+
 
 function updateHomeBadge() {
   let n = 0;
@@ -101,31 +102,38 @@ function updatePhoneTime() {
 }
 
 // ========== iMessage 标签切换 ==========
-function switchImsgTab(tab) {
+function switchImsgTab(tab, skipSave) {
   if (!['messages', 'groups', 'moments', 'profile'].includes(tab)) tab = 'messages';
   state.imsgTab = tab;
-  saveState();
 
-  document.querySelectorAll('.imsg-tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.imsg-bottom-tab').forEach(el => el.classList.remove('active'));
+  // ★ 仅在用户主动切换时保存，nav 内部调用时跳过
+  if (!skipSave) {
+    try { saveState(); } catch(e) {}
+  }
 
-  const tabId = 'imsgTab' + tab.charAt(0).toUpperCase() + tab.slice(1);
-  const el = document.getElementById(tabId);
+  document.querySelectorAll('.imsg-tab-content').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.imsg-bottom-tab').forEach(function(el) { el.classList.remove('active'); });
+
+  var tabId = 'imsgTab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+  var el = document.getElementById(tabId);
   if (el) el.classList.add('active');
 
-  const tabBtn = document.querySelector(`.imsg-bottom-tab[data-tab="${tab}"]`);
+  var tabBtn = document.querySelector('.imsg-bottom-tab[data-tab="' + tab + '"]');
   if (tabBtn) tabBtn.classList.add('active');
 
-  const titleMap = { messages: 'Messages', groups: 'Groups', moments: 'Moments', profile: 'Profile' };
-  const lt = document.getElementById('imsgLargeTitle');
+  var titleMap = { messages: 'Messages', groups: 'Groups', moments: 'Moments', profile: 'Profile' };
+  var lt = document.getElementById('imsgLargeTitle');
   if (lt) lt.textContent = titleMap[tab] || 'Messages';
 
-  if (tab === 'messages') renderCharList();
-  if (tab === 'groups') renderGroups();
-  if (tab === 'moments') renderMoments();
-  if (tab === 'profile') { renderMaskList(); renderProfileInfo(); renderProfileStickers(); }
+  if (tab === 'messages') try { renderCharList(); } catch(e) {}
+  if (tab === 'groups') try { renderGroups(); } catch(e) {}
+  if (tab === 'moments') try { renderMoments(); } catch(e) {}
+  if (tab === 'profile') {
+    try { renderMaskList(); } catch(e) {}
+    try { renderProfileInfo(); } catch(e) {}
+    try { renderProfileStickers(); } catch(e) {}
+  }
 
-  // ★ 按 Tab 分配按钮职责
   var plusBtn = document.getElementById('imsgPlusBtn');
   var drawerBtn = document.getElementById('drawerBtnNav');
 
@@ -139,7 +147,6 @@ function switchImsgTab(tab) {
     if (plusBtn)   plusBtn.setAttribute('onclick', 'openNewMomentModal()');
     if (drawerBtn) drawerBtn.setAttribute('onclick', 'openDrawer()');
   } else {
-    // messages
     if (plusBtn)   plusBtn.setAttribute('onclick', 'imsgTabAction()');
     if (drawerBtn) drawerBtn.setAttribute('onclick', 'openDrawer()');
   }

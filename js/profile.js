@@ -282,11 +282,21 @@ function saveMask() {
   } else {
     state.masks.push({ id: uid(), name: name, persona: persona, avatar: av, charIds: charIds });
   }
+
+  // ★ 先保存数据
   saveState();
   showToast(T('maskSaved'));
+
+  // ★ 先设标签再导航，并在导航后强制刷新列表
   state.imsgTab = 'profile';
   nav('screen-imessage');
+
+  // ★ 额外保险：延迟刷新确保 DOM 已就绪
+  setTimeout(function() {
+    try { renderMaskList(); } catch(e) {}
+  }, 100);
 }
+
 
 function deleteMask() {
   if (!state.editingMaskId) return;

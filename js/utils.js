@@ -1,9 +1,13 @@
 // ========== 03-utils.js ==========
 // 無外部依賴
 
+// ★ 防碰撞 UID 生成器
+var _uidCounter = 0;
 function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+  _uidCounter++;
+  return Date.now().toString(36) + '_' + _uidCounter + '_' + Math.random().toString(36).substr(2, 5);
 }
+
 
 function esc(s) {
   if (!s) return '';

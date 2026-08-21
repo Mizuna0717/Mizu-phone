@@ -16,19 +16,16 @@
 	</div>
 	<div class="large-title" id="imsgLargeTitle">Messages</div>
 
-	<!-- Messages tab -->
 	<div class="imsg-tab-content active" id="imsgTabMessages">
 		<div id="charListBody" style="flex:1;overflow-y:auto"></div>
 	</div>
 
-	<!-- Groups tab -->
 	<div class="imsg-tab-content" id="imsgTabGroups">
 		<div style="flex:1;overflow-y:auto;padding:16px 16px 20px">
 			<div id="groupsListBody"></div>
 		</div>
 	</div>
 
-	<!-- Moments tab -->
 	<div class="imsg-tab-content" id="imsgTabMoments">
 		<div style="flex:1;overflow-y:auto;padding:16px 16px 20px">
 			<div class="social-tab-header">
@@ -41,7 +38,6 @@
 		</div>
 	</div>
 
-	<!-- Profile tab -->
 	<div class="imsg-tab-content" id="imsgTabProfile">
 		<div style="flex:1;overflow-y:auto">
 			<div class="profile-hero">
@@ -59,7 +55,6 @@
 				<div class="profile-sub">你在对话中的身份</div>
 			</div>
 
-			<!-- 当前账号信息卡 -->
 			<div class="acct-info-card" id="acctInfoCard"></div>
 
 			<div class="mask-section-header">
@@ -118,9 +113,9 @@
 	</div>
 </div>
 
-<!-- ========== 账号创建模态框 ========== -->
-<div class="modal-mask" id="accountCreateModal">
-	<div class="modal-dialog acct-create-dialog">
+<!-- ★ 修复：modal-mask → modal-overlay center-modal-overlay -->
+<div class="modal-overlay center-modal-overlay" id="accountCreateModal" onclick="if(event.target===this)closeModal('accountCreateModal')">
+	<div class="modal acct-create-dialog">
 		<div class="modal-title">创建新账号</div>
 		<div class="acct-create-body">
 			<div class="acct-create-avatar" onclick="document.getElementById('acctAvatarInput').click()">
@@ -141,7 +136,7 @@
 	</div>
 </div>
 
-<!-- ========== 账号切换抽屉 ========== -->
+<!-- 账号切换抽屉 -->
 <div class="acct-drawer-mask" id="acctDrawerMask">
 	<div class="acct-drawer-overlay" onclick="closeAccountDrawer()"></div>
 	<div class="acct-drawer-panel">

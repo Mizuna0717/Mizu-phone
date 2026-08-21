@@ -1,11 +1,11 @@
 /**
- * ScreenLoader v2 — 容错 + 兼容 file:// 协议
+ * ScreenLoader v3 — 修复闭包 + 错误捕获
  */
 (async function () {
-    const screenContainer = document.getElementById('screenContainer');
-    const app = document.getElementById('app');
+    var screenContainer = document.getElementById('screenContainer');
+    var app = document.getElementById('app');
 
-    const screenFragments = [
+    var screenFragments = [
         'screens/home.html',
         'screens/settings.html',
         'screens/api-edit.html',
@@ -33,17 +33,14 @@
         'screens/chat-settings.html',
     ];
 
-    const globalFragments = [
+    var globalFragments = [
         'screens/drawer.html',
         'screens/modals.html',
         'screens/call-screen.html',
     ];
 
-    /* ── 加载单个文件（fetch 失败自动回退 XHR） ── */
     function loadFragment(url) {
         return new Promise(function (resolve) {
-
-            // 方法1: 用 fetch
             if (typeof fetch === 'function' && location.protocol !== 'file:') {
                 fetch(url)
                     .then(function (r) {
@@ -51,12 +48,8 @@
                         return r.text();
                     })
                     .then(resolve)
-                    .catch(function () {
-                        // fetch 失败，回退到 XHR
-                        loadByXHR(url, resolve);
-                    });
+                    .catch(function () { loadByXHR(url, resolve); });
             } else {
-                // file:// 协议直接用 XHR
                 loadByXHR(url, resolve);
             }
         });
@@ -70,44 +63,31 @@
                 if (xhr.status === 0 || xhr.status === 200) {
                     resolve(xhr.responseText || '');
                 } else {
-                    console.warn('⚠️ 无法加载:', url, '状态:', xhr.status);
+                    console.warn('⚠️ 无法加载:', url);
                     resolve('<!-- 加载失败: ' + url + ' -->');
                 }
             }
         };
-        xhr.onerror = function () {
-            console.warn('⚠️ XHR 失败:', url);
-            resolve('<!-- 加载失败: ' + url + ' -->');
-        };
-        try {
-            xhr.send();
-        } catch (e) {
-            console.warn('⚠️ 发送失败:', url, e);
-            resolve('<!-- 加载失败: ' + url + ' -->');
-        }
+        xhr.onerror = function () { resolve('<!-- 加载失败: ' + url + ' -->'); };
+        try { xhr.send(); } catch (e) { resolve('<!-- 加载失败: ' + url + ' -->'); }
     }
 
-    /* ── 逐个加载，不用 Promise.all（一个失败不影响其他） ── */
     console.log('📦 开始加载页面片段...');
 
-    // 加载 screen 片段
     for (var i = 0; i < screenFragments.length; i++) {
         var html = await loadFragment(screenFragments[i]);
         if (html && html.indexOf('加载失败') === -1) {
             screenContainer.insertAdjacentHTML('beforeend', html);
-            console.log('✅', screenFragments[i]);
         } else {
             console.error('❌', screenFragments[i]);
         }
     }
 
-    // 加载全局片段（注入到 toast 之前）
     var toast = document.getElementById('toast');
     for (var j = 0; j < globalFragments.length; j++) {
         var ghtml = await loadFragment(globalFragments[j]);
         if (ghtml && ghtml.indexOf('加载失败') === -1) {
             toast.insertAdjacentHTML('beforebegin', ghtml);
-            console.log('✅', globalFragments[j]);
         } else {
             console.error('❌', globalFragments[j]);
         }
@@ -115,7 +95,6 @@
 
     console.log('📦 片段加载完成，开始加载 JS...');
 
-    /* ── 按序加载全部 JS ── */
     var scripts = [
         'js/config.js',
         'js/state.js',
@@ -149,20 +128,23 @@
         'js/init.js',
     ];
 
+    // ★ 修复：用 IIFE 捕获正确的 scriptSrc
     for (var k = 0; k < scripts.length; k++) {
-        await new Promise(function (resolve) {
-            var s = document.createElement('script');
-            s.src = scripts[k];
-            s.onload = function () {
-                console.log('✅ JS:', scripts[k]);
-                resolve();
-            };
-            s.onerror = function () {
-                console.error('❌ JS:', scripts[k]);
-                resolve(); // 不阻塞后续
-            };
-            document.body.appendChild(s);
-        });
+        await (function(scriptSrc) {
+            return new Promise(function (resolve) {
+                var s = document.createElement('script');
+                s.src = scriptSrc;
+                s.onload = function () {
+                    console.log('✅ JS:', scriptSrc);
+                    resolve();
+                };
+                s.onerror = function () {
+                    console.error('❌ JS:', scriptSrc);
+                    resolve();
+                };
+                document.body.appendChild(s);
+            });
+        })(scripts[k]);
     }
 
     console.log('🚀 全部加载完成');

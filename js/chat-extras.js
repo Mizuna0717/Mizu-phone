@@ -1,5 +1,6 @@
 // ========== 13-chat-extras.js ==========
 // Dependencies: 02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js
+// ★ toggleChatMenu / closeChatMenu / updateChatMenuItems 已在 chat-actions.js 中定义并保护，此处不再重复
 
 // ========== TRANSFER MODAL ==========
 function openTransferModal() {
@@ -153,34 +154,6 @@ function toggleStickerManage() {
     p.classList.contains('manage') ? T('done') : T('manage');
 }
 
-// ========== CHAT MENU ==========
-function toggleChatMenu() {
-  const m = document.getElementById('chatMenu');
-  const o = document.getElementById('chatMenuOverlay');
-  const isOpen = m.classList.contains('open');
-  if (isOpen) {
-    m.classList.remove('open');
-    o.classList.remove('show');
-  } else {
-    m.classList.add('open');
-    o.classList.add('show');
-  }
-}
-
-function closeChatMenu() {
-  document.getElementById('chatMenu')?.classList.remove('open');
-  document.getElementById('chatMenuOverlay')?.classList.remove('show');
-}
-
-// ========== UPDATE CHAT MENU ITEMS ==========
-function updateChatMenuItems() {
-  var isGroup = isGroupChat(state.currentCharId);
-  var editCharItem = document.getElementById('menuEditChar');
-  var groupManageItem = document.getElementById('menuGroupManage');
-  if (editCharItem) editCharItem.style.display = isGroup ? 'none' : '';
-  if (groupManageItem) groupManageItem.style.display = isGroup ? '' : 'none';
-}
-
 // ========== HEADER CLICK HANDLER ==========
 function handleChatHeaderClick() {
   if (isGroupChat(state.currentCharId)) {
@@ -312,7 +285,6 @@ function openHeartVoicePanel() {
   const charCfg = getCharConfig(charId);
   const affection = typeof charCfg.affection === 'number' ? charCfg.affection : 50;
 
-  // Show affection section for single chat
   var affSection = document.getElementById('hvAffectionSection');
   var affDivider = document.getElementById('hvAffectionDivider');
   if (affSection) affSection.style.display = '';
@@ -334,7 +306,6 @@ function closeHeartVoicePanel() {
   document.getElementById('heartVoicePanel').classList.remove('show');
   setTimeout(() => {
     document.getElementById('heartVoiceOverlay').classList.remove('show');
-    // Restore affection section visibility for next use
     var affSection = document.getElementById('hvAffectionSection');
     var affDivider = document.getElementById('hvAffectionDivider');
     if (affSection) affSection.style.display = '';
@@ -364,7 +335,6 @@ function openGroupMsgHeartVoice(msgId) {
 
   document.getElementById('hvCharName').textContent = senderChar.name || 'Character';
 
-  // Hide affection section for group messages
   var affSection = document.getElementById('hvAffectionSection');
   var affDivider = document.getElementById('hvAffectionDivider');
   if (affSection) affSection.style.display = 'none';
@@ -385,7 +355,6 @@ function openGroupManagePanel() {
   const grp = getGroupById(state.currentCharId);
   if (!grp) { showToast('Group not found'); return; }
 
-  // Set avatar
   const avatarEl = document.getElementById('gmGroupAvatar');
   if (grp.avatar) {
     avatarEl.style.backgroundImage = 'url(' + grp.avatar + ')';
@@ -395,23 +364,14 @@ function openGroupManagePanel() {
     avatarEl.innerHTML = _defaultGroupHeaderAvatar();
   }
 
-  // Set name
   document.getElementById('gmGroupName').value = grp.name || '';
-
-  // Set nickname
   document.getElementById('gmNickname').value = grp.userNickname || state.userProfile.name || '';
-
-  // Reset temp avatar data
   tmp.groupAvatarData = null;
-
-  // Render member list
   renderGroupMemberList();
 
-  // Hide add member view
   const addView = document.getElementById('gmAddMemberView');
   if (addView) addView.style.display = 'none';
 
-  // Show modal
   document.getElementById('groupManageModal').classList.add('show');
 }
 
@@ -434,8 +394,6 @@ function renderGroupMemberList() {
   });
 
   document.getElementById('gmMemberList').innerHTML = html;
-
-  // Update member count label
   const countEl = document.getElementById('gmMemberCount');
   if (countEl) countEl.textContent = (grp.members || []).length;
 }
@@ -521,15 +479,12 @@ function previewGroupAvatar(inp) {
 function saveGroupInfo() {
   const grp = getGroupById(state.currentCharId);
   if (!grp) return;
-
   const name = document.getElementById('gmGroupName').value.trim();
   if (name) grp.name = name;
-
   if (tmp.groupAvatarData) {
     grp.avatar = tmp.groupAvatarData;
     tmp.groupAvatarData = null;
   }
-
   saveState();
   renderChat();
   showToast('群信息已保存');
