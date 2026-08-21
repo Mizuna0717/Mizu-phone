@@ -839,6 +839,98 @@
 
 </div><!-- #screen-chat 结束 -->
 
+<!-- ========== 全局弹窗（不属于任何 screen，position:fixed 始终可用）========== -->
+
+<!-- CREATE ACTION SHEET -->
+<div class="modal-mask" id="createActionSheet" onclick="closeCreateActionSheet()">
+	<div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:0;right:0;background:#f2f2f7;border-radius:16px 16px 0 0;padding:0 0 env(safe-area-inset-bottom,8px) 0;box-shadow:0 -4px 24px rgba(0,0,0,.08)">
+		<div style="width:36px;height:4px;border-radius:2px;background:#d1d1d6;margin:8px auto 4px"></div>
+		<div style="padding:12px 20px 8px;text-align:center;font-size:13px;color:#8e8e93;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Create New</div>
+		<div style="padding:4px 16px">
+			<div onclick="closeCreateActionSheet();createNewChar()" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;cursor:pointer;border:1px solid #ececec">
+				<div style="width:38px;height:38px;border-radius:10px;background:#f2f2f7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+					<svg viewBox="0 0 20 20" style="width:18px;height:18px;stroke:#3a3a3c;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">
+						<circle cx="10" cy="7" r="4"/>
+						<path d="M3 19c0-4 3-7 7-7s7 3 7 7"/>
+					</svg>
+				</div>
+				<div style="flex:1">
+					<div style="font-size:15px;font-weight:500;color:#1d1d1f">Create Character</div>
+					<div style="font-size:12px;color:#8e8e93;margin-top:1px">Add a new chat character</div>
+				</div>
+				<span style="color:#c7c7cc;font-size:16px">&rsaquo;</span>
+			</div>
+			<div onclick="closeCreateActionSheet();openCreateGroupModal()" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border-radius:12px;margin-bottom:8px;cursor:pointer;border:1px solid #ececec">
+				<div style="width:38px;height:38px;border-radius:10px;background:#f2f2f7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+					<svg viewBox="0 0 20 20" style="width:18px;height:18px;stroke:#3a3a3c;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">
+						<circle cx="7" cy="7" r="3"/>
+						<circle cx="14" cy="7" r="3"/>
+						<path d="M1 17c0-3 2.5-5.5 6-5.5s6 2.5 6 5.5"/>
+						<path d="M11 17c0-3 2-5.5 5-5.5s5 2.5 5 5.5"/>
+					</svg>
+				</div>
+				<div style="flex:1">
+					<div style="font-size:15px;font-weight:500;color:#1d1d1f">Create Group</div>
+					<div style="font-size:12px;color:#8e8e93;margin-top:1px">Start a group chat with characters</div>
+				</div>
+				<span style="color:#c7c7cc;font-size:16px">&rsaquo;</span>
+			</div>
+		</div>
+		<div style="padding:4px 16px 12px">
+			<div onclick="closeCreateActionSheet()" style="padding:14px;text-align:center;background:#fff;border-radius:12px;font-size:16px;font-weight:600;color:#1d1d1f;cursor:pointer;border:1px solid #ececec">Cancel</div>
+		</div>
+	</div>
+</div>
+
+<!-- CREATE GROUP MODAL -->
+<div class="modal-mask" id="createGroupModal">
+	<div class="modal-box" style="max-height:85vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+		<div style="padding:20px 20px 12px;border-bottom:1px solid #f2f2f7">
+			<div style="font-size:18px;font-weight:700;color:#1d1d1f;text-align:center">Create Group</div>
+		</div>
+		<div style="padding:16px 20px 8px">
+			<div style="font-size:13px;color:#8e8e93;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">GROUP NAME</div>
+			<input id="createGroupName" type="text" value="New Group" style="width:100%;padding:10px 14px;border:1px solid #ececec;border-radius:10px;font-size:15px;outline:none;background:#fff;color:#1d1d1f;box-sizing:border-box;font-family:inherit">
+		</div>
+		<div style="padding:8px 20px 4px">
+			<div style="font-size:13px;color:#8e8e93;font-weight:600;letter-spacing:.5px;text-transform:uppercase">SELECT MEMBERS <span style="font-weight:400;text-transform:none;letter-spacing:0">(min 2)</span></div>
+		</div>
+		<div id="createGroupCharList" style="flex:1;overflow-y:auto;padding:8px 16px;max-height:320px;min-height:100px"></div>
+		<div style="display:flex;gap:10px;padding:16px 20px 20px;border-top:1px solid #f2f2f7">
+			<button onclick="closeModal('createGroupModal')" style="flex:1;padding:12px;border:1px solid #ececec;border-radius:10px;background:#fff;font-size:15px;font-weight:500;cursor:pointer;color:#1d1d1f;font-family:inherit">Cancel</button>
+			<button onclick="confirmCreateGroup()" style="flex:1;padding:12px;border:none;border-radius:10px;background:#1d1d1f;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Create</button>
+		</div>
+	</div>
+</div>
+
+<!-- GROUP MANAGE MODAL -->
+<div class="modal-mask" id="groupManageModal">
+	<div class="modal-box" style="max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden;width:calc(100% - 32px);max-width:420px">
+		<div style="padding:16px 20px;border-bottom:1px solid #f2f2f7;display:flex;align-items:center;justify-content:space-between">
+			<div style="width:28px"></div>
+			<span style="font-size:17px;font-weight:700;color:#1d1d1f">群管理</span>
+			<button onclick="closeModal('groupManageModal')" style="width:28px;height:28px;border:none;background:#f2f2f7;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">
+				<svg viewBox="0 0 14 14" style="width:10px;height:10px"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+			</button>
+		</div>
+		<div id="groupManageContent" style="flex:1;overflow-y:auto;padding:20px"></div>
+	</div>
+</div>
+
+<!-- ADD GROUP MEMBER MODAL -->
+<div class="modal-mask" id="addGroupMemberModal">
+	<div class="modal-box" style="max-height:70vh;display:flex;flex-direction:column;padding:0;overflow:hidden;width:calc(100% - 32px);max-width:420px">
+		<div style="padding:16px 20px;border-bottom:1px solid #f2f2f7;display:flex;align-items:center;justify-content:space-between">
+			<div style="width:28px"></div>
+			<span style="font-size:17px;font-weight:700;color:#1d1d1f">添加成员</span>
+			<button onclick="closeModal('addGroupMemberModal')" style="width:28px;height:28px;border:none;background:#f2f2f7;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">
+				<svg viewBox="0 0 14 14" style="width:10px;height:10px"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+			</button>
+		</div>
+		<div id="addGroupMemberList" style="flex:1;overflow-y:auto;padding:12px 16px;min-height:80px"></div>
+	</div>
+</div>
+
 
 				<!-- WORLDBOOK LIST -->
 				<div class="screen" id="screen-worldbook">
