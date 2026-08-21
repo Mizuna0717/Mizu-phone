@@ -1,0 +1,39 @@
+<!-- WORLDBOOK EDIT -->
+<div class="screen" id="screen-wb-edit">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-worldbook')">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+		<span class="nav-title" id="wbEditTitle">新建</span>
+		<button class="nav-btn nav-right" onclick="addWbEntry()">
+			<svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+	</div>
+	<div class="screen-body" style="padding-top:16px">
+		<div class="form-group">
+			<div class="form-row">
+				<span class="form-label">名称</span>
+				<input class="form-input" id="wbName" placeholder="名称"/>
+			</div>
+			<div class="form-row">
+				<span class="form-label">分组</span>
+				<input class="form-input" id="wbGroup" placeholder="分组"/>
+			</div>
+			<div class="toggle-wrap">
+				<span class="toggle-label">全局</span>
+				<div class="toggle" id="wbGlobalToggle" onclick="toggleWbGlobal()">
+					<div class="toggle-knob"></div>
+				</div>
+			</div>
+		</div>
+		<div class="section-header">正文</div>
+		<div class="form-textarea">
+			<textarea id="wbContentArea" placeholder="背景设定..." style="min-height:120px"></textarea>
+		</div>
+		<div class="section-header">条目</div>
+		<div id="wbEntriesBody"></div>
+		<button class="form-btn primary" onclick="saveWb()" style="margin-top:16px">保存</button>
+		<button class="form-btn danger" id="deleteWbBtn" onclick="deleteWb()" style="display:none">删除世界书</button>
+		<div style="height:40px"></div>
+	</div>
+</div>
