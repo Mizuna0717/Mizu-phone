@@ -419,13 +419,27 @@ function performAccountSwitch(id) {
     closeAccountDrawer();
     return;
   }
-  // 先保存当前数据
+
+  console.log('[UI] 切换前 | 账号:', accountStore.currentAccountId, '| 角色:', state.characters.length, '| 面具:', state.masks.length);
+
+  // ★ 1. 显式保存当前账号（确保最新数据入库）
   saveState();
-  // 切换
-  switchAccount(id);
+
+  // ★ 2. 切换账号
+  var ok = switchAccount(id);
+  if (!ok) { showToast('切换失败'); return; }
+
+  console.log('[UI] 切换后 | 账号:', accountStore.currentAccountId, '| 角色:', state.characters.length, '| 面具:', state.masks.length);
+
+  // ★ 3. 关闭抽屉
   closeAccountDrawer();
+
+  // ★ 4. 刷新 UI（skipSave=true 避免意外覆盖）
   reloadUI(false);
-  switchImsgTab('profile');
+
+  // ★ 5. 切到 Profile（skipSave）
+  switchImsgTab('profile', true);
+
   var acct = getCurrentAccount();
   showToast('已切换: ' + (acct ? acct.name : ''));
 }

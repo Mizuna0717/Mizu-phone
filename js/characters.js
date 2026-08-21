@@ -4,7 +4,6 @@
 //  跨账号角色查询 — 直接读 localStorage，零依赖 state.js 内部函数
 // =============================================
 function getOtherAccountsCharacters() {
-  // 1. 获取账号列表和当前 ID（使用公共 API + 容错）
   var accounts = [];
   var currentId = '';
 
@@ -13,7 +12,6 @@ function getOtherAccountsCharacters() {
     var cur = getCurrentAccount();
     currentId = cur ? cur.id : '';
   } catch (e1) {
-    // 回退：直接读 localStorage
     try {
       var raw = localStorage.getItem('ai_app_all_accounts');
       accounts = raw ? JSON.parse(raw) : [];
@@ -35,7 +33,6 @@ function getOtherAccountsCharacters() {
       continue;
     }
 
-    // 2. 直接从 localStorage 读取该账号的数据
     var storageKey = 'ai_app_account_' + acct.id;
     var rawData = null;
     try {
@@ -290,7 +287,6 @@ function saveChar() {
     var ch = state.characters.find(function(c) { return c.id === state.editingCharId; });
     if (ch) Object.assign(ch, { name: name, notes: notes, systemPrompt: sp, avatar: av, worldbookIds: wbIds });
   } else {
-    // ★ 使用防碰撞 uid
     var nid = uid();
     if (!state.groups) state.groups = [];
     var defaultGroup = state.groups.find(function(g) { return g.name === 'Default' && !g.isGroup; });
@@ -303,19 +299,16 @@ function saveChar() {
     console.log('[saveChar] 新建角色:', name, '| ID:', nid, '| 角色总数:', state.characters.length);
   }
 
-  // ★ 保存并导航
   saveState();
   showToast(T('charSaved'));
 
   var target = state.charEditFrom || 'screen-imessage';
   nav(target);
 
-  // ★ 额外保险：延迟刷新
   setTimeout(function() {
     try { renderCharList(); } catch(e) {}
   }, 100);
 }
-
 
 function deleteChar() {
   if (!state.editingCharId) return;
@@ -336,17 +329,130 @@ function deleteChar() {
   showSnackbar(T('deleted'), function() { state.characters.push(ch); state.chats[cid] = bk; saveState(); renderCharList(); });
 }
 
-// ========== MESSAGES TAB ACTION SHEET ==========
-function imsgTabAction() {
-  var sheet = document.getElementById('createActionSheet');
-  if (!sheet) { console.error('createActionSheet not found'); return; }
-  sheet.classList.add('show');
-}
 
+// ══════════════════════════════════════════════════════════
+//  ★★★ ACTION SHEET — 纯 DOM API 构建，零 innerHTML ★★★
+// ══════════════════════════════════════════════════════════
+
+/**
+ * 关闭 Action Sheet
+ */
 function closeCreateActionSheet() {
   var sheet = document.getElementById('createActionSheet');
   if (sheet) sheet.classList.remove('show');
 }
+
+/**
+ * ★ 用纯 DOM API 构建恰好 3 个 .cas-item
+ *   完全不依赖 innerHTML，消灭一切解析/追加歧义
+ */
+function _buildActionSheetDOM(sheet) {
+  // ── 第一步：物理删除所有子节点 ──
+  while (sheet.firstChild) {
+    sheet.removeChild(sheet.firstChild);
+  }
+
+  // ── 第二步：用 DOM API 逐个创建 ──
+
+  // 背景遮罩
+  var bg = document.createElement('div');
+  bg.className = 'cas-bg';
+  bg.addEventListener('click', closeCreateActionSheet);
+  sheet.appendChild(bg);
+
+  // 面板
+  var panel = document.createElement('div');
+  panel.className = 'cas-panel';
+
+  // 选项组
+  var group = document.createElement('div');
+  group.className = 'cas-group';
+
+  // 三个选项的配置
+  var options = [
+    {
+      label: 'Create Character',
+      svg: '<circle cx="12" cy="8" r="4.5"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/>',
+      handler: function() { closeCreateActionSheet(); createNewChar(); }
+    },
+    {
+      label: 'Create Group',
+      svg: '<circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="3"/><path d="M2 22c0-4 3.2-7 7-7s7 3 7 7"/><path d="M16 22c0-3.2 2-5.5 5-5.5"/>',
+      handler: function() { closeCreateActionSheet(); openCreateGroupModal(); }
+    },
+    {
+      label: 'Add Existing Character',
+      svg: '<circle cx="12" cy="8" r="4.5"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M18 4v5M15.5 6.5h5" stroke-width="2"/>',
+      handler: function() { closeCreateActionSheet(); openAddExistingCharModal(); }
+    }
+  ];
+
+  for (var i = 0; i < options.length; i++) {
+    var item = document.createElement('div');
+    item.className = 'cas-item';
+
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.innerHTML = options[i].svg;
+
+    item.appendChild(svg);
+    item.appendChild(document.createTextNode(options[i].label));
+    item.addEventListener('click', options[i].handler);
+
+    group.appendChild(item);
+  }
+
+  panel.appendChild(group);
+
+  // 取消按钮
+  var cancel = document.createElement('div');
+  cancel.className = 'cas-cancel';
+  cancel.textContent = 'Cancel';
+  cancel.addEventListener('click', closeCreateActionSheet);
+  panel.appendChild(cancel);
+
+  sheet.appendChild(panel);
+}
+
+/**
+ * ★ 打开 Action Sheet（终极版）
+ *
+ *   逻辑：
+ *   1. 数 .cas-item → 恰好 3 个 → 直接 show + return
+ *   2. 不是 3 个 → 调用 _buildActionSheetDOM 重建
+ *   3. 重建后再数一次，确认为 3
+ */
+function imsgTabAction() {
+  var sheet = document.getElementById('createActionSheet');
+  if (!sheet) {
+    console.error('[imsgTabAction] #createActionSheet not found');
+    return;
+  }
+
+  // ── 检查现有 item 数量 ──
+  var count = sheet.querySelectorAll('.cas-item').length;
+
+  if (count === 3) {
+    // ★ 数量正确，纯显示，立即返回
+    sheet.classList.add('show');
+    return;
+  }
+
+  // ── 数量不对，完全重建 ──
+  console.warn('[imsgTabAction] item count =', count, '(expected 3). Rebuilding with DOM API...');
+  _buildActionSheetDOM(sheet);
+
+  // ── 验证 ──
+  var finalCount = sheet.querySelectorAll('.cas-item').length;
+  console.log('[imsgTabAction] rebuild complete, items:', finalCount);
+
+  if (finalCount !== 3) {
+    console.error('[imsgTabAction] CRITICAL: still', finalCount, 'items after rebuild!');
+  }
+
+  sheet.classList.add('show');
+}
+
 
 // ========== CREATE GROUP MODAL ==========
 function openCreateGroupModal() {
@@ -415,19 +521,16 @@ function confirmCreateGroup() {
 function openAddExistingCharModal() {
   var allOther = getOtherAccountsCharacters();
 
-  // 构建已导入源 ID 集合
   var importedSources = {};
   state.characters.forEach(function(c) {
     if (c._sourceCharId) importedSources[c._sourceCharId] = true;
   });
 
-  // 构建当前角色 ID 集合
   var currentIds = {};
   state.characters.forEach(function(c) {
     currentIds[c.id] = true;
   });
 
-  // 过滤
   tmp.importCharList = allOther.filter(function(item) {
     if (importedSources[item.character.id]) return false;
     if (currentIds[item.character.id]) return false;
