@@ -1,14 +1,6 @@
 // ========== 09-profile.js ==========
 // 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js
 
-// ★ imsgTabAction 保留在此文件，因为涉及 editMask（profile.js 的职责）
-function imsgTabAction() {
-  if (state.imsgTab === 'messages') createNewChar();
-  else if (state.imsgTab === 'groups') openNewGroupModal();
-  else if (state.imsgTab === 'moments') openNewMomentModal();
-  else if (state.imsgTab === 'profile') editMask(null);
-}
-
 
 // ========== PROFILE ==========
 function renderProfileInfo() {
