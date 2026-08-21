@@ -73,30 +73,30 @@
 </div>
 
 <div class="modal-overlay center-modal-overlay" id="newGroupModal" onclick="if(event.target===this)closeModal('newGroupModal')">
-    <div class="social-modal">
-        <div class="modal-header"><span>新建分组</span><button class="modal-close" onclick="closeModal('newGroupModal')"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
-        <div class="social-modal-body"><input type="text" id="newGroupNameInput" placeholder="分组名称"></div>
-        <div class="social-modal-actions"><button onclick="closeModal('newGroupModal')">取消</button><button onclick="confirmNewGroup()">创建</button></div>
-    </div>
+	<div class="social-modal">
+		<div class="modal-header"><span>新建分组</span><button class="modal-close" onclick="closeModal('newGroupModal')"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
+		<div class="social-modal-body"><input type="text" id="newGroupNameInput" placeholder="分组名称"></div>
+		<div class="social-modal-actions"><button onclick="closeModal('newGroupModal')">取消</button><button onclick="confirmNewGroup()">创建</button></div>
+	</div>
 </div>
 
 <div class="modal-overlay center-modal-overlay" id="addCharToGroupModal" onclick="if(event.target===this)closeAddCharToGroupModal()">
-    <div class="social-modal" style="max-width:340px">
-        <div class="modal-header"><span id="addCharToGroupTitle">添加角色</span><button class="modal-close" onclick="closeAddCharToGroupModal()"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
-        <div class="add-char-modal-body" id="addCharToGroupList"></div>
-        <div class="add-char-modal-footer"><button onclick="closeAddCharToGroupModal()">完成</button></div>
-    </div>
+	<div class="social-modal" style="max-width:340px">
+		<div class="modal-header"><span id="addCharToGroupTitle">添加角色</span><button class="modal-close" onclick="closeAddCharToGroupModal()"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
+		<div class="add-char-modal-body" id="addCharToGroupList"></div>
+		<div class="add-char-modal-footer"><button onclick="closeAddCharToGroupModal()">完成</button></div>
+	</div>
 </div>
 
 <div class="modal-overlay center-modal-overlay" id="newMomentModal" onclick="if(event.target===this)closeModal('newMomentModal')">
-    <div class="social-modal">
-        <div class="modal-header"><span>发布朋友圈</span><button class="modal-close" onclick="closeModal('newMomentModal')"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
-        <div class="social-modal-body">
-            <textarea id="newMomentContent" placeholder="这一刻的想法…"></textarea>
-            <select id="newMomentCharSelect"></select>
-        </div>
-        <div class="social-modal-actions"><button onclick="closeModal('newMomentModal')">取消</button><button onclick="confirmNewMoment()">发布</button></div>
-    </div>
+	<div class="social-modal">
+		<div class="modal-header"><span>发布朋友圈</span><button class="modal-close" onclick="closeModal('newMomentModal')"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></button></div>
+		<div class="social-modal-body">
+			<textarea id="newMomentContent" placeholder="这一刻的想法…"></textarea>
+			<select id="newMomentCharSelect"></select>
+		</div>
+		<div class="social-modal-actions"><button onclick="closeModal('newMomentModal')">取消</button><button onclick="confirmNewMoment()">发布</button></div>
+	</div>
 </div>
 
 <div class="modal-overlay" id="errorModal">
@@ -107,20 +107,44 @@
 	</div>
 </div>
 
-<!-- Create Action Sheet (v2) -->
+<!-- ========== Messages + Action Sheet（3 选项） ========== -->
 <div id="createActionSheet">
-  <div class="cas-bg" onclick="closeCreateActionSheet()"></div>
-  <div class="cas-panel">
-    <div class="cas-group">
-      <div class="cas-item" onclick="closeCreateActionSheet();createNewChar()">
-        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#007aff;fill:none;stroke-width:1.5;flex-shrink:0"><circle cx="12" cy="8" r="4.5"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-        Create Character
-      </div>
-      <div class="cas-item" onclick="closeCreateActionSheet();openCreateGroupModal()">
-        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#007aff;fill:none;stroke-width:1.5;flex-shrink:0"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="3"/><path d="M2 22c0-4 3.2-7 7-7s7 3 7 7"/><path d="M16 22c0-3.2 2-5.5 5-5.5"/></svg>
-        Create Group
-      </div>
-    </div>
-    <div class="cas-cancel" onclick="closeCreateActionSheet()">Cancel</div>
-  </div>
+	<div class="cas-bg" onclick="closeCreateActionSheet()"></div>
+	<div class="cas-panel">
+		<div class="cas-group">
+			<div class="cas-item" onclick="closeCreateActionSheet();createNewChar()">
+				<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.5"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+				Create Character
+			</div>
+			<div class="cas-item" onclick="closeCreateActionSheet();openCreateGroupModal()">
+				<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="3"/><path d="M2 22c0-4 3.2-7 7-7s7 3 7 7"/><path d="M16 22c0-3.2 2-5.5 5-5.5"/></svg>
+				Create Group
+			</div>
+			<div class="cas-item" onclick="closeCreateActionSheet();openAddExistingCharModal()">
+				<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.5"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M18 4v5M15.5 6.5h5" stroke-width="2"/></svg>
+				Add Existing Character
+			</div>
+		</div>
+		<div class="cas-cancel" onclick="closeCreateActionSheet()">Cancel</div>
+	</div>
+</div>
+
+<!-- ========== 跨账号导入角色模态框 ========== -->
+<div class="modal-overlay center-modal-overlay" id="importCharModal" onclick="if(event.target===this)closeModal('importCharModal')">
+	<div class="social-modal import-char-modal">
+		<div class="modal-header">
+			<span>添加已有角色</span>
+			<button class="modal-close" onclick="closeModal('importCharModal')">
+				<svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+			</button>
+		</div>
+		<div class="import-char-search-wrap">
+			<svg viewBox="0 0 18 18"><circle cx="8" cy="8" r="5.5"/><path d="M12 12l4 4"/></svg>
+			<input placeholder="搜索角色名..." id="importCharSearch" oninput="filterImportCharList()"/>
+		</div>
+		<div class="import-char-list" id="importCharListBody"></div>
+		<div class="social-modal-actions">
+			<button onclick="closeModal('importCharModal')">关闭</button>
+		</div>
+	</div>
 </div>

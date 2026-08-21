@@ -698,3 +698,224 @@
   color: #8e8e93;
   line-height: 1.6;
 }
+
+/* =========================================================
+   Action Sheet (Messages +)
+   ========================================================= */
+#createActionSheet {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: none;
+  pointer-events: none;
+}
+
+#createActionSheet.show {
+  display: block;
+  pointer-events: auto;
+}
+
+.cas-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  animation: casOverlayIn .25s ease;
+}
+
+@keyframes casOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.cas-panel {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0));
+  animation: casSlideUp .3s cubic-bezier(.2, .9, .3, 1);
+}
+
+@keyframes casSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.cas-group {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.cas-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  font-size: 17px;
+  font-weight: 500;
+  color: #007aff;
+  cursor: pointer;
+  border-bottom: 1px solid #f2f2f7;
+  transition: background .12s;
+}
+
+.cas-item:last-child {
+  border-bottom: none;
+}
+
+.cas-item:active {
+  background: #f2f2f7;
+}
+
+.cas-item svg {
+  width: 20px;
+  height: 20px;
+  stroke: #007aff;
+  fill: none;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.cas-cancel {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: #007aff;
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.cas-cancel:active {
+  background: #f2f2f7;
+}
+
+/* =========================================================
+   跨账号导入角色模态框
+   ========================================================= */
+.import-char-modal {
+  max-width: 380px;
+}
+
+.import-char-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 8px;
+  padding: 8px 12px;
+  background: #f2f2f7;
+  border-radius: 10px;
+}
+
+.import-char-search-wrap svg {
+  width: 16px;
+  height: 16px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+  flex-shrink: 0;
+}
+
+.import-char-search-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: #1d1d1f;
+}
+
+.import-char-search-wrap input::placeholder {
+  color: #c7c7cc;
+}
+
+.import-char-list {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 0 4px;
+}
+
+.import-char-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #8e8e93;
+  font-size: 14px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.import-char-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin: 0 4px 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.import-char-item:active {
+  background: #f2f2f7;
+}
+
+.import-char-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e5e5ea;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.import-char-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.import-char-avatar svg {
+  width: 22px;
+  height: 22px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.import-char-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.import-char-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.import-char-from {
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 2px;
+}
+
+.import-char-add {
+  width: 22px;
+  height: 22px;
+  stroke: #007aff;
+  fill: none;
+  stroke-width: 2;
+  flex-shrink: 0;
+}

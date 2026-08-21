@@ -1,5 +1,5 @@
 // ========== 05-ui.js ==========
-// 依賴：04-i18n.js (T)
+// 依赖：04-i18n.js (T)
 
 // ========== MODALS / TOAST / SNACKBAR ==========
 function closeModal(id) {
@@ -52,7 +52,6 @@ function nav(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 
-  // ★ try-catch 包裹 close 调用
   try { closePlusMenu(); }    catch (e) {}
   try { closeStickerPanel(); } catch (e) {}
   try { closeBubbleMenu(); }  catch (e) {}
@@ -125,4 +124,68 @@ function switchImsgTab(tab) {
   if (tab === 'groups') renderGroups();
   if (tab === 'moments') renderMoments();
   if (tab === 'profile') { renderMaskList(); renderProfileInfo(); renderProfileStickers(); }
+
+  // ★ 按 Tab 分配按钮职责
+  var plusBtn = document.getElementById('imsgPlusBtn');
+  var drawerBtn = document.getElementById('drawerBtnNav');
+
+  if (tab === 'profile') {
+    if (plusBtn)   plusBtn.setAttribute('onclick', 'openAccountCreateModal()');
+    if (drawerBtn) drawerBtn.setAttribute('onclick', 'openAccountDrawer()');
+  } else if (tab === 'groups') {
+    if (plusBtn)   plusBtn.setAttribute('onclick', 'openNewGroupModal()');
+    if (drawerBtn) drawerBtn.setAttribute('onclick', 'openDrawer()');
+  } else if (tab === 'moments') {
+    if (plusBtn)   plusBtn.setAttribute('onclick', 'openNewMomentModal()');
+    if (drawerBtn) drawerBtn.setAttribute('onclick', 'openDrawer()');
+  } else {
+    // messages
+    if (plusBtn)   plusBtn.setAttribute('onclick', 'imsgTabAction()');
+    if (drawerBtn) drawerBtn.setAttribute('onclick', 'openDrawer()');
+  }
+}
+
+// ========== 多账号切换后刷新 UI ==========
+function reloadUI(navTarget) {
+  if (navTarget !== false) {
+    try { nav(navTarget || 'screen-home'); } catch (e) {}
+  }
+
+  try { updateGreeting(); }      catch (e) {}
+  try { updateCalendar(); }      catch (e) {}
+  try { renderHomeProfile(); }   catch (e) {}
+  try { renderCalEvent(); }      catch (e) {}
+  try { updateHomeBadge(); }     catch (e) {}
+
+  try {
+    var songEl = document.getElementById('musicSong');
+    var artistEl = document.getElementById('musicArtist');
+    var coverEl = document.getElementById('musicCoverImg');
+    if (songEl) songEl.textContent = state.userProfile.musicSong || 'Not Playing';
+    if (artistEl) artistEl.textContent = state.userProfile.musicArtist || '';
+    if (coverEl) {
+      if (state.userProfile.musicCover) {
+        coverEl.src = state.userProfile.musicCover;
+        coverEl.style.display = 'block';
+      } else {
+        coverEl.style.display = 'none';
+      }
+    }
+  } catch (e) {}
+
+  try { renderCharList(); }       catch (e) {}
+  try { renderGroups(); }         catch (e) {}
+  try { renderMoments(); }        catch (e) {}
+  try { renderMaskList(); }       catch (e) {}
+  try { renderProfileInfo(); }    catch (e) {}
+  try { renderProfileStickers(); } catch (e) {}
+
+  try { renderSettings(); }       catch (e) {}
+  try { renderWbList(); }         catch (e) {}
+  try { renderMemoryList(); }     catch (e) {}
+  try { renderBookmarkList(); }   catch (e) {}
+
+  try { applyLang(); }            catch (e) {}
+
+  console.log('🔄 reloadUI complete');
 }

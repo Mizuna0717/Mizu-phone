@@ -170,21 +170,27 @@ function openNewGroupModal() {
 }
 
 function confirmNewGroup() {
-  const name = document.getElementById('newGroupNameInput').value.trim();
+  var name = document.getElementById('newGroupNameInput').value.trim();
   if (!name) { showToast('Please enter a folder name'); return; }
 
-  const newGroupId = uid();
-  state.groups.push({ id: newGroupId, name, charIds: [], createdAt: Date.now() });
+  // ★ 检查重名
+  var folderGroups = (state.groups || []).filter(function(g) { return !g.isGroup; });
+  var duplicate = folderGroups.some(function(g) { return g.name.toLowerCase() === name.toLowerCase(); });
+  if (duplicate) { showToast('分组名已存在，请换一个名称'); return; }
+
+  var newGroupId = uid();
+  state.groups.push({ id: newGroupId, name: name, charIds: [], createdAt: Date.now() });
   saveState();
 
   closeModal('newGroupModal');
   renderGroups();
   showToast('Folder created');
 
-  setTimeout(() => {
+  setTimeout(function() {
     openAddCharToGroupModal(newGroupId);
   }, 300);
 }
+
 
 // --- Folder group context menu ---
 function showGroupMenu(gid, evt) {

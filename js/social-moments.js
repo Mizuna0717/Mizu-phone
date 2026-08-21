@@ -25,32 +25,31 @@ var VIRTUAL_IMAGES = [
 
 
 // ══════════════════════════════════════════════
-//  ★ AI 生成角色 Moment（核心新增）
+//  AI 生成角色 Moment
 // ══════════════════════════════════════════════
 
 var _momentGenLock = {};
 
 async function generateAndPostCharMoment(charId) {
-  if (_momentGenLock[charId]) return;
+  if (_momentGenLock[charId]) return null;
   _momentGenLock[charId] = true;
 
   try {
     var api = state.apis.find(function(a) { return a.id === state.activeApiId; });
     if (!api || !api.url || !api.model) {
       showToast('请先配置 API');
-      return;
+      return null;
     }
 
     var ch = state.characters.find(function(c) { return c.id === charId; });
-    if (!ch) { showToast('角色不存在'); return; }
+    if (!ch) { showToast('角色不存在'); return null; }
 
     showToast(ch.name + ' 正在编写动态...');
 
-    var cfg = getCharConfig(charId);
+    var cfg = (typeof getCharConfig === 'function') ? getCharConfig(charId) : {};
     var langMap = { 'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'ko': '한국어', 'ja': '日本語', 'en': 'English' };
     var langName = langMap[cfg.chatLang || 'zh-CN'] || '简体中文';
 
-    // 构建聊天上下文
     var recentMsgs = (state.chats[charId] || []).slice(-20);
     var chatContext = '';
     if (recentMsgs.length > 0) {
@@ -86,14 +85,12 @@ async function generateAndPostCharMoment(charId) {
       { role: 'user', content: '请现在发布你的动态。' }
     ]);
 
-    // 解析回复
     var contentMatch = reply.match(/【内容】\s*([\s\S]*?)(?=【虚拟图】|$)/);
     var imageMatch = reply.match(/【虚拟图】\s*([\s\S]*?)$/);
 
     var momentContent = contentMatch ? contentMatch[1].trim() : reply.replace(/【[^】]+】/g, '').trim();
     var imageDesc = imageMatch ? imageMatch[1].trim() : '无';
 
-    // 去除可能的引号包裹
     momentContent = momentContent.replace(/^["'"「」]|["'"「」]$/g, '');
     imageDesc = imageDesc.replace(/^["'"「」]|["'"「」]$/g, '');
 
@@ -117,6 +114,7 @@ async function generateAndPostCharMoment(charId) {
   } catch (e) {
     console.error('[generateAndPostCharMoment]', e);
     showToast('动态生成失败');
+    return null;
   } finally {
     delete _momentGenLock[charId];
   }
@@ -124,7 +122,7 @@ async function generateAndPostCharMoment(charId) {
 
 
 // ══════════════════════════════════════════════
-//  ★ 用户发布 Moment 后 → 角色自动点赞+评论
+//  用户发布 Moment 后 → 角色自动点赞+评论
 // ══════════════════════════════════════════════
 
 var _autoInteractLock = {};
@@ -134,33 +132,39 @@ async function triggerAutoInteractions(momentId) {
   _autoInteractLock[momentId] = true;
 
   try {
-    var api = state.apis.find(function(a) { return a.id === state.activeApiId; });
-    if (!api || !api.url || !api.model) return;
-
     var moment = state.moments.find(function(x) { return x.id === momentId; });
     if (!moment) return;
 
-    // 筛选已激活角色（有聊天记录的 + 前5个无记录的）
-    var activeChars = state.characters.filter(function(c) {
-      return state.chats[c.id] && state.chats[c.id].length > 0;
-    });
-    if (!activeChars.length) {
-      activeChars = state.characters.slice(0, 5);
-    }
-    if (!activeChars.length) return;
+    // 无角色时跳过
+    if (!state.characters || !state.characters.length) return;
 
-    for (var i = 0; i < activeChars.length; i++) {
-      var ch = activeChars[i];
-
-      // 自动点赞
+    // 先全部点赞（不需要 API）
+    var allChars = state.characters.slice();
+    allChars.forEach(function(ch) {
       if (!moment.likes) moment.likes = [];
       if (moment.likes.indexOf(ch.id) < 0) {
         moment.likes.push(ch.id);
       }
+    });
+    saveState();
+    if (state.imsgTab === 'moments') renderMoments();
 
-      // 生成评论
+    // 尝试生成评论（需要 API）
+    var api = state.apis.find(function(a) { return a.id === state.activeApiId; });
+    if (!api || !api.url || !api.model) return;
+
+    // 选取要评论的角色（有聊天记录的优先，最多 5 个）
+    var commentChars = state.characters.filter(function(c) {
+      return state.chats[c.id] && state.chats[c.id].length > 0;
+    });
+    if (!commentChars.length) commentChars = state.characters.slice(0, 5);
+    if (commentChars.length > 5) commentChars = commentChars.slice(0, 5);
+
+    for (var i = 0; i < commentChars.length; i++) {
+      var ch = commentChars[i];
+
       try {
-        var charCfg = getCharConfig(ch.id);
+        var charCfg = (typeof getCharConfig === 'function') ? getCharConfig(ch.id) : {};
         var cLangMap = { 'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'ko': '한국어', 'ja': '日本語', 'en': 'English' };
         var cLangName = cLangMap[charCfg.chatLang || 'zh-CN'] || '简体中文';
 
@@ -193,7 +197,6 @@ async function triggerAutoInteractions(momentId) {
         console.warn('[autoComment] ' + ch.name + ' failed:', e.message);
       }
 
-      // 每个角色处理完后保存并刷新
       saveState();
       if (state.imsgTab === 'moments') renderMoments();
     }
@@ -207,7 +210,7 @@ async function triggerAutoInteractions(momentId) {
 
 
 // ══════════════════════════════════════════════
-//  ★ 虚拟图片点击切换
+//  虚拟图片点击切换
 // ══════════════════════════════════════════════
 
 function toggleVirtualReveal(mid) {
@@ -276,7 +279,6 @@ function renderMoments() {
 
     h += '<div class="moment-card" data-mid="' + m.id + '">';
 
-    /* header */
     h += '<div class="moment-header">' +
       '<div class="moment-av"' + (ch ? ' onclick="openChat(\'' + ch.id + '\')"' : '') + '>' + avHtml + '</div>' +
       '<div class="moment-meta">' +
@@ -287,7 +289,6 @@ function renderMoments() {
         '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:2"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg>' +
       '</button></div>';
 
-    /* body */
     if (displayContent) {
       h += '<div class="moment-body">' +
         '<span class="moment-text" id="mt_' + m.id + '">' + esc(shortContent) + '</span>' +
@@ -295,7 +296,6 @@ function renderMoments() {
       '</div>';
     }
 
-    /* ★ image: virtual with reveal, or normal */
     if (m.imageUrl) {
       if (m.virtualText) {
         h += '<div class="moment-image">' +
@@ -309,23 +309,16 @@ function renderMoments() {
       }
     }
 
-    /* actions bar */
     h += '<div class="moment-actions-bar">' +
       '<button class="moment-action-btn ' + (liked ? 'liked' : '') + '" onclick="toggleMomentLike(\'' + m.id + '\')">' +
-        '<svg viewBox="0 0 20 20">' +
-          '<path d="M10 17.5C10 17.5 3 12.5 3 8C3 5.5 5 3.5 7 3.5C8.5 3.5 9.5 4.5 10 5.5C10.5 4.5 11.5 3.5 13 3.5C15 3.5 17 5.5 17 8C17 12.5 10 17.5 10 17.5Z"/>' +
-        '</svg>' +
+        '<svg viewBox="0 0 20 20"><path d="M10 17.5C10 17.5 3 12.5 3 8C3 5.5 5 3.5 7 3.5C8.5 3.5 9.5 4.5 10 5.5C10.5 4.5 11.5 3.5 13 3.5C15 3.5 17 5.5 17 8C17 12.5 10 17.5 10 17.5Z"/></svg>' +
         '<span>' + (likeCount || '') + '</span></button>' +
       '<button class="moment-action-btn" onclick="toggleMomentComment(\'' + m.id + '\')">' +
-        '<svg viewBox="0 0 20 20">' +
-          '<path d="M4 4.5h12c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-5l-4 3.5v-3.5H4c-1.1 0-2-.9-2-2v-6c0-1.1.9-2 2-2z"/>' +
-        '</svg>' +
+        '<svg viewBox="0 0 20 20"><path d="M4 4.5h12c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-5l-4 3.5v-3.5H4c-1.1 0-2-.9-2-2v-6c0-1.1.9-2 2-2z"/></svg>' +
         '<span>' + (commentCount || '') + '</span></button>' +
     '</div>';
 
-    /* comments */
     h += buildMomentComments(m);
-
     h += '</div>';
   });
 
@@ -413,7 +406,7 @@ function deleteMoment(mid) {
 
 
 // ══════════════════════════════════════════════
-//  发布 moment（用户手动，含虚拟图文字输入）
+//  发布 Moment（仅用户本人）
 // ══════════════════════════════════════════════
 
 function openNewMomentModal() {
@@ -437,6 +430,14 @@ function openNewMomentModal() {
           '<svg viewBox="0 0 18 18" style="width:14px;height:14px"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M2 9h14"/><path d="M9 2v14"/></svg> Virtual</button>' +
       '</div>' +
       '<div id="momentImageArea"></div>';
+  }
+
+  // ★ 更新 actions 按钮文字
+  var actions = modal.querySelector('.social-modal-actions');
+  if (actions) {
+    actions.innerHTML =
+      '<button onclick="closeModal(\'newMomentModal\')">取消</button>' +
+      '<button onclick="confirmNewMoment()">发布</button>';
   }
 
   modal.classList.add('show');
@@ -525,7 +526,8 @@ function clearMomentImage() {
 }
 
 function confirmNewMoment() {
-  var content  = (document.getElementById('newMomentContent').value || '').trim();
+  var contentEl = document.getElementById('newMomentContent');
+  var content  = contentEl ? contentEl.value.trim() : '';
   var hasImage = !!tmp.momentImageData;
 
   // ★ 获取虚拟图文字
@@ -533,6 +535,11 @@ function confirmNewMoment() {
   if (tmp.momentImageType === 'virtual') {
     var vtInput = document.getElementById('momentVirtualText');
     virtualText = vtInput ? vtInput.value.trim() : '';
+    // ★ 虚拟图必须选择一张背景
+    if (!hasImage) {
+      showToast('Please select a virtual image background');
+      return;
+    }
   }
 
   if (!content && !hasImage) {
@@ -540,6 +547,7 @@ function confirmNewMoment() {
     return;
   }
 
+  // ★ 只有用户可以发布
   var newMoment = addMoment(
     'user',
     content,
@@ -551,7 +559,7 @@ function confirmNewMoment() {
   closeModal('newMomentModal');
   showToast('Posted');
 
-  // ★ 触发角色自动互动（异步，不阻塞）
+  // ★ 触发角色自动互动
   if (newMoment && newMoment.id) {
     setTimeout(function() {
       triggerAutoInteractions(newMoment.id);
