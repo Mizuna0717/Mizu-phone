@@ -1228,3 +1228,370 @@
   margin: 0;
 }
 
+/* ========== chat-settings.css ========== */
+/* Chat Settings page — refined, matches Memory Settings style */
+
+/* =========================================================
+   Section Headers
+   ========================================================= */
+.cs-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 8px;
+}
+
+.cs-section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #f2f2f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cs-section-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke: #636366;
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cs-section-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cs-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: -.1px;
+}
+
+.cs-section-sub {
+  font-size: 11px;
+  color: #888;
+  font-weight: 400;
+  letter-spacing: .1px;
+}
+
+/* Danger section accent */
+.cs-section-danger .cs-section-icon {
+  background: #fff5f5;
+}
+
+.cs-section-danger .cs-section-icon svg {
+  stroke: #ff3b30;
+}
+
+.cs-section-danger .cs-section-title {
+  color: #ff3b30;
+}
+
+/* =========================================================
+   Card Container
+   ========================================================= */
+.cs-card {
+  margin: 0 16px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ececec;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
+}
+
+.cs-card-danger {
+  border-color: #ffe0de;
+}
+
+/* =========================================================
+   Row
+   ========================================================= */
+.cs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f2f2f7;
+  min-height: 48px;
+  gap: 12px;
+}
+
+.cs-row-last {
+  border-bottom: none;
+}
+
+.cs-row-label {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* Label with sub-description (stacked) */
+.cs-row-label-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cs-row-sublabel {
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* =========================================================
+   Danger Row (clickable)
+   ========================================================= */
+.cs-row-danger {
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.cs-row-danger:active {
+  background: #fff8f8;
+}
+
+.cs-danger-text {
+  color: #ff3b30 !important;
+  font-weight: 600 !important;
+}
+
+.cs-danger-arrow {
+  width: 16px;
+  height: 16px;
+  stroke: #ff3b30;
+  fill: none;
+  stroke-width: 1.8;
+  flex-shrink: 0;
+  opacity: .6;
+}
+
+/* =========================================================
+   Number Input (stepper style)
+   ========================================================= */
+.cs-num-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #f5f5f5;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+
+.cs-num-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s;
+  flex-shrink: 0;
+}
+
+.cs-num-btn:active {
+  background: #e8e8e8;
+}
+
+.cs-num-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: #636366;
+  fill: none;
+  stroke-width: 2;
+}
+
+.cs-num-display {
+  width: 40px;
+  text-align: center;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  -moz-appearance: textfield;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.cs-num-display::-webkit-inner-spin-button,
+.cs-num-display::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* =========================================================
+   Range Group (slider + value)
+   ========================================================= */
+.cs-range-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  max-width: 200px;
+}
+
+.cs-range-group input[type=range] {
+  flex: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  outline: none;
+}
+
+.cs-range-group input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+  cursor: pointer;
+  border: 1px solid #e0e0e0;
+}
+
+.cs-range-val {
+  width: 28px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #333;
+  flex-shrink: 0;
+  background: #f5f5f5;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+/* =========================================================
+   Select Dropdown
+   ========================================================= */
+.cs-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cs-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid #e0e0e0;
+  background: #f5f5f5;
+  padding: 8px 32px 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  outline: none;
+  cursor: pointer;
+  min-width: 120px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: border-color .15s, background .15s;
+}
+
+.cs-select:focus {
+  border-color: #bbb;
+  background: #fff;
+}
+
+.cs-select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  stroke: #888;
+  fill: none;
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+/* =========================================================
+   Action Button (Publish Now)
+   ========================================================= */
+.cs-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 16px 4px;
+  padding: 12px 20px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background .12s, transform .1s;
+  width: calc(100% - 32px);
+}
+
+.cs-action-btn:hover {
+  background: #efefef;
+}
+
+.cs-action-btn:active {
+  background: #e8e8e8;
+  transform: scale(.98);
+}
+
+.cs-action-btn svg {
+  width: 15px;
+  height: 15px;
+  stroke: #636366;
+  fill: none;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   Hint Text
+   ========================================================= */
+.cs-hint {
+  margin: 6px 32px 4px;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.5;
+  letter-spacing: .05px;
+}
+
+/* =========================================================
+   Responsive: tighter on small screens
+   ========================================================= */
+@media (max-width: 380px) {
+  .cs-range-group {
+    max-width: 160px;
+  }
+
+  .cs-select {
+    min-width: 100px;
+    font-size: 13px;
+  }
+
+  .cs-num-display {
+    width: 32px;
+    font-size: 15px;
+  }
+}

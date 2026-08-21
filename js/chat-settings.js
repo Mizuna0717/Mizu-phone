@@ -1,10 +1,26 @@
 // ========== chat-settings.js ==========
-// 聊天设置页面逻辑
-// 依赖：02-state.js, 05-ui.js, 18-chat-config.js
+// Chat Settings page logic
+// Dependencies: 02-state.js, 05-ui.js, 18-chat-config.js
 
 var _autoMsgTimers = {};
 var _autoMomentsTimers = {};
 var _forceMomentBusy = false;
+
+/* ★ Stepper helper for the number inputs */
+function csNumStep(inputId, delta) {
+  var el = document.getElementById(inputId);
+  if (!el) return;
+  var val = parseInt(el.value) || 1;
+  var min = parseInt(el.min) || 1;
+  var max = parseInt(el.max) || 10;
+  val = Math.min(max, Math.max(min, val + delta));
+  el.value = val;
+
+  // Determine field name from input ID
+  var fieldMap = { csReplyMin: 'replyMin', csReplyMax: 'replyMax' };
+  var field = fieldMap[inputId];
+  if (field) updateCsSetting(field, val);
+}
 
 function openChatSettings() {
   if (!state.currentCharId) return;
@@ -73,15 +89,15 @@ function updateCsSetting(field, value) {
   if (field === 'momentsInterval' && cfg.autoMoments) startAutoMoments(state.currentCharId);
 }
 
-// ★ 清空聊天记录、记忆、收藏
+// Clear chat, memories, and bookmarks
 function clearChatAndMemories() {
   if (!state.currentCharId) return;
   var charId = state.currentCharId;
   var ch = state.characters ? state.characters.find(function(c) { return c.id === charId; }) : null;
-  var charName = ch ? (ch.name || '该角色') : '该角色';
+  var charName = ch ? (ch.name || 'this character') : 'this character';
 
   var confirmed = confirm(
-    '确认清空「' + charName + '」的所有数据？\n\n此操作将删除：\n- 所有聊天记录\n- 所有记忆条目\n- 所有收藏消息\n\n此操作不可撤销！'
+    'Clear all data for "' + charName + '"?\n\nThis will delete:\n- All chat messages\n- All memory entries\n- All bookmarked messages\n\nThis action cannot be undone!'
   );
   if (!confirmed) return;
 
@@ -100,10 +116,10 @@ function clearChatAndMemories() {
   try { if (typeof renderChat === 'function') renderChat(); } catch(e) {}
   try { if (typeof renderMemoryList === 'function') renderMemoryList(); } catch(e) {}
   try { if (typeof renderCfgCharMemories === 'function') renderCfgCharMemories(); } catch(e) {}
-  showToast('已清空');
+  showToast(T('deleted'));
 }
 
-// =========== 自动发消息 ===========
+// =========== Auto Message ===========
 function startAutoMessage(charId) {
   stopAutoMessage(charId);
   var cfg = getCharConfig(charId);
@@ -127,7 +143,7 @@ function restartAutoMessageTimer(charId) {
   cfg.autoMessage ? startAutoMessage(charId) : stopAutoMessage(charId);
 }
 
-// =========== 自动朋友圈（调用 AI 生成） ===========
+// =========== Auto Moments ===========
 function startAutoMoments(charId) {
   stopAutoMoments(charId);
   var cfg = getCharConfig(charId);
@@ -147,11 +163,11 @@ function stopAutoMoments(charId) {
   }
 }
 
-// ★ 强制发送 Moment（防抖 + 调用 AI 生成）
+// Force publish a Moment (debounced)
 function forceSendMoment() {
   if (!state.currentCharId) return;
   if (_forceMomentBusy) {
-    showToast('正在生成中...');
+    showToast(T('csGenerating') || 'Generating...');
     return;
   }
   _forceMomentBusy = true;
@@ -164,16 +180,15 @@ function forceSendMoment() {
       _forceMomentBusy = false;
     }
   } else {
-    showToast('功能未加载');
+    showToast(T('error'));
     _forceMomentBusy = false;
   }
 
-  // 重启定时器
   var cfg = getCharConfig(state.currentCharId);
   if (cfg.autoMoments) startAutoMoments(state.currentCharId);
 }
 
-// =========== 重启所有自动 Moment 定时器（可在 init 中调用）===========
+// Restart all auto-moment timers (called during init)
 function restartAllAutoMoments() {
   (state.characters || []).forEach(function(ch) {
     var cfg = getCharConfig(ch.id);
@@ -181,14 +196,15 @@ function restartAllAutoMoments() {
   });
 }
 
-window.openChatSettings      = openChatSettings;
-window.toggleCsToggle         = toggleCsToggle;
-window.updateCsSetting        = updateCsSetting;
-window.clearChatAndMemories   = clearChatAndMemories;
-window.startAutoMessage       = startAutoMessage;
-window.stopAutoMessage        = stopAutoMessage;
-window.restartAutoMessageTimer= restartAutoMessageTimer;
-window.startAutoMoments       = startAutoMoments;
-window.stopAutoMoments        = stopAutoMoments;
-window.forceSendMoment        = forceSendMoment;
-window.restartAllAutoMoments  = restartAllAutoMoments;
+window.openChatSettings       = openChatSettings;
+window.toggleCsToggle          = toggleCsToggle;
+window.updateCsSetting         = updateCsSetting;
+window.clearChatAndMemories    = clearChatAndMemories;
+window.startAutoMessage        = startAutoMessage;
+window.stopAutoMessage         = stopAutoMessage;
+window.restartAutoMessageTimer = restartAutoMessageTimer;
+window.startAutoMoments        = startAutoMoments;
+window.stopAutoMoments         = stopAutoMoments;
+window.forceSendMoment         = forceSendMoment;
+window.restartAllAutoMoments   = restartAllAutoMoments;
+window.csNumStep               = csNumStep;
