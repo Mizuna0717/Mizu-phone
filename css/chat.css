@@ -508,7 +508,7 @@
 }
 
 /* ============================================================
-   ⑤ TYPING INDICATOR — Redesigned lightweight glass
+   TYPING INDICATOR
    ============================================================ */
 #typingInd .msg-bubble {
   background: rgba(242, 242, 247, 0.5) !important;
@@ -559,13 +559,13 @@
 }
 
 /* ============================================================
-   ① INPUT BAR — Aggressively moved up
+   INPUT BAR — bottom padding increased for breathing room
    ============================================================ */
 .chat-input-bar {
   display: flex;
   align-items: flex-end;
-  padding: 2px 10px 0;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding: 2px 10px 22px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -583,7 +583,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 30px;
+  height: 50px;
   background: linear-gradient(
     to top,
     rgba(255, 255, 255, 0.35) 0%,
@@ -764,7 +764,7 @@
 }
 
 /* ============================================================
-   ④ SYSTEM CENTER MESSAGES — Glass + smaller text
+   SYSTEM CENTER MESSAGES
    ============================================================ */
 .msg-system-center {
   align-self: center;
