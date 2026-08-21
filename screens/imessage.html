@@ -1,0 +1,113 @@
+<!-- iMESSAGE -->
+<div class="screen" id="screen-imessage">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-home')">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
+		<span class="nav-title">iMessage</span>
+		<div class="nav-group-right">
+			<button class="nav-btn" onclick="openDrawer()" id="drawerBtnNav">
+				<svg viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h14" stroke="#1d1d1f" fill="none" stroke-width="1.8" stroke-linecap="round"/></svg>
+			</button>
+			<button class="nav-btn" onclick="imsgTabAction()">
+				<svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+			</button>
+		</div>
+	</div>
+	<div class="large-title" id="imsgLargeTitle">Messages</div>
+	<div class="imsg-tab-content active" id="imsgTabMessages">
+		<div id="charListBody" style="flex:1;overflow-y:auto"></div>
+	</div>
+
+	<!-- Groups tab content -->
+	<div class="imsg-tab-content" id="imsgTabGroups">
+		<div style="flex:1;overflow-y:auto;padding:16px 16px 20px">
+			<div id="groupsListBody"></div>
+		</div>
+	</div>
+
+	<!-- Moments tab content -->
+	<div class="imsg-tab-content" id="imsgTabMoments">
+		<div style="flex:1;overflow-y:auto;padding:16px 16px 20px">
+			<div class="social-tab-header">
+				<span class="social-tab-title">Moments</span>
+				<button class="social-tab-action" onclick="openNewMomentModal()" title="发布">
+					<svg viewBox="0 0 16 16"><path d="M12 2l2 2M2 12v2h2l8-8-2-2L2 12z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				</button>
+			</div>
+			<div id="momentsListBody"></div>
+		</div>
+	</div>
+
+	<!-- Profile tab content -->
+	<div class="imsg-tab-content" id="imsgTabProfile">
+		<div style="flex:1;overflow-y:auto">
+			<div class="profile-hero">
+				<div class="profile-avatar-lg" onclick="document.getElementById('userAvatarInput').click()">
+					<svg viewBox="0 0 32 32" id="userAvatarPh"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10"/></svg>
+					<img id="userAvatarPv" style="display:none"/>
+					<input type="file" id="userAvatarInput" accept="image/*" onchange="previewUserAvatar(this)" style="display:none"/>
+					<div class="profile-avatar-edit">
+						<svg viewBox="0 0 12 12"><path d="M8.5 1.5l2 2M1 8.5V11h2.5L10 4.5l-2-2L1 8.5z"/></svg>
+					</div>
+				</div>
+				<div class="profile-name-area">
+					<div class="profile-name-display" id="userNameDisplay" onclick="startEditUserName()">User</div>
+				</div>
+				<div class="profile-sub">你在对话中的身份</div>
+			</div>
+			<div class="mask-section-header">
+				<span>表情包</span>
+				<span style="font-size:13px;color:#8e8e93;font-weight:400" id="profileStickerCount">0</span>
+			</div>
+			<div class="sticker-import-section">
+				<div class="sticker-import-row" onclick="document.getElementById('profileStickerFileInput').click()">
+					<svg viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="3"/><circle cx="8" cy="9" r="2"/><path d="M3 15l4-4 3 3 4-5 5 6"/></svg>
+					<div class="sir-info">
+						<div class="sir-title">相册导入</div>
+						<div class="sir-sub">从相册选择照片</div>
+					</div>
+					<span class="sir-arrow">›</span>
+					<input type="file" id="profileStickerFileInput" accept="image/*" multiple onchange="importStickersFromFile(this)" style="display:none"/>
+				</div>
+				<div class="sticker-import-row" onclick="openUrlImportModal()">
+					<svg viewBox="0 0 22 22"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+					<div class="sir-info">
+						<div class="sir-title">URL 导入</div>
+						<div class="sir-sub">批量URL导入</div>
+					</div>
+					<span class="sir-arrow">›</span>
+				</div>
+			</div>
+			<div id="profileStickerPreview"></div>
+			<div class="mask-section-header">
+				<span>我的面具</span>
+				<button onclick="editMask(null)">
+					<svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg>
+					<span>新建</span>
+				</button>
+			</div>
+			<div id="maskListBody"></div>
+			<div style="height:40px"></div>
+		</div>
+	</div>
+
+	<div class="imsg-bottom-tabs">
+		<div class="imsg-bottom-tab active" data-tab="messages" onclick="switchImsgTab('messages')">
+			<svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 012 2v10a2 2 0 01-2 2H8l-4 3v-3a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+			<span>Messages</span>
+		</div>
+		<div class="imsg-bottom-tab" data-tab="groups" onclick="switchImsgTab('groups')">
+			<svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><path d="M2 20c0-3.5 3-6.5 7-6.5 1.5 0 2.8.4 4 1"/><path d="M14 20c0-3.5 2-6.5 5-6.5s5 3 5 6.5"/></svg>
+			<span>Groups</span>
+		</div>
+		<div class="imsg-bottom-tab" data-tab="moments" onclick="switchImsgTab('moments')">
+			<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>
+			<span>Moments</span>
+		</div>
+		<div class="imsg-bottom-tab" data-tab="profile" onclick="switchImsgTab('profile')">
+			<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+			<span>Profile</span>
+		</div>
+	</div>
+</div>
