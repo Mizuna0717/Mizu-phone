@@ -1,5 +1,5 @@
 // ========== 13-chat-extras.js ==========
-// 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js
+// Dependencies: 02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js
 
 // ========== TRANSFER MODAL ==========
 function openTransferModal() {
@@ -121,11 +121,11 @@ function renderStickerGrid() {
     return;
   }
   g.innerHTML = state.stickers.map(s =>
-    `<div class="sticker-item" onclick="sendSticker('${s.id}')">` +
-    `<img src="${s.dataUrl}">` +
-    `<div class="sticker-name">${esc(s.name)}</div>` +
-    `<button class="sticker-del" onclick="event.stopPropagation();delSticker('${s.id}')">` +
-    `<svg viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6"/></svg></button></div>`
+    '<div class="sticker-item" onclick="sendSticker(\'' + s.id + '\')">' +
+    '<img src="' + s.dataUrl + '">' +
+    '<div class="sticker-name">' + esc(s.name) + '</div>' +
+    '<button class="sticker-del" onclick="event.stopPropagation();delSticker(\'' + s.id + '\')">' +
+    '<svg viewBox="0 0 10 10" style="width:8px;height:8px;stroke:#8e8e93;fill:none;stroke-width:2"><path d="M2 2l6 6M8 2l-6 6" stroke-linecap="round"/></svg></button></div>'
   ).join('');
 }
 
@@ -172,7 +172,7 @@ function closeChatMenu() {
   document.getElementById('chatMenuOverlay')?.classList.remove('show');
 }
 
-// ========== 电话 / 通话模态框 ==========
+// ========== CALL MODAL ==========
 function openCallModal() {
   closePlusMenu();
   document.getElementById('callModal').classList.add('show');
@@ -185,7 +185,7 @@ function startCall(type) {
   if (!state.chats[state.currentCharId]) state.chats[state.currentCharId] = [];
 
   const msgId = uid();
-  const label = type === 'video' ? '视频通话' : '语音通话';
+  const label = type === 'video' ? 'Video Call' : 'Voice Call';
 
   state.chats[state.currentCharId].push({
     id: msgId,
@@ -193,13 +193,13 @@ function startCall(type) {
     type: 'call',
     callType: type,
     callStatus: 'requesting',
-    content: label + '请求中',
+    content: label + ' requesting...',
     timestamp: Date.now()
   });
 
   saveState();
   renderChat();
-  showToast('正在呼叫…');
+  showToast('Calling...');
 
   const charId = state.currentCharId;
   setTimeout(() => {
@@ -230,13 +230,13 @@ function acceptCallAndOpen(mid) {
   }
 }
 
-// ========== 重回确认 ==========
+// ========== REGENERATE CONFIRM ==========
 function openReturnConfirm() {
   closePlusMenu();
   const msgs = state.chats[state.currentCharId] || [];
   const hasAiMsg = msgs.some(m => m.role === 'assistant');
   if (!hasAiMsg) {
-    showToast('没有可重新生成的消息');
+    showToast('No messages to regenerate');
     return;
   }
   document.getElementById('returnConfirmModal').classList.add('show');
@@ -251,18 +251,23 @@ function confirmReturn() {
       return;
     }
   }
-  showToast('没有可重新生成的消息');
+  showToast('No messages to regenerate');
 }
 
-// ========== 心声面板 — 新增好感度 + 想要做的事 ==========
+// ========== HEART VOICE PANEL ==========
 function openHeartVoicePanel() {
   const charId = state.currentCharId;
   if (!charId) return;
 
+  // Don't open heart voice for group chats
+  if (isGroupChat(charId)) {
+    showToast('Heart Voice is not available for group chats');
+    return;
+  }
+
   const char = state.characters.find(c => c.id === charId);
   if (!char) return;
 
-  // Avatar
   const hvAvatar = document.getElementById('hvAvatar');
   if (char.avatar) {
     hvAvatar.style.backgroundImage = 'url(' + char.avatar + ')';
@@ -271,9 +276,8 @@ function openHeartVoicePanel() {
     hvAvatar.style.background = '#e5e5ea';
   }
 
-  document.getElementById('hvCharName').textContent = char.name || '角色';
+  document.getElementById('hvCharName').textContent = char.name || 'Character';
 
-  // Read latest AI message fields
   const msgs = state.chats[charId] || [];
   let latestAction = '';
   let latestThought = '';
@@ -288,16 +292,14 @@ function openHeartVoicePanel() {
     }
   }
 
-  // Affection — from charConfig
   const charCfg = getCharConfig(charId);
   const affection = typeof charCfg.affection === 'number' ? charCfg.affection : 50;
 
-  // Update DOM
   document.getElementById('hvAffectionFill').style.width = affection + '%';
   document.getElementById('hvAffectionNum').textContent   = affection + '%';
-  document.getElementById('hvThoughtText').textContent    = latestThought  || '（正在思考……）';
-  document.getElementById('hvActionText').textContent     = latestAction   || '（静静地看着你）';
-  document.getElementById('hvWannaDoText').textContent    = latestWannaDo  || '（暂时没有特别想做的事）';
+  document.getElementById('hvThoughtText').textContent    = latestThought  || '(Thinking...)';
+  document.getElementById('hvActionText').textContent     = latestAction   || '(Quietly watching you)';
+  document.getElementById('hvWannaDoText').textContent    = latestWannaDo  || '(Nothing special right now)';
 
   document.getElementById('heartVoiceOverlay').classList.add('show');
   requestAnimationFrame(() => {
@@ -312,5 +314,5 @@ function closeHeartVoicePanel() {
   }, 250);
 }
 
-// ========== 全局绑定 ==========
+// ========== Global bindings ==========
 window.acceptCallAndOpen = acceptCallAndOpen;
