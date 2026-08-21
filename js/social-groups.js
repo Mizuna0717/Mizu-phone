@@ -1,28 +1,10 @@
-// ========== social.js ==========
-// Groups (chat groups + folder groups) & Moments
-
-// ============ Utilities ============
-function socialRelativeTime(ts) {
-  const diff = Date.now() - ts;
-  const sec = Math.floor(diff / 1000);
-  if (sec < 60) return 'Just now';
-  const min = Math.floor(sec / 60);
-  if (min < 60) return min + 'm ago';
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return hr + 'h ago';
-  const day = Math.floor(hr / 24);
-  if (day === 1) return 'Yesterday';
-  if (day < 30) return day + 'd ago';
-  return new Date(ts).toLocaleDateString();
-}
-
-// ============ GROUPS (Chat Groups + Folder Groups) ============
+// ========== social-groups.js ==========
+// Groups rendering, folder groups, chat groups listing, group CRUD
 
 function renderGroups() {
   const container = document.getElementById('groupsListBody');
   if (!container) return;
 
-  // Separate chat groups and folder groups
   const chatGroups = (state.groups || []).filter(g => g.isGroup === true);
   const folderGroups = (state.groups || []).filter(g => !g.isGroup);
 
@@ -55,7 +37,6 @@ function renderGroups() {
       const lastMsg = msgs.length ? msgs[msgs.length - 1] : null;
       const ur = state.unread[g.id] || 0;
 
-      // Build member avatar preview (up to 4)
       let memberAvsHtml = '<div style="display:flex;align-items:center">';
       members.slice(0, 4).forEach((m, idx) => {
         memberAvsHtml += '<div style="width:24px;height:24px;border-radius:50%;overflow:hidden;border:2px solid #fff;' +
@@ -73,7 +54,6 @@ function renderGroups() {
       }
       memberAvsHtml += '</div>';
 
-      // Last message preview
       let preview = '';
       if (lastMsg) {
         let senderChar = lastMsg.senderId ? state.characters.find(c => c.id === lastMsg.senderId) : null;
@@ -141,7 +121,6 @@ function renderGroups() {
     });
   }
 
-  // If only chat groups exist and none exist, show empty for folder too
   if (!chatGroups.length && !folderGroups.length) {
     h = '<div class="social-empty">' +
       '<svg viewBox="0 0 48 48" style="width:48px;height:48px;stroke:#d1d1d6;fill:none;stroke-width:1.5;display:block;margin:0 auto 12px">' +
@@ -324,200 +303,4 @@ function toggleCharInGroup(charId, row) {
 function closeAddCharToGroupModal() {
   closeModal('addCharToGroupModal');
   renderGroups();
-}
-
-// ============ MOMENTS ============
-
-function renderMoments() {
-  const container = document.getElementById('momentsListBody');
-  if (!container) return;
-
-  if (!state.moments.length) {
-    container.innerHTML =
-      '<div class="social-empty">' +
-        '<svg viewBox="0 0 48 48" style="width:48px;height:48px;stroke:#d1d1d6;fill:none;stroke-width:1.5;display:block;margin:0 auto 12px">' +
-          '<circle cx="24" cy="24" r="18"/><circle cx="24" cy="24" r="8"/>' +
-          '<path d="M24 6v4M24 38v4M6 24h4M38 24h4"/>' +
-        '</svg>' +
-        '<p style="color:#8e8e93;font-size:14px;text-align:center">No moments yet<br><span style="font-size:12px">Share your first moment</span></p>' +
-      '</div>';
-    return;
-  }
-
-  const sorted = [...state.moments].sort((a, b) => b.timestamp - a.timestamp);
-  let h = '';
-  sorted.forEach(m => {
-    const ch = state.characters.find(c => c.id === m.charId);
-    const isUser = !m.charId || m.charId === 'user';
-    const name = isUser ? (state.userProfile.name || 'User') : (ch ? ch.name : 'System');
-    const avHtml = isUser
-      ? (state.userProfile.avatar ? '<img src="' + state.userProfile.avatar + '">' : '<svg viewBox="0 0 32 32" style="width:100%;height:100%"><circle cx="16" cy="12" r="5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10" stroke="#b0b0b0" stroke-width="1.5" fill="none"/></svg>')
-      : (ch && ch.avatar ? '<img src="' + ch.avatar + '">' : '<svg viewBox="0 0 32 32" style="width:100%;height:100%"><circle cx="16" cy="12" r="5" stroke="#b0b0b0" stroke-width="1.5" fill="none"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10" stroke="#b0b0b0" stroke-width="1.5" fill="none"/></svg>');
-
-    const liked = (m.likes || []).includes('user');
-    const likeCount = (m.likes || []).length;
-    const commentCount = (m.comments || []).length;
-
-    const isLong = m.content.length > 120;
-    const shortContent = isLong ? m.content.slice(0, 120) + '...' : m.content;
-
-    h += '<div class="moment-card" data-mid="' + m.id + '">' +
-      '<div class="moment-header">' +
-      '<div class="moment-av"' + (ch ? ' onclick="openChat(\'' + ch.id + '\')"' : '') + '>' + avHtml + '</div>' +
-      '<div class="moment-meta">' +
-      '<div class="moment-name"' + (ch ? ' onclick="openChat(\'' + ch.id + '\')"' : '') + '>' + esc(name) + '</div>' +
-      '<div class="moment-time">' + socialRelativeTime(m.timestamp) + '</div>' +
-      '</div>' +
-      '<button class="moment-delete-btn" onclick="deleteMoment(\'' + m.id + '\')" title="Delete">' +
-      '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:2"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg></button>' +
-      '</div>' +
-      '<div class="moment-body">' +
-      '<span class="moment-text" id="mt_' + m.id + '">' + esc(shortContent) + '</span>' +
-      (isLong ? '<button class="moment-expand-btn" onclick="toggleMomentExpand(\'' + m.id + '\',this)">Expand</button>' : '') +
-      '</div>' +
-      '<div class="moment-actions-bar">' +
-      '<button class="moment-action-btn ' + (liked ? 'liked' : '') + '" onclick="toggleMomentLike(\'' + m.id + '\')">' +
-      '<svg viewBox="0 0 20 20" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5"><path d="M10 17s-7-4.5-7-9a4 4 0 018 0 4 4 0 018 0c0 4.5-7 9-7 9z"/></svg>' +
-      '<span>' + (likeCount || '') + '</span></button>' +
-      '<button class="moment-action-btn" onclick="toggleMomentComment(\'' + m.id + '\')">' +
-      '<svg viewBox="0 0 20 20" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5"><path d="M3 3h14a2 2 0 012 2v8a2 2 0 01-2 2H9l-4 3v-3H3a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>' +
-      '<span>' + (commentCount || '') + '</span></button>' +
-      '</div>' +
-      buildMomentComments(m) +
-      '</div>';
-  });
-
-  container.innerHTML = h;
-}
-
-function buildMomentComments(m) {
-  const comments = m.comments || [];
-  let h = '<div class="moment-comments" id="mc_' + m.id + '" style="display:' + (comments.length ? 'block' : 'none') + '">';
-  comments.forEach(c => {
-    const cch = state.characters.find(x => x.id === c.charId);
-    const cName = c.charId === 'user' ? (state.userProfile.name || 'User') : (cch ? cch.name : 'Anonymous');
-    h += '<div class="moment-comment-item">' +
-      '<span class="mci-name"' + (cch ? ' onclick="openChat(\'' + cch.id + '\')"' : '') + '>' + esc(cName) + '</span>' +
-      '<span class="mci-text">' + esc(c.content) + '</span></div>';
-  });
-  h += '</div>' +
-    '<div class="moment-comment-input" id="mci_' + m.id + '" style="display:none">' +
-    '<input type="text" placeholder="Write a comment..." id="mcinput_' + m.id + '" onkeydown="if(event.key===\'Enter\')sendMomentComment(\'' + m.id + '\')">' +
-    '<button onclick="sendMomentComment(\'' + m.id + '\')">' +
-    '<svg viewBox="0 0 16 16" style="width:14px;height:14px"><path d="M3 13l10-5L3 3v4l6 1-6 1z" fill="#1d1d1f" stroke="none"/></svg></button></div>';
-  return h;
-}
-
-function toggleMomentExpand(mid, btn) {
-  const m = state.moments.find(x => x.id === mid);
-  if (!m) return;
-  const el = document.getElementById('mt_' + mid);
-  if (btn.textContent === 'Expand') {
-    el.textContent = m.content;
-    btn.textContent = 'Collapse';
-  } else {
-    el.textContent = m.content.slice(0, 120) + '...';
-    btn.textContent = 'Expand';
-  }
-}
-
-function toggleMomentLike(mid) {
-  const m = state.moments.find(x => x.id === mid);
-  if (!m) return;
-  if (!m.likes) m.likes = [];
-  const idx = m.likes.indexOf('user');
-  if (idx >= 0) m.likes.splice(idx, 1);
-  else m.likes.push('user');
-  saveState();
-  renderMoments();
-}
-
-function toggleMomentComment(mid) {
-  const el = document.getElementById('mci_' + mid);
-  const cmt = document.getElementById('mc_' + mid);
-  if (!el) return;
-  const showing = el.style.display !== 'none';
-  el.style.display = showing ? 'none' : 'flex';
-  if (!showing) {
-    cmt.style.display = 'block';
-    document.getElementById('mcinput_' + mid)?.focus();
-  }
-}
-
-function sendMomentComment(mid) {
-  const m = state.moments.find(x => x.id === mid);
-  if (!m) return;
-  const inp = document.getElementById('mcinput_' + mid);
-  const text = inp?.value.trim();
-  if (!text) return;
-  if (!m.comments) m.comments = [];
-  m.comments.push({ charId: 'user', content: text, timestamp: Date.now() });
-  saveState();
-  renderMoments();
-}
-
-function deleteMoment(mid) {
-  if (!confirm('Delete this moment?')) return;
-  state.moments = state.moments.filter(x => x.id !== mid);
-  saveState();
-  renderMoments();
-  showToast('Deleted');
-}
-
-// --- Post moment ---
-function openNewMomentModal() {
-  document.getElementById('newMomentContent').value = '';
-  document.getElementById('newMomentCharSelect').innerHTML = buildMomentCharOptions();
-  document.getElementById('newMomentModal').classList.add('show');
-}
-
-function buildMomentCharOptions() {
-  let h = '<option value="user">Myself</option>';
-  state.characters.forEach(ch => {
-    h += '<option value="' + ch.id + '">' + esc(ch.name) + '</option>';
-  });
-  return h;
-}
-
-function confirmNewMoment() {
-  const content = document.getElementById('newMomentContent').value.trim();
-  if (!content) { showToast('Please enter content'); return; }
-  const charId = document.getElementById('newMomentCharSelect').value || 'user';
-  addMoment(charId, content);
-  closeModal('newMomentModal');
-  showToast('Posted');
-}
-
-function addMoment(charId, content) {
-  state.moments.push({
-    id: uid(),
-    charId: charId,
-    content: content,
-    timestamp: Date.now(),
-    likes: [],
-    comments: []
-  });
-  saveState();
-  if (state.imsgTab === 'moments') renderMoments();
-}
-
-function forceSendMoment() {
-  const cid = state.currentCharId;
-  if (!cid) { showToast('Open a character chat first'); return; }
-  const ch = state.characters.find(c => c.id === cid);
-  if (!ch) return;
-
-  const templates = [
-    'What a beautiful day today!',
-    'Really craving some good food right now',
-    'Just watched an amazing movie',
-    'Life is full of little surprises',
-    'Another day, another adventure!',
-    'A quiet afternoon, feeling peaceful',
-    'New day, new mood',
-    'Been busy lately, but feeling fulfilled',
-  ];
-  const text = templates[Math.floor(Math.random() * templates.length)];
-  addMoment(cid, text);
-  showToast(ch.name + ' posted a moment');
 }

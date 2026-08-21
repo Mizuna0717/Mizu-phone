@@ -52,7 +52,7 @@ function nav(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 
-  // ★ 核心修复：try-catch 包裹 close 调用，防止任何一个抛错阻断后续渲染
+  // ★ try-catch 包裹 close 调用，防止任何一个抛错阻断后续渲染
   try { closePlusMenu(); } catch (e) {}
   try { closeStickerPanel(); } catch (e) {}
   try { closeBubbleMenu(); } catch (e) {}
@@ -85,9 +85,17 @@ function toggleSplitMenu() {
   document.getElementById('splitMenu').classList.toggle('open');
 }
 
+// ★ 需求6 修复: 全局点击关闭下拉菜单  ── 同时处理 splitMenu 和 chatDropdown
 document.addEventListener('click', e => {
+  // 关闭 split 菜单
   if (!e.target.closest('.split-dropdown'))
     document.getElementById('splitMenu')?.classList.remove('open');
+
+  // 关闭聊天右上角三点菜单
+  if (!e.target.closest('.chat-dropdown-wrap')) {
+    var cd = document.getElementById('chatDropdown');
+    if (cd) cd.classList.remove('show');
+  }
 });
 
 // ========== PHONE TIME ==========
@@ -100,13 +108,13 @@ function updatePhoneTime() {
   const del = document.getElementById('phoneDate');
   if (del) del.textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
 }
+
 // ========== iMessage 标签切换 ==========
 function switchImsgTab(tab) {
-  // ★ 校验 tab 合法性，防止异常值导致所有渲染分支都不命中
   if (!['messages', 'groups', 'moments', 'profile'].includes(tab)) tab = 'messages';
   state.imsgTab = tab;
   saveState();
-               // ★ 新增：持久化当前标签
+
   document.querySelectorAll('.imsg-tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.imsg-bottom-tab').forEach(el => el.classList.remove('active'));
 

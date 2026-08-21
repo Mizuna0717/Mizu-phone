@@ -53,6 +53,11 @@
   stroke-linecap: round;
 }
 
+/* ★ 需求1: 隐藏 moments 选项卡的副标题 + 笔按钮 */
+#imsgTabMoments > .social-tab-header {
+  display: none !important;
+}
+
 /* ===== Group Card ===== */
 .group-card {
   background: #fff;
@@ -261,6 +266,34 @@
 .add-char-av svg { width: 18px; height: 18px; stroke: #8e8e93; fill: none; stroke-width: 1.5; }
 .add-char-row span { font-size: 15px; color: #1d1d1f; }
 
+/* ===== Moment Compose Bar ===== */
+.moment-compose-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ececec;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.moment-compose-bar:active { background: #f9f9fb; }
+.moment-compose-bar svg {
+  width: 28px;
+  height: 28px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  flex-shrink: 0;
+}
+.moment-compose-bar span {
+  font-size: 15px;
+  color: #8e8e93;
+}
+
 /* ===== Moment Card ===== */
 .moment-card {
   background: #fff;
@@ -333,7 +366,19 @@
 }
 .moment-expand-btn:active { opacity: .6; }
 
-/* ===== Moment Actions Bar ===== */
+/* ===== Moment Image ===== */
+.moment-image {
+  padding: 0 16px 12px;
+}
+.moment-image img {
+  width: 100%;
+  max-height: 320px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+
+/* ===== Moment Actions Bar ── 需求2 & 3 ===== */
 .moment-actions-bar {
   display: flex;
   gap: 16px;
@@ -347,15 +392,18 @@
   background: none;
   cursor: pointer;
   padding: 4px 0;
+  color: #3a3a3c;            /* ★ 确保 currentColor 不会变蓝 */
   transition: all .15s;
 }
 .moment-action-btn:active { opacity: .6; }
+/* ★ 灰白简约线条图标 —— stroke 用黑色(#1d1d1f)，无填充 */
 .moment-action-btn svg {
   width: 18px;
   height: 18px;
-  stroke: #8e8e93;
+  stroke: #1d1d1f;
   fill: none;
-  stroke-width: 1.5;
+  stroke-width: 1.2;
+  stroke-linecap: round;
   stroke-linejoin: round;
   transition: all .2s;
 }
@@ -363,6 +411,7 @@
   font-size: 13px;
   color: #8e8e93;
 }
+/* 点赞激活状态 */
 .moment-action-btn.liked svg {
   stroke: #ff3b30;
   fill: #ff3b30;
@@ -420,6 +469,143 @@
 .moment-comment-input button:active { background: #e5e5ea; }
 .moment-comment-input button svg {
   width: 14px; height: 14px;
+}
+
+/* ===== New Moment Modal — 图片类型标签 ===== */
+.moment-type-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.moment-type-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 0;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  background: #fafafa;
+  font-size: 13px;
+  font-weight: 500;
+  color: #636366;
+  cursor: pointer;
+  transition: all .15s;
+}
+.moment-type-tab svg {
+  stroke: #636366;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.moment-type-tab.active {
+  background: #1d1d1f;
+  color: #fff;
+  border-color: #1d1d1f;
+}
+.moment-type-tab.active svg {
+  stroke: #fff;
+}
+.moment-type-tab:active { opacity: .7; }
+
+/* ===== 上传区域 ===== */
+.moment-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 28px 16px;
+  border: 2px dashed #d1d1d6;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.moment-upload-area:active { border-color: #8e8e93; }
+.moment-upload-area svg {
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.moment-upload-area p {
+  font-size: 13px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+/* ===== 图片预览 ===== */
+.moment-preview {
+  position: relative;
+  margin-top: 10px;
+}
+.moment-preview img {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+.moment-preview-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(0,0,0,.45);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.moment-preview-clear svg {
+  width: 10px;
+  height: 10px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2.5;
+}
+
+/* ===== 虚拟图片选择网格 ===== */
+.virtual-image-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+.virtual-image-item {
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color .15s, transform .12s;
+  text-align: center;
+}
+.virtual-image-item img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+}
+.virtual-image-item span {
+  display: block;
+  font-size: 10px;
+  color: #636366;
+  padding: 3px 0;
+  background: #f8f8f8;
+}
+.virtual-image-item.selected {
+  border-color: #1d1d1f;
+  transform: scale(.95);
+}
+.virtual-image-item:active {
+  transform: scale(.92);
 }
 
 /* ===== New Group / New Moment 模态框通用 ===== */
@@ -514,6 +700,7 @@
   cursor: pointer;
 }
 .add-char-modal-footer button:active { opacity: .8; }
+
 /* ===== Group Context Menu ===== */
 .group-context-menu {
   position: fixed;
@@ -566,4 +753,54 @@
 .group-context-danger svg {
   stroke: #ff3b30;
 }
+
+/* ===== 需求6: 聊天右上角三点菜单 ===== */
+.chat-dropdown-wrap {
+  position: relative;
+}
+.chat-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1100;
+  min-width: 180px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.14), 0 1px 4px rgba(0,0,0,.06);
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(.92) translateY(-4px);
+  transform-origin: top right;
+  transition: opacity .15s ease, transform .15s ease;
+  pointer-events: none;
+}
+.chat-dropdown.show {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+.chat-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background .12s;
+  font-size: 14px;
+  color: #1d1d1f;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.chat-dropdown-item:active { background: #f2f2f7; }
+.chat-dropdown-item + .chat-dropdown-item { border-top: 1px solid #f2f2f7; }
+.chat-dropdown-item svg {
+  width: 18px; height: 18px;
+  stroke: #636366; fill: none;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.chat-dropdown-item.danger { color: #ff3b30; }
+.chat-dropdown-item.danger svg { stroke: #ff3b30; }
 

@@ -27,7 +27,7 @@ let state = {
   phoneData: {},
   bookmarks: [],
   groups: [],
-  moments: []
+  moments: []             // moment 对象新增: type ('text'|'image'|'virtual'), imageUrl (string|null)
 };
 
 let bubbleState = {
@@ -56,7 +56,10 @@ let tmp = {
   memMood: '',
   expandedGroups: new Set(),
   addCharGroupId: null,
-  createGroupSelected: new Set()
+  createGroupSelected: new Set(),
+  /* 新增：发布 moment 时的图片临时数据 */
+  momentImageType: 'text',
+  momentImageData: null
 };
 
 const SAVE_KEYS = [
@@ -148,4 +151,6 @@ function resetState() {
   tmp.expandedGroups = new Set();
   tmp.addCharGroupId = null;
   tmp.createGroupSelected = new Set();
+  tmp.momentImageType = 'text';
+  tmp.momentImageData = null;
 }
