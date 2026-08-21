@@ -52,12 +52,12 @@ function nav(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 
-  // ★ try-catch 包裹 close 调用，防止任何一个抛错阻断后续渲染
-  try { closePlusMenu(); } catch (e) {}
+  // ★ try-catch 包裹 close 调用
+  try { closePlusMenu(); }    catch (e) {}
   try { closeStickerPanel(); } catch (e) {}
-  try { closeBubbleMenu(); } catch (e) {}
-  try { closeChatMenu(); } catch (e) {}
-  try { closeGroupMenu(); } catch (e) {}
+  try { closeBubbleMenu(); }  catch (e) {}
+  try { closeChatMenu(); }    catch (e) {}
+  try { closeGroupMenu(); }   catch (e) {}
 
   if (id === 'screen-settings') renderSettings();
   if (id === 'screen-imessage') { switchImsgTab(state.imsgTab || 'messages'); }
@@ -85,17 +85,9 @@ function toggleSplitMenu() {
   document.getElementById('splitMenu').classList.toggle('open');
 }
 
-// ★ 需求6 修复: 全局点击关闭下拉菜单  ── 同时处理 splitMenu 和 chatDropdown
 document.addEventListener('click', e => {
-  // 关闭 split 菜单
   if (!e.target.closest('.split-dropdown'))
     document.getElementById('splitMenu')?.classList.remove('open');
-
-  // 关闭聊天右上角三点菜单
-  if (!e.target.closest('.chat-dropdown-wrap')) {
-    var cd = document.getElementById('chatDropdown');
-    if (cd) cd.classList.remove('show');
-  }
 });
 
 // ========== PHONE TIME ==========
@@ -125,12 +117,10 @@ function switchImsgTab(tab) {
   const tabBtn = document.querySelector(`.imsg-bottom-tab[data-tab="${tab}"]`);
   if (tabBtn) tabBtn.classList.add('active');
 
-  // 更新大标题
   const titleMap = { messages: 'Messages', groups: 'Groups', moments: 'Moments', profile: 'Profile' };
   const lt = document.getElementById('imsgLargeTitle');
   if (lt) lt.textContent = titleMap[tab] || 'Messages';
 
-  // 根据标签渲染对应内容
   if (tab === 'messages') renderCharList();
   if (tab === 'groups') renderGroups();
   if (tab === 'moments') renderMoments();
