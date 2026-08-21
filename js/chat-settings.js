@@ -1,13 +1,14 @@
 // ========== chat-settings.js ==========
 // 聊天设置页面逻辑
-// 依赖：02-state.js, 05-ui.js, 18-chat-config.js, 11-chat.js
+// 依赖：02-state.js, 05-ui.js, 18-chat-config.js
 
-let _autoMsgTimers = {};
-let _autoMomentsTimers = {};
+var _autoMsgTimers = {};
+var _autoMomentsTimers = {};
+var _forceMomentBusy = false;
 
 function openChatSettings() {
   if (!state.currentCharId) return;
-  const cfg = getCharConfig(state.currentCharId);
+  var cfg = getCharConfig(state.currentCharId);
 
   document.getElementById('csReplyMin').value = cfg.replyMin;
   document.getElementById('csReplyMax').value = cfg.replyMax;
@@ -20,11 +21,7 @@ function openChatSettings() {
   document.getElementById('csAutoMsgToggle').classList.toggle('on', !!cfg.autoMessage);
   document.getElementById('csAutoMsgInterval').value = cfg.autoMessageInterval;
   document.getElementById('csAutoMsgIntervalVal').textContent = cfg.autoMessageInterval;
-
-  // ★★★ 新增：语言下拉框 ★★★
   document.getElementById('csChatLang').value = cfg.chatLang || 'zh-CN';
-
-  // ★★★ 三个功能开关 ★★★
   document.getElementById('csStickersToggle').classList.toggle('on', !!cfg.useStickers);
   document.getElementById('csForceControlToggle').classList.toggle('on', !!cfg.forceControl);
   document.getElementById('csTopPriorityToggle').classList.toggle('on', !!cfg.topPriority);
@@ -34,7 +31,7 @@ function openChatSettings() {
 
 function toggleCsToggle(field, toggleId) {
   if (!state.currentCharId) return;
-  const cfg = getCharConfig(state.currentCharId);
+  var cfg = getCharConfig(state.currentCharId);
   cfg[field] = !cfg[field];
   document.getElementById(toggleId).classList.toggle('on', cfg[field]);
   saveCharConfig();
@@ -52,11 +49,10 @@ function toggleCsToggle(field, toggleId) {
 
 function updateCsSetting(field, value) {
   if (!state.currentCharId) return;
-  const cfg = getCharConfig(state.currentCharId);
+  var cfg = getCharConfig(state.currentCharId);
 
-  // ★ 字符串类型字段
-  const stringFields = ['chatLang'];
-  if (stringFields.includes(field)) {
+  var stringFields = ['chatLang'];
+  if (stringFields.indexOf(field) >= 0) {
     cfg[field] = value;
   } else {
     cfg[field] = parseInt(value) || 1;
@@ -77,62 +73,43 @@ function updateCsSetting(field, value) {
   if (field === 'momentsInterval' && cfg.autoMoments) startAutoMoments(state.currentCharId);
 }
 
-// ★★★ 清空聊天记录、记忆、收藏 ★★★
+// ★ 清空聊天记录、记忆、收藏
 function clearChatAndMemories() {
   if (!state.currentCharId) return;
-  const charId = state.currentCharId;
+  var charId = state.currentCharId;
+  var ch = state.characters ? state.characters.find(function(c) { return c.id === charId; }) : null;
+  var charName = ch ? (ch.name || '该角色') : '该角色';
 
-  const char = state.characters ? state.characters.find(c => c.id === charId) : null;
-  const charName = char ? (char.name || '该角色') : '该角色';
-
-  const confirmed = confirm(
-    `确认清空「${charName}」的所有数据？\n\n此操作将删除：\n- 所有聊天记录\n- 所有记忆条目\n- 所有收藏消息\n\n此操作不可撤销！`
+  var confirmed = confirm(
+    '确认清空「' + charName + '」的所有数据？\n\n此操作将删除：\n- 所有聊天记录\n- 所有记忆条目\n- 所有收藏消息\n\n此操作不可撤销！'
   );
   if (!confirmed) return;
 
-  if (state.chats) {
-    state.chats[charId] = [];
-  }
-
+  if (state.chats) state.chats[charId] = [];
   if (state.memories && Array.isArray(state.memories)) {
-    state.memories = state.memories.filter(m => m.charId !== charId);
+    state.memories = state.memories.filter(function(m) { return m.charId !== charId; });
   }
-
   if (state.bookmarks && Array.isArray(state.bookmarks)) {
-    state.bookmarks = state.bookmarks.filter(b => b.charId !== charId);
+    state.bookmarks = state.bookmarks.filter(function(b) { return b.charId !== charId; });
   }
-
-  const cfg = getCharConfig(charId);
+  var cfg = getCharConfig(charId);
   cfg.lastSummaryMsgCount = 0;
   cfg.lastConsolidateCount = 0;
-
   saveState();
 
-  if (typeof renderChat === 'function') {
-    try { renderChat(); } catch (e) { console.warn('renderChat error:', e); }
-  }
-
-  if (typeof renderMemoryList === 'function') {
-    try { renderMemoryList(); } catch (e) { console.warn('renderMemoryList error:', e); }
-  }
-  if (typeof renderCfgCharMemories === 'function') {
-    try { renderCfgCharMemories(); } catch (e) { console.warn('renderCfgCharMemories error:', e); }
-  }
-
-  if (typeof showToast === 'function') {
-    showToast('已清空');
-  } else {
-    alert('已清空');
-  }
+  try { if (typeof renderChat === 'function') renderChat(); } catch(e) {}
+  try { if (typeof renderMemoryList === 'function') renderMemoryList(); } catch(e) {}
+  try { if (typeof renderCfgCharMemories === 'function') renderCfgCharMemories(); } catch(e) {}
+  showToast('已清空');
 }
 
 // =========== 自动发消息 ===========
 function startAutoMessage(charId) {
   stopAutoMessage(charId);
-  const cfg = getCharConfig(charId);
+  var cfg = getCharConfig(charId);
   if (!cfg.autoMessage) return;
-  const intervalMs = (cfg.autoMessageInterval || 10) * 60 * 1000;
-  _autoMsgTimers[charId] = setInterval(() => {
+  var intervalMs = (cfg.autoMessageInterval || 10) * 60 * 1000;
+  _autoMsgTimers[charId] = setInterval(function() {
     if (state.currentCharId !== charId) return;
     if (typeof triggerResponse === 'function') triggerResponse();
   }, intervalMs);
@@ -146,29 +123,20 @@ function stopAutoMessage(charId) {
 }
 
 function restartAutoMessageTimer(charId) {
-  const cfg = getCharConfig(charId);
+  var cfg = getCharConfig(charId);
   cfg.autoMessage ? startAutoMessage(charId) : stopAutoMessage(charId);
 }
 
-// =========== 自动朋友圈 ===========
+// =========== 自动朋友圈（调用 AI 生成） ===========
 function startAutoMoments(charId) {
   stopAutoMoments(charId);
-  const cfg = getCharConfig(charId);
+  var cfg = getCharConfig(charId);
   if (!cfg.autoMoments) return;
-  const intervalMs = (cfg.momentsInterval || 6) * 60 * 60 * 1000;
-  _autoMomentsTimers[charId] = setInterval(() => {
-    if (state.currentCharId !== charId) return;
-    const momentMsg = {
-      id: uid(),
-      role: 'assistant',
-      content: '[朋友圈] 今天天气真好~',
-      type: 'moment',
-      timestamp: Date.now()
-    };
-    state.chats[charId].push(momentMsg);
-    saveState();
-    if (state.currentCharId === charId && typeof renderChat === 'function') renderChat();
-    showToast('角色发了一条朋友圈');
+  var intervalMs = (cfg.momentsInterval || 6) * 60 * 60 * 1000;
+  _autoMomentsTimers[charId] = setInterval(function() {
+    if (typeof generateAndPostCharMoment === 'function') {
+      generateAndPostCharMoment(charId);
+    }
   }, intervalMs);
 }
 
@@ -179,58 +147,48 @@ function stopAutoMoments(charId) {
   }
 }
 
+// ★ 强制发送 Moment（防抖 + 调用 AI 生成）
 function forceSendMoment() {
   if (!state.currentCharId) return;
-  const charId = state.currentCharId;
-  if (!state.chats[charId]) state.chats[charId] = [];
-  const momentMsg = {
-    id: uid(),
-    role: 'assistant',
-    content: '[朋友圈] 今天天气真好~',
-    type: 'moment',
-    timestamp: Date.now()
-  };
-  state.chats[charId].push(momentMsg);
-  const cfg = getCharConfig(charId);
-  if (cfg.autoMoments) startAutoMoments(charId);
-  saveState();
-  showToast('朋友圈已发送');
-}
+  if (_forceMomentBusy) {
+    showToast('正在生成中...');
+    return;
+  }
+  _forceMomentBusy = true;
 
-// =========== iMessage 标签切换 ===========
-function switchImsgTab(tab) {
-  state.imsgTab = tab;
-
-  document.querySelectorAll('.imsg-bottom-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === tab);
-  });
-
-  const tabMap = {
-    messages: 'imsgTabMessages',
-    groups: 'imsgTabGroups',
-    moments: 'imsgTabMoments',
-    profile: 'imsgTabProfile'
-  };
-
-  Object.values(tabMap).forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('active');
-  });
-
-  const activeId = tabMap[tab];
-  if (activeId) {
-    const el = document.getElementById(activeId);
-    if (el) el.classList.add('active');
+  if (typeof generateAndPostCharMoment === 'function') {
+    var p = generateAndPostCharMoment(state.currentCharId);
+    if (p && typeof p.finally === 'function') {
+      p.finally(function() { _forceMomentBusy = false; });
+    } else {
+      _forceMomentBusy = false;
+    }
+  } else {
+    showToast('功能未加载');
+    _forceMomentBusy = false;
   }
 
-  const titles = {
-    messages: 'Messages',
-    groups: 'Groups',
-    moments: 'Moments',
-    profile: 'Profile'
-  };
-  const lt = document.getElementById('imsgLargeTitle');
-  if (lt) lt.textContent = titles[tab] || 'Messages';
-
-  saveState();
+  // 重启定时器
+  var cfg = getCharConfig(state.currentCharId);
+  if (cfg.autoMoments) startAutoMoments(state.currentCharId);
 }
+
+// =========== 重启所有自动 Moment 定时器（可在 init 中调用）===========
+function restartAllAutoMoments() {
+  (state.characters || []).forEach(function(ch) {
+    var cfg = getCharConfig(ch.id);
+    if (cfg.autoMoments) startAutoMoments(ch.id);
+  });
+}
+
+window.openChatSettings      = openChatSettings;
+window.toggleCsToggle         = toggleCsToggle;
+window.updateCsSetting        = updateCsSetting;
+window.clearChatAndMemories   = clearChatAndMemories;
+window.startAutoMessage       = startAutoMessage;
+window.stopAutoMessage        = stopAutoMessage;
+window.restartAutoMessageTimer= restartAutoMessageTimer;
+window.startAutoMoments       = startAutoMoments;
+window.stopAutoMoments        = stopAutoMoments;
+window.forceSendMoment        = forceSendMoment;
+window.restartAllAutoMoments  = restartAllAutoMoments;

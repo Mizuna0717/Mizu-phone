@@ -325,7 +325,7 @@
 }
 
 /* ============================================================
-   BUBBLE BORDER-RADIUS — uniform 20px, no tails
+   BUBBLE BORDER-RADIUS
    ============================================================ */
 .msg-row.received.group-last .msg-bubble,
 .msg-row.received.group-solo .msg-bubble,
@@ -559,7 +559,7 @@
 }
 
 /* ============================================================
-   INPUT BAR — bottom padding increased for breathing room
+   INPUT BAR
    ============================================================ */
 .chat-input-bar {
   display: flex;
@@ -841,100 +841,142 @@
   min-width: 36px;
   text-align: right;
 }
-/* ============================================================
-   ★ CHAT MENU (三点下拉菜单) — 完全重写
-   ============================================================ */
 
 /* ============================================================
-   ★ CHAT MENU — 右上角下拉菜单（修复）
+   ★ CHAT MENU — 右上角三点下拉菜单（统一样式）
    ============================================================ */
+
+/* ---------- Overlay ---------- */
+div.chat-menu-overlay,
 #chatMenuOverlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: rgba(0, 0, 0, 0.08) !important;
-  z-index: 900 !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: opacity .18s ease !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 900;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
 }
+div.chat-menu-overlay.show,
 #chatMenuOverlay.show {
-  opacity: 1 !important;
-  pointer-events: auto !important;
+  opacity: 1;
+  pointer-events: auto;
 }
 
+/* ---------- 菜单容器 ---------- */
+div.chat-menu,
 #chatMenu {
-  position: fixed !important;
-  top: max(60px, calc(env(safe-area-inset-top, 0px) + 56px)) !important;
-  right: 12px !important;
-  left: auto !important;
-  bottom: auto !important;
-  width: auto !important;
-  min-width: 150px !important;
-  max-width: 200px !important;
-  height: auto !important;
-  max-height: 80vh !important;
-  background: #fff !important;
-  z-index: 910 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.13),
-              0 0 0 0.5px rgba(0, 0, 0, 0.06) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-  opacity: 0 !important;
-  transform: scale(0.9) translateY(-6px) !important;
-  transform-origin: top right !important;
-  pointer-events: none !important;
-  transition: opacity .16s ease, transform .16s cubic-bezier(.4, 0, .2, 1) !important;
-  padding: 4px 0 !important;
+  /* 重置一切可能被其它 CSS 设置的属性 */
+  all: initial;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  position: fixed;
+  top: max(58px, calc(env(safe-area-inset-top, 0px) + 54px));
+  right: 14px;
+  left: auto;
+  bottom: auto;
+  z-index: 910;
+
+  /* 尺寸 */
+  width: auto;
+  min-width: 140px;
+  max-width: 220px;
+  height: auto;
+  max-height: 80vh;
+
+  /* 外观 */
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12),
+              0 0 0 0.5px rgba(0, 0, 0, 0.05);
+  padding: 6px 0;
+  margin: 0;
+  border: none;
+  overflow: hidden;
+
+  /* 显隐动画 */
+  opacity: 0;
+  transform: scale(0.92) translateY(-4px);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity .14s ease, transform .14s cubic-bezier(.4, 0, .2, 1);
+
+  /* 布局 */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
+div.chat-menu.show,
 #chatMenu.show {
-  opacity: 1 !important;
-  transform: scale(1) translateY(0) !important;
-  pointer-events: auto !important;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
 }
 
-#chatMenu .chat-menu-header {
-  display: none !important;
-}
+/* 隐藏旧版可能存在的标题/关闭按钮 */
+#chatMenu .chat-menu-header,
 #chatMenu .chat-menu-close {
-  display: none !important;
+  display: none;
 }
 
-#chatMenu .chat-menu-item {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-  padding: 12px 16px !important;
-  cursor: pointer !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  color: #1d1d1f !important;
-  background: transparent !important;
-  border: none !important;
-  border-bottom: none !important;
-  white-space: nowrap !important;
-  margin: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  line-height: 1.3 !important;
+/* ---------- 菜单项 ---------- */
+div.chat-menu > .chat-menu-item,
+#chatMenu > .chat-menu-item {
+  all: initial;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+  background: transparent;
+  border: none;
+  white-space: nowrap;
+  line-height: 1.3;
+  box-sizing: border-box;
+  transition: background .1s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-#chatMenu .chat-menu-item:active {
-  background: #f2f2f7 !important;
+
+div.chat-menu > .chat-menu-item:active,
+#chatMenu > .chat-menu-item:active {
+  background: #f2f2f7;
 }
-#chatMenu .chat-menu-item + .chat-menu-item {
-  border-top: 0.5px solid rgba(0, 0, 0, 0.06) !important;
+
+/* 菜单项之间的分割线 */
+div.chat-menu > .chat-menu-item + .chat-menu-item,
+#chatMenu > .chat-menu-item + .chat-menu-item {
+  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
 }
-#chatMenu .chat-menu-item svg {
-  width: 18px !important;
-  height: 18px !important;
-  stroke: #8e8e93 !important;
-  fill: none !important;
-  stroke-width: 1.5 !important;
-  stroke-linecap: round !important;
-  stroke-linejoin: round !important;
-  flex-shrink: 0 !important;
+
+/* 菜单项图标 */
+div.chat-menu > .chat-menu-item > svg,
+#chatMenu > .chat-menu-item > svg {
+  width: 18px;
+  height: 18px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* 菜单项文字 */
+div.chat-menu > .chat-menu-item > span,
+#chatMenu > .chat-menu-item > span {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+  line-height: 1.3;
 }

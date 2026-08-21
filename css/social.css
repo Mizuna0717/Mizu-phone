@@ -53,7 +53,6 @@
   stroke-linecap: round;
 }
 
-/* ★ 需求1: 隐藏 moments 选项卡的副标题 + 笔按钮 */
 #imsgTabMoments > .social-tab-header {
   display: none !important;
 }
@@ -378,7 +377,7 @@
   display: block;
 }
 
-/* ===== Moment Actions Bar ── 需求2 & 3 ===== */
+/* ===== Moment Actions Bar ===== */
 .moment-actions-bar {
   display: flex;
   gap: 16px;
@@ -392,11 +391,10 @@
   background: none;
   cursor: pointer;
   padding: 4px 0;
-  color: #3a3a3c;            /* ★ 确保 currentColor 不会变蓝 */
+  color: #3a3a3c;
   transition: all .15s;
 }
 .moment-action-btn:active { opacity: .6; }
-/* ★ 灰白简约线条图标 —— stroke 用黑色(#1d1d1f)，无填充 */
 .moment-action-btn svg {
   width: 18px;
   height: 18px;
@@ -411,7 +409,6 @@
   font-size: 13px;
   color: #8e8e93;
 }
-/* 点赞激活状态 */
 .moment-action-btn.liked svg {
   stroke: #ff3b30;
   fill: #ff3b30;
@@ -754,7 +751,7 @@
   stroke: #ff3b30;
 }
 
-/* ===== 需求6: 聊天右上角三点菜单 ===== */
+/* ===== 聊天右上角三点菜单 ===== */
 .chat-dropdown-wrap {
   position: relative;
 }
@@ -804,3 +801,112 @@
 .chat-dropdown-item.danger { color: #ff3b30; }
 .chat-dropdown-item.danger svg { stroke: #ff3b30; }
 
+
+/* ============================================================
+   ★ 虚拟图片交互样式（点击切换渐变/灰底文字）
+   ============================================================ */
+
+/* 虚拟图片容器 */
+.moment-virtual-img {
+  position: relative;
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.moment-virtual-img img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 10px;
+  transition: opacity .25s ease;
+}
+
+/* 文字遮罩层 — 默认隐藏 */
+.virtual-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #e5e5ea;
+  border-radius: 10px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  text-align: center;
+  transition: opacity .2s ease;
+}
+
+.virtual-text-overlay span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3a3a3c;
+  line-height: 1.5;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* 点击后显示文字 */
+.moment-virtual-img.revealed .virtual-text-overlay {
+  display: flex;
+}
+
+.moment-virtual-img.revealed > img {
+  opacity: 0;
+}
+
+/* 点击提示 — 未展开时在右下角显示小图标 */
+.moment-virtual-img::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23636366' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M3 8h10M8 3v10'/%3E%3C/svg%3E");
+  background-size: 12px 12px;
+  background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+
+.moment-virtual-img.revealed::after {
+  opacity: 0;
+}
+
+/* ★ 发布弹窗中虚拟图片文字输入框 */
+.moment-virtual-text-wrap {
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.moment-virtual-text-wrap input {
+  width: 100%;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  color: #1d1d1f;
+  background: #fafafa;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+
+.moment-virtual-text-wrap input:focus {
+  border-color: #8e8e93;
+}
+
+.moment-virtual-text-wrap input::placeholder {
+  color: #c7c7cc;
+}

@@ -1,5 +1,5 @@
 // ========== social-moments.js ==========
-// Moments: render, like, comment, post (user-only), image support
+// Moments: render, like, comment, post, AI generation, auto-interaction
 
 // ── Virtual image presets ──
 function _makeVirtualImg(c1, c2) {
@@ -23,9 +23,204 @@ var VIRTUAL_IMAGES = [
   { name: 'Aurora',   url: _makeVirtualImg('#667eea', '#764ba2') }
 ];
 
-// ── Main render ──
+
+// ══════════════════════════════════════════════
+//  ★ AI 生成角色 Moment（核心新增）
+// ══════════════════════════════════════════════
+
+var _momentGenLock = {};
+
+async function generateAndPostCharMoment(charId) {
+  if (_momentGenLock[charId]) return;
+  _momentGenLock[charId] = true;
+
+  try {
+    var api = state.apis.find(function(a) { return a.id === state.activeApiId; });
+    if (!api || !api.url || !api.model) {
+      showToast('请先配置 API');
+      return;
+    }
+
+    var ch = state.characters.find(function(c) { return c.id === charId; });
+    if (!ch) { showToast('角色不存在'); return; }
+
+    showToast(ch.name + ' 正在编写动态...');
+
+    var cfg = getCharConfig(charId);
+    var langMap = { 'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'ko': '한국어', 'ja': '日本語', 'en': 'English' };
+    var langName = langMap[cfg.chatLang || 'zh-CN'] || '简体中文';
+
+    // 构建聊天上下文
+    var recentMsgs = (state.chats[charId] || []).slice(-20);
+    var chatContext = '';
+    if (recentMsgs.length > 0) {
+      chatContext = '\n\n最近的聊天记录：\n' + recentMsgs.map(function(m) {
+        if (m.recalled) return '';
+        var sender = m.role === 'user' ? (state.userProfile.name || 'User') : ch.name;
+        var text = (m.content || '').slice(0, 100);
+        if (m.type === 'sticker') text = '[表情包]';
+        if (m.type === 'image') text = '[图片]';
+        if (m.type === 'voice') text = '[语音]';
+        return sender + ': ' + text;
+      }).filter(Boolean).join('\n');
+    }
+
+    var sysPrompt = '你是「' + ch.name + '」。\n';
+    if (ch.systemPrompt) {
+      sysPrompt += '你的人设：' + ch.systemPrompt.slice(0, 600) + '\n';
+    }
+    sysPrompt += chatContext + '\n\n';
+    sysPrompt += '请以「' + ch.name + '」的身份，写一条社交媒体动态（类似微信朋友圈）。\n\n';
+    sysPrompt += '要求：\n';
+    sysPrompt += '- 使用' + langName + '书写\n';
+    sysPrompt += '- 保持角色性格，内容自然\n';
+    sysPrompt += '- 正文不超过200字\n';
+    sysPrompt += '- 不要使用话题标签或emoji\n';
+    sysPrompt += '- 可以与近期聊天话题相关，也可以是日常分享\n\n';
+    sysPrompt += '严格按以下格式回复：\n';
+    sysPrompt += '【内容】\n(你的动态正文)\n\n';
+    sysPrompt += '【虚拟图】\n(如果不需要配图写"无"；如果想配图，用一句话描述图片内容，不超过30字)\n';
+
+    var reply = await sendChat(api, [
+      { role: 'system', content: sysPrompt },
+      { role: 'user', content: '请现在发布你的动态。' }
+    ]);
+
+    // 解析回复
+    var contentMatch = reply.match(/【内容】\s*([\s\S]*?)(?=【虚拟图】|$)/);
+    var imageMatch = reply.match(/【虚拟图】\s*([\s\S]*?)$/);
+
+    var momentContent = contentMatch ? contentMatch[1].trim() : reply.replace(/【[^】]+】/g, '').trim();
+    var imageDesc = imageMatch ? imageMatch[1].trim() : '无';
+
+    // 去除可能的引号包裹
+    momentContent = momentContent.replace(/^["'"「」]|["'"「」]$/g, '');
+    imageDesc = imageDesc.replace(/^["'"「」]|["'"「」]$/g, '');
+
+    if (!momentContent) {
+      momentContent = reply.replace(/【[\s\S]*?】/g, '').trim().slice(0, 200) || '...';
+    }
+
+    var hasVirtualImage = imageDesc && imageDesc !== '无' && imageDesc !== 'none' && imageDesc.length > 1;
+
+    var newMoment = addMoment(
+      charId,
+      momentContent,
+      hasVirtualImage ? 'virtual' : 'text',
+      hasVirtualImage ? VIRTUAL_IMAGES[Math.floor(Math.random() * VIRTUAL_IMAGES.length)].url : null,
+      hasVirtualImage ? imageDesc : ''
+    );
+
+    showToast(ch.name + ' 发布了一条动态');
+    return newMoment;
+
+  } catch (e) {
+    console.error('[generateAndPostCharMoment]', e);
+    showToast('动态生成失败');
+  } finally {
+    delete _momentGenLock[charId];
+  }
+}
+
+
+// ══════════════════════════════════════════════
+//  ★ 用户发布 Moment 后 → 角色自动点赞+评论
+// ══════════════════════════════════════════════
+
+var _autoInteractLock = {};
+
+async function triggerAutoInteractions(momentId) {
+  if (_autoInteractLock[momentId]) return;
+  _autoInteractLock[momentId] = true;
+
+  try {
+    var api = state.apis.find(function(a) { return a.id === state.activeApiId; });
+    if (!api || !api.url || !api.model) return;
+
+    var moment = state.moments.find(function(x) { return x.id === momentId; });
+    if (!moment) return;
+
+    // 筛选已激活角色（有聊天记录的 + 前5个无记录的）
+    var activeChars = state.characters.filter(function(c) {
+      return state.chats[c.id] && state.chats[c.id].length > 0;
+    });
+    if (!activeChars.length) {
+      activeChars = state.characters.slice(0, 5);
+    }
+    if (!activeChars.length) return;
+
+    for (var i = 0; i < activeChars.length; i++) {
+      var ch = activeChars[i];
+
+      // 自动点赞
+      if (!moment.likes) moment.likes = [];
+      if (moment.likes.indexOf(ch.id) < 0) {
+        moment.likes.push(ch.id);
+      }
+
+      // 生成评论
+      try {
+        var charCfg = getCharConfig(ch.id);
+        var cLangMap = { 'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'ko': '한국어', 'ja': '日本語', 'en': 'English' };
+        var cLangName = cLangMap[charCfg.chatLang || 'zh-CN'] || '简体中文';
+
+        var commentPrompt = '你是「' + ch.name + '」。\n';
+        if (ch.systemPrompt) {
+          commentPrompt += '你的人设：' + ch.systemPrompt.slice(0, 300) + '\n\n';
+        }
+        commentPrompt += '你的朋友刚在社交媒体上发了这条动态：\n"' + moment.content + '"\n\n';
+        commentPrompt += '请写一条简短评论（1-2句话，不超过80字），使用' + cLangName + '。\n';
+        commentPrompt += '保持角色性格。不要使用emoji。只输出评论内容，不要加任何标签或引号。';
+
+        var commentReply = await sendChat(api, [
+          { role: 'system', content: commentPrompt },
+          { role: 'user', content: '请写你的评论。' }
+        ]);
+
+        var commentText = (commentReply || '').trim()
+          .replace(/^["'"「」]|["'"「」]$/g, '')
+          .replace(/^【[^】]*】\s*/g, '');
+
+        if (commentText && commentText.length < 200) {
+          if (!moment.comments) moment.comments = [];
+          moment.comments.push({
+            charId: ch.id,
+            content: commentText,
+            timestamp: Date.now() + (i * 1000)
+          });
+        }
+      } catch (e) {
+        console.warn('[autoComment] ' + ch.name + ' failed:', e.message);
+      }
+
+      // 每个角色处理完后保存并刷新
+      saveState();
+      if (state.imsgTab === 'moments') renderMoments();
+    }
+
+  } catch (e) {
+    console.error('[triggerAutoInteractions]', e);
+  } finally {
+    delete _autoInteractLock[momentId];
+  }
+}
+
+
+// ══════════════════════════════════════════════
+//  ★ 虚拟图片点击切换
+// ══════════════════════════════════════════════
+
+function toggleVirtualReveal(mid) {
+  var el = document.querySelector('.moment-virtual-img[data-mid="' + mid + '"]');
+  if (el) el.classList.toggle('revealed');
+}
+
+
+// ══════════════════════════════════════════════
+//  主渲染
+// ══════════════════════════════════════════════
+
 function renderMoments() {
-  /* ① 隐藏 moments 选项卡里的 social-tab-header（小标题 + 笔按钮） */
   var momentsTab = document.getElementById('imsgTabMoments');
   if (momentsTab) {
     var hdr = momentsTab.querySelector('.social-tab-header');
@@ -35,12 +230,11 @@ function renderMoments() {
   var container = document.getElementById('momentsListBody');
   if (!container) return;
 
-  /* 空状态 */
   if (!state.moments.length) {
     container.innerHTML =
       '<div class="moment-compose-bar" onclick="openNewMomentModal()">' +
         '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>' +
-        '<span>Share your first moment…</span>' +
+        '<span>Share your first moment...</span>' +
       '</div>' +
       '<div class="social-empty">' +
         '<svg viewBox="0 0 48 48" style="width:48px;height:48px;stroke:#d1d1d6;fill:none;stroke-width:1.5;display:block;margin:0 auto 12px">' +
@@ -54,10 +248,9 @@ function renderMoments() {
 
   var sorted = state.moments.slice().sort(function(a, b) { return b.timestamp - a.timestamp; });
 
-  /* 顶部发布栏 */
   var h = '<div class="moment-compose-bar" onclick="openNewMomentModal()">' +
     '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>' +
-    '<span>What\'s on your mind…</span>' +
+    '<span>What\'s on your mind...</span>' +
   '</div>';
 
   sorted.forEach(function(m) {
@@ -81,7 +274,6 @@ function renderMoments() {
     var isLong = displayContent.length > 120;
     var shortContent = isLong ? displayContent.slice(0, 120) + '...' : displayContent;
 
-    /* ── card start ── */
     h += '<div class="moment-card" data-mid="' + m.id + '">';
 
     /* header */
@@ -95,7 +287,7 @@ function renderMoments() {
         '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:2"><path d="M3 3l8 8M11 3l-8 8" stroke-linecap="round"/></svg>' +
       '</button></div>';
 
-    /* body (text) */
+    /* body */
     if (displayContent) {
       h += '<div class="moment-body">' +
         '<span class="moment-text" id="mt_' + m.id + '">' + esc(shortContent) + '</span>' +
@@ -103,12 +295,21 @@ function renderMoments() {
       '</div>';
     }
 
-    /* image (real / virtual) */
+    /* ★ image: virtual with reveal, or normal */
     if (m.imageUrl) {
-      h += '<div class="moment-image"><img src="' + m.imageUrl + '"></div>';
+      if (m.virtualText) {
+        h += '<div class="moment-image">' +
+          '<div class="moment-virtual-img" data-mid="' + m.id + '" onclick="toggleVirtualReveal(\'' + m.id + '\')">' +
+            '<img src="' + m.imageUrl + '">' +
+            '<div class="virtual-text-overlay"><span>' + esc(m.virtualText) + '</span></div>' +
+          '</div>' +
+        '</div>';
+      } else {
+        h += '<div class="moment-image"><img src="' + m.imageUrl + '"></div>';
+      }
     }
 
-    /* ② ③ 重新设计的爱心 & 评论图标 —— 灰白简约线条风格，stroke 黑色 */
+    /* actions bar */
     h += '<div class="moment-actions-bar">' +
       '<button class="moment-action-btn ' + (liked ? 'liked' : '') + '" onclick="toggleMomentLike(\'' + m.id + '\')">' +
         '<svg viewBox="0 0 20 20">' +
@@ -125,11 +326,12 @@ function renderMoments() {
     /* comments */
     h += buildMomentComments(m);
 
-    h += '</div>'; /* card end */
+    h += '</div>';
   });
 
   container.innerHTML = h;
 }
+
 
 // ── Comments ──
 function buildMomentComments(m) {
@@ -144,11 +346,12 @@ function buildMomentComments(m) {
   });
   h += '</div>' +
     '<div class="moment-comment-input" id="mci_' + m.id + '" style="display:none">' +
-    '<input type="text" placeholder="Write a comment…" id="mcinput_' + m.id + '" onkeydown="if(event.key===\'Enter\')sendMomentComment(\'' + m.id + '\')">' +
+    '<input type="text" placeholder="Write a comment..." id="mcinput_' + m.id + '" onkeydown="if(event.key===\'Enter\')sendMomentComment(\'' + m.id + '\')">' +
     '<button onclick="sendMomentComment(\'' + m.id + '\')">' +
     '<svg viewBox="0 0 16 16" style="width:14px;height:14px"><path d="M3 13l10-5L3 3v4l6 1-6 1z" fill="#1d1d1f" stroke="none"/></svg></button></div>';
   return h;
 }
+
 
 // ── Interactions ──
 function toggleMomentExpand(mid, btn) {
@@ -208,20 +411,23 @@ function deleteMoment(mid) {
   showToast('Deleted');
 }
 
-// ── Post moment (user-only, with image support) ──
+
+// ══════════════════════════════════════════════
+//  发布 moment（用户手动，含虚拟图文字输入）
+// ══════════════════════════════════════════════
 
 function openNewMomentModal() {
   tmp.momentImageType = 'text';
   tmp.momentImageData = null;
+  tmp.momentVirtualText = '';
 
   var modal = document.getElementById('newMomentModal');
   if (!modal) return;
 
-  /* 重建 modal body：去掉角色选择，增加图片类型切换 */
   var body = modal.querySelector('.social-modal-body');
   if (body) {
     body.innerHTML =
-      '<textarea id="newMomentContent" placeholder="What\'s on your mind…"></textarea>' +
+      '<textarea id="newMomentContent" placeholder="What\'s on your mind..."></textarea>' +
       '<div class="moment-type-tabs">' +
         '<button class="moment-type-tab active" onclick="switchMomentType(\'text\',this)">' +
           '<svg viewBox="0 0 18 18" style="width:14px;height:14px"><path d="M3 3h12M3 7h8M3 11h10M3 15h6"/></svg> Text</button>' +
@@ -239,6 +445,7 @@ function openNewMomentModal() {
 function switchMomentType(type, btn) {
   tmp.momentImageType = type;
   tmp.momentImageData = null;
+  tmp.momentVirtualText = '';
 
   document.querySelectorAll('.moment-type-tab').forEach(function(b) { b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
@@ -267,7 +474,10 @@ function switchMomentType(type, btn) {
   }
 
   if (type === 'virtual') {
-    var gh = '<div class="virtual-image-grid">';
+    var gh = '<div class="moment-virtual-text-wrap">' +
+      '<input type="text" id="momentVirtualText" placeholder="点击图片后显示的文字..." maxlength="60">' +
+    '</div>';
+    gh += '<div class="virtual-image-grid">';
     VIRTUAL_IMAGES.forEach(function(vi, i) {
       gh += '<div class="virtual-image-item" onclick="selectVirtualImage(' + i + ')" data-vi="' + i + '">' +
         '<img src="' + vi.url + '">' +
@@ -318,32 +528,70 @@ function confirmNewMoment() {
   var content  = (document.getElementById('newMomentContent').value || '').trim();
   var hasImage = !!tmp.momentImageData;
 
+  // ★ 获取虚拟图文字
+  var virtualText = '';
+  if (tmp.momentImageType === 'virtual') {
+    var vtInput = document.getElementById('momentVirtualText');
+    virtualText = vtInput ? vtInput.value.trim() : '';
+  }
+
   if (!content && !hasImage) {
     showToast('Please enter text or add an image');
     return;
   }
 
-  addMoment('user', content, tmp.momentImageType || 'text', tmp.momentImageData || null);
+  var newMoment = addMoment(
+    'user',
+    content,
+    tmp.momentImageType || 'text',
+    tmp.momentImageData || null,
+    virtualText
+  );
+
   closeModal('newMomentModal');
   showToast('Posted');
+
+  // ★ 触发角色自动互动（异步，不阻塞）
+  if (newMoment && newMoment.id) {
+    setTimeout(function() {
+      triggerAutoInteractions(newMoment.id);
+    }, 500);
+  }
 }
 
-function addMoment(charId, content, type, imageUrl) {
-  state.moments.push({
+function addMoment(charId, content, type, imageUrl, virtualText) {
+  var m = {
     id: uid(),
     charId: charId || 'user',
     content: content || '',
     type: type || 'text',
     imageUrl: imageUrl || null,
+    virtualText: virtualText || '',
     timestamp: Date.now(),
     likes: [],
     comments: []
-  });
+  };
+  state.moments.push(m);
   saveState();
   if (state.imsgTab === 'moments') renderMoments();
+  return m;
 }
 
-/* forceSendMoment — 只允许用户自己发布，不再替 AI 发布 */
-function forceSendMoment() {
-  openNewMomentModal();
-}
+
+// ── 全局导出 ──
+window.renderMoments             = renderMoments;
+window.toggleMomentLike          = toggleMomentLike;
+window.toggleMomentComment       = toggleMomentComment;
+window.sendMomentComment         = sendMomentComment;
+window.deleteMoment              = deleteMoment;
+window.toggleMomentExpand        = toggleMomentExpand;
+window.openNewMomentModal        = openNewMomentModal;
+window.switchMomentType          = switchMomentType;
+window.handleMomentImage         = handleMomentImage;
+window.selectVirtualImage        = selectVirtualImage;
+window.clearMomentImage          = clearMomentImage;
+window.confirmNewMoment          = confirmNewMoment;
+window.addMoment                 = addMoment;
+window.generateAndPostCharMoment = generateAndPostCharMoment;
+window.triggerAutoInteractions   = triggerAutoInteractions;
+window.toggleVirtualReveal       = toggleVirtualReveal;

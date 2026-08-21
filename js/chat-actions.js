@@ -20,12 +20,9 @@ function openChat(cid) {
 }
 
 // ══════════════════════════════════════════════
-//  ★ 聊天右上角三点菜单 — 纯显隐版（不再写 innerHTML）
+//  ★ 聊天右上角三点菜单 — 纯显隐版
 // ══════════════════════════════════════════════
 
-/**
- * 同步群管理菜单项的显隐
- */
 function updateChatMenuItems() {
   var groupItem = document.getElementById('chatMenuGroupItem');
   if (!groupItem) return;
@@ -40,9 +37,6 @@ function updateChatMenuItems() {
   groupItem.style.display = isGroup ? '' : 'none';
 }
 
-/**
- * 切换菜单显隐（三点按钮点击）
- */
 function toggleChatMenu(e) {
   if (e) { e.stopPropagation(); e.preventDefault(); }
 
@@ -52,7 +46,6 @@ function toggleChatMenu(e) {
 
   var isShowing = menu.classList.contains('show');
 
-  // 先关掉其它浮层
   try { closeBubbleMenu();  } catch (_) {}
   try { closePlusMenu();    } catch (_) {}
   try { closeStickerPanel(); } catch (_) {}
@@ -61,10 +54,8 @@ function toggleChatMenu(e) {
     menu.classList.remove('show');
     if (overlay) overlay.classList.remove('show');
   } else {
-    // 同步群管理项可见性
     updateChatMenuItems();
 
-    // ★ 安全兜底：如果菜单被外部清空，重建
     if (!menu.children.length) {
       console.warn('[chatMenu] 内容被清空，正在重建...');
       _rebuildMenuDOM(menu);
@@ -75,9 +66,6 @@ function toggleChatMenu(e) {
   }
 }
 
-/**
- * 关闭菜单
- */
 function closeChatMenu() {
   var menu    = document.getElementById('chatMenu');
   var overlay = document.getElementById('chatMenuOverlay');
@@ -87,10 +75,11 @@ function closeChatMenu() {
 
 /**
  * [兜底] 万一 DOM 被清空，用 JS 重建静态菜单
+ * ★ 记忆设置跳转已修正为 screen-chat-config
  */
 function _rebuildMenuDOM(menu) {
   var items = [
-    { label: '记忆设置', action: "closeChatMenu();nav('screen-memory')",
+    { label: '记忆设置', action: "closeChatMenu();nav('screen-chat-config')",
       icon: '<path d="M10 2a6 6 0 00-6 6c0 2.5 1.5 4.5 3 5.5V16a1 1 0 001 1h4a1 1 0 001-1v-2.5c1.5-1 3-3 3-5.5a6 6 0 00-6-6z"/><path d="M8 19h4"/>' },
     { label: '聊天设置', action: "closeChatMenu();openChatSettings()",
       icon: '<circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/>' },
@@ -114,7 +103,6 @@ function _rebuildMenuDOM(menu) {
     menu.appendChild(div);
   });
 
-  // 群管理项
   var isGroup = false;
   try { isGroup = isGroupChat(state.currentCharId); } catch(_) {}
 
@@ -324,10 +312,7 @@ function editCharFromChat() {
   };
 
   Object.keys(_protected).forEach(function(name) {
-    try {
-      // 先删除旧定义（不论是否 writable:false）
-      delete window[name];
-    } catch(_) {}
+    try { delete window[name]; } catch(_) {}
     try {
       Object.defineProperty(window, name, {
         value:        _protected[name],
