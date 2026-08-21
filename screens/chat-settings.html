@@ -1,58 +1,128 @@
 <!-- CHAT SETTINGS -->
 <div class="screen" id="screen-chat-settings">
-    <div class="nav-bar">
-        <button class="nav-btn" onclick="nav('screen-chat')"><svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
-        <span class="nav-title">聊天设置</span>
-    </div>
-    <div class="large-title">聊天设置</div>
-    <div class="screen-body" style="padding-top:4px">
-        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h8M2 12h10"/></svg><span>回复信息数</span></div>
-        <div class="settings-section-card">
-            <div class="form-row" style="border-bottom:1px solid #f2f2f7"><span class="form-label">最少条数</span><input class="form-input cs-num-input" type="number" id="csReplyMin" min="1" max="10" value="1" onchange="updateCsSetting('replyMin',this.value)"></div>
-            <div class="form-row"><span class="form-label">最多条数</span><input class="form-input cs-num-input" type="number" id="csReplyMax" min="1" max="10" value="3" onchange="updateCsSetting('replyMax',this.value)"></div>
-        </div>
-        <div class="form-hint">AI 将在此范围内随机选择回复条数，拆分为多条消息发送。</div>
-        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 4.5v3.5l2.5 1.5"/></svg><span>时间感知</span></div>
-        <div class="settings-section-card"><div class="toggle-wrap"><span class="toggle-label">启用时间感知</span><div class="toggle" id="csTimeToggle" onclick="toggleCsToggle('timeAwareness','csTimeToggle')"><div class="toggle-knob"></div></div></div></div>
-        <div class="form-hint">开启后，AI 回复时会知道当前的具体日期和时间。</div>
-        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><path d="M4 8l4-4M8 4v6a3 3 0 003 3h2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>角色主动撤回</span></div>
-        <div class="settings-section-card"><div class="toggle-wrap"><span class="toggle-label">启用角色主动撤回</span><div class="toggle" id="csRecallToggle" onclick="toggleCsToggle('charRecall','csRecallToggle')"><div class="toggle-knob"></div></div></div></div>
-        <div class="form-hint">开启后，角色有一定概率在发送消息后主动撤回。</div>
-        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14"/></svg><span>自动发朋友圈</span></div>
-        <div class="settings-section-card">
-            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7"><span class="toggle-label">启用自动发朋友圈</span><div class="toggle" id="csMomentsToggle" onclick="toggleCsToggle('autoMoments','csMomentsToggle')"><div class="toggle-knob"></div></div></div>
-            <div class="range-row"><span class="form-label">间隔（小时）</span><input type="range" id="csMomentsInterval" min="1" max="24" step="1" value="6" oninput="updateCsSetting('momentsInterval',this.value);document.getElementById('csMomentsIntervalVal').textContent=this.value"><span class="range-val" id="csMomentsIntervalVal">6</span></div>
-        </div>
-        <button class="form-btn secondary" onclick="forceSendMoment()" style="margin-top:4px"><span>立即发送</span></button>
-        <div class="form-hint">角色将按设定的间隔自动发一条朋友圈。</div>
-        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><path d="M2 3h5M4.5 3v1.5M3 6.5c1 2 3 3.5 5 4" stroke="currentColor" fill="none" stroke-width="1.2" stroke-linecap="round"/><path d="M8 6.5c-1 2-3 3.5-5 4" stroke="currentColor" fill="none" stroke-width="1.2" stroke-linecap="round"/><path d="M9.5 8l2 5 2-5" stroke="currentColor" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 11.5h2" stroke="currentColor" fill="none" stroke-width="1.2" stroke-linecap="round"/></svg><span>回复语言</span></div>
-        <div class="settings-section-card">
-            <div class="form-row"><span class="form-label">语言</span>
-                <select class="form-select" id="csChatLang" onchange="updateCsSetting('chatLang',this.value)">
-                    <option value="zh-CN">简体中文</option><option value="zh-TW">繁體中文</option><option value="ko">한국어</option><option value="ja">日本語</option><option value="en">English</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-hint">选择角色回复时使用的语言。</div>
-        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><path d="M2 3h5M4.5 3v1.5M3 6.5c1 2 3 3.5 5 4"/><path d="M8 6.5c-1 2-3 3.5-5 4"/><path d="M9.5 8l2 5 2-5M10.5 11.5h2"/></svg><span>翻译</span></div>
-        <div class="settings-section-card"><div class="toggle-wrap"><span class="toggle-label">启用翻译</span><div class="toggle" id="csTranslateToggle" onclick="toggleCsToggle('translation','csTranslateToggle')"><div class="toggle-knob"></div></div></div></div>
-        <div class="form-hint">开启后，角色消息将附带简体中文翻译，点击气泡即可查看。</div>
-        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><path d="M3 3h10a2 2 0 012 2v6a2 2 0 01-2 2H7l-3 2v-2H3a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M6 7h4M6 10h2"/></svg><span>自动发消息</span></div>
-        <div class="settings-section-card">
-            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7"><span class="toggle-label">启用自动发消息</span><div class="toggle" id="csAutoMsgToggle" onclick="toggleCsToggle('autoMessage','csAutoMsgToggle')"><div class="toggle-knob"></div></div></div>
-            <div class="range-row"><span class="form-label">间隔（分钟）</span><input type="range" id="csAutoMsgInterval" min="1" max="60" step="1" value="10" oninput="updateCsSetting('autoMessageInterval',this.value);document.getElementById('csAutoMsgIntervalVal').textContent=this.value"><span class="range-val" id="csAutoMsgIntervalVal">10</span></div>
-        </div>
-        <div class="form-hint">启用后，角色将按设定间隔自动发送一条消息。</div>
-        <div class="section-header-fancy"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5.5" cy="6.5" r="1"/><circle cx="10.5" cy="6.5" r="1"/><path d="M5 10.5c.8 1.2 2 1.8 3 1.8s2.2-.6 3-1.8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg><span>功能</span></div>
-        <div class="settings-section-card">
-            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7"><span class="toggle-label">角色可以使用表情包库中的表情包</span><div class="toggle" id="csStickersToggle" onclick="toggleCsToggle('useStickers','csStickersToggle')"><div class="toggle-knob"></div></div></div>
-            <div class="toggle-wrap" style="border-bottom:1px solid #f2f2f7"><span class="toggle-label">强控</span><div class="toggle" id="csForceControlToggle" onclick="toggleCsToggle('forceControl','csForceControlToggle')"><div class="toggle-knob"></div></div></div>
-            <div class="toggle-wrap"><span class="toggle-label">顶号</span><div class="toggle" id="csTopPriorityToggle" onclick="toggleCsToggle('topPriority','csTopPriorityToggle')"><div class="toggle-knob"></div></div></div>
-        </div>
-        <div class="form-hint">表情包：开启后角色会在合适场景使用表情包库中的表情。强控和顶号为预留功能。</div>
-        <div style="height:24px"></div>
-        <div class="clear-btn-sticky" style="position:sticky;bottom:0;background:linear-gradient(transparent,#f2f2f7 12px);padding:18px 16px 24px;margin:0 -16px;">
-            <button class="form-btn danger" onclick="clearChatAndMemories()" style="width:100%;background:#ff3b30;color:#fff;border:none;border-radius:12px;padding:14px 0;font-size:16px;font-weight:600;cursor:pointer;">清空聊天记录</button>
-        </div>
-    </div>
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-chat')"><svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+		<span class="nav-title" data-i18n="chatSettings">Chat Settings</span>
+	</div>
+	<div class="screen-body" style="padding-top:16px">
+
+		<!-- REPLY COUNT -->
+		<div class="section-header" data-i18n="csReplyCount">REPLY COUNT</div>
+		<div class="form-group">
+			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
+				<span class="form-label" data-i18n="csMinReplies">Minimum</span>
+				<input class="form-input cs-num-input" type="number" id="csReplyMin" min="1" max="10" value="1" onchange="updateCsSetting('replyMin',this.value)">
+			</div>
+			<div class="form-row">
+				<span class="form-label" data-i18n="csMaxReplies">Maximum</span>
+				<input class="form-input cs-num-input" type="number" id="csReplyMax" min="1" max="10" value="3" onchange="updateCsSetting('replyMax',this.value)">
+			</div>
+		</div>
+		<div class="cs-hint" data-i18n="csReplyHint">AI will randomly choose a reply count within this range, split into multiple messages.</div>
+
+		<!-- TIME AWARENESS -->
+		<div class="section-header" data-i18n="csTimeAwareness">TIME AWARENESS</div>
+		<div class="form-group">
+			<div class="form-row">
+				<span class="form-label" data-i18n="csEnableTime">Enable Time Awareness</span>
+				<div class="toggle" id="csTimeToggle" onclick="toggleCsToggle('timeAwareness','csTimeToggle')"><div class="toggle-knob"></div></div>
+			</div>
+		</div>
+		<div class="cs-hint" data-i18n="csTimeHint">When enabled, AI will know the current date and time when replying.</div>
+
+		<!-- CHARACTER RECALL -->
+		<div class="section-header" data-i18n="csCharRecall">CHARACTER RECALL</div>
+		<div class="form-group">
+			<div class="form-row">
+				<span class="form-label" data-i18n="csEnableRecall">Enable Character Recall</span>
+				<div class="toggle" id="csRecallToggle" onclick="toggleCsToggle('charRecall','csRecallToggle')"><div class="toggle-knob"></div></div>
+			</div>
+		</div>
+		<div class="cs-hint" data-i18n="csRecallHint">When enabled, the character may occasionally recall a sent message.</div>
+
+		<!-- AUTO-PUBLISH MOMENTS -->
+		<div class="section-header" data-i18n="csAutoMoments">AUTO-PUBLISH MOMENTS</div>
+		<div class="form-group">
+			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
+				<span class="form-label" data-i18n="csEnableMoments">Auto-publish Moments</span>
+				<div class="toggle" id="csMomentsToggle" onclick="toggleCsToggle('autoMoments','csMomentsToggle')"><div class="toggle-knob"></div></div>
+			</div>
+			<div class="form-row cs-range-row">
+				<span class="form-label" data-i18n="csIntervalHours">Interval (hours)</span>
+				<div class="cs-range-control">
+					<input type="range" class="cs-range" id="csMomentsInterval" min="1" max="24" step="1" value="6" oninput="updateCsSetting('momentsInterval',this.value);document.getElementById('csMomentsIntervalVal').textContent=this.value">
+					<span class="cs-range-value" id="csMomentsIntervalVal">6</span>
+				</div>
+			</div>
+		</div>
+		<button class="form-btn cs-btn-secondary" onclick="forceSendMoment()" data-i18n="csForcePublish">Force Publish</button>
+		<div class="cs-hint" data-i18n="csMomentsHint">Character will auto-publish a Moment at the set interval.</div>
+
+		<!-- REPLY LANGUAGE -->
+		<div class="section-header" data-i18n="csReplyLanguage">REPLY LANGUAGE</div>
+		<div class="form-group">
+			<div class="form-row">
+				<span class="form-label" data-i18n="csLanguage">Language</span>
+				<select class="form-select" id="csChatLang" onchange="updateCsSetting('chatLang',this.value)">
+					<option value="zh-CN">简体中文</option>
+					<option value="zh-TW">繁體中文</option>
+					<option value="ko">한국어</option>
+					<option value="ja">日本語</option>
+					<option value="en">English</option>
+				</select>
+			</div>
+		</div>
+		<div class="cs-hint" data-i18n="csLangHint">Choose the language the character uses when replying.</div>
+
+		<!-- TRANSLATION -->
+		<div class="section-header" data-i18n="csTranslation">TRANSLATION</div>
+		<div class="form-group">
+			<div class="form-row">
+				<span class="form-label" data-i18n="csEnableTranslation">Enable Translation</span>
+				<div class="toggle" id="csTranslateToggle" onclick="toggleCsToggle('translation','csTranslateToggle')"><div class="toggle-knob"></div></div>
+			</div>
+		</div>
+		<div class="cs-hint" data-i18n="csTranslateHint">When enabled, character messages will include a translation. Tap the bubble to view.</div>
+
+		<!-- AUTO MESSAGE -->
+		<div class="section-header" data-i18n="csAutoMessage">AUTO MESSAGE</div>
+		<div class="form-group">
+			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
+				<span class="form-label" data-i18n="csEnableAutoMsg">Enable Auto Message</span>
+				<div class="toggle" id="csAutoMsgToggle" onclick="toggleCsToggle('autoMessage','csAutoMsgToggle')"><div class="toggle-knob"></div></div>
+			</div>
+			<div class="form-row cs-range-row">
+				<span class="form-label" data-i18n="csIntervalMinutes">Interval (minutes)</span>
+				<div class="cs-range-control">
+					<input type="range" class="cs-range" id="csAutoMsgInterval" min="1" max="60" step="1" value="10" oninput="updateCsSetting('autoMessageInterval',this.value);document.getElementById('csAutoMsgIntervalVal').textContent=this.value">
+					<span class="cs-range-value" id="csAutoMsgIntervalVal">10</span>
+				</div>
+			</div>
+		</div>
+		<div class="cs-hint" data-i18n="csAutoMsgHint">When enabled, the character will auto-send a message at the set interval.</div>
+
+		<!-- FEATURES -->
+		<div class="section-header" data-i18n="csFeatures">FEATURES</div>
+		<div class="form-group">
+			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
+				<span class="form-label" data-i18n="csUseStickers">Use Sticker Library</span>
+				<div class="toggle" id="csStickersToggle" onclick="toggleCsToggle('useStickers','csStickersToggle')"><div class="toggle-knob"></div></div>
+			</div>
+			<div class="form-row" style="border-bottom:1px solid #f2f2f7">
+				<span class="form-label" data-i18n="csForceControl">Force Control</span>
+				<div class="toggle" id="csForceControlToggle" onclick="toggleCsToggle('forceControl','csForceControlToggle')"><div class="toggle-knob"></div></div>
+			</div>
+			<div class="form-row">
+				<span class="form-label" data-i18n="csTopPriority">Top Priority</span>
+				<div class="toggle" id="csTopPriorityToggle" onclick="toggleCsToggle('topPriority','csTopPriorityToggle')"><div class="toggle-knob"></div></div>
+			</div>
+		</div>
+		<div class="cs-hint" data-i18n="csFeatureHint">Stickers: character uses stickers from library when appropriate. Force Control and Top Priority are reserved features.</div>
+
+		<!-- DANGER ZONE -->
+		<div class="section-header" data-i18n="csDangerZone">DANGER ZONE</div>
+		<button class="form-btn danger" onclick="clearChatAndMemories()" data-i18n="csClearAll">Clear Chat & Memories</button>
+
+		<div style="height:40px"></div>
+	</div>
 </div>
