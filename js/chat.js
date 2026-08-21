@@ -49,11 +49,20 @@ function openChat(cid) {
   state.unread[cid] = 0;
   if (!state.chats[cid]) state.chats[cid] = [];
   saveState();
+
+  // ★ 清除上一次聊天可能残留的弹窗 .show
+  ['groupManageModal', 'addGroupMemberModal', 'createGroupModal', 'createActionSheet']
+    .forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.remove('show');
+    });
+
   nav('screen-chat');
   if (!isGroupChat(cid) && typeof restartAutoMessageTimer === 'function') {
     restartAutoMessageTimer(cid);
   }
 }
+
 
 function getUserAv(cid) {
   var m = getMaskForChar(cid);

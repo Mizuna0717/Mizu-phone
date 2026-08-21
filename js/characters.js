@@ -292,8 +292,16 @@ function deleteChar() {
 
 // ========== CREATE ACTION SHEET ==========
 function imsgTabAction() {
-  document.getElementById('createActionSheet').classList.add('show');
+  if (state.imsgTab === 'profile') {
+    editMask(null);
+  } else if (state.imsgTab === 'moments') {
+    if (typeof openNewMomentModal === 'function') openNewMomentModal();
+  } else {
+    // messages / groups tab → 显示「创建角色 / 创建群组」Action Sheet
+    document.getElementById('createActionSheet').classList.add('show');
+  }
 }
+
 
 function closeCreateActionSheet() {
   document.getElementById('createActionSheet').classList.remove('show');
