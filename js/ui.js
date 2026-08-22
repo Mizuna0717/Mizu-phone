@@ -49,7 +49,6 @@ function toggleAcc(h) {
 
 // ========== NAVIGATION ==========
 function nav(id) {
-  // ★FC★ 强控期间阻止用户主动导航（但允许 FC 引擎调用）
   if (window._fcNavigationLocked && !window._fcEngineNavigating) {
     console.log('[FC] nav blocked:', id);
     return;
@@ -72,6 +71,8 @@ function nav(id) {
   if (id === 'screen-memory') try { renderMemoryList(); } catch(e) {}
   if (id === 'screen-chat-config') try { openChatConfig(); } catch(e) {}
   if (id === 'screen-bookmarks') try { renderBookmarkList(); } catch(e) {}
+  // ★★★ 云端页面初始化 ★★★
+  if (id === 'screen-cloud') try { initCloudPage(); } catch(e) {}
 }
 
 

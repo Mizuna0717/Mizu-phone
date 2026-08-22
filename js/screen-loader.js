@@ -1,5 +1,6 @@
 /**
  * ScreenLoader v3 — 修复闭包 + 错误捕获
+ * ★★★ 新增 cloud.html 页面加载 ★★★
  */
 (async function () {
     var screenContainer = document.getElementById('screenContainer');
@@ -21,6 +22,7 @@
         'screens/meeting.html',
         'screens/couple.html',
         'screens/archive.html',
+        'screens/cloud.html',
         'screens/theme.html',
         'screens/forum.html',
         'screens/ao3.html',
@@ -128,7 +130,6 @@
         'js/init.js',
     ];
 
-    // ★ 修复：用 IIFE 捕获正确的 scriptSrc
     for (var k = 0; k < scripts.length; k++) {
         await (function(scriptSrc) {
             return new Promise(function (resolve) {

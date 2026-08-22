@@ -24,10 +24,7 @@
 </head>
 <body>
     <div class="app" id="app">
-        <!-- 屏幕片段将动态注入此容器 -->
         <div class="screen-container" id="screenContainer"></div>
-
-        <!-- Toast & Snackbar（始终存在） -->
         <div class="toast" id="toast"></div>
         <div class="snackbar" id="snackbar">
             <span class="snack-text" id="snackbarText"></span>
@@ -35,7 +32,9 @@
         </div>
     </div>
 
-    <!-- 唯一的 JS 入口：加载器负责注入 HTML 片段 + 按序加载 JS -->
+    <!-- ★★★ Supabase CDN ★★★ -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
     <script src="js/screen-loader.js"></script>
 </body>
 </html>
