@@ -73,6 +73,9 @@ function nav(id) {
   if (id === 'screen-bookmarks') try { renderBookmarkList(); } catch(e) {}
   // ★★★ 云端页面初始化 ★★★
   if (id === 'screen-cloud') try { initCloudPage(); } catch(e) {}
+    // ★ Meeting page init
+  if (id === 'screen-meeting') try { initMeetingPage(); } catch(e) {}
+
 }
 
 

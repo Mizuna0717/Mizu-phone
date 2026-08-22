@@ -117,6 +117,7 @@
         'js/bubble-menu.js',
         'js/chat-extras.js',
         'js/worldbook.js',
+        'js/meeting.js',
         'js/home.js',
         'js/phone.js',
         'js/memory.js',
