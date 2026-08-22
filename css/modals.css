@@ -227,3 +227,25 @@
   #leaveGroupConfirmModal .lgc-btn:first-child{border-right:.5px solid #e5e5ea;color:#007aff}
   #leaveGroupConfirmModal .lgc-btn:last-child{color:#ff3b30;font-weight:600}
   #leaveGroupConfirmModal .lgc-btn:active{background:rgba(0,0,0,.05)}
+
+  /* ===== FC / TP 动画关键帧 ===== */
+
+@keyframes fcSlideIn {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@keyframes fcFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fcFlash {
+  0%   { opacity: .12; }
+  100% { opacity: 0; }
+}
+
+@keyframes fcLogIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.94); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}

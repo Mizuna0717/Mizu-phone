@@ -1,6 +1,6 @@
 // ========== chat-render.js ==========
 // renderChat() & renderGroupChat()
-// ★★★ + Top Priority + Force Control 情绪状态指示器 ★★★
+// ★★★ 情绪指示条已隐藏（后台正常记录，前端不渲染） ★★★
 
 function renderGroupChat(grp) {
   document.getElementById('chatName').textContent = grp.name;
@@ -22,12 +22,11 @@ function renderGroupChat(grp) {
   var userAv = state.userProfile.avatar;
   var uH = _chatMsgAvatarHtml(userAv);
 
+  // ★★★ 隐藏情绪指示条（TP + FC）★★★
   var tpBar = document.getElementById('tpEmotionIndicator');
-  if (tpBar) tpBar.style.display = 'none';
-
-  // ★FC★ 群聊中隐藏 FC 指示器
+  if (tpBar) { tpBar.style.display = 'none'; tpBar.innerHTML = ''; }
   var fcBar = document.getElementById('fcEmotionIndicator');
-  if (fcBar) fcBar.style.display = 'none';
+  if (fcBar) { fcBar.style.display = 'none'; fcBar.innerHTML = ''; }
 
   var groupPos = _computeGroupChatPositions(msgs);
   var multiClass = bubbleState.multiMode ? ' multi-mode' : '';
@@ -174,7 +173,7 @@ function renderChat() {
   var ct = document.getElementById('chatMessages');
 
   // ══════════════════════════════════════════
-  // ★★★ TOP PRIORITY: 情绪状态指示器（修复版）★★★
+  // ★★★ 情绪指示条：完全隐藏（后台继续记录）★★★
   // ══════════════════════════════════════════
   var tpBar = document.getElementById('tpEmotionIndicator');
   if (!tpBar) {
@@ -184,54 +183,10 @@ function renderChat() {
       ct.parentElement.insertBefore(tpBar, ct);
     }
   }
+  // ★★★ 始终隐藏，不渲染任何内容 ★★★
+  tpBar.style.display = 'none';
+  tpBar.innerHTML = '';
 
-  // ★修复H：只有 cfg.topPriority=true 或 lock.active=true 时才显示指示器
-  var _charCfg = (typeof getCharConfig === 'function') ? getCharConfig(state.currentCharId) : null;
-  var _tpEnabled = _charCfg && _charCfg.topPriority;
-  var _tpLock = (typeof getTpLock === 'function') ? getTpLock(state.currentCharId) : null;
-  var _tpLockActive = _tpLock && _tpLock.active;
-  var _showTpBar = (_tpEnabled || _tpLockActive) && _tpLock && _tpLock.emotions;
-
-  if (_showTpBar) {
-    var em = _tpLock.emotions;
-    var angerColor = em.anger >= 7 ? '#c62828' : (em.anger >= 4 ? '#e65100' : '#4caf50');
-    var suspColor = em.suspicion >= 7 ? '#c62828' : (em.suspicion >= 4 ? '#e65100' : '#4caf50');
-
-    tpBar.style.cssText =
-      'padding:6px 16px;' +
-      'background:#fafafa;' +
-      'border-bottom:1px solid #eee;' +
-      'display:flex;' +
-      'gap:10px;' +
-      'align-items:center;' +
-      'font-size:11px;' +
-      'color:#999;' +
-      'flex-shrink:0;' +
-      'flex-wrap:wrap;';
-
-    var lockBadge = '';
-    if (_tpLockActive) {
-      lockBadge = '<span style="color:#c62828;font-weight:600;margin-left:auto;font-size:12px;background:#ffebee;padding:2px 8px;border-radius:4px">已顶号</span>';
-    } else if (_tpLock.consecutiveHigh >= 1) {
-      lockBadge = '<span style="color:#e65100;margin-left:auto;font-size:11px">警告: 连续超标 ' + _tpLock.consecutiveHigh + ' 轮</span>';
-    }
-
-    tpBar.innerHTML =
-      '<span style="color:#888;font-weight:500">情绪</span>' +
-      '<span style="color:' + angerColor + '">愤怒 ' + em.anger + '</span>' +
-      '<span style="color:' + suspColor + '">怀疑 ' + em.suspicion + '</span>' +
-      '<span style="color:#888">信任 ' + em.trust + '</span>' +
-      '<span style="color:#888">耐心 ' + em.patience + '</span>' +
-      lockBadge;
-  } else {
-    tpBar.style.display = 'none';
-    tpBar.innerHTML = '';
-  }
-  // ══════════════════════════════════════════
-
-  // ══════════════════════════════════════════
-  // ★FC★ FORCE CONTROL: 情绪状态指示器（新增）
-  // ══════════════════════════════════════════
   var fcBar = document.getElementById('fcEmotionIndicator');
   if (!fcBar) {
     fcBar = document.createElement('div');
@@ -240,47 +195,9 @@ function renderChat() {
       ct.parentElement.insertBefore(fcBar, ct);
     }
   }
-
-  var _fcEnabled = _charCfg && _charCfg.forceControl;
-  var _fcLock = (typeof getFcLock === 'function') ? getFcLock(state.currentCharId) : null;
-  var _fcActive = _fcLock && _fcLock.active;
-  var _showFcBar = (_fcEnabled || _fcActive) && _fcLock && _fcLock.emotions;
-
-  if (_showFcBar) {
-    var fem = _fcLock.emotions;
-    var fAngerColor = fem.anger >= 7 ? '#c62828' : (fem.anger >= 4 ? '#e65100' : '#4caf50');
-    var fSuspColor = fem.suspicion >= 7 ? '#c62828' : (fem.suspicion >= 4 ? '#e65100' : '#4caf50');
-
-    fcBar.style.cssText =
-      'padding:6px 16px;' +
-      'background:#fff8e1;' +
-      'border-bottom:1px solid #fff3c4;' +
-      'display:flex;' +
-      'gap:10px;' +
-      'align-items:center;' +
-      'font-size:11px;' +
-      'color:#999;' +
-      'flex-shrink:0;' +
-      'flex-wrap:wrap;';
-
-    var fcBadge = '';
-    if (_fcActive) {
-      fcBadge = '<span style="color:#e65100;font-weight:600;margin-left:auto;font-size:12px;background:#fff3e0;padding:2px 8px;border-radius:4px">强控中</span>';
-    } else if (_fcLock.consecutiveHigh >= 1) {
-      fcBadge = '<span style="color:#e65100;margin-left:auto;font-size:11px">FC警告: 超标 ' + _fcLock.consecutiveHigh + ' 轮</span>';
-    }
-
-    fcBar.innerHTML =
-      '<span style="color:#e65100;font-weight:500">FC情绪</span>' +
-      '<span style="color:' + fAngerColor + '">愤怒 ' + fem.anger + '</span>' +
-      '<span style="color:' + fSuspColor + '">怀疑 ' + fem.suspicion + '</span>' +
-      '<span style="color:#888">信任 ' + fem.trust + '</span>' +
-      '<span style="color:#888">耐心 ' + fem.patience + '</span>' +
-      fcBadge;
-  } else {
-    fcBar.style.display = 'none';
-    fcBar.innerHTML = '';
-  }
+  // ★★★ 始终隐藏，不渲染任何内容 ★★★
+  fcBar.style.display = 'none';
+  fcBar.innerHTML = '';
   // ══════════════════════════════════════════
 
   var msgs = state.chats[state.currentCharId] || [];

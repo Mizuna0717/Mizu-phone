@@ -1,9 +1,10 @@
 // ========== chat-ai.js ==========
 // triggerResponse, _triggerSingleResponse, _triggerGroupResponse
 // ★★★ Top Priority + Force Control 情绪检测 ★★★
+// ★★★ + FTM 记忆写入 ★★★
 
 /* ══════════════════════════════════════════
-   TOP PRIORITY — 情绪解析 & 评估 & 执行（保持不变）
+   TOP PRIORITY — 情绪解析 & 评估 & 执行
    ══════════════════════════════════════════ */
 
 function _parseEmotions(rawReply) {
@@ -51,6 +52,15 @@ function _evaluateTopPriority(charId, emotions) {
 
 function _executeTopPriorityKick(charId) {
   var ch = state.characters.find(function (c) { return c.id === charId; }); var charName = ch ? ch.name : '角色';
+
+  // ★★★ FTM: 顶号触发时写入 FTM 记忆 ★★★
+  if (typeof saveMemoryEntry === 'function') {
+    var lock = getTpLock(charId);
+    var em = (lock && lock.emotions) ? lock.emotions : {};
+    saveMemoryEntry(charId, 'ftm', '顶号事件: ' + charName,
+      charName + ' 因情绪异常触发顶号（愤怒:' + (em.anger||'?') + ' 怀疑:' + (em.suspicion||'?') + '）。用户被切换到备用账号。');
+  }
+
   var accounts = getAllAccounts(); var guestAcct = null;
   for (var i = 0; i < accounts.length; i++) { if (accounts[i].id !== accountStore.currentAccountId && accounts[i].name === '备用账号') { guestAcct = accounts[i]; break; } }
   if (!guestAcct) { guestAcct = createAccount('备用账号', null); }
@@ -73,19 +83,80 @@ function _tpCopyCharToAccount(charId, targetAccountId) {
 
 function _showTpRestoreNotice(charId) {
   var ch = state.characters.find(function (c) { return c.id === charId; }); var charName = ch ? ch.name : '角色';
+
+  // ★★★ FTM: 顶号恢复时写入 FTM 记忆 ★★★
+  if (typeof saveMemoryEntry === 'function') {
+    saveMemoryEntry(charId, 'ftm', '顶号恢复: ' + charName,
+      charName + ' 的情绪已恢复正常，顶号状态解除。');
+  }
+
   _showTpModal('角色已冷静', charName + ' 的情绪已恢复。', '切回主号', function () { var freshLock = getTpLock(charId); var originalAccountId = freshLock ? freshLock.originalAccountId : null; if (freshLock) { freshLock.active = false; freshLock.consecutiveHigh = 0; freshLock.cooldownRounds = 0; freshLock.lockTimestamp = null; setTpLock(charId, freshLock); } if (originalAccountId && originalAccountId !== accountStore.currentAccountId) { saveState(); var ok = switchAccount(originalAccountId); if (ok) { reloadUI(false); state.currentCharId = charId; nav('screen-chat'); showToast('已切回主号'); } else { showToast('切回失败'); } } else { showToast('已恢复正常'); if (typeof renderChat === 'function') renderChat(); } }, '继续对话', function () { showToast('可随时手动切回'); });
 }
 
+
+/* ★★★ UI 美化 — 顶号弹窗（灰白简约，无 Emoji） ★★★ */
+
 function _showTpModal(title, message, confirmText, onConfirm, cancelText, onCancel) {
-  var existing = document.getElementById('tpModal'); if (existing) existing.remove();
-  window._tpConfirmFn = null; window._tpCancelFn = null;
-  var overlay = document.createElement('div'); overlay.id = 'tpModal';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:modalIn .22s ease';
-  var hasCancel = !!cancelText; var actionsHtml = '';
-  if (hasCancel) { actionsHtml = '<div style="display:flex;border-top:1px solid rgba(0,0,0,.05)"><button onclick="if(window._tpCancelFn)window._tpCancelFn();window._tpConfirmFn=null;window._tpCancelFn=null;document.getElementById(\'tpModal\')?.remove()" style="flex:1;padding:14px;border:none;background:none;font-size:16px;color:#8e8e93;cursor:pointer;font-family:inherit;border-right:1px solid rgba(0,0,0,.05)">' + (cancelText||'取消') + '</button><button onclick="if(window._tpConfirmFn)window._tpConfirmFn();window._tpConfirmFn=null;window._tpCancelFn=null;document.getElementById(\'tpModal\')?.remove()" style="flex:1;padding:14px;border:none;background:none;font-size:16px;color:#111;font-weight:600;cursor:pointer;font-family:inherit">' + (confirmText||'确认') + '</button></div>'; }
-  else { actionsHtml = '<div style="display:flex;border-top:1px solid rgba(0,0,0,.05)"><button onclick="if(window._tpConfirmFn)window._tpConfirmFn();window._tpConfirmFn=null;window._tpCancelFn=null;document.getElementById(\'tpModal\')?.remove()" style="flex:1;padding:14px;border:none;background:none;font-size:16px;color:#111;font-weight:600;cursor:pointer;font-family:inherit">' + (confirmText||'确认') + '</button></div>'; }
-  overlay.innerHTML = '<div style="background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border-radius:16px;border:1px solid rgba(255,255,255,.5);box-shadow:0 8px 32px rgba(0,0,0,.12);width:calc(100% - 48px);max-width:320px;overflow:hidden"><div style="padding:20px 20px 8px;font-size:17px;font-weight:700;text-align:center;color:#111">' + title + '</div><div style="padding:8px 20px 20px;font-size:14px;color:#3a3a3c;line-height:1.6;text-align:center;white-space:pre-line">' + message + '</div>' + actionsHtml + '</div>';
-  window._tpConfirmFn = onConfirm || null; window._tpCancelFn = onCancel || null;
+  var existing = document.getElementById('tpModal');
+  if (existing) existing.remove();
+  window._tpConfirmFn = null;
+  window._tpCancelFn = null;
+
+  var overlay = document.createElement('div');
+  overlay.id = 'tpModal';
+  overlay.style.cssText =
+    'position:fixed;inset:0;z-index:10000;' +
+    'display:flex;align-items:center;justify-content:center;' +
+    'background:rgba(0,0,0,.3);' +
+    'backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);' +
+    'animation:modalIn .22s ease;';
+
+  var hasCancel = !!cancelText;
+  var actionsHtml = '';
+
+  if (hasCancel) {
+    actionsHtml =
+      '<div style="display:flex;border-top:1px solid #e0e0e0">' +
+        '<button onclick="if(window._tpCancelFn)window._tpCancelFn();window._tpConfirmFn=null;window._tpCancelFn=null;document.getElementById(\'tpModal\')?.remove()"' +
+          ' style="flex:1;padding:14px;border:none;background:none;font-size:15px;color:#888;cursor:pointer;font-family:inherit;border-right:1px solid #e0e0e0;transition:background .12s"' +
+          ' onmousedown="this.style.background=\'#f5f5f5\'" onmouseup="this.style.background=\'none\'">' +
+          (cancelText || '取消') +
+        '</button>' +
+        '<button onclick="if(window._tpConfirmFn)window._tpConfirmFn();window._tpConfirmFn=null;window._tpCancelFn=null;document.getElementById(\'tpModal\')?.remove()"' +
+          ' style="flex:1;padding:14px;border:none;background:none;font-size:15px;color:#333;font-weight:600;cursor:pointer;font-family:inherit;transition:background .12s"' +
+          ' onmousedown="this.style.background=\'#f5f5f5\'" onmouseup="this.style.background=\'none\'">' +
+          (confirmText || '确认') +
+        '</button>' +
+      '</div>';
+  } else {
+    actionsHtml =
+      '<div style="display:flex;border-top:1px solid #e0e0e0">' +
+        '<button onclick="if(window._tpConfirmFn)window._tpConfirmFn();window._tpConfirmFn=null;window._tpCancelFn=null;document.getElementById(\'tpModal\')?.remove()"' +
+          ' style="flex:1;padding:14px;border:none;background:none;font-size:15px;color:#333;font-weight:600;cursor:pointer;font-family:inherit;transition:background .12s"' +
+          ' onmousedown="this.style.background=\'#f5f5f5\'" onmouseup="this.style.background=\'none\'">' +
+          (confirmText || '确认') +
+        '</button>' +
+      '</div>';
+  }
+
+  overlay.innerHTML =
+    '<div style="' +
+      'background:#fff;' +
+      'border-radius:10px;' +
+      'box-shadow:0 4px 20px rgba(0,0,0,.10);' +
+      'width:calc(100% - 48px);max-width:360px;overflow:hidden' +
+    '">' +
+      '<div style="padding:20px 24px 8px;font-size:16px;font-weight:700;text-align:center;color:#333">' +
+        title +
+      '</div>' +
+      '<div style="padding:8px 24px 20px;font-size:14px;color:#555;line-height:1.6;text-align:center;white-space:pre-line">' +
+        message +
+      '</div>' +
+      actionsHtml +
+    '</div>';
+
+  window._tpConfirmFn = onConfirm || null;
+  window._tpCancelFn = onCancel || null;
   document.body.appendChild(overlay);
 }
 
@@ -120,6 +191,15 @@ function _executeForceControl(charId) {
   var ch = (state.characters || []).find(function(c) { return c.id === charId; });
   var charName = ch ? ch.name : '角色';
   console.log('[FC] 执行强控 | char:', charName);
+
+  // ★★★ FTM: 强控触发时写入 FTM 记忆 ★★★
+  if (typeof saveMemoryEntry === 'function') {
+    var lock = getFcLock(charId);
+    var em = (lock && lock.emotions) ? lock.emotions : {};
+    saveMemoryEntry(charId, 'ftm', '强控事件: ' + charName,
+      charName + ' 因情绪激动触发强控（愤怒:' + (em.anger||'?') + ' 怀疑:' + (em.suspicion||'?') + '），开始控制用户账号。');
+  }
+
   if (typeof fcShowOverlay === 'function') { fcShowOverlay(charName); }
   else { console.error('[FC] fcShowOverlay not found!'); window._fcNavigationLocked = true; }
   window._fcEngineStarted = false;
@@ -129,19 +209,58 @@ function _executeForceControl(charId) {
   window._fcAutoStartTimer = setTimeout(function() { window._fcAutoStartTimer = null; if (!window._fcEngineStarted) { window._fcEngineStarted = true; var modal = document.getElementById('fcModal'); if (modal) modal.remove(); console.log('[FC] 自动启动引擎（3秒超时）'); fcStartEngine(charId); } }, 3000);
 }
 
+
+/* ★★★ UI 美化 — 强控激活弹窗 ★★★ */
+
 function _showFcActivationModal(charName, onConfirm) {
-  var existing = document.getElementById('fcModal'); if (existing) existing.remove();
+  var existing = document.getElementById('fcModal');
+  if (existing) existing.remove();
   window._fcActivationConfirmFn = onConfirm || null;
-  var modal = document.createElement('div'); modal.id = 'fcModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:99997;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:fcFadeIn .25s ease;';
-  modal.innerHTML = '<div style="background:rgba(255,255,255,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:16px;border:1px solid rgba(255,255,255,.5);box-shadow:0 8px 32px rgba(0,0,0,.15);width:calc(100% - 48px);max-width:320px;overflow:hidden"><div style="padding:24px 24px 8px;text-align:center"><div style="font-size:36px;margin-bottom:8px">&#128274;</div><div style="font-size:18px;font-weight:700;color:#111">账号被控制</div></div><div style="padding:8px 24px 24px;font-size:14px;color:#3a3a3c;line-height:1.6;text-align:center;white-space:pre-line">' + charName + ' 正在查看你的账号...\n你暂时无法操作界面。</div><div style="display:flex;border-top:1px solid rgba(0,0,0,.06)"><button onclick="if(window._fcActivationConfirmFn)window._fcActivationConfirmFn();window._fcActivationConfirmFn=null;document.getElementById(\'fcModal\')?.remove()" style="flex:1;padding:15px;border:none;background:none;font-size:16px;color:#111;font-weight:600;cursor:pointer;font-family:inherit">我知道了</button></div></div>';
+
+  var lockSvg =
+    '<svg style="width:32px;height:32px;display:block;margin:0 auto 8px" viewBox="0 0 24 24" ' +
+      'fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+      '<rect x="3" y="11" width="18" height="11" rx="2.5"/>' +
+      '<path d="M7 11V7a5 5 0 0 1 10 0v4"/>' +
+    '</svg>';
+
+  var modal = document.createElement('div');
+  modal.id = 'fcModal';
+  modal.style.cssText =
+    'position:fixed;inset:0;z-index:99997;' +
+    'display:flex;align-items:center;justify-content:center;' +
+    'background:rgba(0,0,0,.3);' +
+    'backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);' +
+    'animation:fcFadeIn .25s ease;';
+
+  modal.innerHTML =
+    '<div style="' +
+      'background:#fff;' +
+      'border-radius:10px;' +
+      'box-shadow:0 4px 20px rgba(0,0,0,.10);' +
+      'width:calc(100% - 48px);max-width:360px;overflow:hidden' +
+    '">' +
+      '<div style="padding:24px 24px 8px;text-align:center">' +
+        lockSvg +
+        '<div style="font-size:16px;font-weight:700;color:#333">账号被控制</div>' +
+      '</div>' +
+      '<div style="padding:8px 24px 24px;font-size:14px;color:#555;line-height:1.6;text-align:center;white-space:pre-line">' +
+        charName + ' 正在查看你的账号...\n你暂时无法操作界面。' +
+      '</div>' +
+      '<div style="display:flex;border-top:1px solid #e0e0e0">' +
+        '<button onclick="if(window._fcActivationConfirmFn)window._fcActivationConfirmFn();window._fcActivationConfirmFn=null;document.getElementById(\'fcModal\')?.remove()"' +
+          ' style="flex:1;padding:14px;border:none;background:none;font-size:15px;color:#333;font-weight:600;cursor:pointer;font-family:inherit;transition:background .12s"' +
+          ' onmousedown="this.style.background=\'#f5f5f5\'" onmouseup="this.style.background=\'none\'">我知道了</button>' +
+      '</div>' +
+    '</div>';
+
   document.body.appendChild(modal);
 }
 
 
 /* ══════════════════════════════════════════
    ★FC★ Force Control 操作引擎
-   ★★★ 修复版 v3：unlock/nav/relock 模式 ★★★
+   ★★★ + FTM 记忆写入 ★★★
    ══════════════════════════════════════════ */
 var _fcActionQueue = [];
 var _fcActionTimer = null;
@@ -150,12 +269,12 @@ var _fcEngineCharId = null;
 var _fcActionIndex = 0;
 
 
-
 function fcStartEngine(charId) {
   _fcEngineCharId = charId;
   _fcActionIndex = 0;
+  window._fcEngineRunning = true;
   _fcActionQueue = _fcGenerateActions(charId);
-  console.log('[FC Engine] 启动，共', _fcActionQueue.length, '个操作');
+  console.log('[FC Engine] 启动，共', _fcActionQueue.length, '个操作（单轮模式）');
 
   var lock = (typeof getFcLock === 'function') ? getFcLock(charId) : null;
   var maxDur = (lock && lock.maxDuration) ? lock.maxDuration : 180;
@@ -178,19 +297,15 @@ function fcStopEngine() {
   _fcEngineCharId = null;
   window._fcEngineNavigating = false;
   window._fcEngineStarted = false;
+  window._fcEngineRunning = false;
   console.log('[FC Engine] 已停止');
 }
 
-/**
- * ★修复★ 引擎专用导航函数
- * 使用 unlock → nav → relock 模式，绕过标志位时序问题
- * 内含 fallback：如果 nav() 失败，直接操作 DOM
- */
+
 function _fcUnlockedNav(screenId) {
   var wasLocked = window._fcNavigationLocked;
   var wasEngineNav = window._fcEngineNavigating;
 
-  // 临时解锁，让 nav() 放行
   window._fcNavigationLocked = false;
   window._fcEngineNavigating = true;
 
@@ -198,12 +313,10 @@ function _fcUnlockedNav(screenId) {
     nav(screenId);
     console.log('[FC Engine] _fcUnlockedNav OK:', screenId);
   } catch (e) {
-    // fallback：直接操作 DOM
     console.warn('[FC Engine] nav() threw, fallback to DOM:', e.message);
     document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
     var target = document.getElementById(screenId);
     if (target) target.classList.add('active');
-    // 手动触发该页面的渲染
     try {
       if (screenId === 'screen-chat' && typeof renderChat === 'function') renderChat();
       if (screenId === 'screen-settings' && typeof renderSettings === 'function') renderSettings();
@@ -211,7 +324,6 @@ function _fcUnlockedNav(screenId) {
     } catch (re) {}
   }
 
-  // 恢复原锁定状态
   window._fcNavigationLocked = wasLocked;
   window._fcEngineNavigating = wasEngineNav;
 }
@@ -223,16 +335,17 @@ function _fcExecuteNext() {
   if (!lock || !lock.active) { fcStopEngine(); return; }
 
   if (_fcActionIndex >= _fcActionQueue.length) {
-    _fcActionIndex = 0;
-    _fcActionQueue = _fcGenerateActions(_fcEngineCharId);
-    if (_fcActionQueue.length === 0) return;
+    console.log('[FC Engine] 本轮操作已完成，共执行', _fcActionQueue.length, '个动作');
+    fcUpdateActionLog('本轮操作已结束');
+    window._fcEngineRunning = false;
+    return;
   }
 
   var action = _fcActionQueue[_fcActionIndex];
   _fcActionIndex++;
 
-  console.log('[FC Engine] 动作 #' + _fcActionIndex + '/' + _fcActionQueue.length + ':', action.type,
-    action.text || action.label || action.charName || '');
+  console.log('[FC Engine] 动作 #' + _fcActionIndex + '/' + _fcActionQueue.length + ':',
+    action.type, action.text || action.label || action.charName || '');
 
   _fcPerformAction(action, function() {
     var delay = action.delay || 1500;
@@ -258,7 +371,7 @@ function _fcGenerateActions(charId) {
       var target = shuffled[i];
       var targetName = target.name || '未知角色';
       actions.push({ type: 'log', text: charName + ' 打开了 ' + targetName + ' 的聊天...', delay: 800 });
-      actions.push({ type: 'openChat', charId: target.id, charName: targetName, delay: 2000 });
+      actions.push({ type: 'openChat', charId: target.id, charName: targetName, fcCharId: charId, fcCharName: charName, delay: 2000 });
       actions.push({ type: 'log', text: charName + ' 正在翻看聊天记录...', delay: 600 });
       actions.push({ type: 'scroll', direction: 'up', delay: 1500 });
       actions.push({ type: 'log', text: charName + ' 继续往下看...', delay: 500 });
@@ -268,7 +381,7 @@ function _fcGenerateActions(charId) {
 
   if (em.suspicion >= 6) {
     actions.push({ type: 'log', text: charName + ' 打开了设置页面...', delay: 800 });
-    actions.push({ type: 'nav', screen: 'screen-settings', label: '设置', delay: 2500 });
+    actions.push({ type: 'nav', screen: 'screen-settings', label: '设置', fcCharId: charId, fcCharName: charName, delay: 2500 });
   }
 
   if (lock && lock.allowSwitchAccount && em.suspicion >= 7) {
@@ -277,26 +390,22 @@ function _fcGenerateActions(charId) {
     if (otherAccts.length > 0) {
       var targetAcct = otherAccts[Math.floor(Math.random() * otherAccts.length)];
       actions.push({ type: 'log', text: charName + ' 发现了另一个账号: ' + targetAcct.name, delay: 1200 });
-      actions.push({ type: 'switchAccount', accountId: targetAcct.id, accountName: targetAcct.name, delay: 2500 });
+      actions.push({ type: 'switchAccount', accountId: targetAcct.id, accountName: targetAcct.name, fcCharId: charId, fcCharName: charName, delay: 2500 });
       actions.push({ type: 'log', text: charName + ' 正在查看 ' + targetAcct.name + ' 的内容...', delay: 800 });
       actions.push({ type: 'nav', screen: 'screen-imessage', label: '消息列表', delay: 2000 });
       actions.push({ type: 'log', text: charName + ' 看完了，切回原账号...', delay: 1500 });
-      actions.push({ type: 'switchBack', delay: 2000 });
+      actions.push({ type: 'switchBack', fcCharId: charId, fcCharName: charName, delay: 2000 });
     }
   }
 
   actions.push({ type: 'log', text: charName + ' 返回自己的聊天界面...', delay: 800 });
-  actions.push({ type: 'openChat', charId: charId, charName: charName, delay: 1500 });
+  actions.push({ type: 'openChat', charId: charId, charName: charName, fcCharId: charId, fcCharName: charName, delay: 1500 });
   actions.push({ type: 'log', text: charName + ' 在沉默地思考...', delay: 4000 });
 
   return actions;
 }
 
-/**
- * ★★★ 修复核心：_fcPerformAction ★★★
- * 所有导航操作使用 _fcUnlockedNav（unlock/relock 模式）
- * 日志更新使用同步 fcUpdateActionLog
- */
+
 function _fcPerformAction(action, callback) {
   switch (action.type) {
 
@@ -308,8 +417,14 @@ function _fcPerformAction(action, callback) {
     case 'nav':
       fcUpdateActionLog('切换到' + (action.label || '') + '...');
       if (typeof fcScreenFlash === 'function') fcScreenFlash();
-      // ★★★ 使用 unlock/relock 模式 ★★★
       _fcUnlockedNav(action.screen);
+
+      // ★★★ FTM: 查看设置页面时写入 FTM ★★★
+      if (action.screen === 'screen-settings' && action.fcCharId && typeof saveMemoryEntry === 'function') {
+        saveMemoryEntry(action.fcCharId, 'ftm', '强控操作: ' + (action.fcCharName || '角色'),
+          (action.fcCharName || '角色') + ' 在强控期间查看了设置页面。');
+      }
+
       if (callback) callback();
       break;
 
@@ -318,8 +433,14 @@ function _fcPerformAction(action, callback) {
       if (typeof fcScreenFlash === 'function') fcScreenFlash();
       state.currentCharId = action.charId;
       if (!state.chats[action.charId]) state.chats[action.charId] = [];
-      // ★★★ 使用 unlock/relock 模式 ★★★
       _fcUnlockedNav('screen-chat');
+
+      // ★★★ FTM: 查看其他角色聊天时写入 FTM（不记录回到自己的聊天）★★★
+      if (action.fcCharId && action.charId !== action.fcCharId && typeof saveMemoryEntry === 'function') {
+        saveMemoryEntry(action.fcCharId, 'ftm', '强控操作: ' + (action.fcCharName || '角色'),
+          (action.fcCharName || '角色') + ' 在强控期间查看了 ' + (action.charName || '未知角色') + ' 的聊天记录。');
+      }
+
       if (callback) callback();
       break;
 
@@ -338,7 +459,6 @@ function _fcPerformAction(action, callback) {
       if (typeof fcScreenFlash === 'function') fcScreenFlash();
       window._fcPreviousAccountId = accountStore.currentAccountId;
       saveState();
-      // ★★★ 切换账号也需要解锁 ★★★
       var wasLocked = window._fcNavigationLocked;
       window._fcNavigationLocked = false;
       window._fcEngineNavigating = true;
@@ -346,6 +466,13 @@ function _fcPerformAction(action, callback) {
       if (ok) { try { reloadUI(false); } catch(e) {} }
       window._fcNavigationLocked = wasLocked;
       window._fcEngineNavigating = false;
+
+      // ★★★ FTM: 切换账号时写入 FTM ★★★
+      if (action.fcCharId && typeof saveMemoryEntry === 'function') {
+        saveMemoryEntry(action.fcCharId, 'ftm', '强控操作: ' + (action.fcCharName || '角色'),
+          (action.fcCharName || '角色') + ' 在强控期间发现并切换到了账号「' + (action.accountName || '未知') + '」进行查看。');
+      }
+
       if (callback) callback();
       break;
 
@@ -362,6 +489,13 @@ function _fcPerformAction(action, callback) {
         window._fcNavigationLocked = wasLocked2;
         window._fcEngineNavigating = false;
       }
+
+      // ★★★ FTM: 切回原账号时写入 FTM ★★★
+      if (action.fcCharId && typeof saveMemoryEntry === 'function') {
+        saveMemoryEntry(action.fcCharId, 'ftm', '强控操作: ' + (action.fcCharName || '角色'),
+          (action.fcCharName || '角色') + ' 查看完其他账号后切回了原账号。');
+      }
+
       if (callback) callback();
       break;
 

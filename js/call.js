@@ -60,7 +60,6 @@ function openCallInterface(charId, callType, callMsgId) {
   document.getElementById('callActionBtn')?.classList.remove('active');
   updateCallTypeUI();
 
-  // ★★★ 历史查看模式 ★★★
   if (isHistoryView) {
     callState.messages = [];
     const history = existingMsg.callHistory || [];
@@ -83,7 +82,6 @@ function openCallInterface(charId, callType, callMsgId) {
     return;
   }
 
-  // ★★★ 正常通话模式 ★★★
   callState.messages = [];
   callState.startTime = Date.now();
   document.getElementById('callTimer').textContent = '00:00';
@@ -103,7 +101,6 @@ function openCallInterface(charId, callType, callMsgId) {
   }, 2000);
 }
 
-// ★★★ 预生成开场白 ★★★
 async function generateCallGreeting(charId, callType) {
   if (!callState.active || callState.charId !== charId) return;
 
@@ -156,7 +153,6 @@ async function generateCallGreeting(charId, callType) {
   }
 }
 
-// ========== ★★★ 统一处理 AI 回复（分段）★★★ ==========
 function processCallReply(parsed) {
   let replyContent = parsed.content
     .replace(/\[\s*领取转账\s*\]/g, '')
@@ -199,7 +195,6 @@ function processCallReply(parsed) {
   }
 }
 
-// ========== 计时器 ==========
 function startCallTimer() {
   if (callState.timerInterval) clearInterval(callState.timerInterval);
   callState.timerInterval = setInterval(() => {
@@ -333,7 +328,7 @@ function closeCallHistory() {
   document.getElementById('callScreen').classList.remove('show');
 }
 
-// ========== 通话记忆自动总结 ==========
+// ========== ★★★ 通话记忆自动总结 — 改为写入 FTM ★★★ ==========
 async function summarizeCallMemory(charId, messages) {
   const api = state.apis.find(a => a.id === state.activeApiId);
   if (!api?.url || !api.model) return;
@@ -352,12 +347,13 @@ async function summarizeCallMemory(charId, messages) {
       { role: 'user', content: 'Summarize now.' }
     ]);
     if (summary && typeof saveMemoryEntry === 'function') {
-      saveMemoryEntry(charId, 'stm', '通话记录: ' + ch.name, summary.trim());
+      // ★★★ 改为 'ftm' — 通话记忆写入易遗忘记忆 ★★★
+      saveMemoryEntry(charId, 'ftm', '通话记录: ' + ch.name, summary.trim());
     }
   } catch (e) { console.error('Call memory summarize error:', e); }
 }
 
-// ========== 发送消息（不自动回复）==========
+// ========== 发送消息 ==========
 function sendCallMessage() {
   const input = document.getElementById('callInput');
   const text = input.value.trim();
@@ -439,7 +435,6 @@ function rerenderCallMessages() {
   });
 }
 
-// ========== ★ 渲染气泡（无头像，带长按）★ ==========
 function appendCallBubbleWithLP(side, content, isAction, idx) {
   const container = document.getElementById('callMessages');
   const div = document.createElement('div');
@@ -467,7 +462,6 @@ function appendCallReplyBubbleWithLP(content, thought, action, idx) {
   initCallBubbleLongPress(div, idx);
 }
 
-// ★ 纯渲染（历史模式，无头像，无长按）
 function appendCallBubbleRaw(side, content, isAction) {
   const container = document.getElementById('callMessages');
   const div = document.createElement('div');
@@ -544,7 +538,6 @@ async function triggerCallResponse(hint) {
   }
 }
 
-// ========== 查看通话历史 ==========
 function viewCallHistory(msgId) {
   const charId = state.currentCharId;
   if (!charId) return;
@@ -553,7 +546,6 @@ function viewCallHistory(msgId) {
   openCallInterface(charId, msg.callType || 'voice', msgId);
 }
 
-// ========== 全局绑定 ==========
 window.openCallInterface = openCallInterface;
 window.endCallInterface = endCallInterface;
 window.closeCallHistory = closeCallHistory;
@@ -567,4 +559,3 @@ window.sendCallAction = sendCallAction;
 window.autoGrowCallInput = autoGrowCallInput;
 window.deleteCallMsg = deleteCallMsg;
 window.viewCallHistory = viewCallHistory;
-

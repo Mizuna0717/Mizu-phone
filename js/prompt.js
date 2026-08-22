@@ -210,12 +210,14 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
 标签会被系统自动移除。如果转账已标记为"(已领取)"或"(已拒绝)"，无需再次处理。`;
   }
 
+    // ★★★ 记忆检索（含 FTM 低优先级）★★★
   const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'ltm') : [];
   const charSTM = (typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'stm') : []).filter(m => !m.consolidated);
+  const charFTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'ftm') : [];
   const charManual = (state.memories || []).filter(m => m.charId === ch.id && !m.memType)
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  if (charLTM.length || charSTM.length || charManual.length) {
+  if (charLTM.length || charSTM.length || charFTM.length || charManual.length) {
     p += '\n\n[Character Memories]';
   }
   if (charLTM.length) {
@@ -230,6 +232,12 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
     p += '\n\n— Personal Notes —\n';
     charManual.slice(0, 5).forEach(m => { p += `- (${m.date}) ${m.title}: ${m.content}\n`; });
   }
+  // ★★★ FTM: 易遗忘记忆（低优先级，仅最近 3 条）★★★
+  if (charFTM.length) {
+    p += '\n\n— Vague / Forgettable Memories (you only vaguely remember these) —\n';
+    charFTM.slice(0, 3).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
+  }
+
 
   return p;
 }
@@ -340,10 +348,11 @@ You are ONLY ${targetChar.name}. Do NOT generate responses for other characters.
     }
   }
 
-  const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'ltm') : [];
+   const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'ltm') : [];
   const charSTM = (typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'stm') : []).filter(m => !m.consolidated);
+  const charFTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'ftm') : [];
 
-  if (charLTM.length || charSTM.length) {
+  if (charLTM.length || charSTM.length || charFTM.length) {
     p += `\n\n[Character Memories for ${targetChar.name}]`;
     if (charLTM.length) {
       p += '\n— Long-term Memories —\n';
@@ -352,6 +361,11 @@ You are ONLY ${targetChar.name}. Do NOT generate responses for other characters.
     if (charSTM.length) {
       p += '\n— Recent Memories —\n';
       charSTM.slice(0, 8).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
+    }
+    // ★★★ FTM ★★★
+    if (charFTM.length) {
+      p += '\n— Vague / Forgettable Memories —\n';
+      charFTM.slice(0, 3).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
     }
   }
 
