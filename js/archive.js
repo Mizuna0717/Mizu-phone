@@ -236,7 +236,7 @@ function saveCloudConfig() {
   testCloudConnection();
 }
 
-// ── 测试连接（替换原函数） ──
+// ── 测试连接 ──
 async function testCloudConnection() {
   var cfg = _loadCloudConfig();
   if (!cfg || !cfg.url || !cfg.anonKey) {
@@ -258,7 +258,7 @@ async function testCloudConnection() {
   }
 
   try {
-    // ★ 核心改动：用上传测试文件代替 listBuckets ★
+    // ★ 用上传测试文件代替 listBuckets / getBucket ★
     var testPath = '.connection_test/test_connection.txt';
     var testContent = 'ok ' + new Date().toISOString();
     var testBlob = new Blob([testContent], { type: 'text/plain' });
@@ -267,23 +267,22 @@ async function testCloudConnection() {
       .from(CLOUD_BUCKET)
       .upload(testPath, testBlob, {
         contentType: 'text/plain',
-        upsert: true          // 允许覆盖，避免重复上传报错
+        upsert: true
       });
 
     if (uploadResult.error) {
       console.error('[Cloud] test upload error:', uploadResult.error);
 
-      // 区分常见错误给出提示
       var errMsg = uploadResult.error.message || '';
-      var statusCode = uploadResult.error.statusCode || '';
+      var statusCode = uploadResult.error.statusCode || uploadResult.error.status || '';
 
-      if (errMsg.indexOf('Bucket not found') !== -1 || errMsg.indexOf('bucket') !== -1) {
+      if (errMsg.indexOf('Bucket not found') !== -1 || errMsg.toLowerCase().indexOf('bucket') !== -1) {
         updateCloudStatus(false);
         showToast('存储桶 "' + CLOUD_BUCKET + '" 不存在，请在 Supabase 控制台创建');
-      } else if (statusCode === '401' || statusCode === 401 || errMsg.indexOf('Invalid') !== -1) {
+      } else if (String(statusCode) === '401' || errMsg.indexOf('Invalid') !== -1 || errMsg.indexOf('invalid') !== -1) {
         updateCloudStatus(false);
         showToast('认证失败，请检查 Anon Key 是否正确');
-      } else if (errMsg.indexOf('violates') !== -1 || errMsg.indexOf('policy') !== -1) {
+      } else if (errMsg.indexOf('violates') !== -1 || errMsg.indexOf('policy') !== -1 || String(statusCode) === '403') {
         updateCloudStatus(false);
         showToast('权限不足，请检查存储桶 RLS 策略是否允许 INSERT');
       } else {
@@ -293,7 +292,10 @@ async function testCloudConnection() {
       return;
     }
 
-    // 上传成功 → 连接正常，清理测试文件（静默，不阻塞）
+    // 上传成功 → 连接正常
+    console.log('[Cloud] connection test passed');
+
+    // 清理测试文件（静默，不阻塞主流程）
     _supabaseClient.storage
       .from(CLOUD_BUCKET)
       .remove([testPath])
@@ -305,11 +307,10 @@ async function testCloudConnection() {
         console.warn('[Cloud] test file cleanup error:', e);
       });
 
-    // 读取上次操作时间
+    // 读取本地缓存的操作时间并更新 UI
     var cloudMeta = _loadCloudMeta();
     updateCloudStatus(true, cloudMeta.lastUpload, cloudMeta.lastDownload, cloudMeta.dataSize);
     showToast('连接成功');
-    console.log('[Cloud] connection test passed');
 
   } catch(e) {
     console.error('[Cloud] test error:', e);
@@ -317,6 +318,7 @@ async function testCloudConnection() {
     showToast('连接失败: ' + e.message);
   }
 }
+
 
 // ── 云端操作元数据（本地缓存） ──
 function _loadCloudMeta() {
