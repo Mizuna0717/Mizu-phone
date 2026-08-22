@@ -10,7 +10,6 @@
   <div class="large-title" data-i18n="meetingTitle">Meeting</div>
 
   <div class="screen-body">
-
     <!-- New Archive Button -->
     <div style="padding:4px 16px 8px">
       <button class="mtg-new-archive-btn" onclick="openMeetingSettings()">
@@ -30,7 +29,6 @@
         </svg>
         <span data-i18n="meetingContinue">CONTINUE</span>
       </div>
-      <!-- JS: mtgRenderList('continue', 'meetingContinueCards') -->
       <div id="meetingContinueCards"></div>
     </div>
 
@@ -44,7 +42,6 @@
         </svg>
         <span data-i18n="meetingIF">IF</span>
       </div>
-      <!-- JS: mtgRenderList('if', 'meetingIFCards') -->
       <div id="meetingIFCards"></div>
     </div>
 
@@ -74,14 +71,22 @@
     </button>
   </div>
 
-  <!-- Scrollable story body — JS: mtgRenderWriteContent() -->
+  <!-- Scrollable story body -->
   <div class="screen-body mtg-write-scroll" id="meetingWriteBody"></div>
 
-  <!-- Input bar -->
+  <!-- Bottom input bar with edit banner -->
   <div class="mtg-write-bar">
-    <textarea class="mtg-write-input" id="meetingWriteInput" rows="1" data-i18n="meetingWritePh" placeholder="Your turn to write..."></textarea>
-    <button class="mtg-write-send" id="meetingWriteSendBtn" onclick="meetingWriteSend()">
-      <svg viewBox="0 0 20 20" style="width:18px;height:18px"><path d="M3 10h14M12 5l5 5-5 5" stroke="#8e8e93" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+    <!-- Edit banner (hidden by default, shown when editing) -->
+    <div class="mtg-edit-banner" id="mtgEditBanner" style="display:none"></div>
+    <!-- Input row -->
+    <div class="mtg-write-bar-row">
+      <textarea class="mtg-write-input" id="meetingWriteInput" rows="1"
+                data-i18n-placeholder="meetingInputPh" placeholder="Enter message..."></textarea>
+      <button class="mtg-write-send" id="meetingWriteSendBtn" onclick="meetingWriteSend()">
+        <svg viewBox="0 0 20 20" style="width:16px;height:16px">
+          <path d="M4 10h12M11 5l5 5-5 5" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 </div>

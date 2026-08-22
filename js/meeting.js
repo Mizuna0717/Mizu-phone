@@ -1,9 +1,9 @@
 // ========== meeting.js ==========
-// Meeting — Batch 2 + Batch 3: End Session, Write to Memory, Archive
+// Meeting — Card-based writing UI with Delete / Edit / Regenerate
 // No emoji. Line icons. Grey-white palette.
 
 /* ══════════════════════════════════
-   Batch 3 — i18n Keys
+   i18n Keys
    ══════════════════════════════════ */
 (function() {
   if (typeof LANG === 'undefined') return;
@@ -31,7 +31,14 @@
     meetingCreate:         'Create',
     meetingCancel:         'Cancel',
     meetingDeleteConfirm:  'Delete this archive?',
-    meetingDeleted:        'Archive deleted'
+    meetingDeleted:        'Archive deleted',
+    meetingDelete:         'Delete',
+    meetingEdit:           'Edit',
+    meetingRetry:          'Retry',
+    meetingEditing:        'Editing...',
+    meetingEdited:         'Edited',
+    meetingInputPh:        'Enter message...',
+    meetingDeleteMsgConfirm: 'Delete this message?'
   });
   _add('zh', {
     meetingEndSession:     '\u7ed3\u675f\u89c1\u9762',
@@ -51,7 +58,14 @@
     meetingCreate:         '\u521b\u5efa',
     meetingCancel:         '\u53d6\u6d88',
     meetingDeleteConfirm:  '\u786e\u5b9a\u5220\u9664\u6b64\u5b58\u6863\uff1f',
-    meetingDeleted:        '\u5b58\u6863\u5df2\u5220\u9664'
+    meetingDeleted:        '\u5b58\u6863\u5df2\u5220\u9664',
+    meetingDelete:         '\u5220\u9664',
+    meetingEdit:           '\u4fee\u6539',
+    meetingRetry:          '\u91cd\u56de',
+    meetingEditing:        '\u6b63\u5728\u7f16\u8f91...',
+    meetingEdited:         '\u5df2\u4fee\u6539',
+    meetingInputPh:        '\u8f93\u5165\u6d88\u606f...',
+    meetingDeleteMsgConfirm: '\u786e\u5b9a\u5220\u9664\u8fd9\u6761\u6d88\u606f\uff1f'
   });
 })();
 
@@ -63,6 +77,7 @@ var MTG_DEFAULT_SUMMARY_INTERVAL = 5;
 var mtgCurrentSession = null;
 var mtgGenerating = false;
 var mtgManageReturnTo = 'screen-meeting-write';
+var mtgEditingEntryId = null;
 
 /* ══════════════════════════════════
    Utilities
@@ -85,6 +100,13 @@ function mtgFormatDate(ds) {
   }
   var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return m[d.getMonth()] + ' ' + d.getDate();
+}
+
+function mtgFormatTime(ts) {
+  if (!ts) return '';
+  var d = new Date(ts);
+  if (isNaN(d.getTime())) return '';
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
 }
 
 function mtgPersonLabel(v) {
@@ -127,7 +149,6 @@ function renderMeetingCards() {
   mtgRenderList('if', 'meetingIFCards');
 }
 
-/* ── Status dot SVGs ── */
 function _mtgDotActive() {
   return '<svg viewBox="0 0 8 8" style="width:7px;height:7px;flex-shrink:0"><circle cx="4" cy="4" r="3" fill="#8e8e93"/></svg>';
 }
@@ -135,7 +156,6 @@ function _mtgDotEnded() {
   return '<svg viewBox="0 0 8 8" style="width:7px;height:7px;flex-shrink:0"><circle cx="4" cy="4" r="2.5" fill="none" stroke="#c7c7cc" stroke-width="1.2"/></svg>';
 }
 
-/* ── Render archive cards with edit/delete ── */
 function mtgRenderList(mode, cid) {
   var c = document.getElementById(cid);
   if (!c) return;
@@ -155,7 +175,6 @@ function mtgRenderList(mode, cid) {
   }
 
   var h = '';
-
   list.forEach(function(s) {
     var dl = mtgFormatDate(s.date);
     var cl = (s.characters && s.characters.length) ? s.characters.join(', ') : T('meetingNoCharsSelected');
@@ -166,8 +185,6 @@ function mtgRenderList(mode, cid) {
     var statusCls = isEnded ? 'mtg-status-ended' : 'mtg-status-active';
 
     h += '<div class="mtg-archive-card">';
-
-    // Card body — click to open write
     h += '<div class="mtg-archive-card-body" onclick="openMeetingWrite(\'' + s.id + '\')">';
     h += '<div class="mtg-archive-card-name">';
     h += '<span>' + mtgEsc(s.name) + '</span>';
@@ -183,8 +200,6 @@ function mtgRenderList(mode, cid) {
     h += '<span>' + mtgEsc(cl) + '</span>';
     h += '</div>';
     h += '</div>';
-
-    // Action buttons
     h += '<div class="mtg-archive-card-actions">';
     h += '<button class="mtg-archive-action-btn" onclick="event.stopPropagation();mtgEditSessionFromList(\'' + s.id + '\')" title="Edit">';
     h += '<svg viewBox="0 0 18 18" style="stroke:#8e8e93;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="M11 3l4 4M4 10l7-7 4 4-7 7H4v-4z"/></svg>';
@@ -193,14 +208,12 @@ function mtgRenderList(mode, cid) {
     h += '<svg viewBox="0 0 18 18" style="stroke:#c7c7cc;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5h12M7 5V4a1 1 0 011-1h2a1 1 0 011 1v1M5 5v10a1 1 0 001 1h6a1 1 0 001-1V5"/></svg>';
     h += '</button>';
     h += '</div>';
-
     h += '</div>';
   });
 
   c.innerHTML = h;
 }
 
-/* ── Edit session from main list ── */
 function mtgEditSessionFromList(id) {
   var session = mtgFindSession(id);
   if (!session) { showToast(T('error')); return; }
@@ -210,7 +223,6 @@ function mtgEditSessionFromList(id) {
   nav('screen-meeting-manage');
 }
 
-/* ── Delete session ── */
 function mtgDeleteSession(id) {
   if (!confirm(T('meetingDeleteConfirm'))) return;
   mtgEnsureState();
@@ -377,6 +389,65 @@ function startMeetingSession() {
   openMeetingWrite(session.id);
 }
 
+
+/* ══════════════════════════════════
+   Card Builder — Shared HTML generator
+   ══════════════════════════════════ */
+function _mtgCardHTML(entry) {
+  var isUser   = entry.role === 'user';
+  var isChar   = entry.role === 'char';
+  var isSystem = entry.role === 'system';
+
+  var cardCls = isUser ? 'mtg-card-user' : (isChar ? 'mtg-card-char' : 'mtg-card-system');
+  var sender  = isUser ? T('meetingYou') :
+                isChar ? (entry.charName || 'Character') :
+                T('meetingSystem');
+  var time = mtgFormatTime(entry.timestamp);
+  var eid = entry.id || '';
+
+  var h = '<div class="mtg-card ' + cardCls + '" data-entry-id="' + eid + '">';
+
+  // Header
+  h += '<div class="mtg-card-header">';
+  h += '<span class="mtg-card-sender">' + mtgEsc(sender) + '</span>';
+  if (time) h += '<span class="mtg-card-time">' + time + '</span>';
+  h += '</div>';
+
+  // Body
+  h += '<div class="mtg-card-body">' + mtgEsc(entry.content) + '</div>';
+
+  // Actions (user & char only, not system)
+  if (isUser || isChar) {
+    h += '<div class="mtg-card-actions">';
+
+    if (isUser) {
+      // Delete
+      h += '<button class="mtg-card-action-btn" onclick="mtgDeleteEntry(\'' + eid + '\')">';
+      h += '<svg viewBox="0 0 16 16"><path d="M3 4h10"/><path d="M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1"/><path d="M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4"/></svg>';
+      h += '<span>' + T('meetingDelete') + '</span></button>';
+      // Edit
+      h += '<button class="mtg-card-action-btn" onclick="mtgEditEntry(\'' + eid + '\')">';
+      h += '<svg viewBox="0 0 16 16"><path d="M11 2l3 3M3 10l8-8 3 3-8 8H3v-3z"/></svg>';
+      h += '<span>' + T('meetingEdit') + '</span></button>';
+    } else {
+      // Retry (regenerate)
+      h += '<button class="mtg-card-action-btn" onclick="mtgRegenerateEntry(\'' + eid + '\')">';
+      h += '<svg viewBox="0 0 16 16"><path d="M2 8a6 6 0 0111-3"/><path d="M14 8a6 6 0 01-11 3"/><path d="M13 2v3h-3"/><path d="M3 14v-3h3"/></svg>';
+      h += '<span>' + T('meetingRetry') + '</span></button>';
+      // Edit
+      h += '<button class="mtg-card-action-btn" onclick="mtgEditEntry(\'' + eid + '\')">';
+      h += '<svg viewBox="0 0 16 16"><path d="M11 2l3 3M3 10l8-8 3 3-8 8H3v-3z"/></svg>';
+      h += '<span>' + T('meetingEdit') + '</span></button>';
+    }
+
+    h += '</div>';
+  }
+
+  h += '</div>';
+  return h;
+}
+
+
 /* ══════════════════════════════════
    Writing Screen
    ══════════════════════════════════ */
@@ -390,10 +461,12 @@ function openMeetingWrite(sid) {
   }
 
   mtgCurrentSession = session;
+  mtgEditingEntryId = null;
 
   var titleEl = document.getElementById('meetingWriteTitle');
   if (titleEl) titleEl.textContent = session.name;
 
+  mtgHideEditBanner();
   mtgRenderWriteContent(session);
   nav('screen-meeting-write');
 
@@ -404,6 +477,8 @@ function openMeetingWrite(sid) {
 
 function exitMeetingWrite() {
   mtgCurrentSession = null;
+  mtgEditingEntryId = null;
+  mtgHideEditBanner();
   renderMeetingCards();
   nav('screen-meeting');
 }
@@ -415,6 +490,7 @@ function mtgRenderWriteContent(s) {
   var modeL = s.mode === 'continue' ? T('meetingContinue') : T('meetingIF');
   var h = '';
 
+  // Info bar
   h += '<div class="mtg-write-info">';
   h += '<div class="mtg-write-info-row">';
   h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4"><rect x="1.5" y="2.5" width="11" height="9" rx="1"/><path d="M4.5 1v3M9.5 1v3M1.5 5.5h11"/></svg>';
@@ -432,6 +508,7 @@ function mtgRenderWriteContent(s) {
   }
   h += '</div>';
 
+  // Content area
   h += '<div class="mtg-write-content" id="mtgWriteContent">';
 
   if (!s.history || s.history.length === 0) {
@@ -448,13 +525,7 @@ function mtgRenderWriteContent(s) {
         h += '<span>' + T('meetingSummaryRound') + ' ' + (entry.round || '?') + '</span></div>';
         h += '<div class="mtg-write-summary-text">' + mtgEsc(entry.content) + '</div></div>';
       } else {
-        var cls = entry.role === 'user' ? 'user' : (entry.role === 'char' ? 'char' : 'system');
-        var label = entry.role === 'user' ? T('meetingYou') :
-                    entry.role === 'char' ? (entry.charName || 'Character') :
-                    T('meetingSystem');
-        h += '<div class="mtg-write-entry mtg-write-entry-' + cls + '">';
-        h += '<div class="mtg-write-entry-label">' + mtgEsc(label) + '</div>';
-        h += '<div class="mtg-write-entry-text">' + mtgEsc(entry.content) + '</div></div>';
+        h += _mtgCardHTML(entry);
       }
     });
   }
@@ -465,19 +536,16 @@ function mtgRenderWriteContent(s) {
   setTimeout(function() { body.scrollTop = body.scrollHeight; }, 50);
 }
 
-/* ── Append helpers ── */
-function mtgAppendEntry(role, label, text) {
+
+/* ── Append a card to live content ── */
+function mtgAppendCard(entry) {
   var content = document.getElementById('mtgWriteContent');
   if (!content) return;
   var empty = content.querySelector('.mtg-write-empty');
   if (empty) empty.remove();
 
-  var cls = role === 'user' ? 'user' : (role === 'char' ? 'char' : 'system');
-  var entry = document.createElement('div');
-  entry.className = 'mtg-write-entry mtg-write-entry-' + cls;
-  entry.innerHTML = '<div class="mtg-write-entry-label">' + mtgEsc(label) + '</div>' +
-                    '<div class="mtg-write-entry-text">' + mtgEsc(text) + '</div>';
-  content.appendChild(entry);
+  content.insertAdjacentHTML('beforeend', _mtgCardHTML(entry));
+
   var body = document.getElementById('meetingWriteBody');
   if (body) body.scrollTop = body.scrollHeight;
 }
@@ -521,8 +589,160 @@ function mtgSetSendEnabled(v) {
   if (btn) btn.disabled = !v;
 }
 
+
 /* ══════════════════════════════════
-   Send Message + Trigger AI
+   Card Actions: Delete / Edit / Regenerate
+   ══════════════════════════════════ */
+
+/* ── Delete entry ── */
+function mtgDeleteEntry(entryId) {
+  if (!mtgCurrentSession) return;
+  if (!confirm(T('meetingDeleteMsgConfirm'))) return;
+
+  var s = mtgCurrentSession;
+  s.history = s.history.filter(function(e) { return e.id !== entryId; });
+  saveState();
+
+  // Remove card from DOM
+  var card = document.querySelector('.mtg-card[data-entry-id="' + entryId + '"]');
+  if (card) {
+    card.style.opacity = '0';
+    card.style.transform = 'scale(.95)';
+    card.style.transition = 'opacity .2s, transform .2s';
+    setTimeout(function() { card.remove(); }, 220);
+  }
+
+  showToast(T('meetingDeleted'));
+}
+
+/* ── Edit entry — fill input ── */
+function mtgEditEntry(entryId) {
+  if (!mtgCurrentSession) return;
+
+  var s = mtgCurrentSession;
+  var entry = null;
+  for (var i = 0; i < s.history.length; i++) {
+    if (s.history[i].id === entryId) { entry = s.history[i]; break; }
+  }
+  if (!entry) return;
+
+  mtgEditingEntryId = entryId;
+
+  var inp = document.getElementById('meetingWriteInput');
+  if (inp) {
+    inp.value = entry.content;
+    inp.focus();
+    // Auto-resize
+    inp.style.height = 'auto';
+    inp.style.height = Math.min(inp.scrollHeight, 100) + 'px';
+  }
+
+  mtgShowEditBanner();
+}
+
+/* ── Regenerate entry (char only) ── */
+async function mtgRegenerateEntry(entryId) {
+  if (mtgGenerating || !mtgCurrentSession) return;
+
+  var s = mtgCurrentSession;
+  var entryIdx = -1;
+  for (var i = 0; i < s.history.length; i++) {
+    if (s.history[i].id === entryId) { entryIdx = i; break; }
+  }
+  if (entryIdx < 0) return;
+
+  var entry = s.history[entryIdx];
+  if (entry.role !== 'char') return;
+
+  // Find character
+  var ch = null;
+  if (entry.charId) {
+    ch = (state.characters || []).find(function(c) { return c.id === entry.charId; });
+  }
+  if (!ch) {
+    ch = (state.characters || []).find(function(c) { return c.name === entry.charName; });
+  }
+  if (!ch) { showToast(T('error')); return; }
+
+  var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
+  if (!api || !api.url || !api.model) { showToast(T('configApi')); return; }
+  if (typeof sendChat !== 'function') { showToast(T('configApi')); return; }
+
+  // Remove old entry
+  s.history.splice(entryIdx, 1);
+  saveState();
+
+  // Fade out old card
+  var oldCard = document.querySelector('.mtg-card[data-entry-id="' + entryId + '"]');
+  if (oldCard) oldCard.remove();
+
+  // Generate new response
+  mtgGenerating = true;
+  mtgSetSendEnabled(false);
+  mtgShowTyping();
+
+  try {
+    var sysPrompt = mtgBuildSystemPrompt(s, ch);
+    var ctxMsgs = mtgBuildContextMessages(s, ch);
+    var messages = [{ role: 'system', content: sysPrompt }].concat(ctxMsgs);
+
+    var reply = await sendChat(api, messages);
+    if (reply && reply.trim()) {
+      var newEntry = {
+        id: mtgUid(), role: 'char', charName: ch.name, charId: ch.id,
+        content: reply.trim(), timestamp: Date.now()
+      };
+      // Insert at same position
+      s.history.splice(entryIdx, 0, newEntry);
+      saveState();
+
+      // Re-render full content for correct ordering
+      mtgRenderWriteContent(s);
+    }
+  } catch (e) {
+    console.error('[Meeting Regenerate]', e);
+    showToast(T('error') + ': ' + (e.message || String(e)));
+  } finally {
+    mtgGenerating = false;
+    mtgSetSendEnabled(true);
+    mtgHideTyping();
+  }
+}
+
+
+/* ── Edit banner ── */
+function mtgShowEditBanner() {
+  var banner = document.getElementById('mtgEditBanner');
+  if (!banner) return;
+  banner.style.display = 'flex';
+  banner.innerHTML =
+    '<div style="display:flex;align-items:center;gap:6px">' +
+      '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">' +
+        '<path d="M10 2l2 2M3 9l7-7 2 2-7 7H3V9z"/>' +
+      '</svg>' +
+      '<span>' + T('meetingEditing') + '</span>' +
+    '</div>' +
+    '<button class="mtg-edit-banner-cancel" onclick="mtgCancelEdit()">' + T('meetingCancel') + '</button>';
+}
+
+function mtgHideEditBanner() {
+  var banner = document.getElementById('mtgEditBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+function mtgCancelEdit() {
+  mtgEditingEntryId = null;
+  mtgHideEditBanner();
+  var inp = document.getElementById('meetingWriteInput');
+  if (inp) {
+    inp.value = '';
+    inp.style.height = 'auto';
+  }
+}
+
+
+/* ══════════════════════════════════
+   Send Message
    ══════════════════════════════════ */
 function meetingWriteSend() {
   if (mtgGenerating || !mtgCurrentSession) return;
@@ -531,15 +751,46 @@ function meetingWriteSend() {
   if (!text) return;
 
   var s = mtgCurrentSession;
-  s.history.push({ id: mtgUid(), role: 'user', content: text, timestamp: Date.now() });
+
+  // ── Editing mode: replace entry content ──
+  if (mtgEditingEntryId) {
+    var found = false;
+    for (var i = 0; i < s.history.length; i++) {
+      if (s.history[i].id === mtgEditingEntryId) {
+        s.history[i].content = text;
+        s.history[i].timestamp = Date.now();
+        found = true;
+        break;
+      }
+    }
+    mtgEditingEntryId = null;
+    mtgHideEditBanner();
+    inp.value = '';
+    inp.style.height = 'auto';
+
+    if (found) {
+      saveState();
+      mtgRenderWriteContent(s);
+      showToast(T('meetingEdited'));
+    }
+    return;
+  }
+
+  // ── Normal send ──
+  var newEntry = {
+    id: mtgUid(), role: 'user', content: text, timestamp: Date.now()
+  };
+  s.history.push(newEntry);
   s.turnCount = (s.turnCount || 0) + 1;
   saveState();
 
-  mtgAppendEntry('user', T('meetingYou'), text);
+  mtgAppendCard(newEntry);
   inp.value = '';
+  inp.style.height = 'auto';
 
   mtgAiRespond(s);
 }
+
 
 /* ══════════════════════════════════
    AI Logic
@@ -572,12 +823,13 @@ async function mtgAiRespond(session) {
       var reply = await sendChat(api, messages);
       if (reply && reply.trim()) {
         var cleaned = reply.trim();
-        session.history.push({
-          id: mtgUid(), role: 'char', charName: ch.name,
+        var newEntry = {
+          id: mtgUid(), role: 'char', charName: ch.name, charId: ch.id,
           content: cleaned, timestamp: Date.now()
-        });
+        };
+        session.history.push(newEntry);
         mtgHideTyping();
-        mtgAppendEntry('char', ch.name, cleaned);
+        mtgAppendCard(newEntry);
         if (i < session.charIds.length - 1) mtgShowTyping();
       }
     }
@@ -598,7 +850,6 @@ async function mtgAiRespond(session) {
   }
 }
 
-/* ── Generate initial scene (IF mode) ── */
 async function mtgGenerateInitialScene(session) {
   var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
   if (!api || !api.url || !api.model || typeof sendChat !== 'function') return;
@@ -621,12 +872,13 @@ async function mtgGenerateInitialScene(session) {
     ]);
 
     if (reply && reply.trim()) {
-      session.history.push({
+      var newEntry = {
         id: mtgUid(), role: 'system', content: reply.trim(), timestamp: Date.now()
-      });
+      };
+      session.history.push(newEntry);
       saveState();
       mtgHideTyping();
-      mtgAppendEntry('system', T('meetingSystem'), reply.trim());
+      mtgAppendCard(newEntry);
     }
   } catch (e) {
     console.error('[Meeting] Initial scene failed:', e);
@@ -719,11 +971,6 @@ async function mtgDoSummary(session) {
   var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
   if (!api || !api.url || !api.model || typeof sendChat !== 'function') return;
 
-  var lastRound = 0;
-  if (session.shortTermMemory.length > 0) {
-    lastRound = session.shortTermMemory[session.shortTermMemory.length - 1].round;
-  }
-
   var recentEntries = [];
   (session.history || []).forEach(function(e) {
     if (e.role !== 'summary') recentEntries.push(e);
@@ -766,6 +1013,7 @@ async function mtgDoSummary(session) {
   }
 }
 
+
 /* ══════════════════════════════════
    End Session
    ══════════════════════════════════ */
@@ -792,20 +1040,16 @@ function mtgEndSession() {
   var subText = memCount > 0 ? T('meetingEndWriteQ') : T('meetingEndNoMem');
 
   var mh = '<div class="mtg-end-modal">';
-
   mh += '<div class="mtg-end-modal-icon">';
   mh += '<svg viewBox="0 0 32 32" style="width:32px;height:32px;stroke:#8e8e93;fill:none;stroke-width:1.5">';
   mh += '<rect x="6" y="6" width="20" height="20" rx="4"/>';
   mh += '<path d="M12 16l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>';
   mh += '</svg></div>';
-
   mh += '<div class="mtg-end-modal-title">' + T('meetingEndTitle') + '</div>';
-
   mh += '<div class="mtg-end-modal-body">';
   mh += '<p>' + mtgEsc(msgText) + '</p>';
   mh += '<p class="mtg-end-modal-sub">' + mtgEsc(subText) + '</p>';
   mh += '</div>';
-
   mh += '<div class="mtg-end-modal-btns">';
   mh += '<button class="mtg-end-btn mtg-end-primary" onclick="mtgConfirmEnd(true)">' + T('meetingSaveAndWrite') + '</button>';
   mh += '<button class="mtg-end-btn mtg-end-secondary" onclick="mtgConfirmEnd(false)">' + T('meetingSaveOnly') + '</button>';
@@ -829,28 +1073,20 @@ function mtgConfirmEnd(writeToMemory) {
 
   if (writeToMemory) {
     if (!Array.isArray(state.memories)) state.memories = [];
-
     var mems = s.shortTermMemory || [];
     var count = 0;
     var today = new Date().toISOString().split('T')[0];
 
     mems.forEach(function(mem) {
       var tags = ['meeting', s.mode];
-      if (s.charIds && s.charIds.length) {
-        tags = tags.concat(s.charIds);
-      }
+      if (s.charIds && s.charIds.length) tags = tags.concat(s.charIds);
 
       state.memories.push({
         id: 'mem_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-        charId: null,
-        memType: 'ftm',
+        charId: null, memType: 'ftm',
         title: 'Meeting: ' + s.name + ' (Round ' + mem.round + ')',
-        content: mem.content,
-        date: today,
-        mood: '',
-        photo: null,
-        timestamp: Date.now(),
-        tags: tags
+        content: mem.content, date: today, mood: '', photo: null,
+        timestamp: Date.now(), tags: tags
       });
       count++;
     });
@@ -868,6 +1104,7 @@ function mtgConfirmEnd(writeToMemory) {
   nav('screen-meeting');
 }
 
+
 /* ══════════════════════════════════
    Manage Page
    ══════════════════════════════════ */
@@ -881,9 +1118,7 @@ function openMeetingManage() {
 function exitMeetingManage() {
   var returnTo = mtgManageReturnTo || 'screen-meeting-write';
   mtgManageReturnTo = 'screen-meeting-write';
-  if (returnTo === 'screen-meeting') {
-    renderMeetingCards();
-  }
+  if (returnTo === 'screen-meeting') renderMeetingCards();
   nav(returnTo);
 }
 
@@ -961,4 +1196,3 @@ function mtgRenderManageMemory() {
   });
   c.innerHTML = h;
 }
-
