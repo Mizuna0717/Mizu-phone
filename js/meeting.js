@@ -26,7 +26,12 @@
     meetingMemWrittenPost: ' memories to library',
     meetingSavedNoWrite:   'Saved, not written to memory library',
     meetingStatusActive:   'Active',
-    meetingStatusEnded:    'Ended'
+    meetingStatusEnded:    'Ended',
+    meetingNewArchive:     'New Archive',
+    meetingCreate:         'Create',
+    meetingCancel:         'Cancel',
+    meetingDeleteConfirm:  'Delete this archive?',
+    meetingDeleted:        'Archive deleted'
   });
   _add('zh', {
     meetingEndSession:     '\u7ed3\u675f\u89c1\u9762',
@@ -41,7 +46,12 @@
     meetingMemWrittenPost: ' \u6761\u8bb0\u5fc6\u5230\u8bb0\u5fc6\u5e93',
     meetingSavedNoWrite:   '\u5df2\u4fdd\u5b58\uff0c\u672a\u5199\u5165\u8bb0\u5fc6\u5e93',
     meetingStatusActive:   'Active',
-    meetingStatusEnded:    'Ended'
+    meetingStatusEnded:    'Ended',
+    meetingNewArchive:     '\u65b0\u5efa\u5b58\u6863',
+    meetingCreate:         '\u521b\u5efa',
+    meetingCancel:         '\u53d6\u6d88',
+    meetingDeleteConfirm:  '\u786e\u5b9a\u5220\u9664\u6b64\u5b58\u6863\uff1f',
+    meetingDeleted:        '\u5b58\u6863\u5df2\u5220\u9664'
   });
 })();
 
@@ -52,6 +62,7 @@ var MTG_CONTEXT_COUNT = 50;
 var MTG_DEFAULT_SUMMARY_INTERVAL = 5;
 var mtgCurrentSession = null;
 var mtgGenerating = false;
+var mtgManageReturnTo = 'screen-meeting-write';
 
 /* ══════════════════════════════════
    Utilities
@@ -104,7 +115,7 @@ function mtgFindSession(id) {
 }
 
 /* ══════════════════════════════════
-   Main Page — vertical layout
+   Main Page
    ══════════════════════════════════ */
 function initMeetingPage() {
   mtgEnsureState();
@@ -116,7 +127,7 @@ function renderMeetingCards() {
   mtgRenderList('if', 'meetingIFCards');
 }
 
-/* ── ★ Batch 3: Status dot SVGs ── */
+/* ── Status dot SVGs ── */
 function _mtgDotActive() {
   return '<svg viewBox="0 0 8 8" style="width:7px;height:7px;flex-shrink:0"><circle cx="4" cy="4" r="3" fill="#8e8e93"/></svg>';
 }
@@ -124,6 +135,7 @@ function _mtgDotEnded() {
   return '<svg viewBox="0 0 8 8" style="width:7px;height:7px;flex-shrink:0"><circle cx="4" cy="4" r="2.5" fill="none" stroke="#c7c7cc" stroke-width="1.2"/></svg>';
 }
 
+/* ── Render archive cards with edit/delete ── */
 function mtgRenderList(mode, cid) {
   var c = document.getElementById(cid);
   if (!c) return;
@@ -142,49 +154,73 @@ function mtgRenderList(mode, cid) {
     return;
   }
 
-  var colors = ['#8e8e93','#b0b0b5','#c7c7cc','#d1d1d6'];
-  var h = '<div style="background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec;box-shadow:0 1px 4px rgba(0,0,0,.03)">';
+  var h = '';
 
-  list.forEach(function(s, i) {
-    var last = i === list.length - 1;
-    var clr = colors[i % colors.length];
+  list.forEach(function(s) {
     var dl = mtgFormatDate(s.date);
     var cl = (s.characters && s.characters.length) ? s.characters.join(', ') : T('meetingNoCharsSelected');
     var tc = s.turnCount || 0;
-
-    // ★ Batch 3: status
     var isEnded = (s.status === 'ended');
     var statusDot = isEnded ? _mtgDotEnded() : _mtgDotActive();
     var statusLabel = isEnded ? T('meetingStatusEnded') : T('meetingStatusActive');
     var statusCls = isEnded ? 'mtg-status-ended' : 'mtg-status-active';
 
-    h += '<div style="display:flex;align-items:center;padding:14px 16px;gap:14px;cursor:pointer' +
-         (last ? '' : ';border-bottom:1px solid #f2f2f7') +
-         '" onclick="openMeetingWrite(\'' + s.id + '\')">';
-    h += '<div style="width:4px;height:40px;border-radius:2px;background:' + clr + ';flex-shrink:0"></div>';
-    h += '<div style="flex:1;min-width:0">';
+    h += '<div class="mtg-archive-card">';
 
-    // ★ name row with status tag
-    h += '<div style="display:flex;align-items:center">';
-    h += '<span style="font-size:15px;font-weight:500;color:#1d1d1f">' + mtgEsc(s.name) + '</span>';
+    // Card body — click to open write
+    h += '<div class="mtg-archive-card-body" onclick="openMeetingWrite(\'' + s.id + '\')">';
+    h += '<div class="mtg-archive-card-name">';
+    h += '<span>' + mtgEsc(s.name) + '</span>';
     h += '<span class="mtg-status-tag ' + statusCls + '">' + statusDot + statusLabel + '</span>';
     h += '</div>';
-
-    h += '<div style="font-size:12px;color:#8e8e93;margin-top:3px;display:flex;align-items:center;gap:6px">';
-    h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4;flex-shrink:0"><rect x="1.5" y="2.5" width="11" height="9" rx="1"/><path d="M4.5 1v3M9.5 1v3M1.5 5.5h11"/></svg>';
+    h += '<div class="mtg-archive-card-meta">';
+    h += '<svg viewBox="0 0 14 14"><rect x="1.5" y="2.5" width="11" height="9" rx="1"/><path d="M4.5 1v3M9.5 1v3M1.5 5.5h11"/></svg>';
     h += '<span>' + dl + '</span>';
-    if (tc > 0) h += '<span style="margin-left:4px;color:#b0b0b5">' + tc + ' ' + T('meetingTurns') + '</span>';
+    if (tc > 0) h += '<span class="mtg-archive-card-turns">' + tc + ' ' + T('meetingTurns') + '</span>';
     h += '</div>';
-    h += '<div style="font-size:11px;color:#b0b0b5;margin-top:4px;display:flex;align-items:center;gap:6px">';
-    h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#b0b0b5;fill:none;stroke-width:1.4;flex-shrink:0"><circle cx="7" cy="5" r="2.5"/><path d="M2.5 13c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/></svg>';
-    h += '<span>' + mtgEsc(cl) + '</span></div>';
+    h += '<div class="mtg-archive-card-chars">';
+    h += '<svg viewBox="0 0 14 14"><circle cx="7" cy="5" r="2.5"/><path d="M2.5 13c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/></svg>';
+    h += '<span>' + mtgEsc(cl) + '</span>';
     h += '</div>';
-    h += '<svg viewBox="0 0 8 14" style="width:8px;height:14px;flex-shrink:0"><path d="M1 1l6 6-6 6" stroke="#c7c7cc" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    h += '</div>';
+
+    // Action buttons
+    h += '<div class="mtg-archive-card-actions">';
+    h += '<button class="mtg-archive-action-btn" onclick="event.stopPropagation();mtgEditSessionFromList(\'' + s.id + '\')" title="Edit">';
+    h += '<svg viewBox="0 0 18 18" style="stroke:#8e8e93;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="M11 3l4 4M4 10l7-7 4 4-7 7H4v-4z"/></svg>';
+    h += '</button>';
+    h += '<button class="mtg-archive-action-btn" onclick="event.stopPropagation();mtgDeleteSession(\'' + s.id + '\')" title="Delete">';
+    h += '<svg viewBox="0 0 18 18" style="stroke:#c7c7cc;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5h12M7 5V4a1 1 0 011-1h2a1 1 0 011 1v1M5 5v10a1 1 0 001 1h6a1 1 0 001-1V5"/></svg>';
+    h += '</button>';
+    h += '</div>';
+
     h += '</div>';
   });
 
-  h += '</div>';
   c.innerHTML = h;
+}
+
+/* ── Edit session from main list ── */
+function mtgEditSessionFromList(id) {
+  var session = mtgFindSession(id);
+  if (!session) { showToast(T('error')); return; }
+  mtgCurrentSession = session;
+  mtgManageReturnTo = 'screen-meeting';
+  mtgRenderManagePage();
+  nav('screen-meeting-manage');
+}
+
+/* ── Delete session ── */
+function mtgDeleteSession(id) {
+  if (!confirm(T('meetingDeleteConfirm'))) return;
+  mtgEnsureState();
+  state.meetings = state.meetings.filter(function(s) { return s.id !== id; });
+  if (mtgCurrentSession && mtgCurrentSession.id === id) {
+    mtgCurrentSession = null;
+  }
+  saveState();
+  renderMeetingCards();
+  showToast(T('meetingDeleted'));
 }
 
 /* ══════════════════════════════════
@@ -331,7 +367,7 @@ function startMeetingSession() {
     history: [],
     shortTermMemory: [],
     turnCount: 0,
-    status: 'active'          // ★ Batch 3
+    status: 'active'
   };
 
   mtgEnsureState();
@@ -348,7 +384,6 @@ function openMeetingWrite(sid) {
   var session = mtgFindSession(sid);
   if (!session) { showToast(T('error')); return; }
 
-  // ★ Batch 3: reactivate ended session
   if (session.status === 'ended') {
     session.status = 'active';
     saveState();
@@ -362,7 +397,6 @@ function openMeetingWrite(sid) {
   mtgRenderWriteContent(session);
   nav('screen-meeting-write');
 
-  // IF mode with empty history: auto-generate initial scene
   if (session.mode === 'if' && session.history.length === 0 && session.charIds.length > 0) {
     setTimeout(function() { mtgGenerateInitialScene(session); }, 300);
   }
@@ -381,7 +415,6 @@ function mtgRenderWriteContent(s) {
   var modeL = s.mode === 'continue' ? T('meetingContinue') : T('meetingIF');
   var h = '';
 
-  // info bar
   h += '<div class="mtg-write-info">';
   h += '<div class="mtg-write-info-row">';
   h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4"><rect x="1.5" y="2.5" width="11" height="9" rx="1"/><path d="M4.5 1v3M9.5 1v3M1.5 5.5h11"/></svg>';
@@ -399,7 +432,6 @@ function mtgRenderWriteContent(s) {
   }
   h += '</div>';
 
-  // content area
   h += '<div class="mtg-write-content" id="mtgWriteContent">';
 
   if (!s.history || s.history.length === 0) {
@@ -430,11 +462,10 @@ function mtgRenderWriteContent(s) {
   h += '</div>';
   body.innerHTML = h;
 
-  // scroll to bottom
   setTimeout(function() { body.scrollTop = body.scrollHeight; }, 50);
 }
 
-/* ── Append helpers (avoid full re-render) ── */
+/* ── Append helpers ── */
 function mtgAppendEntry(role, label, text) {
   var content = document.getElementById('mtgWriteContent');
   if (!content) return;
@@ -507,7 +538,6 @@ function meetingWriteSend() {
   mtgAppendEntry('user', T('meetingYou'), text);
   inp.value = '';
 
-  // call AI
   mtgAiRespond(s);
 }
 
@@ -554,7 +584,6 @@ async function mtgAiRespond(session) {
 
     saveState();
 
-    // check summary
     if (session.turnSummary && session.summaryInterval > 0 &&
         session.turnCount > 0 && session.turnCount % session.summaryInterval === 0) {
       await mtgDoSummary(session);
@@ -738,17 +767,12 @@ async function mtgDoSummary(session) {
 }
 
 /* ══════════════════════════════════
-   ★ Batch 3: End Session
+   End Session
    ══════════════════════════════════ */
-
-/**
- * Show the End Session confirmation modal
- */
 function mtgEndSession() {
   if (!mtgCurrentSession) return;
   if (mtgGenerating) { showToast(T('error')); return; }
 
-  // close any existing modal
   mtgCloseEndModal();
 
   var s = mtgCurrentSession;
@@ -757,7 +781,6 @@ function mtgEndSession() {
   (s.history || []).forEach(function(e) { if (e.role !== 'summary') msgCount++; });
   var memCount = (s.shortTermMemory || []).length;
 
-  // build modal
   var overlay = document.createElement('div');
   overlay.id = 'mtgEndModal';
   overlay.className = 'mtg-end-overlay';
@@ -770,23 +793,19 @@ function mtgEndSession() {
 
   var mh = '<div class="mtg-end-modal">';
 
-  // icon
   mh += '<div class="mtg-end-modal-icon">';
   mh += '<svg viewBox="0 0 32 32" style="width:32px;height:32px;stroke:#8e8e93;fill:none;stroke-width:1.5">';
   mh += '<rect x="6" y="6" width="20" height="20" rx="4"/>';
   mh += '<path d="M12 16l3 3 5-6" stroke-linecap="round" stroke-linejoin="round"/>';
   mh += '</svg></div>';
 
-  // title
   mh += '<div class="mtg-end-modal-title">' + T('meetingEndTitle') + '</div>';
 
-  // body
   mh += '<div class="mtg-end-modal-body">';
   mh += '<p>' + mtgEsc(msgText) + '</p>';
   mh += '<p class="mtg-end-modal-sub">' + mtgEsc(subText) + '</p>';
   mh += '</div>';
 
-  // buttons
   mh += '<div class="mtg-end-modal-btns">';
   mh += '<button class="mtg-end-btn mtg-end-primary" onclick="mtgConfirmEnd(true)">' + T('meetingSaveAndWrite') + '</button>';
   mh += '<button class="mtg-end-btn mtg-end-secondary" onclick="mtgConfirmEnd(false)">' + T('meetingSaveOnly') + '</button>';
@@ -797,26 +816,17 @@ function mtgEndSession() {
   document.body.appendChild(overlay);
 }
 
-/**
- * Close the End Session modal
- */
 function mtgCloseEndModal() {
   var el = document.getElementById('mtgEndModal');
   if (el) el.remove();
 }
 
-/**
- * Confirm ending the session
- * @param {boolean} writeToMemory — true = write shortTermMemory to state.memories
- */
 function mtgConfirmEnd(writeToMemory) {
   var s = mtgCurrentSession;
   if (!s) { mtgCloseEndModal(); return; }
 
-  // 1. Mark ended
   s.status = 'ended';
 
-  // 2. Optionally write to memory library
   if (writeToMemory) {
     if (!Array.isArray(state.memories)) state.memories = [];
 
@@ -852,7 +862,6 @@ function mtgConfirmEnd(writeToMemory) {
     showToast(T('meetingSavedNoWrite'));
   }
 
-  // 3. Clean up and navigate back
   mtgCloseEndModal();
   mtgCurrentSession = null;
   renderMeetingCards();
@@ -864,12 +873,18 @@ function mtgConfirmEnd(writeToMemory) {
    ══════════════════════════════════ */
 function openMeetingManage() {
   if (!mtgCurrentSession) { showToast(T('error')); return; }
+  mtgManageReturnTo = 'screen-meeting-write';
   mtgRenderManagePage();
   nav('screen-meeting-manage');
 }
 
 function exitMeetingManage() {
-  nav('screen-meeting-write');
+  var returnTo = mtgManageReturnTo || 'screen-meeting-write';
+  mtgManageReturnTo = 'screen-meeting-write';
+  if (returnTo === 'screen-meeting') {
+    renderMeetingCards();
+  }
+  nav(returnTo);
 }
 
 function mtgRenderManagePage() {
@@ -931,7 +946,7 @@ function mtgRenderManageMemory() {
 
   var mems = mtgCurrentSession.shortTermMemory || [];
   if (mems.length === 0) {
-    c.innerHTML = '<div class="mtg-empty" style="padding:20px">' +
+    c.innerHTML = '<div class="mtg-empty" style="padding:24px">' +
       '<svg viewBox="0 0 36 36" style="width:32px;height:32px;stroke:#d1d1d6;fill:none;stroke-width:1"><rect x="4" y="4" width="28" height="28" rx="4"/><path d="M10 14h16M10 20h12"/></svg>' +
       '<div style="margin-top:6px">' + T('meetingNoMemories') + '</div></div>';
     return;
