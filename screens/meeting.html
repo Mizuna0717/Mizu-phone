@@ -12,19 +12,10 @@
   <div class="large-title" data-i18n="meetingTitle">Meeting</div>
 
   <div class="screen-body">
-    <!-- Tab Switcher -->
-    <div class="mtg-tabs" id="meetingTabs">
-      <div class="mtg-tab active" data-tab="continue" onclick="switchMeetingTab('continue')">
-        <span data-i18n="meetingContinue">Continue</span>
-      </div>
-      <div class="mtg-tab" data-tab="if" onclick="switchMeetingTab('if')">
-        <span data-i18n="meetingIF">IF</span>
-      </div>
-    </div>
 
-    <!-- Continue Section -->
+    <!-- ── Continue Section (always visible, top) ── -->
     <div class="mtg-section" id="meetingSectionContinue">
-      <div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px">
+      <div class="mtg-section-header">
         <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5">
           <path d="M3 13V3h7l3 3v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
           <path d="M10 3v3h3"/><path d="M6 9h4M6 11h2"/>
@@ -34,9 +25,9 @@
       <div id="meetingContinueCards" style="margin:0 16px 16px"></div>
     </div>
 
-    <!-- IF Section -->
-    <div class="mtg-section" id="meetingSectionIF" style="display:none">
-      <div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px">
+    <!-- ── IF Section (always visible, bottom) ── -->
+    <div class="mtg-section" id="meetingSectionIF">
+      <div class="mtg-section-header">
         <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5">
           <circle cx="8" cy="2.5" r="1.5"/><path d="M8 4v3"/><path d="M4.5 9.5L8 7l3.5 2.5"/><path d="M4.5 9.5v3"/><path d="M11.5 9.5v3"/>
         </svg>
@@ -56,20 +47,18 @@
       <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
     </button>
     <span class="nav-title" id="meetingWriteTitle">Session</span>
-    <button class="nav-btn" id="meetingWriteMenuBtn" onclick="showToast(T('meetingUiOnly'))" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">
+    <button class="nav-btn" onclick="openMeetingManage()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">
       <svg viewBox="0 0 20 20" style="width:20px;height:20px">
-        <circle cx="10" cy="4" r="1.5" fill="#1d1d1f"/><circle cx="10" cy="10" r="1.5" fill="#1d1d1f"/><circle cx="10" cy="16" r="1.5" fill="#1d1d1f"/>
+        <path d="M4 6h12M4 10h12M4 14h12" stroke="#1d1d1f" fill="none" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
     </button>
   </div>
 
-  <div class="screen-body mtg-write-scroll" id="meetingWriteBody">
-    <!-- rendered by JS -->
-  </div>
+  <div class="screen-body mtg-write-scroll" id="meetingWriteBody"></div>
 
   <div class="mtg-write-bar">
     <textarea class="mtg-write-input" id="meetingWriteInput" rows="1" data-i18n="meetingWritePh" placeholder="Your turn to write..."></textarea>
-    <button class="mtg-write-send" onclick="meetingWriteSend()">
+    <button class="mtg-write-send" id="meetingWriteSendBtn" onclick="meetingWriteSend()">
       <svg viewBox="0 0 20 20" style="width:18px;height:18px"><path d="M3 10h14M12 5l5 5-5 5" stroke="#8e8e93" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </div>

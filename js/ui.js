@@ -77,6 +77,7 @@ function nav(id) {
   if (id === 'screen-meeting') try { initMeetingPage(); } catch(e) {}
   // ★ NEW: Meeting settings page — no special init needed, form reset in openMeetingSettings()
   if (id === 'screen-meeting-settings') try { applyLang(); } catch(e) {}
+  if (id === 'screen-meeting-manage') try { applyLang(); } catch(e) {}  
 }
 
 

@@ -1,6 +1,7 @@
 // ========== 02-state.js ==========
 let accountStore = { accounts: [], currentAccountId: null };
 
+// 1. In the state object, add meetings:
 let state = {
   apis: [], activeApiId: null, characters: [], chats: {}, worldbooks: [], stickers: [],
   unread: {}, currentCharId: null, editingApiId: null, editingCharId: null,
@@ -8,7 +9,8 @@ let state = {
   charEditFrom: 'screen-imessage', drawerFilter: 'all', drawerSort: 'recent',
   drawerSearch: '', lang: 'en', userProfile: { name: 'User', avatar: null },
   masks: [], memories: [], imsgTab: 'messages', replyPrompt: null, charConfig: {},
-  phoneData: {}, bookmarks: [], groups: [], moments: []
+  phoneData: {}, bookmarks: [], groups: [], moments: [],
+  meetings: []   // ★ NEW
 };
 
 let bubbleState = { multiMode: false, selectedIds: new Set(), quoteMsg: null, editingMsgId: null };
@@ -22,11 +24,13 @@ let tmp = {
   momentImageData: null, momentVirtualText: '', acctAvatar: null, importCharList: null
 };
 
+// 2. In SAVE_KEYS, add 'meetings':
 var SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
-  'groups', 'moments', 'imsgTab'
+  'groups', 'moments', 'imsgTab',
+  'meetings'   // ★ NEW
 ];
 
 function _generateAccountId() {
@@ -42,7 +46,7 @@ function _getStateDefaults() {
     drawerSearch: '', lang: 'en', userProfile: { name: 'User', avatar: null },
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
-    charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: []
+    charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [] 
   };
 }
 
@@ -62,6 +66,7 @@ function _validateState() {
   if (!Array.isArray(state.worldbooks)) state.worldbooks = [];
   if (!Array.isArray(state.stickers)) state.stickers = [];
   if (!Array.isArray(state.apis)) state.apis = [];
+  if (!Array.isArray(state.meetings)) state.meetings = [];
 }
 
 function _resetTransientState() {

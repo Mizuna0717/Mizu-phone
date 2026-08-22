@@ -21,6 +21,7 @@
         'screens/phone.html',
         'screens/meeting.html',
         'screens/meeting-settings.html',
+        'screens/meeting-manage.html',
         'screens/couple.html',
         'screens/archive.html',
         'screens/cloud.html',
