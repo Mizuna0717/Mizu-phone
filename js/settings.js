@@ -1,5 +1,5 @@
 // ========== 08-settings.js ==========
-// 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js, 06-api.js
+// 依赖：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js, 06-api.js
 
 // ★★★ 初始化提示词（由 init.js 在 loadState 之后调用） ★★★
 function initSystemPrompts() {
@@ -11,7 +11,7 @@ function initSystemPrompts() {
 
   var needSave = false;
 
-  // iMessage 提示词
+  // iMessage 提示词：未设置时写入默认值
   if (!state.systemPromptIM) {
     if (state.replyPrompt && state.replyPrompt !== (typeof DEFAULT_REPLY_PROMPT !== 'undefined' ? DEFAULT_REPLY_PROMPT : '')) {
       state.systemPromptIM = state.replyPrompt;
@@ -21,7 +21,7 @@ function initSystemPrompts() {
     needSave = true;
   }
 
-  // Meeting 提示词
+  // Meeting 提示词：未设置时写入默认值
   if (!state.systemPromptMeeting) {
     state.systemPromptMeeting = (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
     needSave = true;
@@ -35,23 +35,68 @@ function initSystemPrompts() {
   }
 }
 
+// ★★★ 核心修复：获取有效提示词值（state > 默认值，绝不返回空） ★★★
+function _getEffectivePromptIM() {
+  // 1. state 中有用户保存的内容 → 使用它
+  if (state.systemPromptIM != null && state.systemPromptIM !== '') {
+    return state.systemPromptIM;
+  }
+  // 2. 有旧版 replyPrompt 迁移值 → 使用它
+  if (state.replyPrompt && state.replyPrompt !== (typeof DEFAULT_REPLY_PROMPT !== 'undefined' ? DEFAULT_REPLY_PROMPT : '')) {
+    return state.replyPrompt;
+  }
+  // 3. 回退到内置默认值
+  return (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM : '';
+}
+
+function _getEffectivePromptMeeting() {
+  // 1. state 中有用户保存的内容 → 使用它
+  if (state.systemPromptMeeting != null && state.systemPromptMeeting !== '') {
+    return state.systemPromptMeeting;
+  }
+  // 2. 回退到内置默认值
+  return (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
+}
+
 
 function renderSettings() {
   renderApiListInline();
   renderSettingsHero();
   renderHelpAccordion();
 
-  // 兜底：确保提示词已初始化（正常情况已在 init.js 中完成）
-  initSystemPrompts();
+  // ★★★ 修复核心：确保 state 中有值，然后填充输入框 ★★★
+  _ensurePromptsInState();
 
-  // 填充输入框
   var imArea = document.getElementById('promptIMArea');
   var mtArea = document.getElementById('promptMeetingArea');
-  if (imArea) imArea.value = state.systemPromptIM || '';
-  if (mtArea) mtArea.value = state.systemPromptMeeting || '';
+  if (imArea) imArea.value = _getEffectivePromptIM();
+  if (mtArea) mtArea.value = _getEffectivePromptMeeting();
 
   if (!state.memories) state.memories = [];
 }
+
+// ★★★ 确保 state 中写入了有效值（不依赖 accountStore） ★★★
+function _ensurePromptsInState() {
+  var needSave = false;
+
+  // 如果 state.systemPromptIM 为空/未定义，写入默认值
+  if (!state.systemPromptIM) {
+    state.systemPromptIM = _getEffectivePromptIM();
+    if (state.systemPromptIM) needSave = true;
+  }
+
+  // 如果 state.systemPromptMeeting 为空/未定义，写入默认值
+  if (!state.systemPromptMeeting) {
+    state.systemPromptMeeting = _getEffectivePromptMeeting();
+    if (state.systemPromptMeeting) needSave = true;
+  }
+
+  if (needSave) {
+    saveState();
+    console.log('[_ensurePromptsInState] 已补写默认提示词到 state | IM:', state.systemPromptIM.length, '| Meeting:', state.systemPromptMeeting.length);
+  }
+}
+
 
 function renderSettingsHero() {
   const a = state.apis.find(x => x.id === state.activeApiId);
@@ -77,26 +122,38 @@ function renderApiListInline() {
 
 // ========== iMessage 提示词 ==========
 function savePromptIM() {
-  state.systemPromptIM = document.getElementById('promptIMArea').value;
-  saveState();
+  var area = document.getElementById('promptIMArea');
+  if (area) {
+    state.systemPromptIM = area.value;
+    saveState();
+  }
 }
 
 function resetPromptIM() {
-  state.systemPromptIM = (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM : '';
-  document.getElementById('promptIMArea').value = state.systemPromptIM;
+  // ★★★ 重置为内置默认值，而非空字符串 ★★★
+  var defaultVal = (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM : '';
+  state.systemPromptIM = defaultVal;
+  var area = document.getElementById('promptIMArea');
+  if (area) area.value = defaultVal;
   saveState();
   showToast('Reset');
 }
 
 // ========== Meeting 提示词 ==========
 function savePromptMeeting() {
-  state.systemPromptMeeting = document.getElementById('promptMeetingArea').value;
-  saveState();
+  var area = document.getElementById('promptMeetingArea');
+  if (area) {
+    state.systemPromptMeeting = area.value;
+    saveState();
+  }
 }
 
 function resetPromptMeeting() {
-  state.systemPromptMeeting = (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
-  document.getElementById('promptMeetingArea').value = state.systemPromptMeeting;
+  // ★★★ 重置为内置默认值，而非空字符串 ★★★
+  var defaultVal = (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
+  state.systemPromptMeeting = defaultVal;
+  var area = document.getElementById('promptMeetingArea');
+  if (area) area.value = defaultVal;
   saveState();
   showToast('Reset');
 }

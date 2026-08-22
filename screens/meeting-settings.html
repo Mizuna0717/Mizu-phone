@@ -1,4 +1,4 @@
-<!-- ====== MEETING SETTINGS (NEW SESSION) SCREEN ====== -->
+<!-- ====== MEETING SETTINGS — New Session ====== -->
 <div class="screen" id="screen-meeting-settings">
   <div class="nav-bar">
     <button class="nav-btn" onclick="exitMeetingSettings()">
@@ -9,87 +9,97 @@
   </div>
   <div class="large-title" data-i18n="meetingNewSession">New Session</div>
 
-  <div class="screen-body" style="padding:0 0 40px">
+  <div class="screen-body" style="padding-bottom:40px">
 
-    <!-- ── Session Name ── -->
+    <!-- 1. Session Name -->
     <div class="mtg-panel-section-hdr" data-i18n="meetingSessionName">SESSION NAME</div>
     <div class="mtg-panel-card">
       <div class="mtg-panel-row">
         <input type="text" class="mtg-panel-text-input" id="mtgSetSessionName"
-               data-i18n-ph="meetingNamePh" placeholder="Enter session name...">
+               data-i18n="meetingSessionNamePh" placeholder="Enter session name">
       </div>
     </div>
 
-    <!-- ── Mode ── -->
+    <!-- 2. Mode -->
     <div class="mtg-panel-section-hdr" data-i18n="meetingMode">MODE</div>
     <div class="mtg-panel-card">
-      <div class="mtg-panel-row" style="padding:10px 16px">
-        <div class="mtg-seg" id="mtgSetModeSeg" style="width:100%">
-          <div class="mtg-seg-opt active" data-value="continue"
-               onclick="mtgSetToggleSeg(this);mtgSetModeChanged()">
+      <div class="mtg-panel-col-row">
+        <div class="mtg-seg" id="mtgSetModeSeg">
+          <div class="mtg-seg-opt active" data-value="continue" onclick="mtgSetToggleSeg(this);mtgSetModeChanged()">
             <span data-i18n="meetingContinue">Continue</span>
           </div>
-          <div class="mtg-seg-opt" data-value="if"
-               onclick="mtgSetToggleSeg(this);mtgSetModeChanged()">
+          <div class="mtg-seg-opt" data-value="if" onclick="mtgSetToggleSeg(this);mtgSetModeChanged()">
             <span data-i18n="meetingIF">IF</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── Characters ── -->
-    <div class="mtg-panel-section-hdr" data-i18n="meetingCharacters">CHARACTERS</div>
-    <div class="mtg-panel-card" style="overflow:hidden">
-      <div id="mtgSetCharSelect" class="mtg-char-list"></div>
-    </div>
-
-    <!-- ── Perspective ── -->
-    <div class="mtg-panel-section-hdr" data-i18n="meetingPerspective">PERSPECTIVE</div>
+    <!-- 3. Perspective -->
+    <div class="mtg-panel-section-hdr" data-i18n="meetingCharPerspective">PERSPECTIVE</div>
     <div class="mtg-panel-card">
+
+      <!-- Character perspective -->
       <div class="mtg-panel-col-row">
-        <div class="mtg-panel-sublabel" data-i18n="meetingCharPerspective">Character Perspective</div>
+        <div class="mtg-panel-sublabel" data-i18n="meetingCharPerspectiveShort">Character</div>
         <div class="mtg-seg" id="mtgSetCharPersonSeg">
           <div class="mtg-seg-opt active" data-value="first" onclick="mtgSetToggleSeg(this)">
-            <span data-i18n="meetingFirstPerson">First</span></div>
+            <span data-i18n="meetingFirstPerson">First</span>
+          </div>
           <div class="mtg-seg-opt" data-value="second" onclick="mtgSetToggleSeg(this)">
-            <span data-i18n="meetingSecondPerson">Second</span></div>
+            <span data-i18n="meetingSecondPerson">Second</span>
+          </div>
           <div class="mtg-seg-opt" data-value="third" onclick="mtgSetToggleSeg(this)">
-            <span data-i18n="meetingThirdPerson">Third</span></div>
+            <span data-i18n="meetingThirdPerson">Third</span>
+          </div>
         </div>
       </div>
+
       <div class="mtg-panel-divider"></div>
+
+      <!-- User perspective -->
       <div class="mtg-panel-col-row">
-        <div class="mtg-panel-sublabel" data-i18n="meetingUserPerspective">User Perspective</div>
+        <div class="mtg-panel-sublabel" data-i18n="meetingUserPerspectiveShort">User</div>
         <div class="mtg-seg" id="mtgSetUserPersonSeg">
           <div class="mtg-seg-opt active" data-value="first" onclick="mtgSetToggleSeg(this)">
-            <span data-i18n="meetingFirstPerson">First</span></div>
+            <span data-i18n="meetingFirstPerson">First</span>
+          </div>
           <div class="mtg-seg-opt" data-value="second" onclick="mtgSetToggleSeg(this)">
-            <span data-i18n="meetingSecondPerson">Second</span></div>
+            <span data-i18n="meetingSecondPerson">Second</span>
+          </div>
           <div class="mtg-seg-opt" data-value="third" onclick="mtgSetToggleSeg(this)">
-            <span data-i18n="meetingThirdPerson">Third</span></div>
+            <span data-i18n="meetingThirdPerson">Third</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ── Word Count ── -->
+    <!-- 4. Word Count -->
     <div class="mtg-panel-section-hdr" data-i18n="meetingWordCount">WORD COUNT</div>
     <div class="mtg-panel-card">
       <div class="mtg-panel-row">
-        <span class="mtg-panel-label">Min</span>
-        <input type="number" class="mtg-panel-num" id="mtgSetWcMin" value="100">
+        <span class="mtg-panel-label" data-i18n="meetingMin">Min</span>
+        <input type="number" class="mtg-panel-num" id="mtgSetWcMin" value="100" min="10" max="2000">
       </div>
       <div class="mtg-panel-divider"></div>
       <div class="mtg-panel-row">
-        <span class="mtg-panel-label">Max</span>
-        <input type="number" class="mtg-panel-num" id="mtgSetWcMax" value="300">
+        <span class="mtg-panel-label" data-i18n="meetingMax">Max</span>
+        <input type="number" class="mtg-panel-num" id="mtgSetWcMax" value="300" min="10" max="5000">
       </div>
     </div>
 
-    <!-- ── Summary ── -->
-    <div class="mtg-panel-section-hdr" data-i18n="meetingSummaryLabel">SUMMARY</div>
+    <!-- 5. Characters -->
+    <div class="mtg-panel-section-hdr" data-i18n="meetingCharacters">CHARACTERS</div>
+    <div class="mtg-panel-card">
+      <!-- JS: mtgSetRenderCharSelect() renders mtg-char-item list here -->
+      <div class="mtg-char-list" id="mtgSetCharSelect"></div>
+    </div>
+
+    <!-- 6. Turn Summary -->
+    <div class="mtg-panel-section-hdr" data-i18n="meetingTurnSummary">TURN SUMMARY</div>
     <div class="mtg-panel-card">
       <div class="mtg-panel-row">
-        <span class="mtg-panel-label" data-i18n="meetingAutoSummary">Auto Summary</span>
+        <span class="mtg-panel-label" data-i18n="meetingTurnSummaryEnable">Enable turn summary</span>
         <div class="mtg-toggle" id="mtgSetToggleSummary"
              onclick="this.classList.toggle('active');mtgSetSummaryToggled()"></div>
       </div>
@@ -102,36 +112,35 @@
       </div>
     </div>
 
-    <!-- ── IF-only: Worldview ── -->
-    <div class="mtg-set-if-only" style="display:none">
+    <!-- 7. Worldview (IF only) -->
+    <div class="mtg-set-if-only" id="mtgSetWorldviewField" style="display:none">
       <div class="mtg-panel-section-hdr" data-i18n="meetingWorldview">WORLDVIEW</div>
       <div class="mtg-panel-card">
-        <div style="padding:12px 16px">
-          <textarea class="mtg-panel-textarea" id="mtgSetWorldview"
-                    data-i18n-ph="meetingWorldviewPh"
-                    placeholder="Describe the world setting..." rows="4"></textarea>
+        <div class="mtg-panel-col-row">
+          <textarea class="mtg-panel-textarea" id="mtgSetWorldview" rows="3"
+                    data-i18n="meetingWorldviewPh" placeholder="Describe the world setting..."></textarea>
         </div>
       </div>
     </div>
 
-    <!-- ── IF-only: Identity ── -->
-    <div class="mtg-set-if-only" style="display:none">
+    <!-- 8. Identity (IF only) -->
+    <div class="mtg-set-if-only" id="mtgSetIdentityField" style="display:none">
       <div class="mtg-panel-section-hdr" data-i18n="meetingIdentity">IDENTITY</div>
       <div class="mtg-panel-card">
-        <div style="padding:12px 16px">
-          <textarea class="mtg-panel-textarea" id="mtgSetIdentity"
-                    data-i18n-ph="meetingIdentityPh"
-                    placeholder="Describe the user's identity..." rows="4"></textarea>
+        <div class="mtg-panel-col-row">
+          <textarea class="mtg-panel-textarea" id="mtgSetIdentity" rows="3"
+                    data-i18n="meetingIdentityPh" placeholder="Your character identity..."></textarea>
         </div>
       </div>
     </div>
 
-    <!-- ── Start Button ── -->
-    <div style="padding:28px 16px 0">
+    <!-- Start Button -->
+    <div style="padding:24px 16px 0">
       <button class="mtg-panel-primary-btn" onclick="startMeetingSession()">
-        <svg viewBox="0 0 16 16" style="width:14px;height:14px;margin-right:8px">
-          <path d="M4 8h8M8 4v8" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
-        <span data-i18n="meetingStartSession">Start Session</span>
+        <svg viewBox="0 0 20 20" style="width:16px;height:16px;margin-right:6px">
+          <path d="M6 4l10 6-10 6z" stroke="#fff" fill="none" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        <span data-i18n="meetingStart">Start</span>
       </button>
     </div>
 

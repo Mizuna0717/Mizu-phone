@@ -961,3 +961,4 @@ function mtgRenderManageMemory() {
   });
   c.innerHTML = h;
 }
+
