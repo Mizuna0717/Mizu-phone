@@ -13,10 +13,12 @@ var mtgSessions = {
       date: '2024-08-22',
       characters: ['Elena', 'Marcus'],
       mode: 'continue',
-      person: 'first',
+      charPerson: 'first',
+      userPerson: 'first',
       wc: { min: 100, max: 300 },
       turnSummary: true,
-      worldview: ''
+      worldview: '',
+      identity: ''
     },
     {
       id: 'demo-c2',
@@ -24,10 +26,12 @@ var mtgSessions = {
       date: '2024-08-20',
       characters: ['Yuki'],
       mode: 'continue',
-      person: 'third',
+      charPerson: 'third',
+      userPerson: 'first',
       wc: { min: 150, max: 400 },
       turnSummary: false,
-      worldview: ''
+      worldview: '',
+      identity: ''
     }
   ],
   'if': [
@@ -37,10 +41,12 @@ var mtgSessions = {
       date: '2024-08-21',
       characters: ['Alex', 'Sam'],
       mode: 'if',
-      person: 'first',
+      charPerson: 'first',
+      userPerson: 'second',
       wc: { min: 100, max: 250 },
       turnSummary: true,
-      worldview: ''
+      worldview: 'A world where every crossroad reveals a parallel reality.',
+      identity: 'A wanderer between dimensions.'
     },
     {
       id: 'demo-i2',
@@ -48,10 +54,12 @@ var mtgSessions = {
       date: '2024-08-18',
       characters: ['River'],
       mode: 'if',
-      person: 'third',
+      charPerson: 'third',
+      userPerson: 'third',
       wc: { min: 200, max: 500 },
       turnSummary: false,
-      worldview: ''
+      worldview: 'An enchanted garden that reshapes itself based on emotions.',
+      identity: ''
     }
   ]
 };
@@ -77,6 +85,13 @@ function mtgFormatDate(ds) {
   var m = ['January','February','March','April','May','June',
            'July','August','September','October','November','December'];
   return m[d.getMonth()] + ' ' + d.getDate();
+}
+
+function mtgPersonLabel(val) {
+  if (val === 'first')  return T('meetingFirstPerson');
+  if (val === 'second') return T('meetingSecondPerson');
+  if (val === 'third')  return T('meetingThirdPerson');
+  return val;
 }
 
 /* ──────────────────────────────────
@@ -136,15 +151,14 @@ function mtgRenderList(mode, cid) {
     h += '<div style="width:4px;height:40px;border-radius:2px;background:' + clr + ';flex-shrink:0"></div>';
 
     h += '<div style="flex:1;min-width:0">';
-    // title = session name
     h += '<div style="font-size:15px;font-weight:500;color:#1d1d1f">' + mtgEsc(s.name) + '</div>';
-    // date label (calendar icon)
+    // date
     h += '<div style="font-size:12px;color:#8e8e93;margin-top:3px;display:flex;align-items:center;gap:6px">';
     h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4;flex-shrink:0">' +
          '<rect x="1.5" y="2.5" width="11" height="9" rx="1"/>' +
          '<path d="M4.5 1v3M9.5 1v3M1.5 5.5h11"/></svg>';
     h += '<span>' + dl + '</span></div>';
-    // characters (person icon)
+    // characters
     h += '<div style="font-size:11px;color:#b0b0b5;margin-top:4px;display:flex;align-items:center;gap:6px">';
     h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#b0b0b5;fill:none;stroke-width:1.4;flex-shrink:0">' +
          '<circle cx="7" cy="5" r="2.5"/>' +
@@ -153,7 +167,7 @@ function mtgRenderList(mode, cid) {
     h += '</div>';
 
     // chevron
-    h += '<span style="color:#c7c7cc;font-size:16px">\u203A</span>';
+    h += '<svg viewBox="0 0 8 14" style="width:8px;height:14px;flex-shrink:0"><path d="M1 1l6 6-6 6" stroke="#c7c7cc" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     h += '</div>';
   });
 
@@ -162,21 +176,67 @@ function mtgRenderList(mode, cid) {
 }
 
 /* ──────────────────────────────────
-   Settings Modal
+   Settings Page (Independent Screen)
    ────────────────────────────────── */
 function openMeetingSettings() {
+  // reset form
+  var nameEl = document.getElementById('mtgSetSessionName');
+  if (nameEl) nameEl.value = '';
+
   // sync mode seg with current tab
-  document.querySelectorAll('.mtg-mode-seg .mtg-seg-opt').forEach(function (el) {
-    el.classList.toggle('active', el.dataset.value === mtgCurrentTab);
-  });
+  var modeSeg = document.getElementById('mtgSetModeSeg');
+  if (modeSeg) {
+    modeSeg.querySelectorAll('.mtg-seg-opt').forEach(function (el) {
+      el.classList.toggle('active', el.dataset.value === mtgCurrentTab);
+    });
+  }
+
+  // reset perspectives to first person
+  var charSeg = document.getElementById('mtgSetCharPersonSeg');
+  if (charSeg) {
+    charSeg.querySelectorAll('.mtg-seg-opt').forEach(function (el) {
+      el.classList.toggle('active', el.dataset.value === 'first');
+    });
+  }
+  var userSeg = document.getElementById('mtgSetUserPersonSeg');
+  if (userSeg) {
+    userSeg.querySelectorAll('.mtg-seg-opt').forEach(function (el) {
+      el.classList.toggle('active', el.dataset.value === 'first');
+    });
+  }
+
+  // reset word count
+  var wcMin = document.getElementById('mtgSetWcMin');
+  var wcMax = document.getElementById('mtgSetWcMax');
+  if (wcMin) wcMin.value = '100';
+  if (wcMax) wcMax.value = '300';
+
+  // reset toggle
+  var ts = document.getElementById('mtgSetToggleSummary');
+  if (ts) ts.classList.remove('active');
+
+  // reset worldview / identity
+  var wvEl = document.getElementById('mtgSetWorldview');
+  if (wvEl) wvEl.value = '';
+  var idEl = document.getElementById('mtgSetIdentity');
+  if (idEl) idEl.value = '';
+
   // render character checkboxes
-  mtgRenderCharSelect();
-  // show modal
-  document.getElementById('meetingSettingsModal').classList.add('show');
+  mtgSetRenderCharSelect();
+
+  // apply IF-only visibility
+  mtgSetModeChanged();
+
+  // navigate to settings page
+  nav('screen-meeting-settings');
 }
 
-function mtgRenderCharSelect() {
-  var c = document.getElementById('meetingCharSelect');
+function exitMeetingSettings() {
+  nav('screen-meeting');
+}
+
+function mtgSetRenderCharSelect() {
+  var c = document.getElementById('mtgSetCharSelect');
   if (!c) return;
   var chars = (typeof state !== 'undefined' && state.chars) ? state.chars : [];
 
@@ -187,14 +247,14 @@ function mtgRenderCharSelect() {
 
   c.innerHTML = chars.map(function (ch) {
     return '<label class="mtg-char-item">' +
-      '<input type="checkbox" class="mtg-char-check" value="' + ch.id + '">' +
+      '<input type="checkbox" class="mtg-set-char-check" value="' + ch.id + '">' +
       '<span class="mtg-char-checkmark"></span>' +
       '<span class="mtg-char-name">' + mtgEsc(ch.name) + '</span>' +
       '</label>';
   }).join('');
 }
 
-function mtgToggleSeg(el) {
+function mtgSetToggleSeg(el) {
   var p = el.parentElement;
   if (!p) return;
   p.querySelectorAll('.mtg-seg-opt').forEach(function (o) {
@@ -202,11 +262,40 @@ function mtgToggleSeg(el) {
   });
 }
 
+/* ── IF-only field visibility ── */
+function mtgSetModeChanged() {
+  var modeEl = document.querySelector('#mtgSetModeSeg .mtg-seg-opt.active');
+  var mode = modeEl ? modeEl.dataset.value : 'continue';
+  var isIF = mode === 'if';
+
+  document.querySelectorAll('.mtg-set-if-only').forEach(function (el) {
+    if (isIF) {
+      el.style.display = '';
+      el.classList.remove('mtg-set-hidden');
+      el.classList.add('mtg-set-visible');
+    } else {
+      el.classList.remove('mtg-set-visible');
+      el.classList.add('mtg-set-hidden');
+      // after animation, hide
+      setTimeout(function () {
+        if (el.classList.contains('mtg-set-hidden')) {
+          el.style.display = 'none';
+        }
+      }, 320);
+    }
+  });
+}
+
+/* ── Legacy seg toggle (kept for compatibility) ── */
+function mtgToggleSeg(el) {
+  mtgSetToggleSeg(el);
+}
+
 /* ──────────────────────────────────
    Start Session
    ────────────────────────────────── */
 function startMeetingSession() {
-  var nameEl = document.getElementById('meetingSessionName');
+  var nameEl = document.getElementById('mtgSetSessionName');
   var name = nameEl ? nameEl.value.trim() : '';
   if (!name) {
     showToast(T('meetingNameRequired'));
@@ -214,29 +303,44 @@ function startMeetingSession() {
     return;
   }
 
-  // read settings
-  var modeEl = document.querySelector('.mtg-mode-seg .mtg-seg-opt.active');
+  // read mode
+  var modeEl = document.querySelector('#mtgSetModeSeg .mtg-seg-opt.active');
   var mode = modeEl ? modeEl.dataset.value : mtgCurrentTab;
 
-  var personEl = document.querySelector('.mtg-person-seg .mtg-seg-opt.active');
-  var person = personEl ? personEl.dataset.value : 'first';
+  // read character perspective
+  var charPersonEl = document.querySelector('#mtgSetCharPersonSeg .mtg-seg-opt.active');
+  var charPerson = charPersonEl ? charPersonEl.dataset.value : 'first';
 
-  var wcMin = parseInt(document.getElementById('meetingWcMin').value) || 100;
-  var wcMax = parseInt(document.getElementById('meetingWcMax').value) || 300;
+  // read user perspective
+  var userPersonEl = document.querySelector('#mtgSetUserPersonSeg .mtg-seg-opt.active');
+  var userPerson = userPersonEl ? userPersonEl.dataset.value : 'first';
 
+  // read word count
+  var wcMin = parseInt(document.getElementById('mtgSetWcMin').value) || 100;
+  var wcMax = parseInt(document.getElementById('mtgSetWcMax').value) || 300;
+
+  // read selected characters
   var selChars = [];
-  document.querySelectorAll('.mtg-char-check:checked').forEach(function (cb) {
-    var ch = (state.chars || []).find(function (c) { return c.id === cb.value; });
-    if (ch) selChars.push(ch.name);
+  document.querySelectorAll('.mtg-set-char-check:checked').forEach(function (cb) {
+    if (typeof state !== 'undefined' && state.chars) {
+      var ch = state.chars.find(function (c) { return c.id === cb.value; });
+      if (ch) selChars.push(ch.name);
+    }
   });
 
-  var summary = document.querySelector('.mtg-toggle-summary')
-    ? document.querySelector('.mtg-toggle-summary').classList.contains('active')
-    : false;
+  // read turn summary
+  var summaryEl = document.getElementById('mtgSetToggleSummary');
+  var summary = summaryEl ? summaryEl.classList.contains('active') : false;
 
-  var wv = document.getElementById('meetingWorldview')
-    ? document.getElementById('meetingWorldview').value.trim()
-    : '';
+  // read worldview / identity (only meaningful for IF)
+  var wv = '';
+  var ident = '';
+  if (mode === 'if') {
+    var wvEl = document.getElementById('mtgSetWorldview');
+    wv = wvEl ? wvEl.value.trim() : '';
+    var idEl = document.getElementById('mtgSetIdentity');
+    ident = idEl ? idEl.value.trim() : '';
+  }
 
   var now = new Date();
   var session = {
@@ -247,27 +351,23 @@ function startMeetingSession() {
           String(now.getDate()).padStart(2, '0'),
     characters: selChars,
     mode: mode,
-    person: person,
+    charPerson: charPerson,
+    userPerson: userPerson,
     wc: { min: wcMin, max: wcMax },
     turnSummary: summary,
-    worldview: wv
+    worldview: wv,
+    identity: ident
   };
 
   if (!mtgSessions[mode]) mtgSessions[mode] = [];
   mtgSessions[mode].unshift(session);
 
-  // reset form
-  if (nameEl) nameEl.value = '';
-  var wvEl = document.getElementById('meetingWorldview');
-  if (wvEl) wvEl.value = '';
-  document.querySelectorAll('.mtg-char-check').forEach(function (cb) { cb.checked = false; });
-  var ts = document.querySelector('.mtg-toggle-summary');
-  if (ts) ts.classList.remove('active');
-
-  closeModal('meetingSettingsModal');
-
+  // switch tab and render
+  mtgCurrentTab = mode;
   switchMeetingTab(mode);
   renderMeetingCards();
+
+  // go to writing page
   openMeetingWrite(session.id);
 }
 
@@ -301,7 +401,8 @@ function mtgRenderWriteContent(s) {
   if (!body) return;
 
   var modeL = s.mode === 'continue' ? T('meetingContinue') : T('meetingIF');
-  var personL = s.person === 'first' ? T('meetingFirstPerson') : T('meetingThirdPerson');
+  var charPersonL = mtgPersonLabel(s.charPerson);
+  var userPersonL = mtgPersonLabel(s.userPerson);
 
   var h = '';
 
@@ -312,11 +413,14 @@ function mtgRenderWriteContent(s) {
        '<rect x="1.5" y="2.5" width="11" height="9" rx="1"/>' +
        '<path d="M4.5 1v3M9.5 1v3M1.5 5.5h11"/></svg>';
   h += '<span>' + mtgFormatDate(s.date) + '</span></div>';
+
   h += '<div class="mtg-write-info-row">';
   h += '<span class="mtg-write-tag">' + modeL + '</span>';
-  h += '<span class="mtg-write-tag">' + personL + '</span>';
+  h += '<span class="mtg-write-tag">' + T('meetingCharPerspectiveShort') + ': ' + charPersonL + '</span>';
+  h += '<span class="mtg-write-tag">' + T('meetingUserPerspectiveShort') + ': ' + userPersonL + '</span>';
   h += '<span class="mtg-write-tag">' + s.wc.min + '-' + s.wc.max + ' ' + T('meetingWords') + '</span>';
   h += '</div>';
+
   if (s.characters.length) {
     h += '<div class="mtg-write-info-row">';
     h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4">' +
@@ -324,6 +428,23 @@ function mtgRenderWriteContent(s) {
          '<path d="M2.5 13c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/></svg>';
     h += '<span>' + s.characters.join(', ') + '</span></div>';
   }
+
+  // worldview / identity for IF mode
+  if (s.mode === 'if') {
+    if (s.worldview) {
+      h += '<div class="mtg-write-info-row">';
+      h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4">' +
+           '<circle cx="7" cy="7" r="5.5"/><path d="M2 7h10M7 1.5c-2 2-2 9 0 11M7 1.5c2 2 2 9 0 11"/></svg>';
+      h += '<span style="color:#b0b0b5">' + mtgEsc(s.worldview) + '</span></div>';
+    }
+    if (s.identity) {
+      h += '<div class="mtg-write-info-row">';
+      h += '<svg viewBox="0 0 14 14" style="width:12px;height:12px;stroke:#8e8e93;fill:none;stroke-width:1.4">' +
+           '<rect x="2" y="3" width="10" height="8" rx="1.5"/><path d="M5 7h4M7 5v4"/></svg>';
+      h += '<span style="color:#b0b0b5">' + mtgEsc(s.identity) + '</span></div>';
+    }
+  }
+
   h += '</div>';
 
   // story content

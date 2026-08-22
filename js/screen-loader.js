@@ -20,6 +20,7 @@
         'screens/game.html',
         'screens/phone.html',
         'screens/meeting.html',
+        'screens/meeting-settings.html',
         'screens/couple.html',
         'screens/archive.html',
         'screens/cloud.html',

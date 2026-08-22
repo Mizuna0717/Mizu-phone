@@ -48,6 +48,8 @@ function toggleAcc(h) {
 }
 
 // ========== NAVIGATION ==========
+// ===== 在 nav() 函数中，找到 meeting 行后追加 =====
+
 function nav(id) {
   if (window._fcNavigationLocked && !window._fcEngineNavigating) {
     console.log('[FC] nav blocked:', id);
@@ -71,12 +73,12 @@ function nav(id) {
   if (id === 'screen-memory') try { renderMemoryList(); } catch(e) {}
   if (id === 'screen-chat-config') try { openChatConfig(); } catch(e) {}
   if (id === 'screen-bookmarks') try { renderBookmarkList(); } catch(e) {}
-  // ★★★ 云端页面初始化 ★★★
   if (id === 'screen-cloud') try { initCloudPage(); } catch(e) {}
-    // ★ Meeting page init
   if (id === 'screen-meeting') try { initMeetingPage(); } catch(e) {}
-
+  // ★ NEW: Meeting settings page — no special init needed, form reset in openMeetingSettings()
+  if (id === 'screen-meeting-settings') try { applyLang(); } catch(e) {}
 }
+
 
 
 function updateHomeBadge() {
