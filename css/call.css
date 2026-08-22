@@ -1,4 +1,4 @@
-/* ========== call.css  — 美化版 ========== */
+/* ========== call.css — 灰白简约风格 ========== */
 
 .call-screen {
   position: fixed;
@@ -16,25 +16,24 @@
   to   { opacity: 1; }
 }
 
-/* ── 背景 ── */
+/* ── 背景：浅灰渐变，移除深色毛玻璃 ── */
 .call-bg {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
-  background-color: #1a1a2e;
-  filter: blur(40px) brightness(.35);
-  transform: scale(1.2);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 40%, #ececec 100%);
   z-index: 0;
+  /* 覆盖 JS 设置的 backgroundImage */
+  filter: none !important;
+  transform: none !important;
 }
 .call-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.4);
+  background: transparent;
 }
 
-/* ── 容器 — 底部保底 24px ── */
+/* ── 容器 ── */
 .call-container {
   position: relative;
   z-index: 1;
@@ -44,32 +43,64 @@
   padding: env(safe-area-inset-top, 20px) 0 env(safe-area-inset-bottom, 24px);
 }
 
-/* ── 顶部信息 ── */
+/* ══════════════════════════════════════════
+   顶部信息区 — 下移 + 灰色文字
+   ══════════════════════════════════════════ */
 .call-top {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 20px 12px;
+  padding: 36px 20px 16px;
   flex-shrink: 0;
 }
+
 .call-avatar-large {
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  background: rgba(255,255,255,.1);
+  background: #e8e8e8;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
-  border: 2px solid rgba(255,255,255,.15);
+  margin-bottom: 14px;
+  border: none;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.06),
+    0 0 0 3px rgba(0, 0, 0, 0.03);
 }
-.call-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
-.call-name   { font-size: 22px; font-weight: 600; color: #fff; letter-spacing: -.3px; }
-.call-timer  { font-size: 14px; color: rgba(255,255,255,.6); margin-top: 4px; font-variant-numeric: tabular-nums; }
-.call-type-label { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 2px; }
+.call-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* 无头像时 SVG 颜色 */
+.call-avatar-large svg path,
+.call-avatar-large svg circle {
+  stroke: #aaa !important;
+}
 
-/* ── 消息区 ── */
+.call-name {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -.3px;
+}
+.call-timer {
+  font-size: 14px;
+  color: #888;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.call-type-label {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+/* ══════════════════════════════════════════
+   消息区 — 灰白气泡
+   ══════════════════════════════════════════ */
 .call-messages {
   flex: 1;
   overflow-y: auto;
@@ -79,34 +110,83 @@
   gap: 6px;
   min-height: 0;
 }
-.call-msg-row { display: flex; flex-direction: column; max-width: 80%; animation: msgIn .25s ease; }
+
+.call-msg-row {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  animation: msgIn .25s ease;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .call-msg-row.sent     { align-self: flex-end;  align-items: flex-end;  }
 .call-msg-row.received { align-self: flex-start; align-items: flex-start; }
 
-.call-msg-bubble { padding: 8px 14px; border-radius: 18px; font-size: 14px; line-height: 1.4; word-break: break-word; }
-.call-msg-row.sent     .call-msg-bubble { background: rgba(255,255,255,.18);  color: #fff;                   border-bottom-right-radius: 4px; }
-.call-msg-row.received .call-msg-bubble { background: rgba(255,255,255,.10);  color: rgba(255,255,255,.92);  border-bottom-left-radius: 4px;  }
+.call-msg-bubble {
+  padding: 8px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.call-msg-row.sent .call-msg-bubble {
+  background: #e9e9eb;
+  color: #1d1d1f;
+  border-bottom-right-radius: 4px;
+}
+.call-msg-row.received .call-msg-bubble {
+  background: #ffffff;
+  color: #333;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
 
-.call-action-bubble { font-style: italic; font-size: 13px; color: rgba(255,255,255,.5) !important; background: rgba(255,255,255,.06) !important; }
-.call-msg-thought   { font-size: 12px; color: rgba(255,255,255,.35); font-style: italic; padding: 4px 14px 0; line-height: 1.4; }
-.call-msg-action    { font-size: 11px; color: rgba(255,255,255,.25); padding: 2px 14px 0; line-height: 1.3; }
+.call-action-bubble {
+  font-style: italic;
+  font-size: 13px;
+  color: #999 !important;
+  background: #f0f0f0 !important;
+}
+.call-msg-thought {
+  font-size: 12px;
+  color: #aaa;
+  font-style: italic;
+  padding: 4px 14px 0;
+  line-height: 1.4;
+}
+.call-msg-action {
+  font-size: 11px;
+  color: #bbb;
+  padding: 2px 14px 0;
+  line-height: 1.3;
+}
 
-/* ── 心声条 ── */
+/* ══════════════════════════════════════════
+   心声条 — 灰白卡片
+   ══════════════════════════════════════════ */
 .call-thought-bar {
   display: none;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 10px 14px;
   margin: 0 16px 4px;
-  background: rgba(255,255,255,.06);
+  background: #ffffff;
   border-radius: 10px;
   flex-shrink: 0;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
 }
 .call-thought-icon { flex-shrink: 0; }
-.call-thought-icon svg { stroke: rgba(255,255,255,.3); fill: none; stroke-width: 1.5; }
+.call-thought-icon svg {
+  stroke: #aaa;
+  fill: none;
+  stroke-width: 1.5;
+}
 .call-thought-text {
   font-size: 12px;
-  color: rgba(255,255,255,.4);
+  color: #888;
   font-style: italic;
   line-height: 1.4;
   overflow: hidden;
@@ -116,13 +196,19 @@
   -webkit-box-orient: vertical;
 }
 
-/* ── 输入条 / 动作条 ── */
+/* ══════════════════════════════════════════
+   输入条 / 动作条 — 白底卡片风格
+   ══════════════════════════════════════════ */
 .call-input-bar,
 .call-action-bar {
   display: none;
   align-items: flex-end;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 10px 16px;
+  margin: 0 12px 6px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
 }
 .call-input-bar.show,
@@ -130,48 +216,71 @@
 
 .call-input-wrap {
   flex: 1;
-  background: rgba(255,255,255,.1);
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,.12);
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid #e0e0e0;
 }
 .call-input-wrap textarea {
   width: 100%;
   border: none;
   outline: none;
-  padding: 8px 14px;
+  padding: 8px 4px;
   font-size: 14px;
   resize: none;
   max-height: 80px;
   line-height: 1.4;
   background: transparent;
   font-family: inherit;
-  color: #fff;
+  color: #333;
   box-sizing: border-box;
 }
-.call-input-wrap textarea::placeholder { color: rgba(255,255,255,.3); }
+.call-input-wrap textarea::placeholder { color: #bbb; }
 
+/* 发送按钮 — 精致灰白圆角 */
 .call-input-send {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,.15);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #f0f0f0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background .15s;
+  transition: background .15s, border-color .15s;
 }
-.call-input-send:active { background: rgba(255,255,255,.25); }
+.call-input-send svg {
+  width: 16px;
+  height: 16px;
+}
+.call-input-send svg path {
+  stroke: #555 !important;
+  fill: none !important;
+}
+.call-input-send:hover {
+  background: #e0e0e0;
+  border-color: #d0d0d0;
+}
+.call-input-send:active {
+  background: #d5d5d5;
+}
+/* 禁用态（可选） */
+.call-input-send:disabled {
+  background: #f5f5f5;
+  border-color: #eee;
+}
+.call-input-send:disabled svg path {
+  stroke: #ccc !important;
+}
 
 /* ══════════════════════════════════════════
-   ★★★ 底部控制区 — 美化核心 ★★★
+   ★★★ 底部控制区 — 灰白简约核心 ★★★
    ══════════════════════════════════════════ */
 .call-controls {
   padding: 14px 20px;
-  /* 底部至少 32px，叠加安全区 */
-  padding-bottom: max(32px, env(safe-area-inset-bottom, 32px));
+  padding-bottom: max(40px, env(safe-area-inset-bottom, 40px));
   flex-shrink: 0;
 }
 .call-controls.hidden { display: none; }
@@ -179,8 +288,8 @@
 .call-ctrl-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 18px 0;            /* ★ 行间距 18px（原 10px）*/
-  max-width: 320px;        /* ★ 加宽（原 280px）*/
+  gap: 20px 0;
+  max-width: 340px;
   margin: 0 auto;
 }
 
@@ -188,53 +297,72 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;                /* ★ 图标与文字间距 6px（原 4px）*/
+  gap: 7px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .call-ctrl-item span {
-  font-size: 11px;         /* ★ 标签字号 11px（原 10px）*/
-  color: rgba(255,255,255,.6);
+  font-size: 11px;
+  color: #888;
   font-weight: 500;
   letter-spacing: .2px;
 }
 
+/* ★ 按钮 — 白色圆形 + 柔和阴影 */
 .call-ctrl-btn {
-  width: 58px;             /* ★ 58px（原 52px）*/
-  height: 58px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
-  background: rgba(255,255,255,.12);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all .15s;
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-.call-ctrl-btn:active { transform: scale(.92); }
-.call-ctrl-btn.active  { background: rgba(255,255,255,.85); }
+.call-ctrl-btn:active {
+  transform: scale(.92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.call-ctrl-btn.active {
+  background: #1d1d1f;
+  border-color: #1d1d1f;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
 
+/* ★ 按钮图标 — 灰色线条 */
 .call-ctrl-btn svg {
-  width: 24px;             /* ★ 24px（原 22px）*/
+  width: 24px;
   height: 24px;
-  stroke: rgba(255,255,255,.85);
+  stroke: #555;
   fill: none;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.call-ctrl-btn.active svg { stroke: #1d1d1f; }
+.call-ctrl-btn.active svg { stroke: #fff; }
 
-/* 挂断按钮 */
-.call-end-btn          { background: #ff3b30 !important; border-color: transparent !important; }
-.call-end-btn svg      { stroke: #fff !important; }
-.call-end-btn:active   { background: #d63028 !important; }
+/* ★ 挂断按钮 — 红色 */
+.call-end-btn {
+  background: #ff3b30 !important;
+  border-color: transparent !important;
+  box-shadow: 0 3px 12px rgba(255, 59, 48, 0.25) !important;
+}
+.call-end-btn svg {
+  stroke: #fff !important;
+}
+.call-end-btn:active {
+  background: #d63028 !important;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.30) !important;
+}
 
-/* 打字指示器 */
+/* 打字指示器 — 适配浅色 */
 .call-msg-bubble .typing-indicator { padding: 4px 0; }
-.call-msg-bubble .typing-indicator span { background: rgba(255,255,255,.5); }
+.call-msg-bubble .typing-indicator span { background: #ccc; }
 
 /* ══════════════════════════════════════════
-   长按删除菜单
+   长按删除菜单 — 灰白风格
    ══════════════════════════════════════════ */
 .call-delete-overlay {
   position: absolute;
@@ -244,12 +372,12 @@
 .call-delete-menu {
   position: fixed;
   z-index: 101;
-  background: rgba(30,30,30,.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.1);
-  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  border: 1px solid #e5e5ea;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
   min-width: 100px;
   overflow: hidden;
   animation: callMenuIn .12s ease;
@@ -266,7 +394,7 @@
   cursor: pointer;
   transition: background .1s;
 }
-.call-delete-item:active { background: rgba(255,255,255,.08); }
+.call-delete-item:active { background: rgba(0, 0, 0, 0.04); }
 .call-delete-item svg {
   stroke: #ff453a;
   fill: none;
@@ -279,4 +407,19 @@
   font-size: 14px;
   color: #ff453a;
   font-weight: 500;
+}
+
+/* ══════════════════════════════════════════
+   历史模式关闭按钮 — 灰白风格覆盖
+   ══════════════════════════════════════════ */
+#callControlsHistory .call-ctrl-btn {
+  background: #f0f0f0 !important;
+  border: 1px solid #e0e0e0 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+}
+#callControlsHistory .call-ctrl-btn svg {
+  stroke: #555 !important;
+}
+#callControlsHistory .call-ctrl-item span {
+  color: #888 !important;
 }

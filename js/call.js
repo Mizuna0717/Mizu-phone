@@ -42,8 +42,8 @@ function openCallInterface(charId, callType, callMsgId) {
     document.getElementById('callAvatar').innerHTML = '<img src="' + ch.avatar + '">';
   } else {
     bg.style.backgroundImage = 'none';
-    bg.style.background = '#1a1a2e';
-    document.getElementById('callAvatar').innerHTML = '<svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="8" r="4" stroke="#fff" fill="none" stroke-width="1.5"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7" stroke="#fff" fill="none" stroke-width="1.5"/></svg>';
+    bg.style.background = '#f5f5f5';
+    document.getElementById('callAvatar').innerHTML = '<svg viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="8" r="4" stroke="#aaa" fill="none" stroke-width="1.5"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7" stroke="#aaa" fill="none" stroke-width="1.5"/></svg>';
   }
 
   document.getElementById('callName').textContent = ch.name || '角色';
@@ -118,7 +118,6 @@ async function generateCallGreeting(charId, callType) {
   const typingDiv = document.createElement('div');
   typingDiv.className = 'call-msg-row received';
   typingDiv.id = 'callTypingInd';
-  // ★ 无头像，仅气泡
   typingDiv.innerHTML = '<div class="call-msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
   container.appendChild(typingDiv);
   container.scrollTop = container.scrollHeight;
@@ -144,7 +143,6 @@ async function generateCallGreeting(charId, callType) {
     if (ti) ti.remove();
 
     if (callState.active && callState.charId === charId) {
-      // ★ 分段处理开场白
       processCallReply(parsed);
     }
 
@@ -167,7 +165,6 @@ function processCallReply(parsed) {
 
   if (!replyContent) replyContent = '...';
 
-  // ★ 按 ---SPLIT--- 拆分为独立消息
   const parts = replyContent.split(/---SPLIT---/).map(s => s.trim()).filter(Boolean);
 
   parts.forEach(function(part, i) {
@@ -190,7 +187,6 @@ function processCallReply(parsed) {
     );
   });
 
-  // 更新心声
   if (parsed.innerThought) {
     callState.latestThought = parsed.innerThought;
     document.getElementById('callThoughtText').textContent = parsed.innerThought;
@@ -301,7 +297,6 @@ async function endCallInterface() {
   const callMessages = [...callState.messages];
 
   if (charId && state.chats[charId]) {
-    // ★ 更新原始通话消息：保存历史和时长
     const callMsg = state.chats[charId].find(m => m.id === callMsgId);
     if (callMsg) {
       callMsg.callStatus = 'ended';
@@ -309,7 +304,6 @@ async function endCallInterface() {
       callMsg.callHistory = callMessages;
     }
 
-    // ★★★ 变更：插入系统居中消息，不归属角色 ★★★
     state.chats[charId].push({
       id: uid(),
       role: 'system',
@@ -451,7 +445,6 @@ function appendCallBubbleWithLP(side, content, isAction, idx) {
   const div = document.createElement('div');
   div.className = 'call-msg-row ' + side;
   div.dataset.callIdx = idx;
-  // ★ 无头像，仅气泡
   div.innerHTML = isAction
     ? '<div class="call-msg-bubble call-action-bubble">' + esc(content) + '</div>'
     : '<div class="call-msg-bubble">' + esc(content) + '</div>';
@@ -465,7 +458,6 @@ function appendCallReplyBubbleWithLP(content, thought, action, idx) {
   const div = document.createElement('div');
   div.className = 'call-msg-row received';
   div.dataset.callIdx = idx;
-  // ★ 无头像，仅气泡 + 可选动作/心声
   let html = '<div class="call-msg-bubble">' + esc(content) + '</div>';
   if (action) html += '<div class="call-msg-action">' + esc(action) + '</div>';
   if (thought && callState.thoughtVisible) html += '<div class="call-msg-thought">' + esc(thought) + '</div>';
@@ -511,7 +503,6 @@ async function triggerCallResponse(hint) {
   const typingDiv = document.createElement('div');
   typingDiv.className = 'call-msg-row received';
   typingDiv.id = 'callTypingInd';
-  // ★ 无头像
   typingDiv.innerHTML = '<div class="call-msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
   container.appendChild(typingDiv);
   container.scrollTop = container.scrollHeight;
@@ -543,7 +534,6 @@ async function triggerCallResponse(hint) {
     const ti = document.getElementById('callTypingInd');
     if (ti) ti.remove();
 
-    // ★★★ 分段处理 ★★★
     processCallReply(parsed);
 
   } catch (e) {

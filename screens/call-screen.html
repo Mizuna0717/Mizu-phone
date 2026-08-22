@@ -15,11 +15,11 @@
     </div>
     <div class="call-input-bar" id="callInputBar">
       <div class="call-input-wrap"><textarea id="callInput" placeholder="说点什么..." rows="1" oninput="autoGrowCallInput(this)"></textarea></div>
-      <button class="call-input-send" onclick="sendCallMessage()"><svg viewBox="0 0 20 20"><path d="M4 10l12-6-6 12-2-6z" stroke="#fff" fill="none" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+      <button class="call-input-send" onclick="sendCallMessage()"><svg viewBox="0 0 20 20"><path d="M4 10l12-6-6 12-2-6z" stroke="#555" fill="none" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
     </div>
     <div class="call-action-bar" id="callActionBar">
       <div class="call-input-wrap"><textarea id="callActionInput" placeholder="描述动作..." rows="1" oninput="autoGrowCallInput(this)"></textarea></div>
-      <button class="call-input-send" onclick="sendCallAction()"><svg viewBox="0 0 20 20"><path d="M4 10l12-6-6 12-2-6z" stroke="#fff" fill="none" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+      <button class="call-input-send" onclick="sendCallAction()"><svg viewBox="0 0 20 20"><path d="M4 10l12-6-6 12-2-6z" stroke="#555" fill="none" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
     </div>
     <div class="call-controls" id="callControlsLive">
       <div class="call-ctrl-grid">
@@ -33,7 +33,7 @@
     </div>
     <div class="call-controls hidden" id="callControlsHistory">
       <div style="display:flex;justify-content:center;padding:12px 0">
-        <div class="call-ctrl-item" onclick="closeCallHistory()"><div class="call-ctrl-btn" style="background:rgba(255,255,255,.2)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></div><span>关闭</span></div>
+        <div class="call-ctrl-item" onclick="closeCallHistory()"><div class="call-ctrl-btn"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></div><span>关闭</span></div>
       </div>
     </div>
   </div>
