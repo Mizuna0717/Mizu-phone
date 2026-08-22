@@ -236,7 +236,7 @@ function saveCloudConfig() {
   testCloudConnection();
 }
 
-// ── 测试连接 ──
+// ── 测试连接（替换原函数） ──
 async function testCloudConnection() {
   var cfg = _loadCloudConfig();
   if (!cfg || !cfg.url || !cfg.anonKey) {
@@ -258,34 +258,58 @@ async function testCloudConnection() {
   }
 
   try {
-    var result = await _supabaseClient.storage.listBuckets();
-    if (result.error) {
-      console.error('[Cloud] listBuckets error:', result.error);
-      updateCloudStatus(false);
-      showToast('连接失败: ' + (result.error.message || '请检查配置'));
-      return;
-    }
+    // ★ 核心改动：用上传测试文件代替 listBuckets ★
+    var testPath = '.connection_test/test_connection.txt';
+    var testContent = 'ok ' + new Date().toISOString();
+    var testBlob = new Blob([testContent], { type: 'text/plain' });
 
-    // 检查 app_backup 桶是否存在
-    var bucketExists = false;
-    if (Array.isArray(result.data)) {
-      for (var i = 0; i < result.data.length; i++) {
-        if (result.data[i].name === CLOUD_BUCKET || result.data[i].id === CLOUD_BUCKET) {
-          bucketExists = true; break;
-        }
+    var uploadResult = await _supabaseClient.storage
+      .from(CLOUD_BUCKET)
+      .upload(testPath, testBlob, {
+        contentType: 'text/plain',
+        upsert: true          // 允许覆盖，避免重复上传报错
+      });
+
+    if (uploadResult.error) {
+      console.error('[Cloud] test upload error:', uploadResult.error);
+
+      // 区分常见错误给出提示
+      var errMsg = uploadResult.error.message || '';
+      var statusCode = uploadResult.error.statusCode || '';
+
+      if (errMsg.indexOf('Bucket not found') !== -1 || errMsg.indexOf('bucket') !== -1) {
+        updateCloudStatus(false);
+        showToast('存储桶 "' + CLOUD_BUCKET + '" 不存在，请在 Supabase 控制台创建');
+      } else if (statusCode === '401' || statusCode === 401 || errMsg.indexOf('Invalid') !== -1) {
+        updateCloudStatus(false);
+        showToast('认证失败，请检查 Anon Key 是否正确');
+      } else if (errMsg.indexOf('violates') !== -1 || errMsg.indexOf('policy') !== -1) {
+        updateCloudStatus(false);
+        showToast('权限不足，请检查存储桶 RLS 策略是否允许 INSERT');
+      } else {
+        updateCloudStatus(false);
+        showToast('连接失败: ' + errMsg);
       }
-    }
-
-    if (!bucketExists) {
-      updateCloudStatus(false);
-      showToast('连接成功，但未找到存储桶 "' + CLOUD_BUCKET + '"，请在 Supabase 控制台创建');
       return;
     }
+
+    // 上传成功 → 连接正常，清理测试文件（静默，不阻塞）
+    _supabaseClient.storage
+      .from(CLOUD_BUCKET)
+      .remove([testPath])
+      .then(function(res) {
+        if (res.error) console.warn('[Cloud] test file cleanup failed:', res.error.message);
+        else console.log('[Cloud] test file cleaned up');
+      })
+      .catch(function(e) {
+        console.warn('[Cloud] test file cleanup error:', e);
+      });
 
     // 读取上次操作时间
     var cloudMeta = _loadCloudMeta();
     updateCloudStatus(true, cloudMeta.lastUpload, cloudMeta.lastDownload, cloudMeta.dataSize);
     showToast('连接成功');
+    console.log('[Cloud] connection test passed');
 
   } catch(e) {
     console.error('[Cloud] test error:', e);
