@@ -9,77 +9,74 @@
   </div>
   <div class="large-title" data-i18n="meetingManageTitle">Manage</div>
 
-  <div class="screen-body" style="padding-bottom:40px">
+  <div class="screen-body" style="padding:0 0 40px">
 
-    <!-- Session Info -->
-    <div class="mtg-form-group">
-      <div class="mtg-form-group-title" data-i18n="meetingSessionInfo">SESSION INFO</div>
-      <div class="mtg-settings-card" id="mtgManageInfo">
-        <!-- rendered by mtgRenderManagePage() -->
+    <!-- ── Session Info (read-only, JS renders rows) ── -->
+    <div class="mtg-panel-section-hdr" data-i18n="meetingSessionInfo">SESSION INFO</div>
+    <div class="mtg-manage-card" id="mtgManageInfo"></div>
+
+    <!-- ── Editable Settings ── -->
+    <div class="mtg-panel-section-hdr" data-i18n="meetingEditableSettings">SETTINGS</div>
+    <div class="mtg-panel-card">
+      <!-- Character Perspective -->
+      <div class="mtg-panel-col-row">
+        <div class="mtg-panel-sublabel" data-i18n="meetingCharPerspective">Character Perspective</div>
+        <div class="mtg-seg" id="mtgManageCharPersonSeg">
+          <div class="mtg-seg-opt" data-value="first" onclick="mtgSetToggleSeg(this)">
+            <span data-i18n="meetingFirstPerson">First</span></div>
+          <div class="mtg-seg-opt" data-value="second" onclick="mtgSetToggleSeg(this)">
+            <span data-i18n="meetingSecondPerson">Second</span></div>
+          <div class="mtg-seg-opt" data-value="third" onclick="mtgSetToggleSeg(this)">
+            <span data-i18n="meetingThirdPerson">Third</span></div>
+        </div>
+      </div>
+      <div class="mtg-panel-divider"></div>
+
+      <!-- User Perspective -->
+      <div class="mtg-panel-col-row">
+        <div class="mtg-panel-sublabel" data-i18n="meetingUserPerspective">User Perspective</div>
+        <div class="mtg-seg" id="mtgManageUserPersonSeg">
+          <div class="mtg-seg-opt" data-value="first" onclick="mtgSetToggleSeg(this)">
+            <span data-i18n="meetingFirstPerson">First</span></div>
+          <div class="mtg-seg-opt" data-value="second" onclick="mtgSetToggleSeg(this)">
+            <span data-i18n="meetingSecondPerson">Second</span></div>
+          <div class="mtg-seg-opt" data-value="third" onclick="mtgSetToggleSeg(this)">
+            <span data-i18n="meetingThirdPerson">Third</span></div>
+        </div>
+      </div>
+      <div class="mtg-panel-divider"></div>
+
+      <!-- Word Count -->
+      <div class="mtg-panel-row">
+        <span class="mtg-panel-label" data-i18n="meetingWordCount">Word Count</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" class="mtg-panel-num" id="mtgManageWcMin">
+          <span style="color:#c7c7cc;font-size:13px">&mdash;</span>
+          <input type="number" class="mtg-panel-num" id="mtgManageWcMax">
+        </div>
+      </div>
+      <div class="mtg-panel-divider"></div>
+
+      <!-- Summary Interval -->
+      <div class="mtg-panel-row">
+        <span class="mtg-panel-label" data-i18n="meetingSummaryInterval">Summary Interval</span>
+        <input type="number" class="mtg-panel-num" id="mtgManageSummaryInterval" min="2" max="50">
       </div>
     </div>
 
-    <!-- Editable Settings -->
-    <div class="mtg-form-group">
-      <div class="mtg-form-group-title" data-i18n="meetingEditableSettings">SETTINGS</div>
-      <div class="mtg-settings-card">
-
-        <!-- Character Perspective -->
-        <div class="mtg-settings-form-row" style="border-bottom:none;padding-bottom:4px">
-          <span class="mtg-settings-form-label" data-i18n="meetingCharPerspective">Character Perspective</span>
-        </div>
-        <div style="padding:0 16px 14px;border-bottom:1px solid #f2f2f7">
-          <div class="mtg-seg" id="mtgManageCharPersonSeg">
-            <div class="mtg-seg-opt" data-value="first" onclick="mtgSetToggleSeg(this)"><span data-i18n="meetingFirstPerson">First</span></div>
-            <div class="mtg-seg-opt" data-value="second" onclick="mtgSetToggleSeg(this)"><span data-i18n="meetingSecondPerson">Second</span></div>
-            <div class="mtg-seg-opt" data-value="third" onclick="mtgSetToggleSeg(this)"><span data-i18n="meetingThirdPerson">Third</span></div>
-          </div>
-        </div>
-
-        <!-- User Perspective -->
-        <div class="mtg-settings-form-row" style="border-bottom:none;padding-bottom:4px">
-          <span class="mtg-settings-form-label" data-i18n="meetingUserPerspective">User Perspective</span>
-        </div>
-        <div style="padding:0 16px 14px;border-bottom:1px solid #f2f2f7">
-          <div class="mtg-seg" id="mtgManageUserPersonSeg">
-            <div class="mtg-seg-opt" data-value="first" onclick="mtgSetToggleSeg(this)"><span data-i18n="meetingFirstPerson">First</span></div>
-            <div class="mtg-seg-opt" data-value="second" onclick="mtgSetToggleSeg(this)"><span data-i18n="meetingSecondPerson">Second</span></div>
-            <div class="mtg-seg-opt" data-value="third" onclick="mtgSetToggleSeg(this)"><span data-i18n="meetingThirdPerson">Third</span></div>
-          </div>
-        </div>
-
-        <!-- Word Count -->
-        <div class="mtg-settings-form-row" style="border-bottom:1px solid #f2f2f7">
-          <span class="mtg-settings-form-label" data-i18n="meetingWordCount">Word Count</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="number" class="mtg-settings-num-input" id="mtgManageWcMin">
-            <span style="color:#c7c7cc;font-size:13px">&mdash;</span>
-            <input type="number" class="mtg-settings-num-input" id="mtgManageWcMax">
-          </div>
-        </div>
-
-        <!-- Summary Interval -->
-        <div class="mtg-settings-form-row">
-          <span class="mtg-settings-form-label" data-i18n="meetingSummaryInterval">Summary Interval</span>
-          <input type="number" class="mtg-settings-num-input" id="mtgManageSummaryInterval" min="2" max="50">
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Save Button -->
-    <div style="margin:16px 16px 0">
-      <button class="mtg-save-btn" onclick="mtgSaveManageChanges()">
-        <svg viewBox="0 0 16 16" style="width:14px;height:14px;margin-right:6px"><path d="M3 8l3 3 7-7" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <!-- Save -->
+    <div style="padding:16px 16px 0">
+      <button class="mtg-panel-primary-btn" onclick="mtgSaveManageChanges()">
+        <svg viewBox="0 0 16 16" style="width:14px;height:14px;margin-right:8px">
+          <path d="M3 8l3 3 7-7" stroke="#fff" fill="none" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span data-i18n="meetingSaveChanges">Save Changes</span>
       </button>
     </div>
 
-    <!-- Short-Term Memory -->
-    <div class="mtg-form-group">
-      <div class="mtg-form-group-title" data-i18n="meetingShortTermMemory">SHORT-TERM MEMORY</div>
-      <div id="mtgManageMemoryList"></div>
-    </div>
+    <!-- ── Short-Term Memory ── -->
+    <div class="mtg-panel-section-hdr" data-i18n="meetingShortTermMemory">SHORT-TERM MEMORY</div>
+    <div id="mtgManageMemoryList"></div>
 
   </div>
 </div>
