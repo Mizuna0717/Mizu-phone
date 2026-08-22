@@ -10,7 +10,9 @@ let state = {
   drawerSearch: '', lang: 'en', userProfile: { name: 'User', avatar: null },
   masks: [], memories: [], imsgTab: 'messages', replyPrompt: null, charConfig: {},
   phoneData: {}, bookmarks: [], groups: [], moments: [],
-  meetings: []   // ★ NEW
+  meetings: [],
+  systemPromptIM: '',       // ★ NEW
+  systemPromptMeeting: ''   // ★ NEW
 };
 
 let bubbleState = { multiMode: false, selectedIds: new Set(), quoteMsg: null, editingMsgId: null };
@@ -24,13 +26,15 @@ let tmp = {
   momentImageData: null, momentVirtualText: '', acctAvatar: null, importCharList: null
 };
 
-// 2. In SAVE_KEYS, add 'meetings':
+// 2. In SAVE_KEYS, add 'meetings', 'systemPromptIM', 'systemPromptMeeting':
 var SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
   'groups', 'moments', 'imsgTab',
-  'meetings'   // ★ NEW
+  'meetings',
+  'systemPromptIM',       // ★ NEW
+  'systemPromptMeeting'   // ★ NEW
 ];
 
 function _generateAccountId() {
@@ -46,7 +50,9 @@ function _getStateDefaults() {
     drawerSearch: '', lang: 'en', userProfile: { name: 'User', avatar: null },
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
-    charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [] 
+    charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
+    systemPromptIM: '',       // ★ NEW
+    systemPromptMeeting: ''   // ★ NEW
   };
 }
 
@@ -67,6 +73,9 @@ function _validateState() {
   if (!Array.isArray(state.stickers)) state.stickers = [];
   if (!Array.isArray(state.apis)) state.apis = [];
   if (!Array.isArray(state.meetings)) state.meetings = [];
+  // ★ NEW: 确保 systemPromptIM 和 systemPromptMeeting 始终为字符串
+  if (state.systemPromptIM == null) state.systemPromptIM = '';
+  if (state.systemPromptMeeting == null) state.systemPromptMeeting = '';
 }
 
 function _resetTransientState() {

@@ -27,13 +27,23 @@
 			<svg viewBox="0 0 16 16"><path d="M2 4l6 3 6-3M2 8l6 3 6-3M2 12l6 3 6-3"/></svg>
 			<span>回复提示词</span>
 		</div>
+		<!-- ====== iMessage 系统提示词 ====== -->
 		<div class="prompt-card">
 			<div class="prompt-card-header">
-				<span>系统提示词</span>
-				<button onclick="resetReplyPrompt()">重置</button>
+				<span>iMessage 系统提示词</span>
+				<button onclick="resetPromptIM()">重置</button>
 			</div>
-			<textarea id="replyPromptArea" oninput="saveReplyPrompt()" placeholder="回复指令"></textarea>
-			<div class="prompt-info">每次AI请求时一起发送，控制回复风格。</div>
+			<textarea id="promptIMArea" oninput="savePromptIM()" placeholder="控制 iMessage 风格的 AI 回复行为"></textarea>
+			<div class="prompt-info">在 iMessage 界面发送消息时，自动使用此提示词控制 AI 回复风格。</div>
+		</div>
+		<!-- ====== Meeting 系统提示词 ====== -->
+		<div class="prompt-card">
+			<div class="prompt-card-header">
+				<span>Meeting 系统提示词</span>
+				<button onclick="resetPromptMeeting()">重置</button>
+			</div>
+			<textarea id="promptMeetingArea" oninput="savePromptMeeting()" placeholder="控制 Meeting 风格的 AI 回复行为"></textarea>
+			<div class="prompt-info">在 Meeting 界面发送消息时，自动使用此提示词控制 AI 回复风格。</div>
 		</div>
 		<div class="section-header-fancy">
 			<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>

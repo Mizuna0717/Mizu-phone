@@ -165,12 +165,10 @@ function renderMemoryList() {
       if (mem.content) h += `<div class="mem-tl-text">${esc(mem.content)}</div>`;
       h += `<div class="mem-tl-footer"><span class="mem-tl-date">${fmtMemDate(mem.date)}</span>`;
 
-      /* ——— 情绪标签：统一灰白胶囊 ——— */
       if (mem.mood) {
         h += `<span class="mem-tl-mood">${esc(moodKey ? T(moodKey) : mem.mood)}</span>`;
       }
 
-      /* ——— 记忆类型标签：统一灰白胶囊（★新增 FTM★） ——— */
       if (mem.memType === 'stm') {
         h += `<span class="mem-type-stm">${T('stmLabel')}</span>`;
       } else if (mem.memType === 'ltm') {
@@ -181,12 +179,10 @@ function renderMemoryList() {
         h += `<span class="mem-type-auto">Auto</span>`;
       }
 
-      /* ——— 已合并标签 ——— */
       if (mem.consolidated) {
         h += `<span class="mem-tag" style="text-decoration:line-through;color:#aeaeb2">merged</span>`;
       }
 
-      /* ——— 角色标签（筛选为全部时显示）：统一灰白胶囊 ——— */
       if (memFilterCharId === 'all' && memChar) {
         h += `<span class="mem-char-tag">${esc(memChar.name)}</span>`;
       }
@@ -331,26 +327,71 @@ function deleteMemory() {
 }
 
 // ========== SUMMARIZE & CONSOLIDATE ==========
+// ★★★ 改为中文 + 恋爱感 + 第三人称 ★★★
 async function callSummarize(ch, msgs, api) {
+  const userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户';
+  const charName = ch.name;
+
   const formatted = msgs.map(m => {
-    const who = m.role === 'user' ? 'User' : ch.name;
+    const who = m.role === 'user' ? userName : charName;
     let content = m.content || '';
-    if (m.type === 'voice') content = '[Voice] ' + content;
-    else if (m.type === 'sticker') content = '[Sticker]';
-    else if (m.type === 'transfer') content = '[Transfer]';
-    else if (m.type === 'image') content = '[Image]';
-    else if (m.type === 'simImage') content = '[Image: ' + content + ']';
+    if (m.type === 'voice') content = '[语音消息] ' + content;
+    else if (m.type === 'sticker') content = '[表情包]';
+    else if (m.type === 'transfer') content = '[转账]';
+    else if (m.type === 'image') content = '[图片]';
+    else if (m.type === 'simImage') content = '[图片: ' + content + ']';
     return who + ': ' + content;
   }).join('\n');
 
-  const prompt = `You are a memory summarizer. Summarize the following conversation between User and ${ch.name} into a concise short-term memory note.\n\nFocus on:\n- Key events and topics discussed\n- Emotional moments and mood changes\n- Important information revealed\n- Relationship developments\n\nRules:\n- Write in third-person narrative style\n- Keep it under 150 words\n- Be factual and concise\n- Do not add anything not in the conversation\n\nConversation:\n${formatted}\n\nWrite ONLY the summary, nothing else.`;
-  return await sendChat(api, [{ role: 'system', content: prompt }, { role: 'user', content: 'Summarize now.' }]);
+  const prompt = `你是一位擅长捕捉恋爱细节的记忆书写者。请将以下 ${userName} 与 ${charName} 之间的对话，总结为一段温柔的记忆笔记。
+
+写作要求：
+- 全程使用中文
+- 以第三人称视角描述 ${userName} 和 ${charName} 之间发生的事（例如「${userName}对${charName}说……」「${charName}忍不住笑了」）
+- 语气要带有恋爱的温度，像在回忆两个人之间珍贵的片段，而不是冷冰冰的会议纪要
+- 关注以下内容：
+  · 两人之间让人心动的瞬间和情绪波动
+  · 关系中的微妙变化、靠近或试探
+  · 重要的话题和彼此透露的心事
+  · 那些没有说出口但藏在字里行间的感情
+- 控制在150字以内
+- 忠于对话内容，不要虚构对话中没有的事
+- 只输出总结本身，不要加标题、标签或任何额外格式
+
+对话内容：
+${formatted}
+
+请直接输出总结。`;
+
+  return await sendChat(api, [{ role: 'system', content: prompt }, { role: 'user', content: '请开始总结。' }]);
 }
 
+// ★★★ 改为中文 + 恋爱感 + 第三人称 ★★★
 async function callConsolidate(ch, stmList, api) {
-  const formatted = stmList.map((m, i) => `[Memory ${i + 1} - ${m.date}]\n${m.content}`).join('\n\n');
-  const prompt = `You are a memory consolidator. You are given ${stmList.length} short-term memory notes about conversations between User and ${ch.name}.\n\nYour job: merge them into ONE comprehensive long-term memory summary.\n\nRules:\n- Combine overlapping information\n- Preserve the most important facts, emotional developments, and relationship changes\n- Remove redundancy\n- Write in third-person narrative style\n- Keep it under 300 words\n- Organize chronologically\n- Highlight key turning points\n- Note recurring themes or patterns\n\nShort-term memories:\n${formatted}\n\nWrite ONLY the consolidated long-term memory, nothing else.`;
-  return await sendChat(api, [{ role: 'system', content: prompt }, { role: 'user', content: 'Consolidate these memories now.' }]);
+  const userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户';
+  const charName = ch.name;
+
+  const formatted = stmList.map((m, i) => `[记忆片段 ${i + 1} - ${m.date}]\n${m.content}`).join('\n\n');
+
+  const prompt = `你是一位温柔细腻的记忆编织者。现在有 ${stmList.length} 段关于 ${userName} 和 ${charName} 之间的短期记忆片段，请将它们合并为一段完整的长期记忆。
+
+写作要求：
+- 全程使用中文
+- 以第三人称视角描述 ${userName} 和 ${charName} 的故事（例如「他们之间……」「${charName}渐渐开始……」）
+- 像在书写一段恋爱回忆录，带有情感温度和叙事感
+- 按时间顺序组织，让读者能感受到两人关系的流动与变化
+- 合并重复的信息，保留最重要的事实、情感转折和关系里程碑
+- 标记那些反复出现的默契、习惯或情感模式
+- 控制在300字以内
+- 不要添加记忆中没有的内容
+- 只输出合并后的记忆，不要加标题或额外格式
+
+短期记忆片段：
+${formatted}
+
+请直接输出合并后的长期记忆。`;
+
+  return await sendChat(api, [{ role: 'system', content: prompt }, { role: 'user', content: '请开始合并记忆。' }]);
 }
 
 async function manualSummarize() {

@@ -1,11 +1,55 @@
 // ========== 08-settings.js ==========
 // 依賴：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js, 06-api.js
 
+// ★★★ 初始化提示词（由 init.js 在 loadState 之后调用） ★★★
+function initSystemPrompts() {
+  // 安全检查：必须在账号加载完成后才能执行
+  if (!accountStore || !accountStore.currentAccountId) {
+    console.warn('[initSystemPrompts] 账号未就绪，跳过');
+    return;
+  }
+
+  var needSave = false;
+
+  // iMessage 提示词
+  if (!state.systemPromptIM) {
+    if (state.replyPrompt && state.replyPrompt !== (typeof DEFAULT_REPLY_PROMPT !== 'undefined' ? DEFAULT_REPLY_PROMPT : '')) {
+      state.systemPromptIM = state.replyPrompt;
+    } else {
+      state.systemPromptIM = (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM : '';
+    }
+    needSave = true;
+  }
+
+  // Meeting 提示词
+  if (!state.systemPromptMeeting) {
+    state.systemPromptMeeting = (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
+    needSave = true;
+  }
+
+  if (needSave) {
+    saveState();
+    console.log('[initSystemPrompts] 已初始化默认提示词并保存 | IM长度:', state.systemPromptIM.length, '| Meeting长度:', state.systemPromptMeeting.length);
+  } else {
+    console.log('[initSystemPrompts] 提示词已存在，无需初始化 | IM长度:', state.systemPromptIM.length, '| Meeting长度:', state.systemPromptMeeting.length);
+  }
+}
+
+
 function renderSettings() {
   renderApiListInline();
   renderSettingsHero();
   renderHelpAccordion();
-  document.getElementById('replyPromptArea').value = state.replyPrompt;
+
+  // 兜底：确保提示词已初始化（正常情况已在 init.js 中完成）
+  initSystemPrompts();
+
+  // 填充输入框
+  var imArea = document.getElementById('promptIMArea');
+  var mtArea = document.getElementById('promptMeetingArea');
+  if (imArea) imArea.value = state.systemPromptIM || '';
+  if (mtArea) mtArea.value = state.systemPromptMeeting || '';
+
   if (!state.memories) state.memories = [];
 }
 
@@ -31,17 +75,35 @@ function renderApiListInline() {
   b.innerHTML = h;
 }
 
-function saveReplyPrompt() {
-  state.replyPrompt = document.getElementById('replyPromptArea').value;
+// ========== iMessage 提示词 ==========
+function savePromptIM() {
+  state.systemPromptIM = document.getElementById('promptIMArea').value;
   saveState();
 }
 
-function resetReplyPrompt() {
-  state.replyPrompt = DEFAULT_REPLY_PROMPT;
-  document.getElementById('replyPromptArea').value = DEFAULT_REPLY_PROMPT;
+function resetPromptIM() {
+  state.systemPromptIM = (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM : '';
+  document.getElementById('promptIMArea').value = state.systemPromptIM;
   saveState();
   showToast('Reset');
 }
+
+// ========== Meeting 提示词 ==========
+function savePromptMeeting() {
+  state.systemPromptMeeting = document.getElementById('promptMeetingArea').value;
+  saveState();
+}
+
+function resetPromptMeeting() {
+  state.systemPromptMeeting = (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
+  document.getElementById('promptMeetingArea').value = state.systemPromptMeeting;
+  saveState();
+  showToast('Reset');
+}
+
+// ========== 向后兼容：保留旧函数避免其他地方调用报错 ==========
+function saveReplyPrompt() { savePromptIM(); }
+function resetReplyPrompt() { resetPromptIM(); }
 
 // ========== API EDIT ==========
 function editApi(id) {

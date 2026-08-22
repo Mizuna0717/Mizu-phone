@@ -7,6 +7,9 @@
   // ── 1. 加载多账号数据 ──
   try { loadState(); } catch(e) { console.error('loadState failed:', e); }
 
+  // ── 1.5 初始化系统提示词（必须在 loadState 之后） ──
+  try { initSystemPrompts(); } catch(e) { console.error('initSystemPrompts failed:', e); }
+
   // ── 2. 首页初始化（全部 try-catch） ──
   try { initHomeSwipe(); }   catch(e) {}
   try { updateGreeting(); }  catch(e) {}
