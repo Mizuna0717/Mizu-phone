@@ -2,6 +2,12 @@
 // ★ 终极修复版：菜单项在 HTML 中为静态内容，JS 只管 show/hide
 
 function openChat(cid) {
+  // ★FC★ 强控期间阻止用户手动打开聊天（FC 引擎调用放行）
+  if (window._fcNavigationLocked && !window._fcEngineNavigating) {
+    console.log('[FC] openChat blocked:', cid);
+    return;
+  }
+
   state.currentCharId = cid;
   state.unread[cid] = 0;
   if (!state.chats[cid]) state.chats[cid] = [];
@@ -273,6 +279,12 @@ function autoGrow(el) {
 }
 
 function sendMessage() {
+  // ★FC★ 强控期间阻止用户发送消息
+  if (window._fcNavigationLocked && !window._fcEngineNavigating) {
+    showToast('强控中，无法发送消息');
+    return;
+  }
+
   var inp = document.getElementById('chatInput');
   var t = inp.value.trim();
   if (!t || !state.currentCharId) return;

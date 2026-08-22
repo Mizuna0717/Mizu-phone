@@ -74,7 +74,9 @@ function buildSystemPrompt(ch, wbs, stickers) {
   const langName = langMap[chatLang] || '简体中文';
   p += `\n\n[Reply Language]\n请使用${langName}进行所有回复。你的【回复】内容必须使用${langName}书写。`;
 
-  // ⑥ 三段式 + 好感度 + 想要
+  // ★★★ TOP PRIORITY: 检查是否需要情绪分析 ★★★
+  const _tpActive = (typeof isTopPriorityActive === 'function') && isTopPriorityActive(ch.id);
+
   let formatInstr = `\n\n[CRITICAL - Response Format]
 You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
 
@@ -93,6 +95,19 @@ You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
 【想要】
 (What you currently want to do most, in one short sentence. e.g. "想和你一起去海边散步" or "想安静地待一会儿")`;
 
+  // ★★★ TOP PRIORITY: 加入情绪分析段落 ★★★
+  if (_tpActive) {
+    formatInstr += `
+
+【情绪】
+(Your current emotional state toward the user. Output as comma-separated key:value pairs.
+Keys: anger(愤怒), suspicion(怀疑), trust(信任), patience(耐心)
+Values: integer 0-10, where 0 means none and 10 means extreme.
+Format: anger:X,suspicion:X,trust:X,patience:X
+Example: anger:2,suspicion:1,trust:8,patience:9
+Be HONEST based on the actual conversation dynamics. If the user is being rude, manipulative, dishonest, or disrespectful, your anger and suspicion should reflect that. If they are kind and sincere, trust and patience should be high. This section is MANDATORY.)`;
+  }
+
   if (charCfg.translation) {
     formatInstr += `
 
@@ -101,7 +116,22 @@ You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
   }
 
   formatInstr += `\n\nAll sections above are MANDATORY. Never omit any section. You MUST always include 【好感】 and 【想要】 in every reply.`;
+  if (_tpActive) {
+    formatInstr += ` You MUST always include 【情绪】 in every reply.`;
+  }
   p += formatInstr;
+
+  // ★★★ TOP PRIORITY: 身份切换提示（顶号后的备用账号） ★★★
+  if (_tpActive && typeof getTpLock === 'function') {
+    const _tpLock = getTpLock(ch.id);
+    if (_tpLock && _tpLock.active && accountStore.currentAccountId === _tpLock.guestAccountId) {
+      p += `\n\n[身份切换 - Identity Switch]
+重要：当前用户已切换到备用身份。你不认识这个用户。这是你与当前用户的第一次对话。
+请以初次见面的态度对待，不要提及之前任何对话记忆。
+你可能仍然感到某些情绪残留（如之前的不信任），但应该给这个「新人」一个新的机会。
+随着对话的进行，你的情绪应该逐步恢复正常。`;
+    }
+  }
 
   if (charCfg.timeAwareness) {
     const now = new Date();
@@ -218,7 +248,6 @@ function buildGroupSystemPrompt(targetChar, grp, wbs, stickers) {
     p += `\nUser: ${state.userProfile.name}`;
   }
 
-  // Group context
   p += `\n\n[Group Chat Context]`;
   p += `\nThis is a group chat named "${grp.name}".`;
   p += `\nYou are playing the role of **${targetChar.name}**. You MUST respond ONLY as ${targetChar.name}. Do NOT speak for other characters.`;
@@ -242,7 +271,6 @@ function buildGroupSystemPrompt(targetChar, grp, wbs, stickers) {
     }
   });
 
-  // World books
   const books = getActiveWorldBooks(targetChar, wbs);
   if (books.length) {
     p += '\n\n[World Setting]';
@@ -257,7 +285,6 @@ function buildGroupSystemPrompt(targetChar, grp, wbs, stickers) {
 
   p += '\n\n' + buildStickerHint(stickers) + buildMultiMediaHint();
 
-  // Language
   const charCfg = getCharConfig(targetChar.id);
   const langMap = {
     'zh-CN': '简体中文',
@@ -270,7 +297,6 @@ function buildGroupSystemPrompt(targetChar, grp, wbs, stickers) {
   const langName = langMap[chatLang] || '简体中文';
   p += `\n\n[Reply Language]\n请使用${langName}进行所有回复。你的【回复】内容必须使用${langName}书写。`;
 
-  // Three-part format (group version: no 好感 / 翻译)
   p += `\n\n[CRITICAL - Response Format]
 You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
 
@@ -289,7 +315,6 @@ You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
 All sections above are MANDATORY. Never omit any section.
 You are ONLY ${targetChar.name}. Do NOT generate responses for other characters. Do NOT use ---SPLIT---.`;
 
-  // Time awareness
   if (charCfg.timeAwareness) {
     const now = new Date();
     const timeStr = now.toLocaleString('zh-CN', {
@@ -300,7 +325,6 @@ You are ONLY ${targetChar.name}. Do NOT generate responses for other characters.
     p += `\n\n[Current Time]\n当前时间：${timeStr}`;
   }
 
-  // Sticker usage
   if (charCfg.useStickers) {
     const stickerList = (state.stickers && Array.isArray(state.stickers)) ? state.stickers : [];
     if (stickerList.length > 0) {
@@ -316,7 +340,6 @@ You are ONLY ${targetChar.name}. Do NOT generate responses for other characters.
     }
   }
 
-  // Memories
   const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'ltm') : [];
   const charSTM = (typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'stm') : []).filter(m => !m.consolidated);
 

@@ -147,18 +147,13 @@ function createAccount(name, avatar) {
   var id = _generateAccountId();
   var account = { id: id, name: name || 'Account', avatar: avatar || null };
   accountStore.accounts.push(account);
-
-  // ★ 先保存当前账号数据（用 Deep Copy 确保不被后续修改影响）
   _saveAccountData(accountStore.currentAccountId);
-
   var prevState = {};
   SAVE_KEYS.forEach(function(k) { prevState[k] = JSON.parse(JSON.stringify(state[k])); });
-
   _resetStateToDefaults();
   state.userProfile.name = name || 'User';
   state.userProfile.avatar = avatar || null;
   _saveAccountData(id);
-
   SAVE_KEYS.forEach(function(k) { state[k] = prevState[k]; });
   _saveAccountMeta();
   return account;
@@ -181,7 +176,6 @@ function deleteAccount(id) {
   return true;
 }
 
-// ★★★ 修复核心：switchAccount 增加保存验证 + 加载验证
 function switchAccount(id) {
   var target = null;
   for (var i = 0; i < accountStore.accounts.length; i++) {
@@ -189,25 +183,16 @@ function switchAccount(id) {
   }
   if (!target) { console.error('[switch] 目标账号不存在:', id); return false; }
   if (id === accountStore.currentAccountId) return true;
-
   var oldId = accountStore.currentAccountId;
-
-  // 1. ★ 保存当前账号数据并验证
   console.log('[switch] 保存当前账号:', oldId, '| chars:', state.characters.length);
   _saveAccountData(oldId);
-
-  // ★ 验证保存成功
   var verifyData = _loadAccountData(oldId);
   if (!verifyData) {
     console.error('[switch] 保存验证失败！当前账号数据可能丢失:', oldId);
   } else {
     console.log('[switch] 保存验证通过 | chars:', verifyData.characters.length);
   }
-
-  // 2. 切换
   accountStore.currentAccountId = id;
-
-  // 3. 重置 → 加载目标账号
   _resetStateToDefaults();
   var data = _loadAccountData(id);
   if (data) {
@@ -218,8 +203,6 @@ function switchAccount(id) {
   }
   _resetTransientState();
   _validateState();
-
-  // 4. 持久化元数据
   _saveAccountMeta();
   return true;
 }
@@ -234,7 +217,6 @@ function getCurrentAccount() {
 
 function getAllAccounts() { return accountStore.accounts.slice(); }
 
-// ★ saveState 增加防空保护
 function saveState() {
   if (!accountStore.currentAccountId) { console.warn('[saveState] 无当前账号ID'); return; }
   _saveAccountData(accountStore.currentAccountId);

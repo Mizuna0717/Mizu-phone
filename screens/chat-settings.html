@@ -166,13 +166,41 @@
 				</div>
 				<div class="toggle" id="csStickersToggle" onclick="toggleCsToggle('useStickers','csStickersToggle')"><div class="toggle-knob"></div></div>
 			</div>
+
+			<!-- ★FC★ Force Control — 增强 UI -->
 			<div class="cs-row">
 				<div class="cs-row-label-col">
 					<span class="cs-row-label" data-i18n="csForceControl">Force Control</span>
-					<span class="cs-row-sublabel">Reserved feature</span>
+					<span class="cs-row-sublabel">Character can take over your account when emotional</span>
 				</div>
 				<div class="toggle" id="csForceControlToggle" onclick="toggleCsToggle('forceControl','csForceControlToggle')"><div class="toggle-knob"></div></div>
 			</div>
+			<!-- ★FC★ Force Control 配置子面板（开启后可见） -->
+			<div id="csFcConfigPanel" style="display:none">
+				<div class="cs-row">
+					<span class="cs-row-label">允许切换账号</span>
+					<div class="toggle" id="csFcSwitchAcctToggle" onclick="toggleFcOption('allowSwitchAccount','csFcSwitchAcctToggle')"><div class="toggle-knob"></div></div>
+				</div>
+				<div class="cs-row">
+					<span class="cs-row-label">允许发送消息</span>
+					<div class="toggle" id="csFcSendMsgToggle" onclick="toggleFcOption('allowSendMessage','csFcSendMsgToggle')"><div class="toggle-knob"></div></div>
+				</div>
+				<div class="cs-row">
+					<span class="cs-row-label">最大强控时长</span>
+					<div class="cs-select-wrap">
+						<select class="cs-select" id="csFcMaxDuration" onchange="updateFcOption('maxDuration',this.value)">
+							<option value="60">1 分钟</option>
+							<option value="180" selected>3 分钟</option>
+							<option value="300">5 分钟</option>
+							<option value="0">无限制</option>
+						</select>
+						<svg class="cs-select-arrow" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</div>
+				</div>
+			</div>
+			<!-- ★FC★ 强控状态 / 强制解除面板（运行时动态填充） -->
+			<div id="csForceControlExtra"></div>
+
 			<div class="cs-row cs-row-last">
 				<div class="cs-row-label-col">
 					<span class="cs-row-label" data-i18n="csTopPriority">Top Priority</span>

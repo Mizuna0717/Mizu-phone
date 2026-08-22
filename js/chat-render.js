@@ -1,5 +1,6 @@
 // ========== chat-render.js ==========
 // renderChat() & renderGroupChat()
+// ★★★ + Top Priority + Force Control 情绪状态指示器 ★★★
 
 function renderGroupChat(grp) {
   document.getElementById('chatName').textContent = grp.name;
@@ -16,22 +17,29 @@ function renderGroupChat(grp) {
 
   if (typeof updateChatMenuItems === 'function') updateChatMenuItems();
 
-  var ct      = document.getElementById('chatMessages');
-  var msgs    = state.chats[grp.id] || [];
-  var userAv  = state.userProfile.avatar;
-  var uH      = _chatMsgAvatarHtml(userAv);
+  var ct = document.getElementById('chatMessages');
+  var msgs = state.chats[grp.id] || [];
+  var userAv = state.userProfile.avatar;
+  var uH = _chatMsgAvatarHtml(userAv);
+
+  var tpBar = document.getElementById('tpEmotionIndicator');
+  if (tpBar) tpBar.style.display = 'none';
+
+  // ★FC★ 群聊中隐藏 FC 指示器
+  var fcBar = document.getElementById('fcEmotionIndicator');
+  if (fcBar) fcBar.style.display = 'none';
 
   var groupPos = _computeGroupChatPositions(msgs);
   var multiClass = bubbleState.multiMode ? ' multi-mode' : '';
 
   var h = '';
 
-  msgs.forEach(function(msg, i) {
+  msgs.forEach(function (msg, i) {
     if (i === 0 || (msg.timestamp - msgs[i - 1].timestamp > 180000)) {
       h += '<div class="msg-time">' + fmtChatTime(msg.timestamp) + '</div>';
     }
 
-    var gp   = groupPos[i];
+    var gp = groupPos[i];
     var sent = msg.role === 'user';
     var side = sent ? 'sent' : 'received';
     var gpClass = gp === 'system' ? '' : ' group-' + gp;
@@ -44,7 +52,7 @@ function renderGroupChat(grp) {
     var avHtml = uH;
     var senderName = '';
     if (!sent) {
-      var senderChar = msg.senderId ? state.characters.find(function(c) { return c.id === msg.senderId; }) : null;
+      var senderChar = msg.senderId ? state.characters.find(function (c) { return c.id === msg.senderId; }) : null;
       avHtml = senderChar ? _chatMsgAvatarHtml(senderChar.avatar) : _chatMsgAvatarHtml(null);
       senderName = senderChar ? senderChar.name : 'Unknown';
     }
@@ -88,7 +96,7 @@ function renderGroupChat(grp) {
 
       if (!sent) {
         var segs = parseReplySegments(msg.content, state.stickers);
-        segs.forEach(function(seg, segIdx) {
+        segs.forEach(function (seg, segIdx) {
           var segBubbleId = msg.id + '__seg' + segIdx;
           var segGpClass = gpClass;
           if (segs.length > 1 && segIdx > 0) segGpClass = ' group-middle';
@@ -122,16 +130,17 @@ function renderGroupChat(grp) {
 
   ct.innerHTML = h;
 
-  ct.querySelectorAll('.msg-row[data-msgid]').forEach(function(row) {
+  ct.querySelectorAll('.msg-row[data-msgid]').forEach(function (row) {
     var msgId = row.dataset.msgid;
-    row.querySelectorAll('.msg-bubble').forEach(function(el) {
+    row.querySelectorAll('.msg-bubble').forEach(function (el) {
       var bid = el.dataset.bubbleid || msgId;
       if (typeof initBubbleLongPress === 'function') initBubbleLongPress(el, bid);
     });
   });
 
-  setTimeout(function() { ct.scrollTop = ct.scrollHeight; }, 50);
+  setTimeout(function () { ct.scrollTop = ct.scrollHeight; }, 50);
 }
+
 
 function renderChat() {
   var grp = getGroupById(state.currentCharId);
@@ -140,7 +149,7 @@ function renderChat() {
     return;
   }
 
-  var ch = state.characters.find(function(c) { return c.id === state.currentCharId; });
+  var ch = state.characters.find(function (c) { return c.id === state.currentCharId; });
   if (!ch) return;
 
   document.getElementById('chatName').textContent = ch.name;
@@ -162,30 +171,141 @@ function renderChat() {
 
   if (typeof updateChatMenuItems === 'function') updateChatMenuItems();
 
-  var ct      = document.getElementById('chatMessages');
-  var msgs    = state.chats[state.currentCharId] || [];
-  var charAv  = ch.avatar;
-  var userAv  = getUserAv(state.currentCharId);
-  var aH      = _chatMsgAvatarHtml(charAv);
-  var uH      = _chatMsgAvatarHtml(userAv);
+  var ct = document.getElementById('chatMessages');
+
+  // ══════════════════════════════════════════
+  // ★★★ TOP PRIORITY: 情绪状态指示器（修复版）★★★
+  // ══════════════════════════════════════════
+  var tpBar = document.getElementById('tpEmotionIndicator');
+  if (!tpBar) {
+    tpBar = document.createElement('div');
+    tpBar.id = 'tpEmotionIndicator';
+    if (ct.parentElement) {
+      ct.parentElement.insertBefore(tpBar, ct);
+    }
+  }
+
+  // ★修复H：只有 cfg.topPriority=true 或 lock.active=true 时才显示指示器
+  var _charCfg = (typeof getCharConfig === 'function') ? getCharConfig(state.currentCharId) : null;
+  var _tpEnabled = _charCfg && _charCfg.topPriority;
+  var _tpLock = (typeof getTpLock === 'function') ? getTpLock(state.currentCharId) : null;
+  var _tpLockActive = _tpLock && _tpLock.active;
+  var _showTpBar = (_tpEnabled || _tpLockActive) && _tpLock && _tpLock.emotions;
+
+  if (_showTpBar) {
+    var em = _tpLock.emotions;
+    var angerColor = em.anger >= 7 ? '#c62828' : (em.anger >= 4 ? '#e65100' : '#4caf50');
+    var suspColor = em.suspicion >= 7 ? '#c62828' : (em.suspicion >= 4 ? '#e65100' : '#4caf50');
+
+    tpBar.style.cssText =
+      'padding:6px 16px;' +
+      'background:#fafafa;' +
+      'border-bottom:1px solid #eee;' +
+      'display:flex;' +
+      'gap:10px;' +
+      'align-items:center;' +
+      'font-size:11px;' +
+      'color:#999;' +
+      'flex-shrink:0;' +
+      'flex-wrap:wrap;';
+
+    var lockBadge = '';
+    if (_tpLockActive) {
+      lockBadge = '<span style="color:#c62828;font-weight:600;margin-left:auto;font-size:12px;background:#ffebee;padding:2px 8px;border-radius:4px">已顶号</span>';
+    } else if (_tpLock.consecutiveHigh >= 1) {
+      lockBadge = '<span style="color:#e65100;margin-left:auto;font-size:11px">警告: 连续超标 ' + _tpLock.consecutiveHigh + ' 轮</span>';
+    }
+
+    tpBar.innerHTML =
+      '<span style="color:#888;font-weight:500">情绪</span>' +
+      '<span style="color:' + angerColor + '">愤怒 ' + em.anger + '</span>' +
+      '<span style="color:' + suspColor + '">怀疑 ' + em.suspicion + '</span>' +
+      '<span style="color:#888">信任 ' + em.trust + '</span>' +
+      '<span style="color:#888">耐心 ' + em.patience + '</span>' +
+      lockBadge;
+  } else {
+    tpBar.style.display = 'none';
+    tpBar.innerHTML = '';
+  }
+  // ══════════════════════════════════════════
+
+  // ══════════════════════════════════════════
+  // ★FC★ FORCE CONTROL: 情绪状态指示器（新增）
+  // ══════════════════════════════════════════
+  var fcBar = document.getElementById('fcEmotionIndicator');
+  if (!fcBar) {
+    fcBar = document.createElement('div');
+    fcBar.id = 'fcEmotionIndicator';
+    if (ct.parentElement) {
+      ct.parentElement.insertBefore(fcBar, ct);
+    }
+  }
+
+  var _fcEnabled = _charCfg && _charCfg.forceControl;
+  var _fcLock = (typeof getFcLock === 'function') ? getFcLock(state.currentCharId) : null;
+  var _fcActive = _fcLock && _fcLock.active;
+  var _showFcBar = (_fcEnabled || _fcActive) && _fcLock && _fcLock.emotions;
+
+  if (_showFcBar) {
+    var fem = _fcLock.emotions;
+    var fAngerColor = fem.anger >= 7 ? '#c62828' : (fem.anger >= 4 ? '#e65100' : '#4caf50');
+    var fSuspColor = fem.suspicion >= 7 ? '#c62828' : (fem.suspicion >= 4 ? '#e65100' : '#4caf50');
+
+    fcBar.style.cssText =
+      'padding:6px 16px;' +
+      'background:#fff8e1;' +
+      'border-bottom:1px solid #fff3c4;' +
+      'display:flex;' +
+      'gap:10px;' +
+      'align-items:center;' +
+      'font-size:11px;' +
+      'color:#999;' +
+      'flex-shrink:0;' +
+      'flex-wrap:wrap;';
+
+    var fcBadge = '';
+    if (_fcActive) {
+      fcBadge = '<span style="color:#e65100;font-weight:600;margin-left:auto;font-size:12px;background:#fff3e0;padding:2px 8px;border-radius:4px">强控中</span>';
+    } else if (_fcLock.consecutiveHigh >= 1) {
+      fcBadge = '<span style="color:#e65100;margin-left:auto;font-size:11px">FC警告: 超标 ' + _fcLock.consecutiveHigh + ' 轮</span>';
+    }
+
+    fcBar.innerHTML =
+      '<span style="color:#e65100;font-weight:500">FC情绪</span>' +
+      '<span style="color:' + fAngerColor + '">愤怒 ' + fem.anger + '</span>' +
+      '<span style="color:' + fSuspColor + '">怀疑 ' + fem.suspicion + '</span>' +
+      '<span style="color:#888">信任 ' + fem.trust + '</span>' +
+      '<span style="color:#888">耐心 ' + fem.patience + '</span>' +
+      fcBadge;
+  } else {
+    fcBar.style.display = 'none';
+    fcBar.innerHTML = '';
+  }
+  // ══════════════════════════════════════════
+
+  var msgs = state.chats[state.currentCharId] || [];
+  var charAv = ch.avatar;
+  var userAv = getUserAv(state.currentCharId);
+  var aH = _chatMsgAvatarHtml(charAv);
+  var uH = _chatMsgAvatarHtml(userAv);
 
   var multiClass = bubbleState.multiMode ? ' multi-mode' : '';
-  var charCfg    = getCharConfig(state.currentCharId);
+  var charCfg = getCharConfig(state.currentCharId);
 
   var groupPos = _computeGroupPositions(msgs);
 
   var h = '';
 
-  msgs.forEach(function(msg, i) {
+  msgs.forEach(function (msg, i) {
     if (i === 0 || (msg.timestamp - msgs[i - 1].timestamp > 180000)) {
       h += '<div class="msg-time">' + fmtChatTime(msg.timestamp) + '</div>';
     }
 
-    var gp   = groupPos[i];
+    var gp = groupPos[i];
     var sent = msg.role === 'user';
     var side = sent ? 'sent' : 'received';
-    var av   = sent ? uH : aH;
-    var gpClass  = gp === 'system' ? '' : ' group-' + gp;
+    var av = sent ? uH : aH;
+    var gpClass = gp === 'system' ? '' : ' group-' + gp;
     var selected = bubbleState.selectedIds.has(msg.id) ? 'selected' : '';
     var checkChecked = bubbleState.selectedIds.has(msg.id) ? 'checked' : '';
     var checkSvg = '<div class="msg-check ' + checkChecked + '">' +
@@ -227,7 +347,7 @@ function renderChat() {
 
     var quoteHtml = '';
     if (msg.quoteRef) {
-      var qm = msgs.find(function(m) { return m.id === msg.quoteRef.id; });
+      var qm = msgs.find(function (m) { return m.id === msg.quoteRef.id; });
       quoteHtml = '<div class="msg-quote"><span class="mq-name">' + esc(msg.quoteRef.name) +
         '</span><br>' + esc((qm ? qm.content : msg.quoteRef.text || '').slice(0, 40)) + '</div>';
     }
@@ -268,13 +388,13 @@ function renderChat() {
     } else {
       var segs = parseReplySegments(msg.content, state.stickers);
       var recvExtras = buildMsgExtraActions(msg.id, true, false);
-      var lastTextIdx = segs.reduce(function(acc, seg, idx) {
+      var lastTextIdx = segs.reduce(function (acc, seg, idx) {
         return seg.type === 'text' ? idx : acc;
       }, -1);
 
-      segs.forEach(function(seg, segIdx) {
+      segs.forEach(function (seg, segIdx) {
         var segBubbleId = msg.id + '__seg' + segIdx;
-        var isLastText  = segIdx === lastTextIdx;
+        var isLastText = segIdx === lastTextIdx;
 
         var segGpClass = gpClass;
         if (segs.length > 1 && segIdx > 0) {
@@ -313,13 +433,13 @@ function renderChat() {
 
   ct.innerHTML = h;
 
-  ct.querySelectorAll('.msg-row[data-msgid]').forEach(function(row) {
+  ct.querySelectorAll('.msg-row[data-msgid]').forEach(function (row) {
     var msgId = row.dataset.msgid;
-    row.querySelectorAll('.msg-bubble').forEach(function(el) {
+    row.querySelectorAll('.msg-bubble').forEach(function (el) {
       var bid = el.dataset.bubbleid || msgId;
       if (typeof initBubbleLongPress === 'function') initBubbleLongPress(el, bid);
     });
   });
 
-  setTimeout(function() { ct.scrollTop = ct.scrollHeight; }, 50);
+  setTimeout(function () { ct.scrollTop = ct.scrollHeight; }, 50);
 }
