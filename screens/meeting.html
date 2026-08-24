@@ -1,88 +1,347 @@
-<!-- ====== MEETING SCREEN (Main List) ====== -->
+<!-- ====== MEETING SCREEN (Main Archive List) ====== -->
 <div class="screen" id="screen-meeting">
   <div class="nav-bar">
     <button class="nav-btn" onclick="nav('screen-home')">
       <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
     </button>
     <span class="nav-title" data-i18n="meetingTitle">Meeting</span>
-    <div style="width:32px"></div>
+    <button class="nav-btn" style="margin-left:auto" onclick="openMeetingNewArchive()">
+      <svg viewBox="0 0 20 20" style="width:20px;height:20px">
+        <path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
   </div>
-  <div class="large-title" data-i18n="meetingTitle">Meeting</div>
 
-  <div class="screen-body">
-    <!-- New Archive Button -->
-    <div style="padding:4px 16px 8px">
-      <button class="mtg-new-archive-btn" onclick="openMeetingSettings()">
-        <svg viewBox="0 0 18 18" style="width:16px;height:16px;stroke:#8e8e93;fill:none;stroke-width:1.8;stroke-linecap:round">
-          <path d="M9 3v12M3 9h12"/>
-        </svg>
-        <span data-i18n="meetingNewArchive">New Archive</span>
-      </button>
-    </div>
-
-    <!-- Continue Section -->
-    <div class="mtg-section" id="meetingSectionContinue">
-      <div class="mtg-section-header">
-        <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5">
-          <path d="M3 13V3h7l3 3v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
-          <path d="M10 3v3h3"/><path d="M6 9h4M6 11h2"/>
-        </svg>
-        <span data-i18n="meetingContinue">CONTINUE</span>
-      </div>
-      <div id="meetingContinueCards"></div>
-    </div>
-
-    <!-- IF Section -->
-    <div class="mtg-section" id="meetingSectionIF">
-      <div class="mtg-section-header">
-        <svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5">
-          <circle cx="8" cy="2.5" r="1.5"/><path d="M8 4v3"/>
-          <path d="M4.5 9.5L8 7l3.5 2.5"/>
-          <path d="M4.5 9.5v3"/><path d="M11.5 9.5v3"/>
-        </svg>
-        <span data-i18n="meetingIF">IF</span>
-      </div>
-      <div id="meetingIFCards"></div>
-    </div>
+  <div class="screen-body" id="meetingMainBody">
+    <!-- Archive list rendered by JS (grouped by mode: continue / if) -->
+    <div id="meetingArchiveList"></div>
 
     <div style="height:40px"></div>
   </div>
 </div>
 
 
-<!-- ====== MEETING WRITING SCREEN ====== -->
+<!-- ====== NEW ARCHIVE SCREEN ====== -->
+<div class="screen" id="screen-meeting-new">
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="exitMeetingNew()">
+      <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="nav-title" data-i18n="meetingNewArchive">New Archive</span>
+    <div style="width:32px"></div>
+  </div>
+
+  <div class="screen-body" style="padding-bottom:40px">
+
+    <!-- Archive Name -->
+    <div class="mtg-section-label" data-i18n="meetingArchiveName">ARCHIVE NAME</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-row">
+        <input type="text" class="mtg-form-input" id="mtgNewName"
+               data-i18n-placeholder="meetingArchiveNamePh" placeholder="Enter archive name">
+      </div>
+    </div>
+
+    <!-- Mode -->
+    <div class="mtg-section-label" data-i18n="meetingMode">MODE</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-col">
+        <div class="mtg-seg" id="mtgNewModeSeg">
+          <div class="mtg-seg-opt active" data-value="continue" onclick="mtgSegToggle(this);mtgNewModeChanged()">
+            <span data-i18n="meetingContinue">Continue</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="if" onclick="mtgSegToggle(this);mtgNewModeChanged()">
+            <span data-i18n="meetingIF">IF</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Character Select -->
+    <div class="mtg-section-label" data-i18n="meetingCharacters">CHARACTERS</div>
+    <div class="mtg-form-card">
+      <div class="mtg-char-select-list" id="mtgNewCharList">
+        <!-- JS renders character items here -->
+      </div>
+    </div>
+
+    <!-- Perspective -->
+    <div class="mtg-section-label" data-i18n="meetingPerspective">PERSPECTIVE</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-col">
+        <div class="mtg-form-sublabel" data-i18n="meetingCharPerspectiveShort">Character</div>
+        <div class="mtg-seg" id="mtgNewCharPersonSeg">
+          <div class="mtg-seg-opt active" data-value="first" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingFirstPerson">First</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="second" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingSecondPerson">Second</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="third" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingThirdPerson">Third</span>
+          </div>
+        </div>
+      </div>
+      <div class="mtg-form-divider"></div>
+      <div class="mtg-form-col">
+        <div class="mtg-form-sublabel" data-i18n="meetingUserPerspectiveShort">User</div>
+        <div class="mtg-seg" id="mtgNewUserPersonSeg">
+          <div class="mtg-seg-opt active" data-value="first" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingFirstPerson">First</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="second" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingSecondPerson">Second</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="third" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingThirdPerson">Third</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word Count -->
+    <div class="mtg-section-label" data-i18n="meetingWordCount">WORD COUNT</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-row">
+        <span class="mtg-form-label" data-i18n="meetingMin">Min</span>
+        <input type="number" class="mtg-form-num" id="mtgNewWcMin" value="100" min="10" max="2000">
+      </div>
+      <div class="mtg-form-divider"></div>
+      <div class="mtg-form-row">
+        <span class="mtg-form-label" data-i18n="meetingMax">Max</span>
+        <input type="number" class="mtg-form-num" id="mtgNewWcMax" value="300" min="10" max="5000">
+      </div>
+    </div>
+
+    <!-- Turn Summary -->
+    <div class="mtg-section-label" data-i18n="meetingTurnSummary">TURN SUMMARY</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-row">
+        <span class="mtg-form-label" data-i18n="meetingTurnSummaryEnable">Enable turn summary</span>
+        <div class="mtg-toggle" id="mtgNewToggleSummary"
+             onclick="this.classList.toggle('active');mtgNewSummaryToggled()"></div>
+      </div>
+      <div id="mtgNewSummaryIntervalWrap" style="display:none">
+        <div class="mtg-form-divider"></div>
+        <div class="mtg-form-row">
+          <span class="mtg-form-label" data-i18n="meetingSummaryInterval">Interval (turns)</span>
+          <input type="number" class="mtg-form-num" id="mtgNewSummaryInterval" value="5" min="2" max="50">
+        </div>
+      </div>
+    </div>
+
+    <!-- Worldview (IF only) -->
+    <div class="mtg-if-only" id="mtgNewWorldviewWrap" style="display:none">
+      <div class="mtg-section-label" data-i18n="meetingWorldview">WORLDVIEW</div>
+      <div class="mtg-form-card">
+        <div class="mtg-form-col">
+          <textarea class="mtg-form-textarea" id="mtgNewWorldview" rows="3"
+                    data-i18n-placeholder="meetingWorldviewPh" placeholder="Describe the world setting..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Identity (IF only) -->
+    <div class="mtg-if-only" id="mtgNewIdentityWrap" style="display:none">
+      <div class="mtg-section-label" data-i18n="meetingIdentity">IDENTITY</div>
+      <div class="mtg-form-card">
+        <div class="mtg-form-col">
+          <textarea class="mtg-form-textarea" id="mtgNewIdentity" rows="3"
+                    data-i18n-placeholder="meetingIdentityPh" placeholder="Your character identity..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mtg-form-actions">
+      <button class="mtg-primary-btn" onclick="mtgCreateArchive()">
+        <svg viewBox="0 0 16 16" style="width:14px;height:14px;margin-right:6px">
+          <path d="M3 8l3 3 7-7" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span data-i18n="meetingCreate">Create</span>
+      </button>
+      <button class="mtg-secondary-btn" onclick="exitMeetingNew()">
+        <span data-i18n="meetingCancel">Cancel</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ====== ARCHIVE SETTINGS SCREEN ====== -->
+<div class="screen" id="screen-meeting-settings">
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="exitMeetingSettings()">
+      <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="nav-title" data-i18n="meetingArchiveSettings">Settings</span>
+    <div style="width:32px"></div>
+  </div>
+
+  <div class="screen-body" style="padding-bottom:40px">
+
+    <!-- Archive Name (editable) -->
+    <div class="mtg-section-label" data-i18n="meetingArchiveName">ARCHIVE NAME</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-row">
+        <input type="text" class="mtg-form-input" id="mtgSettingsName"
+               data-i18n-placeholder="meetingArchiveNamePh" placeholder="Enter archive name">
+      </div>
+    </div>
+
+    <!-- Bound Character (changeable) -->
+    <div class="mtg-section-label" data-i18n="meetingCharacters">CHARACTERS</div>
+    <div class="mtg-form-card">
+      <div class="mtg-char-select-list" id="mtgSettingsCharList">
+        <!-- JS renders -->
+      </div>
+    </div>
+
+    <!-- Perspective -->
+    <div class="mtg-section-label" data-i18n="meetingPerspective">PERSPECTIVE</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-col">
+        <div class="mtg-form-sublabel" data-i18n="meetingCharPerspectiveShort">Character</div>
+        <div class="mtg-seg" id="mtgSettingsCharPersonSeg">
+          <div class="mtg-seg-opt" data-value="first" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingFirstPerson">First</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="second" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingSecondPerson">Second</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="third" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingThirdPerson">Third</span>
+          </div>
+        </div>
+      </div>
+      <div class="mtg-form-divider"></div>
+      <div class="mtg-form-col">
+        <div class="mtg-form-sublabel" data-i18n="meetingUserPerspectiveShort">User</div>
+        <div class="mtg-seg" id="mtgSettingsUserPersonSeg">
+          <div class="mtg-seg-opt" data-value="first" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingFirstPerson">First</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="second" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingSecondPerson">Second</span>
+          </div>
+          <div class="mtg-seg-opt" data-value="third" onclick="mtgSegToggle(this)">
+            <span data-i18n="meetingThirdPerson">Third</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word Count -->
+    <div class="mtg-section-label" data-i18n="meetingWordCount">WORD COUNT</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-row">
+        <span class="mtg-form-label" data-i18n="meetingMin">Min Words</span>
+        <input type="number" class="mtg-form-num" id="mtgSettingsWcMin">
+      </div>
+      <div class="mtg-form-divider"></div>
+      <div class="mtg-form-row">
+        <span class="mtg-form-label" data-i18n="meetingMax">Max Words</span>
+        <input type="number" class="mtg-form-num" id="mtgSettingsWcMax">
+      </div>
+    </div>
+
+    <!-- Summary Interval -->
+    <div class="mtg-section-label" data-i18n="meetingSummarySettings">SUMMARY</div>
+    <div class="mtg-form-card">
+      <div class="mtg-form-row">
+        <span class="mtg-form-label" data-i18n="meetingSummaryInterval">Summary Interval</span>
+        <input type="number" class="mtg-form-num" id="mtgSettingsSummaryInterval" min="2" max="50">
+      </div>
+    </div>
+
+    <!-- Short-Term Memory -->
+    <div class="mtg-section-label" data-i18n="meetingShortTermMemory">SHORT-TERM MEMORY</div>
+    <div id="mtgSettingsMemoryList"></div>
+
+    <!-- Action Buttons -->
+    <div class="mtg-form-actions">
+      <button class="mtg-primary-btn" onclick="mtgSaveSettings()">
+        <svg viewBox="0 0 16 16" style="width:14px;height:14px;margin-right:6px">
+          <path d="M3 8l3 3 7-7" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span data-i18n="meetingSaveChanges">Save Changes</span>
+      </button>
+      <button class="mtg-secondary-btn" onclick="exitMeetingSettings()">
+        <span data-i18n="meetingCancel">Cancel</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ====== MANAGE ARCHIVES SCREEN ====== -->
+<div class="screen" id="screen-meeting-manage">
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="exitMeetingManage()">
+      <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="nav-title" data-i18n="meetingManageTitle">Manage</span>
+    <button class="nav-btn" style="margin-left:auto" onclick="openMeetingNewArchive()">
+      <svg viewBox="0 0 20 20" style="width:20px;height:20px">
+        <path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="screen-body" style="padding-bottom:40px">
+    <div id="mtgManageArchiveList">
+      <!-- JS renders archive cards here -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ====== CHAT SCREEN (Writing) ====== -->
 <div class="screen" id="screen-meeting-write">
   <div class="nav-bar" style="position:relative">
     <button class="nav-btn" onclick="exitMeetingWrite()">
       <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
     </button>
-    <span class="nav-title" id="meetingWriteTitle">Session</span>
-    <!-- End Session -->
-    <button class="nav-btn" onclick="mtgEndSession()" style="position:absolute;right:42px;top:50%;transform:translateY(-50%)" title="End Session">
-      <svg viewBox="0 0 20 20" style="width:18px;height:18px">
-        <rect x="5" y="5" width="10" height="10" rx="2" stroke="#1d1d1f" fill="none" stroke-width="1.5"/>
-      </svg>
-    </button>
-    <!-- Manage -->
-    <button class="nav-btn" onclick="openMeetingManage()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">
-      <svg viewBox="0 0 20 20" style="width:20px;height:20px">
-        <path d="M4 6h12M4 10h12M4 14h12" stroke="#1d1d1f" fill="none" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-    </button>
+    <div class="mtg-write-nav-center">
+      <span class="mtg-write-nav-name" id="meetingWriteTitle">Session</span>
+      <span class="mtg-write-nav-char" id="meetingWriteCharName"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:2px">
+      <!-- End Session -->
+      <button class="nav-btn" onclick="mtgEndSession()" title="End Session">
+        <svg viewBox="0 0 20 20" style="width:18px;height:18px">
+          <rect x="5" y="5" width="10" height="10" rx="2" stroke="#1d1d1f" fill="none" stroke-width="1.5"/>
+        </svg>
+      </button>
+      <!-- Settings -->
+      <button class="nav-btn" onclick="openMeetingSettingsFromWrite()" title="Settings">
+        <svg viewBox="0 0 20 20" style="width:18px;height:18px">
+          <circle cx="10" cy="10" r="2.5" stroke="#1d1d1f" fill="none" stroke-width="1.5"/>
+          <path d="M10 2v3M10 15v3M2 10h3M15 10h3M4.2 4.2l2.1 2.1M13.7 13.7l2.1 2.1M4.2 15.8l2.1-2.1M13.7 6.3l2.1-2.1" stroke="#1d1d1f" fill="none" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <!-- Scrollable story body -->
-  <div class="screen-body mtg-write-scroll" id="meetingWriteBody"></div>
+  <!-- Scrollable chat body -->
+  <div class="screen-body mtg-chat-scroll" id="meetingWriteBody">
+    <div class="mtg-chat-content" id="mtgChatContent">
+      <!-- Messages rendered by JS -->
+    </div>
+    <div style="height:80px"></div>
+  </div>
 
-  <!-- Bottom input bar with edit banner -->
-  <div class="mtg-write-bar">
-    <!-- Edit banner (hidden by default, shown when editing) -->
+  <!-- Bottom input bar -->
+  <div class="mtg-chat-bar">
+    <!-- Edit banner (hidden by default) -->
     <div class="mtg-edit-banner" id="mtgEditBanner" style="display:none"></div>
     <!-- Input row -->
-    <div class="mtg-write-bar-row">
-      <textarea class="mtg-write-input" id="meetingWriteInput" rows="1"
+    <div class="mtg-chat-bar-row">
+      <textarea class="mtg-chat-input" id="meetingWriteInput" rows="1"
                 data-i18n-placeholder="meetingInputPh" placeholder="Enter message..."></textarea>
-      <button class="mtg-write-send" id="meetingWriteSendBtn" onclick="meetingWriteSend()">
+      <button class="mtg-chat-send" id="meetingWriteSendBtn" onclick="meetingWriteSend()">
         <svg viewBox="0 0 20 20" style="width:16px;height:16px">
           <path d="M4 10h12M11 5l5 5-5 5" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
