@@ -195,3 +195,202 @@
 .npc-gen-hint { display: flex; align-items: flex-start; gap: 8px; padding: 12px 14px; background: #f8f8fa; border-radius: 10px; margin-top: -4px; }
 .npc-gen-hint svg { width: 16px; height: 16px; color: #8e8e93; flex-shrink: 0; margin-top: 1px; }
 .npc-gen-hint span { font-size: 12px; color: #8e8e93; line-height: 1.5; }
+
+/* ==========================================================================
+   Relationship Graph (reads from state.npcs)
+   ========================================================================== */
+
+/* ── Empty ── */
+.rel-empty {
+	text-align: center;
+	padding: 50px 20px;
+	color: #8e8e93;
+}
+.rel-empty svg {
+	width: 100px;
+	height: 66px;
+	color: #d1d1d6;
+	margin-bottom: 12px;
+}
+.rel-empty p {
+	font-size: 15px;
+	font-weight: 600;
+	color: #636366;
+	margin: 0 0 4px;
+}
+.rel-empty span {
+	font-size: 13px;
+	color: #b0b0b0;
+}
+
+/* ── Graph Container ── */
+.rel-graph-container {
+	margin: 8px 16px 0;
+	background: #fff;
+	border: 1px solid #ececec;
+	border-radius: 14px;
+	padding: 12px 4px;
+	overflow: hidden;
+}
+.rel-graph-svg {
+	width: 100%;
+	height: auto;
+	display: block;
+}
+
+/* ── SVG Lines ── */
+.rel-line {
+	stroke: #d1d1d6;
+	stroke-width: 1.5;
+	stroke-dasharray: 4 3;
+}
+
+/* ── Edge Labels ── */
+.rel-edge-label {
+	font-size: 9px;
+	font-weight: 600;
+	fill: #636366;
+	text-anchor: middle;
+	paint-order: stroke;
+	stroke: #fff;
+	stroke-width: 3px;
+	font-family: -apple-system, 'Inter', system-ui, sans-serif;
+}
+
+/* ── Center Node ── */
+.rel-center-circle {
+	fill: #1d1d1f;
+	stroke: #1d1d1f;
+	stroke-width: 2;
+}
+.rel-center-letter {
+	font-size: 16px;
+	font-weight: 700;
+	fill: #fff;
+	text-anchor: middle;
+	font-family: -apple-system, 'Inter', system-ui, sans-serif;
+}
+.rel-center-name {
+	font-size: 10px;
+	font-weight: 600;
+	fill: #1d1d1f;
+	text-anchor: middle;
+	font-family: -apple-system, 'Inter', system-ui, sans-serif;
+}
+
+/* ── NPC Nodes ── */
+.rel-node-circle {
+	fill: #f0f0f5;
+	stroke: #d1d1d6;
+	stroke-width: 1.5;
+}
+.rel-node-letter {
+	font-size: 13px;
+	font-weight: 700;
+	fill: #636366;
+	text-anchor: middle;
+	font-family: -apple-system, 'Inter', system-ui, sans-serif;
+}
+.rel-node-name {
+	font-size: 9px;
+	font-weight: 600;
+	fill: #636366;
+	text-anchor: middle;
+	font-family: -apple-system, 'Inter', system-ui, sans-serif;
+}
+
+/* ── Section Label ── */
+.rel-section-label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 16px 20px 8px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #8e8e93;
+	text-transform: uppercase;
+	letter-spacing: .5px;
+}
+.rel-section-label svg {
+	width: 13px;
+	height: 13px;
+	color: #8e8e93;
+}
+
+/* ── Detail List ── */
+.rel-detail-list {
+	margin: 0 16px;
+	background: #fff;
+	border: 1px solid #ececec;
+	border-radius: 14px;
+	overflow: hidden;
+}
+.rel-detail-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 16px;
+	border-bottom: 1px solid #f2f2f7;
+}
+.rel-detail-item:last-child {
+	border-bottom: none;
+}
+.rel-detail-avatar {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: #f0f0f5;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	font-size: 14px;
+	font-weight: 700;
+	color: #8e8e93;
+}
+.rel-detail-info {
+	flex: 1;
+	min-width: 0;
+}
+.rel-detail-name {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d1d1f;
+	line-height: 1.3;
+}
+.rel-detail-type {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-top: 2px;
+	font-size: 12px;
+	color: #636366;
+}
+.rel-detail-type svg {
+	width: 11px;
+	height: 11px;
+	color: #8e8e93;
+}
+
+/* ── Hint ── */
+.rel-hint {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 14px 16px 0;
+	padding: 12px 14px;
+	background: #f8f8fa;
+	border-radius: 10px;
+}
+.rel-hint svg {
+	width: 16px;
+	height: 16px;
+	color: #8e8e93;
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+.rel-hint span {
+	font-size: 12px;
+	color: #8e8e93;
+	line-height: 1.5;
+}
