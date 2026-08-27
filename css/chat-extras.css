@@ -1574,3 +1574,43 @@
     font-size: 15px;
   }
 }
+
+/* ===== Quote inside Message Bubble — 修复文字颜色 ===== */
+.msg-quote {
+  background: rgba(0, 0, 0, 0.05);
+  border-left: 3px solid rgba(0, 0, 0, 0.10);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #aaa;
+  line-height: 1.4;
+}
+
+.msg-quote .mq-name {
+  font-weight: 600;
+  color: #999;
+  font-size: 11px;
+}
+
+/* 发送方气泡（深灰背景）中的引用 — 用更亮的颜色 */
+.msg-row.sent .msg-quote {
+  background: rgba(255, 255, 255, 0.12);
+  border-left-color: rgba(255, 255, 255, 0.25);
+  color: #ccc;
+}
+
+.msg-row.sent .msg-quote .mq-name {
+  color: #ddd;
+}
+
+/* 接收方气泡（浅灰背景）中的引用 */
+.msg-row.received .msg-quote {
+  background: rgba(0, 0, 0, 0.04);
+  border-left-color: rgba(0, 0, 0, 0.12);
+  color: #aaa;
+}
+
+.msg-row.received .msg-quote .mq-name {
+  color: #999;
+}

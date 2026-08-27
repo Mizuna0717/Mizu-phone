@@ -198,7 +198,7 @@ function initForceControlForChar(charId) {
     consecutiveHigh: 0,
     cooldownRounds: 0,
     startTime: null,
-    maxDuration: 180,        // 默认 3 分钟（秒）
+    maxDuration: 180,
     allowSwitchAccount: true,
     allowSendMessage: false,
     preScreenId: null,
@@ -213,7 +213,6 @@ function clearForceControlForChar(charId) {
   console.log('[FC] cleared:', charId);
 }
 
-/** ★FC★ 强制解除 Force Control */
 function forceUnlockForceControl(explicitCharId) {
   var charId = explicitCharId || null;
   if (!charId && state.currentCharId) charId = state.currentCharId;
@@ -226,10 +225,8 @@ function forceUnlockForceControl(explicitCharId) {
   var preScreenId = (lock && lock.preScreenId) ? lock.preScreenId : 'screen-chat';
   var preCharId = (lock && lock.preCharId) ? lock.preCharId : charId;
 
-  // 停止 FC 引擎
   fcStopEngine();
 
-  // 更新锁状态
   var newLock = {
     active: false,
     emotions: (lock && lock.emotions) ? lock.emotions : { anger:0,suspicion:0,trust:5,patience:5 },
@@ -242,22 +239,18 @@ function forceUnlockForceControl(explicitCharId) {
   };
   setFcLock(charId, newLock);
 
-  // 同时关闭 Top Priority（如果 active）
   var tpLock = getTpLock(charId);
   if (tpLock && tpLock.active) {
     forceUnlockTopPriority(charId);
   }
 
-  // 移除覆盖层
   fcHideOverlay();
 
-  // 恢复到强控前的界面
   state.currentCharId = preCharId;
   window._fcEngineNavigating = true;
   nav(preScreenId);
   window._fcEngineNavigating = false;
 
-  // 显示解除后情绪状态
   var em = newLock.emotions;
   var emStr = '角色情绪 — 愤怒: ' + em.anger + '/10';
   _showFcModal('已强制解除强控', emStr, '确定', function() {});
@@ -267,7 +260,6 @@ function forceUnlockForceControl(explicitCharId) {
   console.log('[FC forceUnlock] DONE');
 }
 
-/** ★FC★ 自动恢复（情绪降低后调用） */
 function fcAutoRestore(charId) {
   var lock = getFcLock(charId);
   if (!lock || !lock.active) return;
@@ -302,9 +294,7 @@ function fcAutoRestore(charId) {
   try { updateForceControlSettingsUI(); } catch(e) {}
 }
 
-/** ★FC★ 设置界面状态更新 */
 function updateForceControlSettingsUI() {
-  // 配置子面板显隐
   var cfgPanel = document.getElementById('csFcConfigPanel');
   var extra = document.getElementById('csForceControlExtra');
   if (!cfgPanel || !extra) return;
@@ -315,7 +305,6 @@ function updateForceControlSettingsUI() {
   var cfg = (typeof getCharConfig === 'function') ? getCharConfig(targetCharId) : null;
   var fcEnabled = cfg && cfg.forceControl;
 
-  // 配置面板
   cfgPanel.style.display = fcEnabled ? '' : 'none';
   if (fcEnabled) {
     var lock = getFcLock(targetCharId);
@@ -331,7 +320,6 @@ function updateForceControlSettingsUI() {
     if (sel) sel.value = String(maxDur);
   }
 
-  // 状态面板
   var lock = getFcLock(targetCharId);
   if (lock && lock.active) {
     var em = lock.emotions || {};
@@ -354,7 +342,6 @@ function updateForceControlSettingsUI() {
   }
 }
 
-/** ★FC★ FC 配置切换 */
 function toggleFcOption(field, toggleId) {
   if (!state.currentCharId) return;
   var lock = getFcLock(state.currentCharId);
@@ -374,7 +361,6 @@ function updateFcOption(field, value) {
   setFcLock(state.currentCharId, lock);
 }
 
-/** ★FC★ FC 专用模态框 */
 function _showFcModal(title, message, confirmText, onConfirm) {
   var existing = document.getElementById('fcModal');
   if (existing) existing.remove();
@@ -437,11 +423,22 @@ function openChatSettings() {
   document.getElementById('csForceControlToggle').classList.toggle('on', !!cfg.forceControl);
   document.getElementById('csTopPriorityToggle').classList.toggle('on', !!cfg.topPriority);
 
+  // ★ NEW: 引用信息开关（读取 state 级别，默认 true）
+  document.getElementById('csAllowQuoteToggle').classList.toggle('on', state.allowQuote !== false);
+
   nav('screen-chat-settings');
   setTimeout(function () {
     updateTopPrioritySettingsUI();
-    updateForceControlSettingsUI(); // ★FC★
+    updateForceControlSettingsUI();
   }, 50);
+}
+
+/* ★ NEW: 引用信息开关 — 存储在 state（账号级别） */
+function toggleAllowQuote() {
+  state.allowQuote = !(state.allowQuote !== false);
+  document.getElementById('csAllowQuoteToggle').classList.toggle('on', state.allowQuote);
+  saveState();
+  showToast(state.allowQuote ? '引用信息已开启' : '引用信息已关闭');
 }
 
 function toggleCsToggle(field, toggleId) {
@@ -461,13 +458,11 @@ function toggleCsToggle(field, toggleId) {
     if (typeof renderChat === 'function') renderChat();
   }
 
-  // ★FC★ Force Control 开关
   if (field === 'forceControl') {
     if (cfg.forceControl) {
       initForceControlForChar(state.currentCharId);
       showToast('Force Control 已开启');
     } else {
-      // 如果正在强控中，先解除
       var fcLock = getFcLock(state.currentCharId);
       if (fcLock && fcLock.active) {
         forceUnlockForceControl(state.currentCharId);
@@ -613,3 +608,6 @@ window.updateForceControlSettingsUI = updateForceControlSettingsUI;
 window.toggleFcOption = toggleFcOption;
 window.updateFcOption = updateFcOption;
 window._findActiveFcLockedCharId = _findActiveFcLockedCharId;
+
+// ★ NEW: Allow Quote export
+window.toggleAllowQuote = toggleAllowQuote;

@@ -356,3 +356,197 @@
 .papp-remind-text{font-size:15px;color:#fff;font-weight:400;line-height:1.35}
 .papp-remind-done .papp-remind-text{text-decoration:line-through;color:rgba(255,255,255,.5)}
 .papp-remind-meta{font-size:12px;color:rgba(255,255,255,.25);margin-top:4px}
+
+/* ===================================================
+   Batch 5: Info & Health
+   =================================================== */
+
+/* --- News --- */
+.papp-news-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
+.papp-news-featured-img{height:140px;background:#141416;display:flex;align-items:center;justify-content:center}
+.papp-news-featured-img svg{width:40px;height:40px}
+.papp-news-featured-info{padding:14px 16px}
+.papp-news-source{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.3px}
+.papp-news-headline{font-size:16px;font-weight:600;color:#fff;line-height:1.35;margin-top:6px}
+.papp-news-meta{font-size:12px;color:rgba(255,255,255,.25);margin-top:8px}
+.papp-news-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-news-item-content{flex:1;min-width:0}
+.papp-news-item-source{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.3px}
+.papp-news-item-title{font-size:14px;font-weight:500;color:rgba(255,255,255,.8);line-height:1.35;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.papp-news-item-meta{font-size:12px;color:rgba(255,255,255,.2);margin-top:6px}
+.papp-news-item-thumb{width:56px;height:56px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-news-item-thumb svg{width:20px;height:20px;stroke:rgba(255,255,255,.12);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+
+/* --- Stocks --- */
+.papp-stocks-summary{padding:24px 16px 12px;text-align:center}
+.papp-stocks-portfolio-label{font-size:13px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-stocks-portfolio-val{font-size:36px;font-weight:300;color:#fff;margin-top:4px;letter-spacing:-1px}
+.papp-stocks-portfolio-change{font-size:14px;margin-top:6px;font-weight:500}
+.papp-stocks-up{color:rgba(48,209,88,.8)}
+.papp-stocks-down{color:rgba(255,69,58,.7)}
+.papp-stocks-chart{padding:0 16px;margin:8px 0}
+.papp-stocks-range{display:flex;justify-content:center;gap:4px;padding:8px 16px 12px}
+.papp-stocks-range-btn{padding:5px 12px;border-radius:14px;font-size:12px;font-weight:500;color:rgba(255,255,255,.3);cursor:default}
+.papp-stocks-range-active{background:rgba(255,255,255,.08);color:#fff}
+.papp-stocks-price{font-size:15px;color:#fff;font-weight:500;flex-shrink:0}
+.papp-stocks-change{font-size:12px;font-weight:500;flex-shrink:0}
+
+/* --- Coding --- */
+.papp-code-editor{background:#0a0a0c;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-code-tabs{display:flex;padding:0;border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none}
+.papp-code-tabs::-webkit-scrollbar{display:none}
+.papp-code-tab{padding:10px 16px;font-size:12px;color:rgba(255,255,255,.3);font-weight:500;white-space:nowrap;border-bottom:2px solid transparent;cursor:default}
+.papp-code-tab-active{color:rgba(255,255,255,.7);border-bottom-color:rgba(10,132,255,.5)}
+.papp-code-content{padding:12px 0;font-family:monospace;font-size:12px;line-height:1.7;overflow-x:auto}
+.papp-code-line{display:flex;padding:0 12px}
+.papp-code-num{width:28px;text-align:right;color:rgba(255,255,255,.15);font-size:11px;flex-shrink:0;padding-right:12px;user-select:none}
+.papp-code-text{color:rgba(255,255,255,.6);white-space:pre}
+.papp-ck{color:rgba(175,130,255,.7)}
+.papp-cv{color:rgba(10,132,255,.7)}
+.papp-cf{color:rgba(255,214,10,.6)}
+.papp-cs{color:rgba(48,209,88,.6)}
+.papp-cn{color:rgba(255,159,10,.6)}
+.papp-code-terminal{background:#111113;border-top:1px solid rgba(255,255,255,.06)}
+.papp-code-term-header{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.papp-code-term-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.1)}
+.papp-code-term-title{font-size:11px;color:rgba(255,255,255,.25);margin-left:8px;font-weight:500}
+.papp-code-term-body{padding:10px 12px;font-family:monospace;font-size:11px;line-height:1.8}
+.papp-code-term-line{color:rgba(255,255,255,.4)}
+.papp-code-term-prompt{color:rgba(48,209,88,.5);margin-right:8px}
+.papp-code-term-output{color:rgba(255,255,255,.3)}
+.papp-code-term-success{color:rgba(48,209,88,.6)}
+.papp-code-term-cursor{display:inline-block;width:7px;height:13px;background:rgba(255,255,255,.4);animation:blink 1s infinite}
+.papp-code-proj-icon{width:32px;height:32px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-code-proj-icon svg{width:16px;height:16px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* --- Health --- */
+.papp-health-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px}
+.papp-health-card{background:#1c1c1e;border-radius:14px;padding:14px 16px}
+.papp-health-card-icon{width:24px;height:24px;margin-bottom:8px}
+.papp-health-card-icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-health-card-label{font-size:12px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-health-card-val{font-size:24px;font-weight:600;margin-top:4px;line-height:1}
+.papp-health-card-unit{font-size:12px;color:rgba(255,255,255,.25);margin-top:2px}
+.papp-health-rings{display:flex;align-items:center;gap:24px;padding:20px 16px;margin:0 16px;background:#1c1c1e;border-radius:14px}
+.papp-health-rings-legend{flex:1}
+.papp-health-ring-label{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.5);padding:4px 0}
+.papp-health-ring-label span{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* --- Fitness --- */
+.papp-fit-today{margin:12px 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-fit-today-header{font-size:15px;font-weight:600;color:#fff;margin-bottom:14px}
+.papp-fit-stats{display:flex;align-items:center;justify-content:space-around}
+.papp-fit-stat{text-align:center}
+.papp-fit-stat-val{font-size:26px;font-weight:600;color:#fff;line-height:1}
+.papp-fit-stat-label{font-size:12px;color:rgba(255,255,255,.3);margin-top:4px;font-weight:500}
+.papp-fit-stat-divider{width:1px;height:36px;background:rgba(255,255,255,.06)}
+.papp-fit-chart{margin:8px 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-fit-chart-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:14px}
+.papp-fit-bars{display:flex;align-items:flex-end;justify-content:space-between;height:80px;gap:6px}
+.papp-fit-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.papp-fit-bar-track{flex:1;width:100%;max-width:24px;background:rgba(255,255,255,.04);border-radius:4px;position:relative;overflow:hidden;display:flex;align-items:flex-end}
+.papp-fit-bar-fill{width:100%;background:rgba(48,209,88,.4);border-radius:4px;transition:height .3s}
+.papp-fit-bar-day{font-size:10px;color:rgba(255,255,255,.25);font-weight:500;flex-shrink:0}
+.papp-fit-icon{width:36px;height:36px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-fit-icon svg{width:18px;height:18px;stroke:rgba(48,209,88,.5);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* --- Meditation --- */
+.papp-med-hero{display:flex;flex-direction:column;align-items:center;padding:28px 16px 20px}
+.papp-med-circle{position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center}
+.papp-med-circle svg{position:absolute;top:0;left:0}
+.papp-med-timer{position:relative;text-align:center}
+.papp-med-time{font-size:36px;font-weight:200;color:#fff;letter-spacing:1px}
+.papp-med-label{font-size:12px;color:rgba(255,255,255,.25);margin-top:4px}
+.papp-med-start{margin-top:20px;padding:10px 28px;background:rgba(175,130,255,.2);color:rgba(175,130,255,.8);font-size:14px;font-weight:500;border-radius:20px;cursor:default;letter-spacing:.3px}
+.papp-med-durations{display:flex;justify-content:center;gap:6px;padding:0 16px 16px;flex-wrap:wrap}
+.papp-med-dur{padding:6px 14px;border-radius:16px;font-size:12px;font-weight:500;color:rgba(255,255,255,.3);background:#1c1c1e;cursor:default}
+.papp-med-dur-active{background:rgba(175,130,255,.15);color:rgba(175,130,255,.8)}
+.papp-med-streak{display:flex;align-items:center;justify-content:space-between;margin:0 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-med-streak-info{display:flex;align-items:baseline;gap:8px}
+.papp-med-streak-val{font-size:28px;font-weight:700;color:rgba(175,130,255,.7);line-height:1}
+.papp-med-streak-label{font-size:13px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-med-streak-dots{display:flex;gap:5px}
+.papp-med-streak-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.papp-med-dot-filled{background:rgba(175,130,255,.4);border-color:rgba(175,130,255,.3)}
+.papp-med-session-icon{width:36px;height:36px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-med-session-icon svg{width:18px;height:18px;stroke:rgba(175,130,255,.4);fill:none;stroke-width:1.5;stroke-linecap:round}
+.papp-med-month-stats{display:flex;justify-content:space-around;margin:0 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-med-month-stat{text-align:center}
+.papp-med-month-stat-val{font-size:22px;font-weight:600;color:rgba(175,130,255,.7);line-height:1}
+.papp-med-month-stat-label{font-size:11px;color:rgba(255,255,255,.25);margin-top:4px;font-weight:500}
+
+/* ===================================================
+   Batch 6: System & Life
+   =================================================== */
+
+/* --- Settings --- */
+.papp-settings-profile{display:flex;align-items:center;gap:14px;padding:16px;margin:12px 16px 0;background:#1c1c1e;border-radius:14px}
+.papp-settings-avatar{width:52px;height:52px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-settings-avatar svg{width:26px;height:26px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round}
+.papp-settings-profile-info{flex:1;min-width:0}
+.papp-settings-profile-name{font-size:17px;font-weight:600;color:#fff}
+.papp-settings-profile-sub{font-size:13px;color:rgba(255,255,255,.3);margin-top:2px}
+.papp-settings-group{margin:12px 16px;background:#1c1c1e;border-radius:14px;overflow:hidden}
+.papp-settings-group .papp-item{margin:0;border-radius:0;padding:12px 16px}
+.papp-settings-group .papp-item:last-child{border-bottom:none}
+.papp-settings-last{border-bottom:none!important}
+.papp-settings-icon{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-settings-icon svg{width:16px;height:16px;stroke:rgba(255,255,255,.4);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+
+/* --- Wallet --- */
+.papp-wallet-balance{text-align:center;padding:24px 16px 16px}
+.papp-wallet-balance-label{font-size:13px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-wallet-balance-val{font-size:36px;font-weight:300;color:#fff;margin-top:4px;letter-spacing:-1px}
+.papp-wallet-cards{padding:0 16px;display:flex;flex-direction:column;gap:10px}
+.papp-wallet-card{border-radius:14px;padding:16px;border:1px solid;position:relative;overflow:hidden}
+.papp-wallet-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.papp-wallet-card-name{font-size:13px;font-weight:600;color:rgba(255,255,255,.5)}
+.papp-wallet-card-chip{width:22px;height:22px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.5;stroke-linecap:round}
+.papp-wallet-card-num{font-size:15px;color:rgba(255,255,255,.4);letter-spacing:2px;font-weight:400}
+.papp-wallet-actions{display:flex;justify-content:center;gap:16px;padding:16px}
+.papp-wallet-action{display:flex;flex-direction:column;align-items:center;gap:6px}
+.papp-wallet-action-icon{width:44px;height:44px;border-radius:50%;background:#1c1c1e;display:flex;align-items:center;justify-content:center}
+.papp-wallet-action-icon svg{width:20px;height:20px;stroke:rgba(255,255,255,.4);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.papp-wallet-action-label{font-size:11px;color:rgba(255,255,255,.35);font-weight:500}
+.papp-wallet-amount{font-size:14px;font-weight:500;color:rgba(255,255,255,.6);flex-shrink:0}
+.papp-wallet-income{color:rgba(48,209,88,.7)}
+
+/* --- Shopping --- */
+.papp-shop-cats{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none}
+.papp-shop-cats::-webkit-scrollbar{display:none}
+.papp-shop-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
+.papp-shop-featured-img{height:100px;background:#141416;display:flex;align-items:center;justify-content:center}
+.papp-shop-featured-img svg{width:36px;height:36px;stroke:rgba(255,255,255,.08);fill:none;stroke-width:1.2}
+.papp-shop-featured-info{padding:14px 16px}
+.papp-shop-thumb{width:40px;height:40px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-shop-thumb svg{width:18px;height:18px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+
+/* --- Recipes --- */
+.papp-recipe-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
+.papp-recipe-featured-img{height:100px;background:#141416;display:flex;align-items:center;justify-content:center}
+.papp-recipe-featured-info{padding:14px 16px}
+.papp-recipe-featured-title{font-size:16px;font-weight:600;color:#fff}
+.papp-recipe-featured-meta{font-size:13px;color:rgba(255,255,255,.35);margin-top:4px}
+.papp-recipe-icon{width:36px;height:36px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-recipe-icon svg{width:18px;height:18px;stroke:rgba(255,159,10,.4);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* --- Travel --- */
+.papp-travel-upcoming{margin:12px 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-travel-upcoming-header{font-size:13px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+.papp-travel-route{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}
+.papp-travel-city{text-align:center}
+.papp-travel-code{font-size:24px;font-weight:600;color:#fff;letter-spacing:1px}
+.papp-travel-city-name{font-size:12px;color:rgba(255,255,255,.3);margin-top:2px}
+.papp-travel-line{display:flex;align-items:center}
+.papp-travel-details{display:flex;justify-content:space-between}
+.papp-travel-detail{text-align:center;flex:1}
+.papp-travel-detail-label{font-size:11px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+.papp-travel-detail-val{font-size:13px;color:rgba(255,255,255,.6);margin-top:3px;font-weight:500}
+.papp-travel-pass{margin:8px 16px;background:#1c1c1e;border-radius:14px;padding:14px 16px}
+.papp-travel-pass-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.papp-travel-pass-row:last-of-type{border-bottom:none}
+.papp-travel-pass-label{font-size:13px;color:rgba(255,255,255,.3)}
+.papp-travel-pass-val{font-size:13px;color:rgba(255,255,255,.7);font-weight:500}
+.papp-travel-pass-barcode{margin-top:12px;padding-top:12px;border-top:1px dashed rgba(255,255,255,.06)}
+.papp-travel-past-icon{width:32px;height:32px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-travel-past-icon svg{width:16px;height:16px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}

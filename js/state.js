@@ -11,8 +11,9 @@ let state = {
   masks: [], memories: [], imsgTab: 'messages', replyPrompt: null, charConfig: {},
   phoneData: {}, bookmarks: [], groups: [], moments: [],
   meetings: [],
-  systemPromptIM: '',       // ★ NEW
-  systemPromptMeeting: ''   // ★ NEW
+  allowQuote: true,         // ★ NEW — 引用信息开关，默认开启
+  systemPromptIM: '',
+  systemPromptMeeting: ''
 };
 
 let bubbleState = { multiMode: false, selectedIds: new Set(), quoteMsg: null, editingMsgId: null };
@@ -26,15 +27,16 @@ let tmp = {
   momentImageData: null, momentVirtualText: '', acctAvatar: null, importCharList: null
 };
 
-// 2. In SAVE_KEYS, add 'meetings', 'systemPromptIM', 'systemPromptMeeting':
+// 2. In SAVE_KEYS, add 'meetings', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting':
 var SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
   'groups', 'moments', 'imsgTab',
   'meetings',
-  'systemPromptIM',       // ★ NEW
-  'systemPromptMeeting'   // ★ NEW
+  'allowQuote',             // ★ NEW
+  'systemPromptIM',
+  'systemPromptMeeting'
 ];
 
 function _generateAccountId() {
@@ -51,8 +53,9 @@ function _getStateDefaults() {
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
-    systemPromptIM: '',       // ★ NEW
-    systemPromptMeeting: ''   // ★ NEW
+    allowQuote: true,         // ★ NEW
+    systemPromptIM: '',
+    systemPromptMeeting: ''
   };
 }
 
@@ -73,6 +76,8 @@ function _validateState() {
   if (!Array.isArray(state.stickers)) state.stickers = [];
   if (!Array.isArray(state.apis)) state.apis = [];
   if (!Array.isArray(state.meetings)) state.meetings = [];
+  // ★ NEW: 引用信息开关默认开启
+  if (state.allowQuote == null) state.allowQuote = true;
   // ★ NEW: 确保 systemPromptIM 和 systemPromptMeeting 始终为字符串
   if (state.systemPromptIM == null) state.systemPromptIM = '';
   if (state.systemPromptMeeting == null) state.systemPromptMeeting = '';
