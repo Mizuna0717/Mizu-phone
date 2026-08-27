@@ -291,6 +291,7 @@ var scripts = [
     'js/social-moments.js',
     'js/call.js',
     'js/archive.js',
+    'js/cloud.js',
     'js/init.js',
 ];
 
