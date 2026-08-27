@@ -31,12 +31,12 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         ★ Mizu Phone v4 — 水の波紋  开屏动画（内联，零延迟）
+         ★ Mizu Phone v12 — 丝滑水滴 + 极简关键帧  10s 沉浸开屏
          ═══════════════════════════════════════════════════════════════ -->
     <style>
-        /* ══════════════════════════════════════════════
+        /* ════════════════════════════════════════════
            容器
-           ══════════════════════════════════════════════ */
+           ════════════════════════════════════════════ */
         #loadingIndicator {
             position: fixed;
             inset: 0;
@@ -52,8 +52,8 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter',
                          'Helvetica Neue', system-ui, sans-serif;
             overflow: hidden;
-            transition: opacity 1s cubic-bezier(.4,0,.15,1),
-                        transform 1s cubic-bezier(.4,0,.15,1);
+            transition: opacity 1.1s cubic-bezier(.4,0,.15,1),
+                        transform 1.1s cubic-bezier(.4,0,.15,1);
         }
         #loadingIndicator.mizu-fadeout {
             opacity: 0;
@@ -61,9 +61,9 @@
             pointer-events: none;
         }
 
-        /* ══════════════════════════════════════════════
-           水面光影 — 极微弱的游移高光
-           ══════════════════════════════════════════════ */
+        /* ════════════════════════════════════════════
+           水面光影
+           ════════════════════════════════════════════ */
         .mizu-shimmer {
             position: absolute;
             inset: -60%;
@@ -78,14 +78,15 @@
             background-size: 200% 200%;
             pointer-events: none;
             opacity: 0;
+            will-change: opacity;
             animation:
-                mizuFadeIn 3s ease .8s forwards,
-                mizuShimmerDrift 10s ease-in-out .8s infinite;
+                mizuFadeIn 4s ease 1s forwards,
+                mizuShimmerDrift 14s ease-in-out 1s infinite;
         }
 
-        /* ══════════════════════════════════════════════
-           涟漪场景
-           ══════════════════════════════════════════════ */
+        /* ════════════════════════════════════════════
+           涟漪场景容器
+           ════════════════════════════════════════════ */
         .mizu-scene {
             position: relative;
             width: 200px;
@@ -93,44 +94,102 @@
             margin-bottom: 48px;
             flex-shrink: 0;
             overflow: visible;
-            animation: mizuSceneBreathe 7s ease-in-out 4.5s infinite;
+            will-change: transform;
+            animation: mizuSceneBreathe 10s ease-in-out 5.5s infinite;
         }
 
-        /* ── 向外扩散的涟漪环 ── */
+        /* ════════════════════════════════════════════
+           ① SVG 水滴
+              ★ v12 修复：
+              - 延迟 1.8s（避开主线程最忙窗口）
+              - 仅 4 个关键帧（让缓动曲线做重力）
+              - 不写 translateZ(0)（will-change 已提升）
+           ════════════════════════════════════════════ */
+        .mizu-drop {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 24px;
+            height: 34px;
+            margin: -17px 0 0 -12px;
+            z-index: 3;
+            will-change: transform, opacity;
+            opacity: 0;
+            transform: translateY(-100px);
+            /* ★ 分两段动画：下落 + 消散，用逗号串联 */
+            animation:
+                mizuDropAppear .3s ease    1.8s forwards,
+                mizuDropFall   1.8s cubic-bezier(.4,0,.9,.4)  2.1s forwards,
+                mizuDropSplash .6s  ease-out 3.9s forwards;
+        }
+        .mizu-drop svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        /* ════════════════════════════════════════════
+           ② 冲击环
+           ════════════════════════════════════════════ */
+        .mizu-splash {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 28px;
+            height: 28px;
+            margin: -14px 0 0 -14px;
+            border: 0.5px solid rgba(200,200,200,.25);
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 2;
+            pointer-events: none;
+            will-change: transform, opacity;
+            animation: mizuSplashExpand 1.6s ease-out 3.9s forwards;
+        }
+
+        /* ════════════════════════════════════════════
+           ③ 波源点
+           ════════════════════════════════════════════ */
+        .mizu-impact-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            margin: -2px 0 0 -2px;
+            border-radius: 50%;
+            border: 0.5px solid rgba(180,180,180,.22);
+            background: none;
+            opacity: 0;
+            z-index: 2;
+            will-change: transform, opacity;
+            animation:
+                mizuDotAppear  .8s cubic-bezier(.16,1,.3,1) 3.9s forwards,
+                mizuDotBreathe 6s  ease-in-out              5s  infinite;
+        }
+
+        /* ════════════════════════════════════════════
+           ④ 涟漪环 — 2 圈
+           ════════════════════════════════════════════ */
         .mizu-ripple {
             position: absolute;
             top: 50%; left: 50%;
-            width: 100px; height: 100px;
-            margin: -50px 0 0 -50px;
-            border: 1px solid rgba(0,0,0,.07);
+            width: 80px; height: 80px;
+            margin: -40px 0 0 -40px;
+            border: 0.5px solid rgba(200,200,200,.3);
             border-radius: 50%;
             opacity: 0;
+            z-index: 1;
             pointer-events: none;
             will-change: transform, opacity;
-            animation: mizuRippleExpand 5.5s cubic-bezier(.12,.6,.3,1) infinite;
+            animation: mizuRippleExpand 7s cubic-bezier(.08,.6,.25,1) infinite;
         }
-        .mizu-ripple:nth-child(1) { animation-delay: .8s; }
-        .mizu-ripple:nth-child(2) { animation-delay: 2.175s; }
-        .mizu-ripple:nth-child(3) { animation-delay: 3.55s; }
-        .mizu-ripple:nth-child(4) { animation-delay: 4.925s; }
+        .mizu-ripple:nth-child(1) { animation-delay: 4.2s; }
+        .mizu-ripple:nth-child(2) { animation-delay: 6.5s; }
 
-        /* ── 中心圆点（落水点） ── */
-        .mizu-dot {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 6px; height: 6px;
-            margin: -3px 0 0 -3px;
-            border-radius: 50%;
-            background: rgba(0,0,0,.16);
-            box-shadow: 0 0 18px 5px rgba(0,0,0,.018);
-            opacity: 0;
-            transform: scale(0);
-            animation: mizuDotIn 1.8s cubic-bezier(.16,1,.3,1) .2s forwards;
-        }
-
-        /* ══════════════════════════════════════════════
-           品牌文字
-           ══════════════════════════════════════════════ */
+        /* ════════════════════════════════════════════
+           品牌文字（★ 保留不变）
+           ════════════════════════════════════════════ */
         .mizu-brand {
             font-size: 14px;
             font-weight: 200;
@@ -142,12 +201,12 @@
             flex-shrink: 0;
             opacity: 0;
             transform: translateY(16px);
-            animation: mizuSlideUp 1.6s cubic-bezier(.16,1,.3,1) 1.4s forwards;
+            animation: mizuSlideUp 2s cubic-bezier(.16,1,.3,1) 2s forwards;
         }
 
-        /* ══════════════════════════════════════════════
-           加载状态文字
-           ══════════════════════════════════════════════ */
+        /* ════════════════════════════════════════════
+           加载状态文字（★ 保留不变）
+           ════════════════════════════════════════════ */
         .mizu-status {
             font-size: 10px;
             font-weight: 300;
@@ -158,12 +217,12 @@
             flex-shrink: 0;
             opacity: 0;
             transform: translateY(12px);
-            animation: mizuSlideUp 1.3s cubic-bezier(.16,1,.3,1) 2.4s forwards;
+            animation: mizuSlideUp 1.8s cubic-bezier(.16,1,.3,1) 3.5s forwards;
         }
 
-        /* ══════════════════════════════════════════════
-           进度条
-           ══════════════════════════════════════════════ */
+        /* ════════════════════════════════════════════
+           进度条（★ 保留不变）
+           ════════════════════════════════════════════ */
         .mizu-progress-track {
             width: 100px;
             height: 1px;
@@ -172,64 +231,91 @@
             overflow: hidden;
             flex-shrink: 0;
             opacity: 0;
-            animation: mizuFadeIn 1.2s ease 2.8s forwards;
+            animation: mizuFadeIn 1.5s ease 4s forwards;
         }
         .mizu-progress-bar {
             width: 0%;
             height: 100%;
             background: linear-gradient(90deg, rgba(0,0,0,.04), rgba(0,0,0,.14));
             border-radius: .5px;
-            transition: width .6s cubic-bezier(.4,0,.2,1);
+            transition: width .8s cubic-bezier(.4,0,.2,1);
         }
 
-        /* ══════════════════════════════════════════════
-           关键帧
-           ══════════════════════════════════════════════ */
+        /* ════════════════════════════════════════════
+           关键帧 — ★ v12：极简，无 translateZ
+           ════════════════════════════════════════════ */
 
-        /* 涟漪扩散 — 从中心向外，边缘渐隐 */
+        /* ── 水滴淡入（在高处原地出现） ── */
+        @keyframes mizuDropAppear {
+            from { opacity: 0; }
+            to   { opacity: .4; }
+        }
+
+        /* ── 水滴下落（仅 2 帧，靠 cubic-bezier 模拟重力加速） ──
+             cubic-bezier(.4,0,.9,.4) = 前慢后快 ≈ 自由落体
+             浏览器在 from→to 之间做一次性平滑插值，零卡顿 */
+        @keyframes mizuDropFall {
+            from { transform: translateY(-100px); }
+            to   { transform: translateY(0); }
+        }
+
+        /* ── 水滴触水消散（着陆后扁化消失） ── */
+        @keyframes mizuDropSplash {
+            0%   { transform: translateY(0) scaleX(1) scaleY(1);      opacity: .4; }
+            40%  { transform: translateY(1px) scaleX(1.15) scaleY(.7); opacity: .15; }
+            100% { transform: translateY(0) scaleX(1.3) scaleY(.3);   opacity: 0; }
+        }
+
+        /* ── 冲击环 ── */
+        @keyframes mizuSplashExpand {
+            from { transform: scale(.35); opacity: .2; }
+            to   { transform: scale(2.6); opacity: 0; }
+        }
+
+        /* ── 波源点浮现 ── */
+        @keyframes mizuDotAppear {
+            0%   { transform: scale(0);   opacity: 0; }
+            50%  { transform: scale(1.3); opacity: .15; }
+            100% { transform: scale(1);   opacity: .1; }
+        }
+
+        /* ── 波源点呼吸 ── */
+        @keyframes mizuDotBreathe {
+            0%, 100% { transform: scale(1);   opacity: .1; }
+            50%      { transform: scale(1.2); opacity: .04; }
+        }
+
+        /* ── 涟漪扩散 ── */
         @keyframes mizuRippleExpand {
-            0%   { transform: scale(.06);  opacity: 0; }
-            5%   { opacity: .2; }
-            20%  { opacity: .12; }
-            50%  { opacity: .035; }
-            100% { transform: scale(3.6);  opacity: 0; }
+            0%   { transform: scale(.1);  opacity: 0; }
+            4%   { opacity: .32; }
+            12%  { opacity: .2; }
+            25%  { opacity: .1; }
+            42%  { opacity: .05; }
+            65%  { opacity: .015; }
+            100% { transform: scale(3);   opacity: 0; }
         }
 
-        /* 中心点浮现 */
-        @keyframes mizuDotIn {
-            0%   { transform: scale(0);    opacity: 0; }
-            55%  { transform: scale(1.2);  opacity: .18; }
-            100% { transform: scale(1);    opacity: 1; }
-        }
-
-        /* 文字滑入 */
+        /* ── 通用 ── */
         @keyframes mizuSlideUp {
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* 淡入 */
         @keyframes mizuFadeIn {
             to { opacity: 1; }
         }
-
-        /* 光影游移 */
         @keyframes mizuShimmerDrift {
             0%   { background-position: 100% 100%; }
             50%  { background-position: 0% 0%; }
             100% { background-position: 100% 100%; }
         }
-
-        /* 场景呼吸 */
         @keyframes mizuSceneBreathe {
             0%, 100% { transform: scale(1); }
             50%      { transform: scale(1.018); }
         }
 
-        /* ══════════════════════════════════════════════
+        /* ════════════════════════════════════════════
            退场动画
-           ══════════════════════════════════════════════ */
-
-        /* 场景上浮消失 */
+           ════════════════════════════════════════════ */
         #loadingIndicator.mizu-fadeout .mizu-scene {
             animation: mizuSceneExit .9s cubic-bezier(.4,0,.15,1) forwards !important;
         }
@@ -237,12 +323,16 @@
             to { transform: translateY(-22px) scale(.88); opacity: 0; }
         }
 
-        /* 停止涟漪 */
         #loadingIndicator.mizu-fadeout .mizu-ripple {
             animation-play-state: paused !important;
         }
 
-        /* 文字 / 进度条下沉消失 */
+        #loadingIndicator.mizu-fadeout .mizu-impact-dot {
+            animation: none !important;
+            opacity: 0 !important;
+            transition: opacity .4s ease;
+        }
+
         #loadingIndicator.mizu-fadeout .mizu-brand,
         #loadingIndicator.mizu-fadeout .mizu-status,
         #loadingIndicator.mizu-fadeout .mizu-progress-track {
@@ -252,7 +342,6 @@
             to { opacity: 0; transform: translateY(14px); }
         }
 
-        /* 光影立即淡出 */
         #loadingIndicator.mizu-fadeout .mizu-shimmer {
             opacity: 0 !important;
             transition: opacity .5s ease;
@@ -260,13 +349,13 @@
         }
     </style>
 
-    <!-- ★ 超时安全网：如果 15 秒后 loading 还在，强制移除 -->
+    <!-- ★ 超时安全网：20 秒后强制移除 -->
     <script>
         (function() {
             var _loadingTimeout = setTimeout(function() {
                 var el = document.getElementById('loadingIndicator');
                 if (el) {
-                    console.error('[安全网] ⚠️ 超过 15 秒仍在 Loading，强制移除');
+                    console.error('[安全网] ⚠️ 超过 20 秒仍在 Loading，强制移除');
                     el.style.display = 'none';
                     if (el.parentNode) el.parentNode.removeChild(el);
                 }
@@ -284,7 +373,7 @@
                         home.classList.add('active');
                     }
                 }
-            }, 15000);
+            }, 20000);
             window.addEventListener('appReady', function() {
                 clearTimeout(_loadingTimeout);
             });
@@ -294,29 +383,48 @@
 <body>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         ★ Mizu Phone v4 — 水の波紋  开屏动画
+         ★ Mizu Phone v12 — 丝滑水滴
          ═══════════════════════════════════════════════════════════════ -->
     <div id="loadingIndicator">
 
-        <!-- 水面光影 -->
         <div class="mizu-shimmer"></div>
 
-        <!-- 涟漪场景 -->
         <div class="mizu-scene">
+
             <span class="mizu-ripple"></span>
             <span class="mizu-ripple"></span>
-            <span class="mizu-ripple"></span>
-            <span class="mizu-ripple"></span>
-            <div class="mizu-dot"></div>
+
+            <div class="mizu-drop">
+                <svg viewBox="0 0 40 56" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 5
+                             C20 5, 7 28, 7 37
+                             C7 45.5, 13 51, 20 51
+                             C27 51, 33 45.5, 33 37
+                             C33 28, 20 5, 20 5Z"
+                          fill="none"
+                          stroke="#d0d0d0"
+                          stroke-width="0.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                    <path d="M16.5 27 Q14.5 34, 16.5 40"
+                          fill="none"
+                          stroke="#ddd"
+                          stroke-width="0.4"
+                          stroke-linecap="round"/>
+                    <circle cx="16" cy="22" r="1"
+                            fill="none"
+                            stroke="#e0e0e0"
+                            stroke-width="0.4"/>
+                </svg>
+            </div>
+
+            <div class="mizu-splash"></div>
+            <div class="mizu-impact-dot"></div>
+
         </div>
 
-        <!-- 品牌文字 -->
         <div class="mizu-brand">Mizu Phone</div>
-
-        <!-- 加载状态 -->
         <div class="mizu-status" id="mizuStatus"></div>
-
-        <!-- 进度条 -->
         <div class="mizu-progress-track">
             <div class="mizu-progress-bar" id="mizuProgress"></div>
         </div>
@@ -336,3 +444,4 @@
     <script src="js/screen-loader.js"></script>
 </body>
 </html>
+
