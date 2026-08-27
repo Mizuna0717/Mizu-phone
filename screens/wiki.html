@@ -72,11 +72,9 @@
 				<div id="npc-list-wrap"></div>
 			</div>
 
-			<!-- Relationships Tab — JS renders graph + list here -->
+			<!-- Relationships Tab -->
 			<div class="wiki-detail-panel" id="wiki-detail-relationships">
-				<div id="wiki-rel-content">
-					<!-- renderRelationships() fills this -->
-				</div>
+				<div id="wiki-rel-content"></div>
 			</div>
 
 			<!-- Schedule Tab -->
@@ -175,6 +173,21 @@
 			<div class="wiki-modal-header"><span class="wiki-modal-title">Event Detail</span><button class="wiki-modal-close" onclick="closeScheduleDetailModal()"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
 			<div class="wiki-modal-body" id="schedule-detail-body"></div>
 			<div class="wiki-modal-footer" id="schedule-detail-footer"></div>
+		</div>
+	</div>
+
+	<!-- Modal: NPC Detail (click from graph) -->
+	<div class="wiki-modal-overlay" id="npc-detail-modal">
+		<div class="wiki-modal-backdrop" onclick="closeNpcDetailModal()"></div>
+		<div class="wiki-modal wiki-modal-center" style="max-width:340px">
+			<div class="wiki-modal-header">
+				<span class="wiki-modal-title">NPC Detail</span>
+				<button class="wiki-modal-close" onclick="closeNpcDetailModal()"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+			</div>
+			<div class="wiki-modal-body" id="npc-detail-modal-body"></div>
+			<div class="wiki-modal-footer">
+				<button class="wiki-modal-btn-outline" onclick="closeNpcDetailModal()">Close</button>
+			</div>
 		</div>
 	</div>
 

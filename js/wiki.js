@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Wiki Module — v7 with NPC + Relationship Graph Sync
+   Wiki Module — v8 with 3D Relationship Graph
    ========================================================================== */
 
 const WIKI_PANEL_CLASS = 'wiki-panel-visible';
@@ -64,7 +64,7 @@ function wikiNavBack() {
 
 function wikiShowListView() {
 	wikiSelectedCharId = null;
-	var listView   = document.getElementById('wiki-list-view');
+	var listView = document.getElementById('wiki-list-view');
 	var detailView = document.getElementById('wiki-detail-view');
 	if (detailView) detailView.classList.remove('wiki-view-active', 'wiki-view-back');
 	if (listView) { listView.classList.remove('wiki-view-active'); listView.classList.add('wiki-view-active', 'wiki-view-back'); }
@@ -79,7 +79,7 @@ function wikiShowListView() {
 
 function wikiShowDetailView(charId) {
 	var chars = getWikiCharacters();
-	var char  = chars.find(function(c) { return c.id === charId; });
+	var char = chars.find(function(c) { return c.id === charId; });
 	if (!char) { console.warn('[Wiki] Character not found:', charId); return; }
 	wikiSelectedCharId = char.id;
 
@@ -99,9 +99,9 @@ function wikiShowDetailView(charId) {
 	var largeTitle = document.getElementById('wiki-large-title');
 	if (largeTitle) largeTitle.style.display = 'none';
 
-	var listView   = document.getElementById('wiki-list-view');
+	var listView = document.getElementById('wiki-list-view');
 	var detailView = document.getElementById('wiki-detail-view');
-	if (listView)   listView.classList.remove('wiki-view-active', 'wiki-view-back');
+	if (listView) listView.classList.remove('wiki-view-active', 'wiki-view-back');
 	if (detailView) { detailView.classList.remove('wiki-view-active', 'wiki-view-back'); detailView.classList.add('wiki-view-active'); }
 
 	switchWikiDetailTab('npc');
@@ -110,19 +110,15 @@ function wikiShowDetailView(charId) {
 // ====================== Character List ======================
 
 function renderWikiCharacterList() {
-	var grid  = document.getElementById('wiki-char-grid');
+	var grid = document.getElementById('wiki-char-grid');
 	var empty = document.getElementById('wiki-list-empty');
 	if (!grid) return;
 	var chars = getWikiCharacters();
 	if (chars.length === 0) { grid.innerHTML = ''; if (empty) empty.style.display = ''; return; }
 	if (empty) empty.style.display = 'none';
 	grid.innerHTML = chars.map(function(c) {
-		var av;
-		if (c.avatar) av = '<img src="' + wikiEsc(c.avatar) + '" alt="' + wikiEsc(c.name) + '"/>';
-		else av = '<span class="wiki-avatar-letter">' + (c.name || '?').charAt(0).toUpperCase() + '</span>';
-		return '<div class="wiki-char-card" onclick="wikiShowDetailView(\'' + c.id + '\')">' +
-			'<div class="wiki-char-card-avatar">' + av + '</div>' +
-			'<div class="wiki-char-card-name">' + wikiEsc(c.name || 'Unnamed') + '</div></div>';
+		var av = c.avatar ? '<img src="' + wikiEsc(c.avatar) + '"/>' : '<span class="wiki-avatar-letter">' + (c.name || '?').charAt(0).toUpperCase() + '</span>';
+		return '<div class="wiki-char-card" onclick="wikiShowDetailView(\'' + c.id + '\')"><div class="wiki-char-card-avatar">' + av + '</div><div class="wiki-char-card-name">' + wikiEsc(c.name || 'Unnamed') + '</div></div>';
 	}).join('');
 }
 
@@ -144,7 +140,6 @@ function renderNpcList() {
 	if (!wrap) return;
 	var charId = wikiSelectedCharId;
 	if (!charId) { wrap.innerHTML = ''; return; }
-
 	var npcs = getNpcsForChar(charId);
 
 	if (npcs.length === 0) {
@@ -201,12 +196,9 @@ function closeNpcActionSheet() {
 function openNpcManualModal() {
 	var modal = document.getElementById('npc-manual-modal');
 	if (!modal) return;
-	var n = document.getElementById('npc-manual-name');
-	var p = document.getElementById('npc-manual-personality');
-	var r = document.getElementById('npc-manual-relationship');
-	if (n) n.value = '';
-	if (p) p.value = '';
-	if (r) r.value = '';
+	var n = document.getElementById('npc-manual-name'); if (n) n.value = '';
+	var p = document.getElementById('npc-manual-personality'); if (p) p.value = '';
+	var r = document.getElementById('npc-manual-relationship'); if (r) r.value = '';
 	modal.classList.add('active');
 }
 
@@ -216,12 +208,9 @@ function closeNpcManualModal() {
 }
 
 function saveManualNpc() {
-	var name = (document.getElementById('npc-manual-name') || {}).value || '';
-	name = name.trim();
-	var personality = (document.getElementById('npc-manual-personality') || {}).value || '';
-	personality = personality.trim();
-	var relationship = (document.getElementById('npc-manual-relationship') || {}).value || '';
-	relationship = relationship.trim();
+	var name = ((document.getElementById('npc-manual-name') || {}).value || '').trim();
+	var personality = ((document.getElementById('npc-manual-personality') || {}).value || '').trim();
+	var relationship = ((document.getElementById('npc-manual-relationship') || {}).value || '').trim();
 
 	if (!name) { var el = document.getElementById('npc-manual-name'); if (el) el.focus(); if (typeof showToast === 'function') showToast('Please enter a name'); return; }
 	if (!personality) { var el2 = document.getElementById('npc-manual-personality'); if (el2) el2.focus(); if (typeof showToast === 'function') showToast('Please enter personality'); return; }
@@ -263,8 +252,8 @@ function closeNpcAutoGenModal() {
 
 async function triggerNpcAutoGen() {
 	var countEl = document.getElementById('npc-gen-count');
-	var btn     = document.getElementById('npc-gen-confirm-btn');
-	var count   = Math.max(1, Math.min(10, parseInt((countEl || {}).value) || 1));
+	var btn = document.getElementById('npc-gen-confirm-btn');
+	var count = Math.max(1, Math.min(10, parseInt((countEl || {}).value) || 1));
 
 	var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
 	if (!api || !api.url || !api.model) {
@@ -273,7 +262,7 @@ async function triggerNpcAutoGen() {
 	}
 
 	var chars = getWikiCharacters();
-	var char  = chars.find(function(c) { return c.id === wikiSelectedCharId; });
+	var char = chars.find(function(c) { return c.id === wikiSelectedCharId; });
 	if (!char) {
 		if (typeof showToast === 'function') showToast('No character selected');
 		return;
@@ -338,23 +327,43 @@ function deleteNpc(npcId) {
 }
 
 // =====================================================================
-//  Relationship Graph — reads from state.npcs, renders radial SVG graph
+//  Closeness Tier Algorithm
+// =====================================================================
+
+var _REL_TIERS = [
+	{ keywords: ['lover','soulmate','beloved','partner','spouse','wife','husband','sweetheart','恋人','爱人','伴侣','配偶'], radius: 52, nodeR: 25, lineW: 3.5, opacity: 1.0, fill: '#555', label: 'Intimate' },
+	{ keywords: ['best friend','close friend','sibling','brother','sister','family','confidant','挚友','兄弟','姐妹','家人','亲人','闺蜜'], radius: 78, nodeR: 22, lineW: 2.8, opacity: 0.92, fill: '#6e6e73', label: 'Close' },
+	{ keywords: ['friend','ally','mentor','companion','comrade','protector','apprentice','朋友','盟友','导师','同伴','战友','守护者','弟子'], radius: 102, nodeR: 20, lineW: 2.0, opacity: 0.82, fill: '#8e8e93', label: 'Friendly' },
+	{ keywords: ['acquaintance','colleague','neighbor','contact','associate','servant','熟人','同事','邻居','仆人','下属'], radius: 122, nodeR: 17, lineW: 1.4, opacity: 0.68, fill: '#aeaeb2', label: 'Neutral' },
+	{ keywords: [], radius: 140, nodeR: 15, lineW: 1.0, opacity: 0.55, fill: '#c7c7cc', label: 'Distant' }
+];
+
+function getRelTier(relationship) {
+	var r = (relationship || '').toLowerCase();
+	for (var t = 0; t < _REL_TIERS.length - 1; t++) {
+		var kw = _REL_TIERS[t].keywords;
+		for (var k = 0; k < kw.length; k++) {
+			if (r.indexOf(kw[k]) > -1) return t;
+		}
+	}
+	return _REL_TIERS.length - 1;
+}
+
+// =====================================================================
+//  3D Relationship Graph
 // =====================================================================
 
 function renderRelationships() {
 	var container = document.getElementById('wiki-rel-content');
 	if (!container) return;
-
 	var charId = wikiSelectedCharId;
 	if (!charId) { container.innerHTML = ''; return; }
-
 	var chars = getWikiCharacters();
 	var char = chars.find(function(c) { return c.id === charId; });
 	if (!char) { container.innerHTML = ''; return; }
-
 	var npcs = getNpcsForChar(charId);
 
-	// ── Empty State ──
+	// Empty State
 	if (npcs.length === 0) {
 		container.innerHTML =
 			'<div class="rel-empty">' +
@@ -370,89 +379,160 @@ function renderRelationships() {
 		return;
 	}
 
-	// ── Graph Layout ──
-	var W = 320, H = 320;
+	// Annotate tiers
+	var items = npcs.map(function(npc, idx) {
+		var t = getRelTier(npc.relationship);
+		return { npc: npc, tier: t, cfg: _REL_TIERS[t], idx: idx };
+	});
+
+	// Sort by tier descending for z-order (distant drawn first = behind)
+	items.sort(function(a, b) { return b.tier - a.tier; });
+
+	var W = 340, H = 340;
 	var cx = W / 2, cy = H / 2 - 5;
 	var n = npcs.length;
-	var ringR = n <= 3 ? 90 : (n <= 6 ? 100 : (n <= 10 ? 110 : 115));
-	var cR = 28, nR = 22;
+	var cR = 32;
 
+	// SVG defs
 	var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="rel-graph-svg" xmlns="http://www.w3.org/2000/svg">';
+	svg += '<defs>';
+	svg += '<radialGradient id="rel-bg-grad"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#f0f0f5"/></radialGradient>';
+	svg += '<filter id="rel-shadow-c" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.18"/></filter>';
+	svg += '<filter id="rel-shadow-0" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="3.5" flood-color="#000" flood-opacity="0.15"/></filter>';
+	svg += '<filter id="rel-shadow-1" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1.5" stdDeviation="3" flood-color="#000" flood-opacity="0.12"/></filter>';
+	svg += '<filter id="rel-shadow-2" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1" stdDeviation="2.5" flood-color="#000" flood-opacity="0.10"/></filter>';
+	svg += '<filter id="rel-shadow-3" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity="0.08"/></filter>';
+	svg += '<filter id="rel-shadow-4" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.06"/></filter>';
+	svg += '</defs>';
 
-	// ── Lines ──
-	for (var i = 0; i < n; i++) {
-		var angle = (2 * Math.PI * i / n) - Math.PI / 2;
-		var nx = cx + ringR * Math.cos(angle);
-		var ny = cy + ringR * Math.sin(angle);
+	// Background
+	svg += '<rect width="' + W + '" height="' + H + '" fill="url(#rel-bg-grad)" rx="14"/>';
 
-		svg += '<line x1="' + cx.toFixed(1) + '" y1="' + cy.toFixed(1) + '" x2="' + nx.toFixed(1) + '" y2="' + ny.toFixed(1) + '" class="rel-line"/>';
+	// Concentric depth rings
+	var ringRadii = [52, 78, 102, 122, 140];
+	for (var ri = 0; ri < ringRadii.length; ri++) {
+		svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + ringRadii[ri] + '" fill="none" stroke="#e8e8ed" stroke-width="0.8" stroke-dasharray="3 4"/>';
+	}
 
-		// Edge label
-		if (npcs[i].relationship) {
-			var mx = ((cx + nx) / 2);
-			var my = ((cy + ny) / 2);
-			var label = npcs[i].relationship;
-			if (label.length > 10) label = label.substring(0, 9) + '..';
-			svg += '<text x="' + mx.toFixed(1) + '" y="' + (my - 2).toFixed(1) + '" class="rel-edge-label">' + wikiEsc(label) + '</text>';
+	// Compute positions using original index for angle
+	var positions = [];
+	for (var ii = 0; ii < npcs.length; ii++) {
+		var angle = (2 * Math.PI * ii / n) - Math.PI / 2;
+		var t2 = getRelTier(npcs[ii].relationship);
+		var cfg2 = _REL_TIERS[t2];
+		positions.push({
+			x: cx + cfg2.radius * Math.cos(angle),
+			y: cy + cfg2.radius * Math.sin(angle),
+			tier: t2,
+			cfg: cfg2,
+			npc: npcs[ii]
+		});
+	}
+
+	// Draw lines (all first, behind nodes)
+	for (var li = 0; li < positions.length; li++) {
+		var lp = positions[li];
+		svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + lp.x.toFixed(1) + '" y2="' + lp.y.toFixed(1) + '" stroke="#c7c7cc" stroke-width="' + lp.cfg.lineW + '" stroke-opacity="' + (lp.cfg.opacity * 0.5).toFixed(2) + '" stroke-linecap="round"/>';
+	}
+
+	// Draw edge labels on lines
+	for (var ei = 0; ei < positions.length; ei++) {
+		var ep = positions[ei];
+		if (ep.npc.relationship) {
+			var lx = cx + (ep.x - cx) * 0.55;
+			var ly = cy + (ep.y - cy) * 0.55;
+			var lab = ep.npc.relationship;
+			if (lab.length > 10) lab = lab.substring(0, 9) + '..';
+			svg += '<text x="' + lx.toFixed(1) + '" y="' + (ly - 1).toFixed(1) + '" class="rel-edge-label" opacity="' + ep.cfg.opacity.toFixed(2) + '">' + wikiEsc(lab) + '</text>';
 		}
 	}
 
-	// ── Center Node (Character) ──
-	svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + cR + '" class="rel-center-circle"/>';
-	var cLetter = (char.name || '?').charAt(0).toUpperCase();
-	svg += '<text x="' + cx + '" y="' + (cy + 6) + '" class="rel-center-letter">' + cLetter + '</text>';
-	var cName = (char.name || '?');
-	if (cName.length > 7) cName = cName.substring(0, 6) + '..';
-	svg += '<text x="' + cx + '" y="' + (cy + cR + 15) + '" class="rel-center-name">' + wikiEsc(cName) + '</text>';
+	// Draw NPC nodes (sorted: distant first for z-order)
+	for (var si = 0; si < items.length; si++) {
+		var it = items[si];
+		var pos = positions[it.idx];
+		var px = pos.x, py = pos.y;
+		var nR = it.cfg.nodeR;
+		var npcId = it.npc.id;
+		var letter = (it.npc.name || '?').charAt(0).toUpperCase();
+		var nName = it.npc.name || '?';
+		if (nName.length > 6) nName = nName.substring(0, 5) + '..';
+		var tierLabel = it.cfg.label;
 
-	// ── NPC Nodes ──
-	for (var j = 0; j < n; j++) {
-		var a2 = (2 * Math.PI * j / n) - Math.PI / 2;
-		var px = cx + ringR * Math.cos(a2);
-		var py = cy + ringR * Math.sin(a2);
-
-		svg += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="' + nR + '" class="rel-node-circle"/>';
-		var nLetter = (npcs[j].name || '?').charAt(0).toUpperCase();
-		svg += '<text x="' + px.toFixed(1) + '" y="' + (py + 5).toFixed(1) + '" class="rel-node-letter">' + nLetter + '</text>';
-		var nName = (npcs[j].name || '?');
-		if (nName.length > 7) nName = nName.substring(0, 6) + '..';
-		svg += '<text x="' + px.toFixed(1) + '" y="' + (py + nR + 14).toFixed(1) + '" class="rel-node-name">' + wikiEsc(nName) + '</text>';
+		svg += '<g class="rel-node-g rel-tier-' + it.tier + '" onclick="showNpcDetailModal(\'' + npcId + '\')" style="cursor:pointer">';
+		svg += '<title>' + wikiEsc(it.npc.name) + ' — ' + wikiEsc(it.npc.relationship || '') + ' (' + tierLabel + ')</title>';
+		svg += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="' + nR + '" fill="' + it.cfg.fill + '" stroke="#fff" stroke-width="2" filter="url(#rel-shadow-' + it.tier + ')" opacity="' + it.cfg.opacity.toFixed(2) + '"/>';
+		svg += '<text x="' + px.toFixed(1) + '" y="' + (py + 5).toFixed(1) + '" class="rel-node-letter">' + letter + '</text>';
+		svg += '<text x="' + px.toFixed(1) + '" y="' + (py + nR + 13).toFixed(1) + '" class="rel-node-name" opacity="' + it.cfg.opacity.toFixed(2) + '">' + wikiEsc(nName) + '</text>';
+		svg += '</g>';
 	}
+
+	// Center node (character) — drawn last, on top
+	svg += '<g class="rel-center-g">';
+	svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + cR + '" fill="#1d1d1f" stroke="#fff" stroke-width="2.5" filter="url(#rel-shadow-c)"/>';
+	var cL = (char.name || '?').charAt(0).toUpperCase();
+	svg += '<text x="' + cx + '" y="' + (cy + 7) + '" class="rel-center-letter">' + cL + '</text>';
+	var cN = char.name || '?';
+	if (cN.length > 7) cN = cN.substring(0, 6) + '..';
+	svg += '<text x="' + cx + '" y="' + (cy + cR + 16) + '" class="rel-center-name">' + wikiEsc(cN) + '</text>';
+	svg += '</g>';
 
 	svg += '</svg>';
 
-	// ── Relationship List Below Graph ──
+	// Detail list sorted by tier (closest first)
+	var sorted = items.slice().sort(function(a, b) { return a.tier - b.tier; });
 	var list = '<div class="rel-detail-list">';
-	npcs.forEach(function(npc) {
-		var lt = (npc.name || '?').charAt(0).toUpperCase();
-		list +=
-			'<div class="rel-detail-item">' +
-				'<div class="rel-detail-avatar">' + lt + '</div>' +
-				'<div class="rel-detail-info">' +
-					'<div class="rel-detail-name">' + wikiEsc(npc.name) + '</div>' +
-					'<div class="rel-detail-type">' +
-						'<svg viewBox="0 0 16 16"><path d="M2 8h3l2-3 3 6 2-3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-						wikiEsc(npc.relationship || 'Unknown') +
-					'</div>' +
-				'</div>' +
+	sorted.forEach(function(it) {
+		var lt = (it.npc.name || '?').charAt(0).toUpperCase();
+		var tierLabel = it.cfg.label;
+		list += '<div class="rel-detail-item" onclick="showNpcDetailModal(\'' + it.npc.id + '\')">' +
+			'<div class="rel-detail-avatar" style="background:' + it.cfg.fill + ';color:#fff">' + lt + '</div>' +
+			'<div class="rel-detail-info">' +
+				'<div class="rel-detail-name">' + wikiEsc(it.npc.name) + '</div>' +
+				'<div class="rel-detail-type"><svg viewBox="0 0 16 16"><path d="M2 8h3l2-3 3 6 2-3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' + wikiEsc(it.npc.relationship || 'Unknown') + '</div>' +
+			'</div>' +
+			'<span class="rel-detail-tier rel-detail-tier-' + it.tier + '">' + tierLabel + '</span>' +
 			'</div>';
 	});
 	list += '</div>';
 
-	var hint =
-		'<div class="rel-hint">' +
-			'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
-			'<span>Relationships are based on NPC data. Go to the NPC tab to edit.</span>' +
-		'</div>';
+	var hint = '<div class="rel-hint"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Closer nodes = stronger bond. Tap a node for details. Edit in NPC tab.</span></div>';
 
 	container.innerHTML =
 		'<div class="rel-graph-container">' + svg + '</div>' +
-		'<div class="rel-section-label">' +
-			'<svg viewBox="0 0 16 16"><path d="M2 8h3l2-3 3 6 2-3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-			'<span>Details</span>' +
+		'<div class="rel-section-label"><svg viewBox="0 0 16 16"><path d="M2 8h3l2-3 3 6 2-3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Details</span></div>' +
+		list + hint;
+}
+
+// ── NPC Detail Modal (click on graph node) ──
+
+function showNpcDetailModal(npcId) {
+	var npc = (state.npcs || []).find(function(n) { return n.id === npcId; });
+	if (!npc) return;
+	var body = document.getElementById('npc-detail-modal-body');
+	if (!body) return;
+	var tier = getRelTier(npc.relationship);
+	var cfg = _REL_TIERS[tier];
+	var letter = (npc.name || '?').charAt(0).toUpperCase();
+
+	body.innerHTML =
+		'<div class="npc-dm-header">' +
+			'<div class="npc-dm-avatar" style="background:' + cfg.fill + '">' + letter + '</div>' +
+			'<div class="npc-dm-name">' + wikiEsc(npc.name) + '</div>' +
+			'<span class="npc-dm-tier npc-dm-tier-' + tier + '">' + cfg.label + '</span>' +
 		'</div>' +
-		list +
-		hint;
+		'<div class="npc-dm-fields">' +
+			'<div class="npc-dm-field"><div class="npc-dm-label"><svg viewBox="0 0 16 16"><path d="M2 8h3l2-3 3 6 2-3h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Relationship</div><div class="npc-dm-value">' + wikiEsc(npc.relationship || '—') + '</div></div>' +
+			'<div class="npc-dm-field"><div class="npc-dm-label"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 10c.8 1.2 1.8 2 3 2s2.2-.8 3-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6.5" r=".8" fill="currentColor"/><circle cx="10" cy="6.5" r=".8" fill="currentColor"/></svg>Personality</div><div class="npc-dm-value">' + wikiEsc(npc.personality || '—') + '</div></div>' +
+		'</div>';
+
+	var modal = document.getElementById('npc-detail-modal');
+	if (modal) modal.classList.add('active');
+}
+
+function closeNpcDetailModal() {
+	var modal = document.getElementById('npc-detail-modal');
+	if (modal) modal.classList.remove('active');
 }
 
 // ====================== Tab Switching ======================
@@ -478,9 +558,8 @@ function wikiNavAddAction() {
 	if (wikiSelectedCharId !== null) {
 		var activeTab = document.querySelector('#screen-wiki .wiki-detail-tab.active');
 		var tabName = activeTab ? activeTab.dataset.dtab : 'npc';
-		if (tabName === 'npc') openNpcActionSheet();
+		if (tabName === 'npc' || tabName === 'relationships') openNpcActionSheet();
 		else if (tabName === 'schedule') openScheduleAddModal();
-		else if (tabName === 'relationships') openNpcActionSheet();
 		else console.log('[Wiki] Add action for tab:', tabName);
 	} else {
 		if (typeof createNewChar === 'function') { state.charEditFrom = 'screen-wiki'; createNewChar(); }
@@ -600,7 +679,7 @@ function openScheduleDetail(id) {
 	var footer = document.getElementById('schedule-detail-footer');
 	if (!body) return;
 	var ic = item.status === 'completed';
-	body.innerHTML = '<div class="detail-status-badge ' + item.status + '">' + (ic ? '<svg viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5 6.5-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + wikiT('wiki.schedule.completed') : '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> ' + wikiT('wiki.schedule.pending')) + '</div><div class="detail-title">' + wikiEsc(item.title) + '</div><div class="detail-info-card"><div class="detail-info-row"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v3M11 1v3M2 7h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="detail-info-label">Date</span><span class="detail-info-value">' + formatScheduleDate(item.date) + '</span></div><div class="detail-info-row"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="detail-info-label">Time</span><span class="detail-info-value">' + item.time + '</span></div><div class="detail-info-row"><svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="detail-info-label">Characters</span><span class="detail-info-value">' + (item.characters.length ? wikiEsc(item.characters.join(', ')) : '—') + '</span></div></div>' + (item.description ? '<div class="detail-desc-title">Description</div><div class="detail-desc-body">' + wikiEsc(item.description) + '</div>' : '');
+	body.innerHTML = '<div class="detail-status-badge ' + item.status + '">' + (ic ? '<svg viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5 6.5-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Completed' : '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> Pending') + '</div><div class="detail-title">' + wikiEsc(item.title) + '</div><div class="detail-info-card"><div class="detail-info-row"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v3M11 1v3M2 7h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="detail-info-label">Date</span><span class="detail-info-value">' + formatScheduleDate(item.date) + '</span></div><div class="detail-info-row"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="detail-info-label">Time</span><span class="detail-info-value">' + item.time + '</span></div><div class="detail-info-row"><svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="detail-info-label">Characters</span><span class="detail-info-value">' + (item.characters.length ? wikiEsc(item.characters.join(', ')) : '—') + '</span></div></div>' + (item.description ? '<div class="detail-desc-title">Description</div><div class="detail-desc-body">' + wikiEsc(item.description) + '</div>' : '');
 	if (footer) footer.innerHTML = '<button class="wiki-modal-btn-outline" onclick="deleteScheduleEvent(' + item.id + ')">Delete</button><button class="wiki-modal-btn-outline primary" onclick="toggleScheduleStatus(' + item.id + '); openScheduleDetail(' + item.id + ');">' + (ic ? 'Mark Pending' : 'Mark Completed') + '</button>';
 	var modal = document.getElementById('schedule-detail-modal');
 	if (modal) modal.classList.add('active');
@@ -618,35 +697,38 @@ function initWikiModule() {
 }
 
 window.renderWikiCharacterList = renderWikiCharacterList;
-window.initWikiModule          = initWikiModule;
-window.getWikiCharacters       = getWikiCharacters;
-window.getNpcsForChar          = getNpcsForChar;
-window.renderNpcList           = renderNpcList;
-window.renderRelationships     = renderRelationships;
-window.wikiShowDetailView      = wikiShowDetailView;
-window.wikiShowListView        = wikiShowListView;
-window.wikiNavBack             = wikiNavBack;
-window.wikiNavAddAction        = wikiNavAddAction;
-window.switchWikiDetailTab     = switchWikiDetailTab;
-window.filterWikiCharacters    = filterWikiCharacters;
-window.openNpcActionSheet      = openNpcActionSheet;
-window.closeNpcActionSheet     = closeNpcActionSheet;
-window.openNpcAutoGenModal     = openNpcAutoGenModal;
-window.closeNpcAutoGenModal    = closeNpcAutoGenModal;
-window.triggerNpcAutoGen       = triggerNpcAutoGen;
-window.openNpcManualModal      = openNpcManualModal;
-window.closeNpcManualModal     = closeNpcManualModal;
-window.saveManualNpc           = saveManualNpc;
-window.deleteNpc               = deleteNpc;
-window.filterSchedule          = filterSchedule;
-window.toggleScheduleStatus    = toggleScheduleStatus;
-window.openScheduleAddModal    = openScheduleAddModal;
-window.closeScheduleAddModal   = closeScheduleAddModal;
-window.saveScheduleEvent       = saveScheduleEvent;
-window.openScheduleDetail      = openScheduleDetail;
+window.initWikiModule = initWikiModule;
+window.getWikiCharacters = getWikiCharacters;
+window.getNpcsForChar = getNpcsForChar;
+window.renderNpcList = renderNpcList;
+window.renderRelationships = renderRelationships;
+window.getRelTier = getRelTier;
+window.showNpcDetailModal = showNpcDetailModal;
+window.closeNpcDetailModal = closeNpcDetailModal;
+window.wikiShowDetailView = wikiShowDetailView;
+window.wikiShowListView = wikiShowListView;
+window.wikiNavBack = wikiNavBack;
+window.wikiNavAddAction = wikiNavAddAction;
+window.switchWikiDetailTab = switchWikiDetailTab;
+window.filterWikiCharacters = filterWikiCharacters;
+window.openNpcActionSheet = openNpcActionSheet;
+window.closeNpcActionSheet = closeNpcActionSheet;
+window.openNpcAutoGenModal = openNpcAutoGenModal;
+window.closeNpcAutoGenModal = closeNpcAutoGenModal;
+window.triggerNpcAutoGen = triggerNpcAutoGen;
+window.openNpcManualModal = openNpcManualModal;
+window.closeNpcManualModal = closeNpcManualModal;
+window.saveManualNpc = saveManualNpc;
+window.deleteNpc = deleteNpc;
+window.filterSchedule = filterSchedule;
+window.toggleScheduleStatus = toggleScheduleStatus;
+window.openScheduleAddModal = openScheduleAddModal;
+window.closeScheduleAddModal = closeScheduleAddModal;
+window.saveScheduleEvent = saveScheduleEvent;
+window.openScheduleDetail = openScheduleDetail;
 window.closeScheduleDetailModal = closeScheduleDetailModal;
-window.deleteScheduleEvent     = deleteScheduleEvent;
-window.toggleScheduleCharTag   = toggleScheduleCharTag;
-window.renderScheduleCharTags  = renderScheduleCharTags;
+window.deleteScheduleEvent = deleteScheduleEvent;
+window.toggleScheduleCharTag = toggleScheduleCharTag;
+window.renderScheduleCharTags = renderScheduleCharTags;
 
 document.addEventListener('DOMContentLoaded', function() { initWikiModule(); });
