@@ -1,6 +1,10 @@
 /* ==========================================================================
-   Wiki Module — JavaScript
+   Wiki Module — JavaScript (v3 — 使用 wiki-panel-visible 避免全局冲突)
    ========================================================================== */
+
+// ======================== 常量 ========================
+// ★ 面板专用类名，与全局 active 隔离
+const WIKI_PANEL_CLASS = 'wiki-panel-visible';
 
 // ======================== 示例日程数据 ========================
 
@@ -52,45 +56,51 @@ const wikiScheduleData = [
 	}
 ];
 
-// 当前过滤状态
 let currentScheduleFilter = 'all';
 
 
-// ======================== Tab 切换 ========================
+// ======================== Tab 切换（v3 修复）========================
 
 function switchWikiTab(tabName) {
-	// 1) 更新 Tab 按钮样式
-	document.querySelectorAll('.wiki-tab').forEach(btn => {
+	// 限定作用域到 wiki 屏幕内部，避免影响其他模块
+	const wikiRoot = document.getElementById('screen-wiki');
+	if (!wikiRoot) {
+		console.warn('[Wiki] screen-wiki not found in DOM');
+		return;
+	}
+
+	// 1) 更新 Tab 按钮样式（按钮用 active 没问题，因为在 screen-body 外面）
+	wikiRoot.querySelectorAll('.wiki-tab').forEach(btn => {
 		btn.classList.toggle('active', btn.dataset.tab === tabName);
 	});
 
-	// 2) 切换 Tab 内容面板
-	document.querySelectorAll('.wiki-tab-content').forEach(panel => {
-		panel.classList.remove('active');
+	// 2) ★ 用 WIKI_PANEL_CLASS 而非 'active' 切换面板
+	wikiRoot.querySelectorAll('.wiki-tab-content').forEach(panel => {
+		panel.classList.remove(WIKI_PANEL_CLASS);
 	});
+
 	const target = document.getElementById('wiki-tab-' + tabName);
 	if (target) {
-		// 小延迟确保 display:none → block 之后再触发动画
-		requestAnimationFrame(() => {
-			target.classList.add('active');
-		});
+		target.classList.add(WIKI_PANEL_CLASS);
+	} else {
+		console.warn('[Wiki] Panel not found: wiki-tab-' + tabName);
 	}
 
 	// 3) 滚回顶部
-	const body = document.querySelector('#screen-wiki .screen-body');
+	const body = wikiRoot.querySelector('.screen-body');
 	if (body) body.scrollTop = 0;
 
-	// 4) 首次进入日程表 Tab 时渲染
+	// 4) 进入日程表时渲染
 	if (tabName === 'schedule') {
 		renderScheduleTimeline();
 	}
 }
 
 
-// ======================== 导航栏 + 按钮（上下文感知）========================
+// ======================== 导航栏按钮 ========================
 
 function wikiNavAddAction() {
-	const activeTab = document.querySelector('.wiki-tab.active');
+	const activeTab = document.querySelector('#screen-wiki .wiki-tab.active');
 	const tabName = activeTab ? activeTab.dataset.tab : 'characters';
 
 	switch (tabName) {
@@ -98,12 +108,10 @@ function wikiNavAddAction() {
 			openScheduleAddModal();
 			break;
 		case 'relationships':
-			// TODO: 打开添加关系的交互
 			console.log('[Wiki] Add Relationship — placeholder');
 			break;
 		case 'characters':
 		default:
-			// TODO: 打开添加角色的交互
 			console.log('[Wiki] Add Character — placeholder');
 			break;
 	}
@@ -116,8 +124,7 @@ function renderScheduleTimeline() {
 	const container = document.getElementById('schedule-timeline');
 	if (!container) return;
 
-	// 过滤
-	let data = wikiScheduleData;
+	let data = wikiScheduleData.slice();
 	if (currentScheduleFilter !== 'all') {
 		data = data.filter(item => item.status === currentScheduleFilter);
 	}
@@ -127,7 +134,6 @@ function renderScheduleTimeline() {
 		return;
 	}
 
-	// 按日期排序 → 分组
 	data.sort((a, b) => {
 		if (a.date !== b.date) return a.date.localeCompare(b.date);
 		return a.time.localeCompare(b.time);
@@ -210,7 +216,7 @@ function formatScheduleDate(dateStr) {
 function filterSchedule(filterType) {
 	currentScheduleFilter = filterType;
 
-	document.querySelectorAll('.schedule-filter').forEach(btn => {
+	document.querySelectorAll('#screen-wiki .schedule-filter').forEach(btn => {
 		btn.classList.toggle('active', btn.dataset.filter === filterType);
 	});
 
@@ -294,7 +300,6 @@ function openScheduleDetail(id) {
 function closeScheduleDetailModal() {
 	const modal = document.getElementById('schedule-detail-modal');
 	if (modal) modal.classList.remove('active');
-	// 关闭详情后刷新列表（状态可能已变）
 	renderScheduleTimeline();
 }
 
@@ -302,8 +307,7 @@ function closeScheduleDetailModal() {
 // ======================== 初始化 ========================
 
 document.addEventListener('DOMContentLoaded', () => {
-	// 如果 Wiki 当前可见且在日程表 Tab，则渲染
-	const activeTab = document.querySelector('.wiki-tab.active');
+	const activeTab = document.querySelector('#screen-wiki .wiki-tab.active');
 	if (activeTab && activeTab.dataset.tab === 'schedule') {
 		renderScheduleTimeline();
 	}
