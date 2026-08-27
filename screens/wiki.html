@@ -28,7 +28,7 @@
 				<span data-i18n="wiki.characters">CHARACTERS</span>
 			</div>
 			<div class="wiki-char-grid" id="wiki-char-grid">
-				<!-- JS renders cards here -->
+				<!-- JS renders cards from state.characters here -->
 			</div>
 
 			<!-- Empty State -->
@@ -36,9 +36,10 @@
 				<svg viewBox="0 0 48 48">
 					<circle cx="24" cy="18" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
 					<path d="M10 40c0-8 6-13 14-13s14 5 14 13" fill="none" stroke="currentColor" stroke-width="1.5"/>
+					<path d="M30 34v6M27 37h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
 				</svg>
-				<p data-i18n="wiki.noCharacters">No characters yet</p>
-				<span data-i18n="wiki.noCharactersSub">Create characters in iMessage first</span>
+				<p data-i18n="wiki.noCharacters">No characters found</p>
+				<span data-i18n="wiki.noCharactersSub">Create one in Characters first, or tap + above.</span>
 			</div>
 			<div style="height:40px"></div>
 		</div>
@@ -76,7 +77,7 @@
 			<!-- ── NPC Tab ── -->
 			<div class="wiki-detail-panel wiki-panel-visible" id="wiki-detail-npc">
 				<div class="wiki-npc-card" id="wiki-npc-content">
-					<!-- JS fills profile fields here -->
+					<!-- JS fills profile fields from state.characters here -->
 				</div>
 			</div>
 
@@ -161,7 +162,7 @@
 				<div class="modal-field">
 					<label class="modal-field-label" data-i18n="wiki.schedule.characters">Characters</label>
 					<div class="modal-tag-select" id="sched-add-chars">
-						<!-- JS renders character tags here -->
+						<!-- JS renders character tags from state.characters here -->
 					</div>
 				</div>
 				<div class="modal-field">

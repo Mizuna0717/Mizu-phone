@@ -1,6 +1,28 @@
 // ========== 10-characters.js ==========
 
 // =============================================
+//  ★ 新增：供 Wiki 等模块调用的角色数据接口
+// =============================================
+
+/**
+ * 返回当前账号的所有角色（引用，非拷贝）
+ */
+function getCharacters() {
+  return (state && Array.isArray(state.characters)) ? state.characters : [];
+}
+
+/**
+ * 根据 ID 查找单个角色，找不到返回 null
+ */
+function getCharacterById(id) {
+  var chars = getCharacters();
+  for (var i = 0; i < chars.length; i++) {
+    if (chars[i].id === id) return chars[i];
+  }
+  return null;
+}
+
+// =============================================
 //  跨账号角色查询 — 直接读 localStorage，零依赖 state.js 内部函数
 // =============================================
 function getOtherAccountsCharacters() {
@@ -307,6 +329,8 @@ function saveChar() {
 
   setTimeout(function() {
     try { renderCharList(); } catch(e) {}
+    // ★ 联动刷新 Wiki 角色列表
+    try { if (typeof renderWikiCharacterList === 'function') renderWikiCharacterList(); } catch(e) {}
   }, 100);
 }
 
@@ -326,7 +350,9 @@ function deleteChar() {
   });
   saveState();
   nav('screen-imessage');
-  showSnackbar(T('deleted'), function() { state.characters.push(ch); state.chats[cid] = bk; saveState(); renderCharList(); });
+  // ★ 联动刷新 Wiki 角色列表
+  try { if (typeof renderWikiCharacterList === 'function') renderWikiCharacterList(); } catch(e) {}
+  showSnackbar(T('deleted'), function() { state.characters.push(ch); state.chats[cid] = bk; saveState(); renderCharList(); try { if (typeof renderWikiCharacterList === 'function') renderWikiCharacterList(); } catch(e) {} });
 }
 
 
@@ -334,41 +360,27 @@ function deleteChar() {
 //  ★★★ ACTION SHEET — 纯 DOM API 构建，零 innerHTML ★★★
 // ══════════════════════════════════════════════════════════
 
-/**
- * 关闭 Action Sheet
- */
 function closeCreateActionSheet() {
   var sheet = document.getElementById('createActionSheet');
   if (sheet) sheet.classList.remove('show');
 }
 
-/**
- * ★ 用纯 DOM API 构建恰好 3 个 .cas-item
- *   完全不依赖 innerHTML，消灭一切解析/追加歧义
- */
 function _buildActionSheetDOM(sheet) {
-  // ── 第一步：物理删除所有子节点 ──
   while (sheet.firstChild) {
     sheet.removeChild(sheet.firstChild);
   }
 
-  // ── 第二步：用 DOM API 逐个创建 ──
-
-  // 背景遮罩
   var bg = document.createElement('div');
   bg.className = 'cas-bg';
   bg.addEventListener('click', closeCreateActionSheet);
   sheet.appendChild(bg);
 
-  // 面板
   var panel = document.createElement('div');
   panel.className = 'cas-panel';
 
-  // 选项组
   var group = document.createElement('div');
   group.className = 'cas-group';
 
-  // 三个选项的配置
   var options = [
     {
       label: 'Create Character',
@@ -404,7 +416,6 @@ function _buildActionSheetDOM(sheet) {
 
   panel.appendChild(group);
 
-  // 取消按钮
   var cancel = document.createElement('div');
   cancel.className = 'cas-cancel';
   cancel.textContent = 'Cancel';
@@ -414,14 +425,6 @@ function _buildActionSheetDOM(sheet) {
   sheet.appendChild(panel);
 }
 
-/**
- * ★ 打开 Action Sheet（终极版）
- *
- *   逻辑：
- *   1. 数 .cas-item → 恰好 3 个 → 直接 show + return
- *   2. 不是 3 个 → 调用 _buildActionSheetDOM 重建
- *   3. 重建后再数一次，确认为 3
- */
 function imsgTabAction() {
   var sheet = document.getElementById('createActionSheet');
   if (!sheet) {
@@ -429,20 +432,16 @@ function imsgTabAction() {
     return;
   }
 
-  // ── 检查现有 item 数量 ──
   var count = sheet.querySelectorAll('.cas-item').length;
 
   if (count === 3) {
-    // ★ 数量正确，纯显示，立即返回
     sheet.classList.add('show');
     return;
   }
 
-  // ── 数量不对，完全重建 ──
   console.warn('[imsgTabAction] item count =', count, '(expected 3). Rebuilding with DOM API...');
   _buildActionSheetDOM(sheet);
 
-  // ── 验证 ──
   var finalCount = sheet.querySelectorAll('.cas-item').length;
   console.log('[imsgTabAction] rebuild complete, items:', finalCount);
 
@@ -648,11 +647,15 @@ function confirmImportChar(accountId, charId) {
   var searchInput = document.getElementById('importCharSearch');
   renderImportCharList(searchInput ? searchInput.value : '');
   renderCharList();
+  // ★ 联动刷新 Wiki 角色列表
+  try { if (typeof renderWikiCharacterList === 'function') renderWikiCharacterList(); } catch(e) {}
 
   showToast('已添加: ' + newChar.name);
 }
 
 // ========== GLOBAL BINDINGS ==========
+window.getCharacters = getCharacters;
+window.getCharacterById = getCharacterById;
 window.isGroupChat = isGroupChat;
 window.getGroupById = getGroupById;
 window.groupAvatarHtml = groupAvatarHtml;
