@@ -1,5 +1,5 @@
 // ========== cloud.js ==========
-// Mizu Phone 云端同步模块（Supabase Database 方式）
+// Mizu Phone 云端同步模块（Supabase Storage 方式）
 // ──────────────────────────────────────────────
 // 依赖:
 //   state.js   → state / accountStore / SAVE_KEYS / saveState
@@ -8,7 +8,7 @@
 //   ui.js      → showToast / showErrorModal
 // ──────────────────────────────────────────────
 // ★ 本模块不替换 cloud.html 的 DOM，只读写页面上已有的元素 ★
-// ★ 使用 Supabase Database（PostgREST），不使用 Storage ★
+// ★ 使用 Supabase Storage（文件存储），无 JSONB 大小限制 ★
 
 (function () {
   'use strict';
@@ -16,10 +16,9 @@
   // ═══════════════════════════════════════════
   //  常量
   // ═══════════════════════════════════════════
-  var CONFIG_KEY    = 'supabase_config';   // localStorage 中保存配置的 key
-  var META_KEY      = 'cloud_meta';        // localStorage 中保存上传/下载时间的 key
-  var TABLE         = 'user_data';         // Supabase 表名
-  var MAX_UPLOAD_MB = 6;                   // PostgREST 默认 ~8MB，留 2MB 余量
+  var CONFIG_KEY = 'supabase_config';   // localStorage 中保存配置的 key
+  var META_KEY   = 'cloud_meta';        // localStorage 中保存上传/下载时间的 key
+  var BUCKET     = 'mizu-data';         // Supabase Storage 桶名
 
   // ═══════════════════════════════════════════
   //  内部状态
@@ -103,44 +102,63 @@
   }
 
   // ═══════════════════════════════════════════
-  //  3. 友好错误信息
+  //  3. Storage 文件路径
+  // ═══════════════════════════════════════════
+  function _getFilePath(accountId) {
+    return 'accounts/' + accountId + '/data.json';
+  }
+
+  // ═══════════════════════════════════════════
+  //  4. 友好错误信息（Storage 版）
   // ═══════════════════════════════════════════
   function _friendlyError(err) {
     if (!err) return '未知错误';
-    var m      = err.message || err.msg || String(err);
+    var m      = err.message || err.msg || err.error || String(err);
     var code   = err.code || '';
     var status = err.statusCode || err.status || '';
 
-    if (code === '42P01' || (m.indexOf('relation') > -1 && m.indexOf('does not exist') > -1)) {
-      return '表 "' + TABLE + '" 不存在。请在 Supabase → SQL Editor 中运行建表 SQL。';
+    // Bucket 不存在
+    if (m.indexOf('Bucket not found') > -1 || m.indexOf('bucket') > -1 && m.indexOf('not found') > -1) {
+      return '存储桶 "' + BUCKET + '" 不存在。\n请在 Supabase → Storage 中创建名为 "' + BUCKET + '" 的公共桶。';
     }
-    if (code === '42501' || m.indexOf('permission denied') > -1 ||
-        m.indexOf('policy') > -1 || String(status) === '403' ||
-        m.indexOf('new row violates') > -1) {
-      return '权限不足 (RLS)。请在 SQL Editor 中执行 CREATE POLICY 语句。';
+    // 对象不存在
+    if (m.indexOf('Object not found') > -1 || m.indexOf('not found') > -1 && String(status) === '404') {
+      return '云端未找到该账号的备份文件。';
     }
-    if (code === 'PGRST116') {
-      return '云端未找到该账号的数据。';
+    // RLS / 权限
+    if (m.indexOf('permission denied') > -1 || m.indexOf('policy') > -1 ||
+        m.indexOf('Unauthorized') > -1 || m.indexOf('security') > -1 ||
+        String(status) === '403') {
+      return '权限不足。请检查存储桶 "' + BUCKET + '" 的 RLS 策略是否允许匿名读写。';
     }
+    if (m.indexOf('violates') > -1 && m.indexOf('policy') > -1) {
+      return '操作被 RLS 策略拒绝。请为存储桶 "' + BUCKET + '" 添加允许匿名访问的策略。';
+    }
+    // 网络
     if (m.indexOf('FetchError') > -1 || m.indexOf('Failed to fetch') > -1 ||
-        m.indexOf('NetworkError') > -1 || m.indexOf('ERR_NAME') > -1) {
-      return '网络错误 — 请检查网络连接和 URL 是否正确。';
+        m.indexOf('NetworkError') > -1 || m.indexOf('ERR_NAME') > -1 ||
+        m.indexOf('ENOTFOUND') > -1) {
+      return '网络错误 — 请检查网络连接和 Supabase URL 是否正确。';
     }
+    // API Key
     if (m.indexOf('Invalid API key') > -1 || m.indexOf('apikey') > -1 ||
         m.indexOf('invalid_api_key') > -1 || String(status) === '401') {
       return 'API Key 无效 — 请使用 Supabase → Settings → API 中的 anon public key。';
     }
+    // JWT
     if (m.indexOf('JWT') > -1 || m.indexOf('token') > -1) {
       return 'Key 格式错误 — 应为以 eyJ 开头的长 JWT 字符串。';
     }
+    // 文件过大（Storage 默认 50MB 限制，可在 Supabase 项目设置中调整）
     if (m.indexOf('Payload Too Large') > -1 || String(status) === '413') {
-      return '数据过大，请清理部分头像或聊天记录后重试。';
+      return '文件过大。Supabase Storage 默认单文件上限 50MB，请在项目设置中调整。';
     }
-    return m.length > 250 ? m.substring(0, 250) + '…' : m;
+    // 泛用
+    return m.length > 300 ? m.substring(0, 300) + '…' : m;
   }
 
   // ═══════════════════════════════════════════
-  //  4. 时间/大小格式化（尝试复用 archive.js 的，否则内置）
+  //  5. 时间/大小格式化
   // ═══════════════════════════════════════════
   function _fmtTime(iso) {
     if (typeof window._shortTime === 'function') return window._shortTime(iso);
@@ -160,11 +178,10 @@
   }
 
   // ═══════════════════════════════════════════
-  //  5. State 序列化 / 反序列化
+  //  6. State 序列化 / 反序列化
   // ═══════════════════════════════════════════
   function _exportState() {
     var data = {};
-    // 优先使用 state.js 中的 SAVE_KEYS，其次使用 archive.js 中的 _ALL_STATE_KEYS
     var keys = (typeof SAVE_KEYS !== 'undefined' && Array.isArray(SAVE_KEYS)) ? SAVE_KEYS :
                (typeof _ALL_STATE_KEYS !== 'undefined' && Array.isArray(_ALL_STATE_KEYS)) ? _ALL_STATE_KEYS : [];
     keys.forEach(function (k) { data[k] = state[k]; });
@@ -176,13 +193,11 @@
   function _importState(data) {
     if (!data || typeof data !== 'object') return false;
 
-    // 优先用 state.js 的 _applyDataToState
     if (typeof window._applyDataToState === 'function') {
       window._applyDataToState(data);
     } else if (typeof window._applyImportData === 'function') {
       window._applyImportData(data);
     } else {
-      // 最后的 fallback
       var keys = (typeof SAVE_KEYS !== 'undefined') ? SAVE_KEYS : [];
       keys.forEach(function (k) { if (data[k] !== undefined) state[k] = data[k]; });
     }
@@ -191,13 +206,13 @@
     return true;
   }
 
-  function _getStateSizeKB() {
-    try { return Math.round(JSON.stringify(_exportState()).length / 1024); }
+  function _getStateSizeBytes() {
+    try { return JSON.stringify(_exportState()).length; }
     catch (e) { return -1; }
   }
 
   // ═══════════════════════════════════════════
-  //  6. UI — 按钮启用/禁用
+  //  7. UI — 按钮启用/禁用
   // ═══════════════════════════════════════════
   function _setButtonsEnabled(enabled) {
     var ids = ['cloudUploadBtn', 'cloudDownloadBtn'];
@@ -210,12 +225,12 @@
 
     var us = document.getElementById('cloudUploadSub');
     var ds = document.getElementById('cloudDownloadSub');
-    if (us) us.textContent = enabled ? '将当前数据备份到云端服务器' : '请先配置云端连接';
-    if (ds) ds.textContent = enabled ? '从云端恢复之前的备份数据' : '请先配置云端连接';
+    if (us) us.textContent = enabled ? '将当前数据备份到云端存储' : '请先配置云端连接';
+    if (ds) ds.textContent = enabled ? '从云端存储恢复备份数据' : '请先配置云端连接';
   }
 
   // ═══════════════════════════════════════════
-  //  7. UI — 更新状态面板
+  //  8. UI — 更新状态面板
   // ═══════════════════════════════════════════
   function _updateStatus(connected, lastUpload, lastDownload, dataSize) {
     var dot  = document.getElementById('cloudStatusDot');
@@ -243,7 +258,7 @@
   }
 
   // ═══════════════════════════════════════════
-  //  8. 密钥显示/隐藏
+  //  9. 密钥显示/隐藏
   // ═══════════════════════════════════════════
   function toggleCloudKeyVisibility() {
     var input = document.getElementById('cloudAnonKey');
@@ -259,7 +274,7 @@
   }
 
   // ═══════════════════════════════════════════
-  //  9. 保存配置
+  //  10. 保存配置
   // ═══════════════════════════════════════════
   function saveCloudConfig() {
     var urlEl = document.getElementById('cloudSupabaseUrl');
@@ -280,7 +295,7 @@
   }
 
   // ═══════════════════════════════════════════
-  //  10. 测试连接（核心！用 SELECT 测试表是否可访问）
+  //  11. 测试连接（Storage 版：list 桶根目录）
   // ═══════════════════════════════════════════
   async function testCloudConnection() {
     var cfg = _loadConfig();
@@ -290,7 +305,6 @@
       return;
     }
 
-    // 显示"连接中"状态
     var dot  = document.getElementById('cloudStatusDot');
     var text = document.getElementById('cloudStatusText');
     if (dot)  dot.style.background = '#ff9500';
@@ -306,14 +320,13 @@
       return;
     }
 
-    // 2) 用 SELECT 测试表是否存在且可访问
+    // 2) 尝试 list 存储桶根目录，验证桶是否存在且可访问
     try {
-      console.log('[Cloud] Testing connection → SELECT from "' + TABLE + '"…');
+      console.log('[Cloud] Testing connection → list bucket "' + BUCKET + '"…');
 
-      var resp = await _client
-        .from(TABLE)
-        .select('account_id')
-        .limit(1);
+      var resp = await _client.storage
+        .from(BUCKET)
+        .list('', { limit: 1 });
 
       if (resp.error) {
         console.error('[Cloud] Connection test error:', JSON.stringify(resp.error));
@@ -324,7 +337,7 @@
       }
 
       // 成功
-      console.log('[Cloud] ✅ Connection OK | rows sampled:', (resp.data || []).length);
+      console.log('[Cloud] ✅ Connection OK | bucket "' + BUCKET + '" accessible | items:', (resp.data || []).length);
       _connected = true;
 
       var meta = _loadMeta();
@@ -340,7 +353,7 @@
   }
 
   // ═══════════════════════════════════════════
-  //  11. 上传至云端（upsert 覆盖式写入）
+  //  12. 上传至云端（Storage upload with upsert）
   // ═══════════════════════════════════════════
   async function cloudUpload() {
     if (!_connected || !_client) {
@@ -354,37 +367,43 @@
       return;
     }
 
+    var sizeBytes = _getStateSizeBytes();
+    var sizeStr   = _fmtBytes(sizeBytes);
+
     _showConfirm(
       '上传至云端',
-      '将当前账号的所有数据上传至云端。\n如果云端已有该账号的数据，将被覆盖。',
+      '将当前账号的所有数据上传至云端存储。\n如果云端已有该账号的备份，将被覆盖。\n\n当前数据大小：' + sizeStr,
       '开始上传',
       async function () {
         var sub = document.getElementById('cloudUploadSub');
         if (sub) sub.textContent = '正在上传…';
         _setButtonsEnabled(false);
 
+        var startTime = Date.now();
+
         try {
           var payload = _exportState();
           var jsonStr = JSON.stringify(payload);
-          var sizeKB  = Math.round(jsonStr.length / 1024);
-          var sizeMB  = jsonStr.length / (1024 * 1024);
+          var filePath = _getFilePath(accountId);
 
-          if (sizeMB > MAX_UPLOAD_MB) {
-            throw new Error('数据过大 (' + sizeMB.toFixed(1) + ' MB)，超出 ' + MAX_UPLOAD_MB + ' MB 限制。请清理部分数据后重试。');
-          }
+          var blob = new Blob([jsonStr], { type: 'application/json' });
 
-          console.log('[Cloud] Uploading', sizeKB, 'KB for account:', accountId);
+          console.log('[Cloud] Uploading', _fmtBytes(jsonStr.length),
+            'to', BUCKET + '/' + filePath);
 
-          var resp = await _client.from(TABLE).upsert({
-            account_id: accountId,
-            data:       payload,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'account_id' });
+          var resp = await _client.storage
+            .from(BUCKET)
+            .upload(filePath, blob, {
+              contentType: 'application/json',
+              upsert: true
+            });
 
           if (resp.error) {
             console.error('[Cloud] Upload error:', JSON.stringify(resp.error));
             throw resp.error;
           }
+
+          var elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
           // 更新本地元数据
           var now  = new Date().toISOString();
@@ -396,8 +415,9 @@
 
           var chars = (payload.characters || []).length;
           var chats = Object.keys(payload.chats || {}).length;
-          console.log('[Cloud] ✅ Upload OK |', sizeKB, 'KB |', chars, 'chars |', chats, 'chats');
-          showToast('上传成功 (' + sizeKB + ' KB)');
+          console.log('[Cloud] ✅ Upload OK |', _fmtBytes(jsonStr.length),
+            '|', chars, 'chars |', chats, 'chats | took', elapsed + 's');
+          showToast('上传成功 (' + _fmtBytes(jsonStr.length) + ', ' + elapsed + 's)');
 
         } catch (e) {
           console.error('[Cloud] Upload failed:', e);
@@ -405,13 +425,13 @@
         }
 
         _setButtonsEnabled(true);
-        if (sub) sub.textContent = '将当前数据备份到云端服务器';
+        if (sub) sub.textContent = '将当前数据备份到云端存储';
       }
     );
   }
 
   // ═══════════════════════════════════════════
-  //  12. 从云端下载
+  //  13. 从云端下载
   // ═══════════════════════════════════════════
   async function cloudDownload() {
     if (!_connected || !_client) {
@@ -429,43 +449,53 @@
     if (sub) sub.textContent = '正在检查云端数据…';
 
     try {
-      console.log('[Cloud] Querying cloud for account:', accountId);
+      var filePath = _getFilePath(accountId);
+      console.log('[Cloud] Downloading from', BUCKET + '/' + filePath);
 
-      var resp = await _client
-        .from(TABLE)
-        .select('data, updated_at')
-        .eq('account_id', accountId)
-        .maybeSingle();
+      // 先下载文件
+      var resp = await _client.storage
+        .from(BUCKET)
+        .download(filePath);
 
       if (resp.error) {
-        console.error('[Cloud] Download query error:', JSON.stringify(resp.error));
+        var errMsg = resp.error.message || resp.error.error || String(resp.error);
+        // 404 = 文件不存在
+        if (errMsg.indexOf('Object not found') > -1 || errMsg.indexOf('not found') > -1 ||
+            String(resp.error.statusCode || resp.error.status) === '404') {
+          showToast('云端暂无该账号的备份文件');
+          if (sub) sub.textContent = '从云端存储恢复备份数据';
+          return;
+        }
+        console.error('[Cloud] Download error:', JSON.stringify(resp.error));
         throw resp.error;
       }
 
-      if (!resp.data) {
-        showToast('云端暂无该账号的备份数据');
-        if (sub) sub.textContent = '从云端恢复之前的备份数据';
-        return;
+      // 读取 Blob 为文本
+      var text = await resp.data.text();
+      var cloudData;
+      try {
+        cloudData = JSON.parse(text);
+      } catch (parseErr) {
+        throw new Error('云端文件 JSON 解析失败: ' + parseErr.message);
       }
 
-      if (!resp.data.data || typeof resp.data.data !== 'object') {
+      if (!cloudData || typeof cloudData !== 'object') {
         showToast('云端数据为空或已损坏');
-        if (sub) sub.textContent = '从云端恢复之前的备份数据';
+        if (sub) sub.textContent = '从云端存储恢复备份数据';
         return;
       }
 
-      var cloudData  = resp.data.data;
-      var cloudTime  = resp.data.updated_at;
+      var cloudTime  = cloudData._cloudExportTime || null;
       var cloudChars = (cloudData.characters || []).length;
       var cloudChats = Object.keys(cloudData.chats || {}).length;
       var cloudMasks = (cloudData.masks || []).length;
-      var cloudBytes = JSON.stringify(cloudData).length;
-      var cloudSize  = _fmtBytes(cloudBytes);
+      var cloudSize  = _fmtBytes(text.length);
 
-      if (sub) sub.textContent = '从云端恢复之前的备份数据';
+      if (sub) sub.textContent = '从云端存储恢复备份数据';
 
-      console.log('[Cloud] Cloud data found | time:', cloudTime,
-        '| chars:', cloudChars, '| chats:', cloudChats, '| size:', cloudSize);
+      console.log('[Cloud] Cloud data downloaded |', cloudSize,
+        '| time:', cloudTime,
+        '| chars:', cloudChars, '| chats:', cloudChats);
 
       // 弹出确认框
       _showConfirm(
@@ -475,10 +505,10 @@
           + '• 角色数量：' + cloudChars + '\n'
           + '• 对话数量：' + cloudChats + '\n'
           + '• 面具数量：' + cloudMasks + '\n'
-          + '• 数据大小：' + cloudSize + '\n\n'
+          + '• 文件大小：' + cloudSize + '\n\n'
           + '⚠️ 下载将覆盖当前本地所有数据！',
         '确认下载',
-        async function () {
+        function () {
           if (sub) sub.textContent = '正在恢复数据…';
           _setButtonsEnabled(false);
 
@@ -486,17 +516,14 @@
             var ok = _importState(cloudData);
             if (!ok) throw new Error('数据导入失败');
 
-            // force=true 绕过防空覆写保护
             saveState(true);
 
-            // 更新本地元数据
             var meta = _loadMeta();
             meta.lastDownload = _fmtTime(new Date().toISOString());
             meta.dataSize     = cloudSize;
             _saveMeta(meta);
             _updateStatus(true, meta.lastUpload, meta.lastDownload, meta.dataSize);
 
-            // 刷新整个 UI
             if (typeof window._reloadAllUI === 'function') {
               window._reloadAllUI();
             } else if (typeof window.reloadUI === 'function') {
@@ -512,19 +539,19 @@
           }
 
           _setButtonsEnabled(true);
-          if (sub) sub.textContent = '从云端恢复之前的备份数据';
+          if (sub) sub.textContent = '从云端存储恢复备份数据';
         }
       );
 
     } catch (e) {
       console.error('[Cloud] Download error:', e);
       showToast('下载失败: ' + _friendlyError(e));
-      if (sub) sub.textContent = '从云端恢复之前的备份数据';
+      if (sub) sub.textContent = '从云端存储恢复备份数据';
     }
   }
 
   // ═══════════════════════════════════════════
-  //  13. 页面初始化（★ 不替换 HTML，只读写 DOM ★）
+  //  14. 页面初始化
   // ═══════════════════════════════════════════
   function initCloudPage() {
     console.log('[Cloud] initCloudPage called');
@@ -533,17 +560,14 @@
     var urlEl = document.getElementById('cloudSupabaseUrl');
     var keyEl = document.getElementById('cloudAnonKey');
 
-    // 填充已保存的配置值
     if (cfg) {
       if (urlEl) urlEl.value = cfg.url     || '';
       if (keyEl) keyEl.value = cfg.anonKey || '';
     }
 
-    // 隐藏备份列表区域（Database 模式不需要文件列表 UI）
     var area = document.getElementById('cloudBackupListArea');
     if (area) area.style.display = 'none';
 
-    // 如果有配置则自动测试连接，否则显示未连接
     if (cfg && cfg.url && cfg.anonKey) {
       testCloudConnection();
     } else {
@@ -552,7 +576,7 @@
   }
 
   // ═══════════════════════════════════════════
-  //  14. 确认弹窗（复用 iOS 风格）
+  //  15. 确认弹窗
   // ═══════════════════════════════════════════
   function _showConfirm(title, message, confirmText, onConfirm) {
     var existing = document.getElementById('cloudConfirmModal');
@@ -606,23 +630,23 @@
   }
 
   // ═══════════════════════════════════════════
-  //  15. 控制台验证脚本
+  //  16. 控制台验证脚本
   // ═══════════════════════════════════════════
 
   /**
    * ★ 一键完整测试 ★
-   * 在浏览器控制台中运行: __mizuCloudTest()
+   * 控制台运行: __mizuCloudTest()
    *
-   * 流程: 检查配置 → 检查库 → 初始化客户端 → SELECT测试
-   *       → 数据大小检查 → UPSERT上传 → SELECT回读验证
+   * 流程: 检查配置 → 检查库 → 初始化客户端 → List桶测试
+   *       → 数据大小 → Upload上传 → Download回读验证
    */
   window.__mizuCloudTest = async function () {
     var SEP = '═══════════════════════════════════════';
     console.log(SEP);
-    console.log('  Mizu Phone — Cloud Full Test');
+    console.log('  Mizu Phone — Cloud Full Test (Storage Mode)');
     console.log(SEP);
 
-    var results = { steps: [] };
+    var results = { steps: [], mode: 'storage', bucket: BUCKET };
 
     // ── Step 1: 检查配置 ──
     var cfg = _loadConfig();
@@ -660,53 +684,57 @@
       return { success: false, step: 'init', error: e.message, steps: results.steps };
     }
 
-    // ── Step 4: SELECT 连接测试 ──
-    console.log('[4/7] Testing SELECT from "' + TABLE + '"…');
+    // ── Step 4: List 桶连接测试 ──
+    console.log('[4/7] Testing list on bucket "' + BUCKET + '"…');
     try {
-      var selResp = await _client.from(TABLE).select('account_id').limit(1);
-      if (selResp.error) throw selResp.error;
-      console.log('  ✅ SELECT OK | rows sampled:', (selResp.data || []).length);
-      results.steps.push({ step: '4/7 SELECT', ok: true, rows: (selResp.data || []).length });
+      var listResp = await _client.storage.from(BUCKET).list('', { limit: 5 });
+      if (listResp.error) throw listResp.error;
+      console.log('  ✅ Bucket accessible | items:', (listResp.data || []).length);
+      results.steps.push({ step: '4/7 Bucket', ok: true, items: (listResp.data || []).length });
     } catch (e) {
-      console.error('  ❌ SELECT failed:', _friendlyError(e));
+      console.error('  ❌ Bucket test failed:', _friendlyError(e));
       console.error('  Raw error:', JSON.stringify(e));
-      return { success: false, step: 'select', error: _friendlyError(e), steps: results.steps };
+      return { success: false, step: 'bucket', error: _friendlyError(e), steps: results.steps };
     }
 
     // ── Step 5: 数据大小检查 ──
-    var sizeKB = _getStateSizeKB();
-    var sizeMB = (sizeKB / 1024).toFixed(2);
-    var sizeOk = sizeKB < MAX_UPLOAD_MB * 1024;
-    console.log('[5/7] Data size:', sizeKB, 'KB (' + sizeMB + ' MB)',
-      sizeOk ? '✅ within limit' : '⚠️ EXCEEDS ' + MAX_UPLOAD_MB + 'MB LIMIT');
-    results.steps.push({ step: '5/7 Size', sizeKB: sizeKB, sizeMB: sizeMB, ok: sizeOk });
+    var sizeBytes = _getStateSizeBytes();
+    var sizeKB    = Math.round(sizeBytes / 1024);
+    var sizeMB    = (sizeBytes / (1024 * 1024)).toFixed(2);
+    console.log('[5/7] Data size:', _fmtBytes(sizeBytes), '(' + sizeMB + ' MB)',
+      '— ✅ No size limit with Storage mode');
+    results.steps.push({ step: '5/7 Size', bytes: sizeBytes, sizeKB: sizeKB, sizeMB: sizeMB, ok: true });
 
-    if (!sizeOk) {
-      console.warn('  ⚠️ Data exceeds upload limit, but will attempt anyway…');
-    }
-
-    // ── Step 6: UPSERT 上传测试 ──
+    // ── Step 6: Upload 上传测试 ──
     var accountId = (typeof accountStore !== 'undefined' && accountStore.currentAccountId)
       ? accountStore.currentAccountId
       : 'test_account';
-    console.log('[6/7] UPSERT upload for account:', accountId, '…');
+    var filePath = _getFilePath(accountId);
+    console.log('[6/7] Uploading to "' + BUCKET + '/' + filePath + '"…');
+    var uploadStart = Date.now();
     try {
       var payload = _exportState();
-      var upResp = await _client.from(TABLE).upsert({
-        account_id: accountId,
-        data:       payload,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'account_id' });
+      var jsonStr = JSON.stringify(payload);
+      var blob    = new Blob([jsonStr], { type: 'application/json' });
+
+      var upResp = await _client.storage
+        .from(BUCKET)
+        .upload(filePath, blob, { contentType: 'application/json', upsert: true });
 
       if (upResp.error) throw upResp.error;
 
-      var uploadChars = (payload.characters || []).length;
-      var uploadChats = Object.keys(payload.chats || {}).length;
-      var uploadMasks = (payload.masks || []).length;
-      console.log('  ✅ Upload OK | chars:', uploadChars, '| chats:', uploadChats, '| masks:', uploadMasks);
+      var uploadElapsed = ((Date.now() - uploadStart) / 1000).toFixed(2);
+      var uploadChars   = (payload.characters || []).length;
+      var uploadChats   = Object.keys(payload.chats || {}).length;
+      var uploadMasks   = (payload.masks || []).length;
+      console.log('  ✅ Upload OK |', _fmtBytes(jsonStr.length),
+        '| chars:', uploadChars, '| chats:', uploadChats, '| masks:', uploadMasks,
+        '| took', uploadElapsed + 's');
       results.steps.push({
         step: '6/7 Upload', ok: true,
-        chars: uploadChars, chats: uploadChats, masks: uploadMasks
+        size: _fmtBytes(jsonStr.length), bytes: jsonStr.length,
+        chars: uploadChars, chats: uploadChats, masks: uploadMasks,
+        elapsed: uploadElapsed + 's'
       });
     } catch (e) {
       console.error('  ❌ Upload failed:', _friendlyError(e));
@@ -714,65 +742,137 @@
       return { success: false, step: 'upload', error: _friendlyError(e), steps: results.steps };
     }
 
-    // ── Step 7: SELECT 回读验证 ──
-    console.log('[7/7] Read-back verification…');
+    // ── Step 7: Download 回读验证 ──
+    console.log('[7/7] Download + verification from "' + BUCKET + '/' + filePath + '"…');
+    var downloadStart = Date.now();
     try {
-      var readResp = await _client
-        .from(TABLE)
-        .select('data, updated_at')
-        .eq('account_id', accountId)
-        .maybeSingle();
+      var dlResp = await _client.storage
+        .from(BUCKET)
+        .download(filePath);
 
-      if (readResp.error) throw readResp.error;
-      if (!readResp.data || !readResp.data.data) throw new Error('Read-back returned empty');
+      if (dlResp.error) throw dlResp.error;
 
-      var cloudChars = (readResp.data.data.characters || []).length;
-      var cloudChats = Object.keys(readResp.data.data.chats || {}).length;
-      var cloudMasks = (readResp.data.data.masks || []).length;
+      var dlText = await dlResp.data.text();
+      var dlData = JSON.parse(dlText);
+
+      var downloadElapsed = ((Date.now() - downloadStart) / 1000).toFixed(2);
+
+      var cloudChars = (dlData.characters || []).length;
+      var cloudChats = Object.keys(dlData.chats || {}).length;
+      var cloudMasks = (dlData.masks || []).length;
       var localChars = state.characters.length;
       var localChats = Object.keys(state.chats).length;
       var localMasks = state.masks.length;
       var match = (cloudChars === localChars && cloudChats === localChats && cloudMasks === localMasks);
 
+      console.log('  Downloaded:', _fmtBytes(dlText.length), '| took', downloadElapsed + 's');
       console.log('  Cloud → chars:', cloudChars, '| chats:', cloudChats, '| masks:', cloudMasks);
       console.log('  Local → chars:', localChars, '| chats:', localChats, '| masks:', localMasks);
       console.log('  ' + (match ? '✅ Data matches!' : '⚠️ Mismatch (may be OK if data changed during test)'));
-      console.log('  updated_at:', readResp.data.updated_at);
       results.steps.push({
         step: '7/7 Verify', ok: true, match: match,
+        downloadSize: _fmtBytes(dlText.length), elapsed: downloadElapsed + 's',
         cloud: { chars: cloudChars, chats: cloudChats, masks: cloudMasks },
         local: { chars: localChars, chats: localChats, masks: localMasks }
       });
     } catch (e) {
-      console.error('  ❌ Read-back failed:', _friendlyError(e));
+      console.error('  ❌ Download/verify failed:', _friendlyError(e));
       return { success: false, step: 'verify', error: _friendlyError(e), steps: results.steps };
     }
 
     console.log(SEP);
-    console.log('  ✅ ALL 7 TESTS PASSED');
+    console.log('  ✅ ALL 7 TESTS PASSED (Storage Mode)');
+    console.log('  Bucket: ' + BUCKET);
+    console.log('  File: ' + filePath);
+    console.log('  Data: ' + sizeMB + ' MB — no size limit!');
     console.log(SEP);
     return { success: true, steps: results.steps };
   };
 
   /**
+   * ★ 查看云端文件信息 ★
+   * 控制台运行: __mizuCloudFileInfo()
+   */
+  window.__mizuCloudFileInfo = async function (targetAccountId) {
+    console.log('═══ Mizu Cloud File Info ═══');
+
+    var client = _getClient();
+    if (!client) {
+      console.error('❌ No client. Save config first.');
+      return null;
+    }
+
+    var accountId = targetAccountId ||
+      ((typeof accountStore !== 'undefined') ? accountStore.currentAccountId : null);
+    if (!accountId) {
+      console.error('❌ No account ID');
+      return null;
+    }
+
+    var folder = 'accounts/' + accountId;
+    console.log('Listing:', BUCKET + '/' + folder + '/');
+
+    try {
+      var resp = await client.storage
+        .from(BUCKET)
+        .list(folder, { limit: 20 });
+
+      if (resp.error) throw resp.error;
+
+      var files = resp.data || [];
+      if (files.length === 0) {
+        console.log('  (empty — no backup files for this account)');
+        return { accountId: accountId, files: [] };
+      }
+
+      var result = [];
+      files.forEach(function (f) {
+        var info = {
+          name: f.name,
+          size: f.metadata && f.metadata.size ? _fmtBytes(f.metadata.size) : 'unknown',
+          sizeBytes: f.metadata && f.metadata.size ? f.metadata.size : 0,
+          created: f.created_at || 'unknown',
+          updated: f.updated_at || 'unknown',
+          mimeType: f.metadata && f.metadata.mimetype ? f.metadata.mimetype : 'unknown'
+        };
+        result.push(info);
+        console.log('  📄', f.name,
+          '| size:', info.size,
+          '| created:', info.created,
+          '| type:', info.mimeType);
+      });
+
+      console.log('Total files:', files.length);
+      return { accountId: accountId, files: result };
+    } catch (e) {
+      console.error('❌ List failed:', _friendlyError(e));
+      return null;
+    }
+  };
+
+  /**
    * ★ 快速调试信息 ★
-   * 在浏览器控制台中运行: __mizuCloudDebug()
+   * 控制台运行: __mizuCloudDebug()
    */
   window.__mizuCloudDebug = function () {
-    var cfg    = _loadConfig();
-    var meta   = _loadMeta();
-    var sizeKB = _getStateSizeKB();
-    var sizeMB = (sizeKB / 1024).toFixed(2);
+    var cfg       = _loadConfig();
+    var meta      = _loadMeta();
+    var sizeBytes = _getStateSizeBytes();
+    var sizeKB    = Math.round(sizeBytes / 1024);
+    var sizeMB    = (sizeBytes / (1024 * 1024)).toFixed(2);
 
-    console.log('═══ Mizu Cloud Debug Info ═══');
+    console.log('═══ Mizu Cloud Debug Info (Storage Mode) ═══');
+    console.log('Mode: Supabase Storage (no size limit)');
+    console.log('Bucket:', BUCKET);
     console.log('Supabase JS lib:', (window.supabase && window.supabase.createClient) ? '✅ loaded' : '❌ NOT loaded');
     console.log('Client instance:', _client ? '✅ initialized' : '❌ null');
     console.log('Connected flag:', _connected);
     console.log('Config URL:', cfg ? cfg.url : '(none)');
     console.log('Config Key:', cfg && cfg.anonKey ? cfg.anonKey.substring(0, 15) + '…' : '(none)');
     console.log('Account ID:', (typeof accountStore !== 'undefined') ? accountStore.currentAccountId : 'N/A');
-    console.log('Data size:', sizeKB, 'KB (' + sizeMB + ' MB)');
-    console.log('Max upload:', MAX_UPLOAD_MB, 'MB |', (sizeKB < MAX_UPLOAD_MB * 1024) ? '✅ OK' : '⚠️ TOO LARGE');
+    console.log('File path:', (typeof accountStore !== 'undefined' && accountStore.currentAccountId)
+      ? _getFilePath(accountStore.currentAccountId) : 'N/A');
+    console.log('Data size:', _fmtBytes(sizeBytes), '(' + sizeMB + ' MB) — no limit!');
     console.log('Meta:', JSON.stringify(meta));
     console.log('State summary:',
       'chars:', state.characters.length,
@@ -782,29 +882,32 @@
       '| meetings:', (state.meetings || []).length,
       '| moments:', (state.moments || []).length,
       '| groups:', (state.groups || []).length);
-    console.log('Table name:', TABLE);
-    console.log('═════════════════════════════');
+    console.log('═════════════════════════════════════════════');
 
     return {
+      mode: 'storage',
+      bucket: BUCKET,
       lib: !!(window.supabase && window.supabase.createClient),
       client: !!_client,
       connected: _connected,
       url: cfg ? cfg.url : null,
       hasKey: !!(cfg && cfg.anonKey),
       accountId: (typeof accountStore !== 'undefined') ? accountStore.currentAccountId : null,
+      filePath: (typeof accountStore !== 'undefined' && accountStore.currentAccountId)
+        ? _getFilePath(accountStore.currentAccountId) : null,
+      sizeBytes: sizeBytes,
       sizeKB: sizeKB,
       sizeMB: sizeMB,
-      meta: meta,
-      table: TABLE
+      meta: meta
     };
   };
 
   /**
    * ★ 手动触发上传（控制台用）★
-   * 在浏览器控制台中运行: __mizuCloudManualUpload()
+   * 控制台运行: __mizuCloudManualUpload()
    */
   window.__mizuCloudManualUpload = async function () {
-    console.log('[Manual] Starting upload…');
+    console.log('[Manual] Starting Storage upload…');
     var client = _getClient();
     if (!client) {
       console.error('❌ No client. Run __mizuCloudDebug() to check config.');
@@ -817,23 +920,26 @@
       return { success: false, error: 'no account' };
     }
 
+    var startTime = Date.now();
     try {
-      var payload = _exportState();
-      var jsonStr = JSON.stringify(payload);
-      var sizeKB  = Math.round(jsonStr.length / 1024);
+      var payload  = _exportState();
+      var jsonStr  = JSON.stringify(payload);
+      var filePath = _getFilePath(accountId);
+      var blob     = new Blob([jsonStr], { type: 'application/json' });
 
-      var resp = await client.from(TABLE).upsert({
-        account_id: accountId,
-        data:       payload,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'account_id' });
+      var resp = await client.storage
+        .from(BUCKET)
+        .upload(filePath, blob, { contentType: 'application/json', upsert: true });
 
       if (resp.error) throw resp.error;
 
-      console.log('✅ Upload successful |', sizeKB, 'KB |',
-        'chars:', (payload.characters || []).length,
-        '| chats:', Object.keys(payload.chats || {}).length);
-      return { success: true, sizeKB: sizeKB };
+      var elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log('✅ Upload successful |', _fmtBytes(jsonStr.length),
+        '| chars:', (payload.characters || []).length,
+        '| chats:', Object.keys(payload.chats || {}).length,
+        '| path:', filePath,
+        '| took:', elapsed + 's');
+      return { success: true, size: _fmtBytes(jsonStr.length), bytes: jsonStr.length, elapsed: elapsed + 's' };
     } catch (e) {
       console.error('❌ Upload failed:', _friendlyError(e));
       return { success: false, error: _friendlyError(e) };
@@ -841,11 +947,11 @@
   };
 
   /**
-   * ★ 手动触发下载（控制台用）★
-   * 在浏览器控制台中运行: __mizuCloudManualDownload()
+   * ★ 手动触发下载（控制台用，不自动应用）★
+   * 控制台运行: __mizuCloudManualDownload()
    */
   window.__mizuCloudManualDownload = async function () {
-    console.log('[Manual] Starting download…');
+    console.log('[Manual] Starting Storage download…');
     var client = _getClient();
     if (!client) {
       console.error('❌ No client. Run __mizuCloudDebug() to check config.');
@@ -858,30 +964,29 @@
       return { success: false, error: 'no account' };
     }
 
+    var startTime = Date.now();
     try {
-      var resp = await client
-        .from(TABLE)
-        .select('data, updated_at')
-        .eq('account_id', accountId)
-        .maybeSingle();
+      var filePath = _getFilePath(accountId);
+      var resp = await client.storage.from(BUCKET).download(filePath);
 
       if (resp.error) throw resp.error;
-      if (!resp.data || !resp.data.data) {
-        console.warn('⚠️ No cloud data found for account:', accountId);
-        return { success: false, error: 'no data' };
-      }
 
-      var cloudData  = resp.data.data;
+      var text = await resp.data.text();
+      var cloudData = JSON.parse(text);
+      var elapsed   = ((Date.now() - startTime) / 1000).toFixed(2);
+
       var cloudChars = (cloudData.characters || []).length;
       var cloudChats = Object.keys(cloudData.chats || {}).length;
 
-      console.log('✅ Cloud data retrieved | chars:', cloudChars, '| chats:', cloudChats,
-        '| updated_at:', resp.data.updated_at);
+      console.log('✅ Cloud data retrieved |', _fmtBytes(text.length),
+        '| chars:', cloudChars, '| chats:', cloudChats,
+        '| exportTime:', cloudData._cloudExportTime,
+        '| took:', elapsed + 's');
       console.log('⚠️ Data NOT applied to state. To apply, run: __mizuCloudManualApply()');
 
-      // 存到临时变量，供用户手动确认后导入
       window.__mizuCloudTempData = cloudData;
-      return { success: true, chars: cloudChars, chats: cloudChats, updatedAt: resp.data.updated_at };
+      return { success: true, size: _fmtBytes(text.length), bytes: text.length,
+        chars: cloudChars, chats: cloudChats, elapsed: elapsed + 's' };
     } catch (e) {
       console.error('❌ Download failed:', _friendlyError(e));
       return { success: false, error: _friendlyError(e) };
@@ -889,7 +994,8 @@
   };
 
   /**
-   * ★ 将手动下载的数据应用到本地 state（控制台用）★
+   * ★ 将手动下载的数据应用到本地 state ★
+   * 控制台运行: __mizuCloudManualApply()
    */
   window.__mizuCloudManualApply = function () {
     if (!window.__mizuCloudTempData) {
@@ -909,15 +1015,15 @@
   };
 
   // ═══════════════════════════════════════════
-  //  16. 全局导出
+  //  17. 全局导出
   // ═══════════════════════════════════════════
-  window.initCloudPage              = initCloudPage;
-  window.saveCloudConfig            = saveCloudConfig;
-  window.testCloudConnection        = testCloudConnection;
-  window.cloudUpload                = cloudUpload;
-  window.cloudDownload              = cloudDownload;
-  window.toggleCloudKeyVisibility   = toggleCloudKeyVisibility;
-  window.updateCloudStatus          = _updateStatus;
+  window.initCloudPage            = initCloudPage;
+  window.saveCloudConfig          = saveCloudConfig;
+  window.testCloudConnection      = testCloudConnection;
+  window.cloudUpload              = cloudUpload;
+  window.cloudDownload            = cloudDownload;
+  window.toggleCloudKeyVisibility = toggleCloudKeyVisibility;
+  window.updateCloudStatus        = _updateStatus;
 
-  console.log('[cloud.js] ✅ Cloud module loaded (Database mode)');
+  console.log('[cloud.js] ✅ Cloud module loaded (Storage mode | bucket: ' + BUCKET + ' | no size limit)');
 })();

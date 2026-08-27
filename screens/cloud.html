@@ -18,7 +18,7 @@
 				</div>
 				<div>
 					<div style="font-size:18px;font-weight:700;margin-bottom:2px">Cloud Backup</div>
-					<div style="font-size:12px;color:rgba(255,255,255,.45)">Sync your data across devices</div>
+					<div style="font-size:12px;color:rgba(255,255,255,.45)">File storage — no size limit</div>
 				</div>
 			</div>
 		</div>
@@ -109,7 +109,7 @@
 			</div>
 		</div>
 
-		<!-- 备份列表（保留 DOM 但 Database 模式下不使用） -->
+		<!-- 备份列表（保留 DOM，Storage 模式下隐藏） -->
 		<div id="cloudBackupListArea" style="display:none;margin:16px 16px 8px">
 			<div style="font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px">
 				<svg viewBox="0 0 20 20" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"><path d="M3 3h14v14H3z" rx="2"/><path d="M7 3v14M3 7h14"/></svg>
@@ -120,21 +120,26 @@
 
 		<!-- 底部说明 -->
 		<div style="margin:16px 20px 4px;font-size:13px;color:#8e8e93;line-height:1.8">
-			<div style="font-weight:600;margin-bottom:6px">首次使用需在 Supabase 中执行以下 SQL：</div>
-			<pre id="cloudSetupSql" onclick="if(navigator.clipboard)navigator.clipboard.writeText(this.textContent).then(function(){showToast('SQL 已复制')}).catch(function(){})" style="background:#f5f5f5;padding:12px;border-radius:8px;font-size:11px;overflow-x:auto;white-space:pre;line-height:1.5;cursor:pointer;border:1px solid #e5e5ea;font-family:monospace">CREATE TABLE IF NOT EXISTS user_data (
-  account_id  TEXT PRIMARY KEY,
-  data        JSONB NOT NULL DEFAULT '{}',
-  updated_at  TIMESTAMPTZ DEFAULT now()
-);
+			<div style="font-weight:600;margin-bottom:6px">首次使用配置步骤：</div>
+			<div style="font-size:13px;color:#3c3c43;line-height:1.7;margin-bottom:12px">
+				<div style="margin-bottom:4px"><b>1.</b> 前往 <a href="https://supabase.com" target="_blank" style="color:#007aff">supabase.com</a> 创建免费项目</div>
+				<div style="margin-bottom:4px"><b>2.</b> 进入 <b>Storage</b> → 点击 <b>New bucket</b></div>
+				<div style="margin-bottom:4px"><b>3.</b> 名称填 <code style="background:#f0f0f0;padding:1px 5px;border-radius:3px;font-size:12px">mizu-data</code>，勾选 <b>Public bucket</b>，点击创建</div>
+				<div style="margin-bottom:4px"><b>4.</b> 进入 <b>SQL Editor</b>，执行以下策略 SQL：</div>
+			</div>
+			<pre id="cloudSetupSql" onclick="if(navigator.clipboard)navigator.clipboard.writeText(this.textContent).then(function(){showToast('SQL 已复制')}).catch(function(){})" style="background:#f5f5f5;padding:12px;border-radius:8px;font-size:11px;overflow-x:auto;white-space:pre;line-height:1.5;cursor:pointer;border:1px solid #e5e5ea;font-family:monospace">-- 如果还没有创建 bucket，取消下面两行的注释：
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('mizu-data', 'mizu-data', true);
 
-ALTER TABLE user_data
-  ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow all for anon"
-  ON user_data FOR ALL
-  USING (true)
-  WITH CHECK (true);</pre>
-			<div style="font-size:11px;color:#c7c7cc;margin-top:6px;text-align:center">点击上方 SQL 可一键复制</div>
+CREATE POLICY "Allow all for mizu-data"
+  ON storage.objects FOR ALL TO anon
+  USING (bucket_id = 'mizu-data')
+  WITH CHECK (bucket_id = 'mizu-data');</pre>
+			<div style="font-size:13px;color:#3c3c43;line-height:1.7;margin-top:8px">
+				<div style="margin-bottom:4px"><b>5.</b> 回到 <b>Settings → API</b>，复制 <b>Project URL</b> 和 <b>anon public key</b></div>
+				<div><b>6.</b> 粘贴到上方配置栏，点击 <b>保存配置</b></div>
+			</div>
+			<div style="font-size:11px;color:#c7c7cc;margin-top:10px;text-align:center">点击上方 SQL 可一键复制 · 使用 Storage 模式，无数据大小限制</div>
 		</div>
 
 		<div style="height:40px"></div>
