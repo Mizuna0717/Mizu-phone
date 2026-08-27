@@ -1,7 +1,10 @@
-// ========== auth.js ==========
+// ========== auth.js v2.1 ==========
 // Mizu Phone — Supabase Authentication Module
+// ★ v2.1: 增强登录调试日志，确保 qqToEmail 在所有路径被调用
 (function () {
   'use strict';
+
+  var AUTH_VERSION = '2.1';   // ★ 版本标记，用于确认浏览器加载了最新版
 
   // ═══════════════════════════════════════════════
   //  常量
@@ -9,7 +12,7 @@
   var SUPABASE_URL      = 'https://rnhsuityufzkllaxflgw.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuaHN1aXR5dWZ6a2xsYXhmbGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5NzA1NTIsImV4cCI6MjEwMzU0NjU1Mn0.sRHOHePQxhGT4ho8lzQTPukbTTxtLIskyGZKizDFALc';
   var SUPABASE_REF      = 'rnhsuityufzkllaxflgw';
-  var EMAIL_SUFFIX      = '@qq.com';    // ★ 修复：使用合法邮箱域名
+  var EMAIL_SUFFIX      = '@qq.com';
 
   // ═══════════════════════════════════════════════
   //  1. 初始化 Supabase Client
@@ -18,7 +21,7 @@
   try {
     if (typeof supabase !== 'undefined' && supabase.createClient) {
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log('[auth] Supabase client initialized');
+      console.log('[auth v' + AUTH_VERSION + '] Supabase client initialized');
     } else {
       console.error('[auth] supabase SDK not loaded');
     }
@@ -28,7 +31,7 @@
   window.__supabase = supabaseClient;
 
   // ═══════════════════════════════════════════════
-  //  2. 同步 Session 检测（localStorage，阻塞式）
+  //  2. 同步 Session 检测
   // ═══════════════════════════════════════════════
   var hasLocalSession = false;
   try {
@@ -91,15 +94,24 @@
   //  4. QQ 号 ↔ Email 转换
   // ═══════════════════════════════════════════════
 
-  /** QQ 号 → 邮箱（传给 Supabase）*/
+  /** QQ 号 → 邮箱（传给 Supabase）
+   *  ★ 核心函数：确保纯数字 QQ 号变成合法 email
+   *  '123456789' → '123456789@qq.com'
+   */
   function qqToEmail(qq) {
-    return qq + EMAIL_SUFFIX;
+    // 安全检查：如果已经包含 @ 就不再拼接
+    if (qq.indexOf('@') > -1) {
+      console.warn('[auth] qqToEmail: input already contains @, returning as-is:', qq);
+      return qq;
+    }
+    var result = qq + EMAIL_SUFFIX;
+    console.log('[auth] qqToEmail:', qq, '→', result);
+    return result;
   }
 
-  /** 邮箱 → QQ 号（从 Supabase 数据中提取）*/
+  /** 邮箱 → QQ 号 */
   function emailToQQ(email) {
     if (!email) return '';
-    // 兼容旧后缀和新后缀
     return email.replace(/@qq\.com$/i, '')
                 .replace(/@qq\.mizu\.phone$/i, '');
   }
@@ -114,7 +126,7 @@
     var info = {
       id:     u.id,
       email:  u.email,
-      qq:     meta.qq || emailToQQ(u.email),   // ★ 优先用 metadata 中的 qq，否则从 email 提取
+      qq:     meta.qq || emailToQQ(u.email),
       name:   meta.user_name || 'User',
       avatar: meta.avatar || null
     };
@@ -188,7 +200,6 @@
     qq   = qq.trim();
     name = name.trim();
 
-    // ── 前端校验 ──
     if (!qq)                  { showAuthError('请输入 QQ 号');         return; }
     if (!/^\d+$/.test(qq))    { showAuthError('QQ 号必须为纯数字');    return; }
     if (qq.length < 5 || qq.length > 12) { showAuthError('QQ 号长度应为 5~12 位'); return; }
@@ -202,24 +213,23 @@
     setAuthLoading(true);
 
     try {
-      // ★ 核心：QQ 号自动拼接 @qq.com 作为合法 email
       var email = qqToEmail(qq);
-      console.log('[auth] Register with email:', email);
+      console.log('[auth][register] QQ:', qq, '| email:', email, '| name:', name);
 
       var res = await supabaseClient.auth.signUp({
         email: email,
         password: pwd,
         options: {
           data: {
-            user_name: name,     // 存入 user_metadata.user_name
-            qq: qq               // 存入 user_metadata.qq
+            user_name: name,
+            qq: qq
           }
         }
       });
 
       if (res.error) {
         var m = res.error.message || '';
-        // 友好化错误提示
+        console.error('[auth][register] Error:', m);
         if (m.indexOf('already') > -1 || m.indexOf('already_exists') > -1) {
           showAuthError('该 QQ 号已注册，请直接登录');
         } else if (m.indexOf('valid email') > -1 || m.indexOf('invalid') > -1) {
@@ -233,24 +243,21 @@
         return;
       }
 
-      console.log('[auth] signUp success, session:', !!res.data.session);
+      console.log('[auth][register] signUp OK | session:', !!res.data.session);
 
-      // autoconfirm 开启时直接返回 session
       if (res.data.session) {
         setUserFromSession(res.data.session);
         onAuthSuccess();
         return;
       }
 
-      // autoconfirm 未开启 → 尝试直接登录
-      console.log('[auth] No session returned, trying signIn...');
+      console.log('[auth][register] No session, trying signIn...');
       var si = await supabaseClient.auth.signInWithPassword({
         email: email,
         password: pwd
       });
 
       if (si.error) {
-        // 注册成功但无法自动登录（需要邮箱确认）
         showAuthError('注册成功，但需要在 Supabase 后台关闭邮箱确认（Confirm email）才能登录');
         switchAuthMode('login');
       } else {
@@ -258,7 +265,7 @@
         onAuthSuccess();
       }
     } catch (e) {
-      console.error('[auth] Register error:', e);
+      console.error('[auth][register] Exception:', e);
       showAuthError('注册失败: ' + (e.message || '网络错误'));
     } finally {
       setAuthLoading(false);
@@ -268,9 +275,17 @@
   /** ─── 登录 ─── */
   async function handleLogin() {
     clearAuthError();
-    var qq  = (document.getElementById('loginQQ')       || {}).value || '';
-    var pwd = (document.getElementById('loginPassword') || {}).value || '';
+
+    var qqInput  = document.getElementById('loginQQ');
+    var pwdInput = document.getElementById('loginPassword');
+
+    var qq  = qqInput  ? qqInput.value  : '';
+    var pwd = pwdInput ? pwdInput.value : '';
+
     qq = qq.trim();
+
+    // ★ 调试：打印原始输入
+    console.log('[auth][login] RAW input | qq:', JSON.stringify(qq), '| pwd length:', pwd.length);
 
     // ── 前端校验 ──
     if (!qq)                { showAuthError('请输入 QQ 号');       return; }
@@ -281,18 +296,28 @@
     setAuthLoading(true);
 
     try {
-      // ★ 核心：QQ 号自动拼接 @qq.com
+      // ★★★ 核心修复点：QQ 号 → email ★★★
       var email = qqToEmail(qq);
-      console.log('[auth] Login with email:', email);
+
+      // ★ 二次验证：确保 email 包含 @
+      if (email.indexOf('@') === -1) {
+        console.error('[auth][login] FATAL: qqToEmail failed! email:', email);
+        showAuthError('系统错误：邮箱转换失败，请刷新重试');
+        setAuthLoading(false);
+        return;
+      }
+
+      console.log('[auth][login] QQ:', qq, '→ email:', email);
 
       var res = await supabaseClient.auth.signInWithPassword({
         email: email,
         password: pwd
       });
 
+      console.log('[auth][login] Supabase response | error:', res.error ? res.error.message : 'none', '| session:', !!res.data.session);
+
       if (res.error) {
         var m = res.error.message || '';
-        // 友好化错误提示
         if (m.indexOf('Invalid login') > -1 || m.indexOf('invalid') > -1) {
           showAuthError('QQ 号或密码错误');
         } else if (m.indexOf('Email not confirmed') > -1) {
@@ -306,11 +331,11 @@
         return;
       }
 
-      console.log('[auth] Login success');
+      console.log('[auth][login] SUCCESS | user:', res.data.user.email);
       setUserFromSession(res.data.session);
       onAuthSuccess();
     } catch (e) {
-      console.error('[auth] Login error:', e);
+      console.error('[auth][login] Exception:', e);
       showAuthError('登录失败: ' + (e.message || '网络错误'));
     } finally {
       setAuthLoading(false);
@@ -328,7 +353,6 @@
     }
     clearUser();
     showAuthScreen();
-    // 清空表单
     ['loginQQ','loginPassword','regQQ','regName','regPassword','regPasswordConfirm']
       .forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; });
   }
@@ -420,12 +444,17 @@
     var toLogin = document.getElementById('switchToLogin');
     if (toLogin) toLogin.addEventListener('click', function (e) { e.preventDefault(); switchAuthMode('login'); });
 
+    // Enter 快捷键
+    var lq = document.getElementById('loginQQ');
+    if (lq) lq.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); handleLogin(); } });
+
     var lp = document.getElementById('loginPassword');
     if (lp) lp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); handleLogin(); } });
 
     var rpc = document.getElementById('regPasswordConfirm');
     if (rpc) rpc.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); handleRegister(); } });
 
+    // 密码可见切换
     document.querySelectorAll('.auth-pwd-toggle').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var tid   = this.dataset.target;
@@ -437,6 +466,8 @@
         this.querySelector('.pwd-icon-hide').style.display = show ? 'block' : 'none';
       });
     });
+
+    console.log('[auth v' + AUTH_VERSION + '] Events bound | loginBtn:', !!loginBtn, '| regBtn:', !!regBtn);
   }
 
   whenReady(bindAuthEvents);
@@ -488,35 +519,46 @@
   //  12. 全局导出
   // ═══════════════════════════════════════════════
   window.mizuAuth = {
+    version:               AUTH_VERSION,
     signOut:               handleSignOut,
     getUser:               function () { return window.__user; },
     isAuthenticated:       function () { return !!window.__user; },
     switchMode:            switchAuthMode,
     renderSettingsSection: renderAuthSettingsSection,
-    client:                supabaseClient
+    client:                supabaseClient,
+    // ★ 暴露转换函数供调试
+    qqToEmail:             qqToEmail,
+    emailToQQ:             emailToQQ
   };
 
   // ═══════════════════════════════════════════════
-  //  13. 一键测试工具  window.__mizuAuthTest()
+  //  13. 一键测试工具
   // ═══════════════════════════════════════════════
   window.__mizuAuthTest = function () {
-    console.group('===== Mizu Auth Diagnostics =====');
+    console.group('===== Mizu Auth Diagnostics (v' + AUTH_VERSION + ') =====');
 
-    console.log('1. Supabase Client  :', supabaseClient ? 'OK' : 'FAILED');
+    console.log('1. Auth version     :', AUTH_VERSION);
     console.log('2. EMAIL_SUFFIX     :', EMAIL_SUFFIX);
-    console.log('3. window.__user    :', window.__user || '(not logged in)');
-    console.log('4. __authRequired   :', window.__authRequired);
+    console.log('3. Supabase Client  :', supabaseClient ? 'OK' : 'FAILED');
+    console.log('4. window.__user    :', window.__user || '(not logged in)');
+    console.log('5. __authRequired   :', window.__authRequired);
+
+    // ★ 测试 qqToEmail 转换
+    var testQQ = '123456789';
+    var testEmail = qqToEmail(testQQ);
+    var convertOK = testEmail === '123456789@qq.com';
+    console.log('6. qqToEmail test   :', testQQ, '→', testEmail, convertOK ? 'OK' : 'BROKEN!');
 
     var sk  = 'sb-' + SUPABASE_REF + '-auth-token';
     var sd  = localStorage.getItem(sk);
-    console.log('5. localStorage key :', sk);
+    console.log('7. localStorage key :', sk);
     console.log('   value            :', sd ? 'YES (' + sd.length + ' bytes)' : 'NO');
-    console.log('6. state.user       :', (typeof state !== 'undefined' && state.user) ? state.user : '(empty)');
+    console.log('8. state.user       :', (typeof state !== 'undefined' && state.user) ? state.user : '(empty)');
 
     if (supabaseClient) {
       supabaseClient.auth.getSession().then(function (r) {
         var s = r.data.session;
-        console.log('7. Active session   :', s ? 'YES — ' + s.user.email : 'NO');
+        console.log('9. Active session   :', s ? 'YES — ' + s.user.email : 'NO');
         if (s) {
           console.log('   expires_at       :', new Date(s.expires_at * 1000).toLocaleString());
           console.log('   user_metadata    :', JSON.stringify(s.user.user_metadata, null, 2));
@@ -524,7 +566,7 @@
         console.groupEnd();
       });
     } else {
-      console.log('7. (cannot check — no client)');
+      console.log('9. (cannot check — no client)');
       console.groupEnd();
     }
 
@@ -532,7 +574,7 @@
       register: function (qq, name, pwd) {
         if (!supabaseClient) return Promise.reject('No client');
         var email = qqToEmail(qq);
-        console.log('[test] Registering:', email, '| user_name:', name, '| qq:', qq);
+        console.log('[test] Registering | QQ:', qq, '→ email:', email, '| name:', name);
         return supabaseClient.auth.signUp({
           email: email,
           password: pwd,
@@ -554,13 +596,14 @@
       login: function (qq, pwd) {
         if (!supabaseClient) return Promise.reject('No client');
         var email = qqToEmail(qq);
-        console.log('[test] Logging in:', email);
+        console.log('[test] Login | QQ:', qq, '→ email:', email);
         return supabaseClient.auth.signInWithPassword({
           email: email,
           password: pwd
         }).then(function (r) {
           if (r.error) {
             console.error('[test] Login FAILED:', r.error.message);
+            console.log('[test] Sent email was:', email);
           } else {
             console.log('[test] Login OK');
             console.log('  user_id:', r.data.user.id);
@@ -574,5 +617,5 @@
     };
   };
 
-  console.log('[auth.js] loaded | EMAIL_SUFFIX:', EMAIL_SUFFIX, '| hasLocalSession:', hasLocalSession, '| __authRequired:', window.__authRequired);
+  console.log('[auth.js] v' + AUTH_VERSION + ' loaded | EMAIL_SUFFIX:', EMAIL_SUFFIX, '| hasLocalSession:', hasLocalSession, '| __authRequired:', window.__authRequired);
 })();
