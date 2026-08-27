@@ -4,26 +4,325 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
     <title>Mizu Phone</title>
+
+    <!-- 关键 CSS（同步，首屏必须） -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/home.css">
-    <link rel="stylesheet" href="css/settings.css">
-    <link rel="stylesheet" href="css/profile.css">
-    <link rel="stylesheet" href="css/characters.css">
     <link rel="stylesheet" href="css/chat.css">
-    <link rel="stylesheet" href="css/bubble-menu.css">
-    <link rel="stylesheet" href="css/chat-extras.css">
-    <link rel="stylesheet" href="css/worldbook.css">
-    <link rel="stylesheet" href="css/phone.css">
-    <link rel="stylesheet" href="css/memory.css">
-    <link rel="stylesheet" href="css/chat-config.css">
+    <link rel="stylesheet" href="css/characters.css">
     <link rel="stylesheet" href="css/modals.css">
-    <link rel="stylesheet" href="css/couple.css">
-    <link rel="stylesheet" href="css/meeting.css">
     <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/call.css">
-    <link rel="stylesheet" href="css/social.css">
+
+    <!-- 非首屏 CSS（异步加载，不阻塞首屏渲染） -->
+    <link rel="stylesheet" href="css/settings.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/profile.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/bubble-menu.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/chat-extras.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/worldbook.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/phone.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/memory.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/chat-config.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/couple.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/meeting.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/call.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/social.css" media="print" onload="this.media='all'">
+
+    <!-- 预连接CDN加速 -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ★ Mizu Phone v4 — 水の波紋  开屏动画（内联，零延迟）
+         ═══════════════════════════════════════════════════════════════ -->
+    <style>
+        /* ══════════════════════════════════════════════
+           容器
+           ══════════════════════════════════════════════ */
+        #loadingIndicator {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(
+                ellipse at 50% 40%,
+                #fcfcfc 0%, #f5f5f5 50%, #ebebeb 100%
+            );
+            z-index: 99999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter',
+                         'Helvetica Neue', system-ui, sans-serif;
+            overflow: hidden;
+            transition: opacity 1s cubic-bezier(.4,0,.15,1),
+                        transform 1s cubic-bezier(.4,0,.15,1);
+        }
+        #loadingIndicator.mizu-fadeout {
+            opacity: 0;
+            transform: scale(1.04);
+            pointer-events: none;
+        }
+
+        /* ══════════════════════════════════════════════
+           水面光影 — 极微弱的游移高光
+           ══════════════════════════════════════════════ */
+        .mizu-shimmer {
+            position: absolute;
+            inset: -60%;
+            background: linear-gradient(
+                120deg,
+                transparent 38%,
+                rgba(255,255,255,.04) 46%,
+                rgba(255,255,255,.07) 50%,
+                rgba(255,255,255,.04) 54%,
+                transparent 62%
+            );
+            background-size: 200% 200%;
+            pointer-events: none;
+            opacity: 0;
+            animation:
+                mizuFadeIn 3s ease .8s forwards,
+                mizuShimmerDrift 10s ease-in-out .8s infinite;
+        }
+
+        /* ══════════════════════════════════════════════
+           涟漪场景
+           ══════════════════════════════════════════════ */
+        .mizu-scene {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 48px;
+            flex-shrink: 0;
+            overflow: visible;
+            animation: mizuSceneBreathe 7s ease-in-out 4.5s infinite;
+        }
+
+        /* ── 向外扩散的涟漪环 ── */
+        .mizu-ripple {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100px; height: 100px;
+            margin: -50px 0 0 -50px;
+            border: 1px solid rgba(0,0,0,.07);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            will-change: transform, opacity;
+            animation: mizuRippleExpand 5.5s cubic-bezier(.12,.6,.3,1) infinite;
+        }
+        .mizu-ripple:nth-child(1) { animation-delay: .8s; }
+        .mizu-ripple:nth-child(2) { animation-delay: 2.175s; }
+        .mizu-ripple:nth-child(3) { animation-delay: 3.55s; }
+        .mizu-ripple:nth-child(4) { animation-delay: 4.925s; }
+
+        /* ── 中心圆点（落水点） ── */
+        .mizu-dot {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 6px; height: 6px;
+            margin: -3px 0 0 -3px;
+            border-radius: 50%;
+            background: rgba(0,0,0,.16);
+            box-shadow: 0 0 18px 5px rgba(0,0,0,.018);
+            opacity: 0;
+            transform: scale(0);
+            animation: mizuDotIn 1.8s cubic-bezier(.16,1,.3,1) .2s forwards;
+        }
+
+        /* ══════════════════════════════════════════════
+           品牌文字
+           ══════════════════════════════════════════════ */
+        .mizu-brand {
+            font-size: 14px;
+            font-weight: 200;
+            color: #a0a0a0;
+            letter-spacing: 5px;
+            text-indent: 5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: mizuSlideUp 1.6s cubic-bezier(.16,1,.3,1) 1.4s forwards;
+        }
+
+        /* ══════════════════════════════════════════════
+           加载状态文字
+           ══════════════════════════════════════════════ */
+        .mizu-status {
+            font-size: 10px;
+            font-weight: 300;
+            color: #bcbcbc;
+            letter-spacing: .8px;
+            min-height: 14px;
+            margin-bottom: 52px;
+            flex-shrink: 0;
+            opacity: 0;
+            transform: translateY(12px);
+            animation: mizuSlideUp 1.3s cubic-bezier(.16,1,.3,1) 2.4s forwards;
+        }
+
+        /* ══════════════════════════════════════════════
+           进度条
+           ══════════════════════════════════════════════ */
+        .mizu-progress-track {
+            width: 100px;
+            height: 1px;
+            background: rgba(0,0,0,.04);
+            border-radius: .5px;
+            overflow: hidden;
+            flex-shrink: 0;
+            opacity: 0;
+            animation: mizuFadeIn 1.2s ease 2.8s forwards;
+        }
+        .mizu-progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(0,0,0,.04), rgba(0,0,0,.14));
+            border-radius: .5px;
+            transition: width .6s cubic-bezier(.4,0,.2,1);
+        }
+
+        /* ══════════════════════════════════════════════
+           关键帧
+           ══════════════════════════════════════════════ */
+
+        /* 涟漪扩散 — 从中心向外，边缘渐隐 */
+        @keyframes mizuRippleExpand {
+            0%   { transform: scale(.06);  opacity: 0; }
+            5%   { opacity: .2; }
+            20%  { opacity: .12; }
+            50%  { opacity: .035; }
+            100% { transform: scale(3.6);  opacity: 0; }
+        }
+
+        /* 中心点浮现 */
+        @keyframes mizuDotIn {
+            0%   { transform: scale(0);    opacity: 0; }
+            55%  { transform: scale(1.2);  opacity: .18; }
+            100% { transform: scale(1);    opacity: 1; }
+        }
+
+        /* 文字滑入 */
+        @keyframes mizuSlideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 淡入 */
+        @keyframes mizuFadeIn {
+            to { opacity: 1; }
+        }
+
+        /* 光影游移 */
+        @keyframes mizuShimmerDrift {
+            0%   { background-position: 100% 100%; }
+            50%  { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        /* 场景呼吸 */
+        @keyframes mizuSceneBreathe {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.018); }
+        }
+
+        /* ══════════════════════════════════════════════
+           退场动画
+           ══════════════════════════════════════════════ */
+
+        /* 场景上浮消失 */
+        #loadingIndicator.mizu-fadeout .mizu-scene {
+            animation: mizuSceneExit .9s cubic-bezier(.4,0,.15,1) forwards !important;
+        }
+        @keyframes mizuSceneExit {
+            to { transform: translateY(-22px) scale(.88); opacity: 0; }
+        }
+
+        /* 停止涟漪 */
+        #loadingIndicator.mizu-fadeout .mizu-ripple {
+            animation-play-state: paused !important;
+        }
+
+        /* 文字 / 进度条下沉消失 */
+        #loadingIndicator.mizu-fadeout .mizu-brand,
+        #loadingIndicator.mizu-fadeout .mizu-status,
+        #loadingIndicator.mizu-fadeout .mizu-progress-track {
+            animation: mizuContentExit .7s cubic-bezier(.4,0,.15,1) forwards !important;
+        }
+        @keyframes mizuContentExit {
+            to { opacity: 0; transform: translateY(14px); }
+        }
+
+        /* 光影立即淡出 */
+        #loadingIndicator.mizu-fadeout .mizu-shimmer {
+            opacity: 0 !important;
+            transition: opacity .5s ease;
+            animation-play-state: paused;
+        }
+    </style>
+
+    <!-- ★ 超时安全网：如果 15 秒后 loading 还在，强制移除 -->
+    <script>
+        (function() {
+            var _loadingTimeout = setTimeout(function() {
+                var el = document.getElementById('loadingIndicator');
+                if (el) {
+                    console.error('[安全网] ⚠️ 超过 15 秒仍在 Loading，强制移除');
+                    el.style.display = 'none';
+                    if (el.parentNode) el.parentNode.removeChild(el);
+                }
+                var app = document.getElementById('app');
+                if (app) {
+                    app.style.visibility = 'visible';
+                    app.style.opacity = '1';
+                }
+                if (typeof nav === 'function') {
+                    try { nav('screen-home'); } catch(e) {}
+                } else {
+                    var home = document.getElementById('screen-home');
+                    if (home) {
+                        document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+                        home.classList.add('active');
+                    }
+                }
+            }, 15000);
+            window.addEventListener('appReady', function() {
+                clearTimeout(_loadingTimeout);
+            });
+        })();
+    </script>
 </head>
 <body>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ★ Mizu Phone v4 — 水の波紋  开屏动画
+         ═══════════════════════════════════════════════════════════════ -->
+    <div id="loadingIndicator">
+
+        <!-- 水面光影 -->
+        <div class="mizu-shimmer"></div>
+
+        <!-- 涟漪场景 -->
+        <div class="mizu-scene">
+            <span class="mizu-ripple"></span>
+            <span class="mizu-ripple"></span>
+            <span class="mizu-ripple"></span>
+            <span class="mizu-ripple"></span>
+            <div class="mizu-dot"></div>
+        </div>
+
+        <!-- 品牌文字 -->
+        <div class="mizu-brand">Mizu Phone</div>
+
+        <!-- 加载状态 -->
+        <div class="mizu-status" id="mizuStatus"></div>
+
+        <!-- 进度条 -->
+        <div class="mizu-progress-track">
+            <div class="mizu-progress-bar" id="mizuProgress"></div>
+        </div>
+
+    </div>
+
     <div class="app" id="app">
         <div class="screen-container" id="screenContainer"></div>
         <div class="toast" id="toast"></div>
@@ -33,9 +332,7 @@
         </div>
     </div>
 
-    <!-- ★★★ Supabase CDN ★★★ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
     <script src="js/screen-loader.js"></script>
 </body>
 </html>

@@ -120,20 +120,72 @@ function _saveAccountData(accountId) {
   SAVE_KEYS.forEach(function(k) { s[k] = state[k]; });
   try {
     var json = JSON.stringify(s);
+
+    // ★ 新增：检查 localStorage 剩余空间
+    var usedKB = Math.round(json.length / 1024);
+    if (json.length > 4.5 * 1024 * 1024) {
+      console.warn('[save] 数据量过大 (' + usedKB + 'KB)，可能超出 localStorage 5MB 限制');
+    }
+
     localStorage.setItem('ai_app_account_' + accountId, json);
-    console.log('[save] 账号', accountId, '| chars:', (s.characters||[]).length, '| masks:', (s.masks||[]).length, '| moments:', (s.moments||[]).length, '| bytes:', json.length);
-  } catch (e) { console.error('[save] FAILED for', accountId, e); }
+    console.log('[save] 账号', accountId,
+      '| chars:', (s.characters||[]).length,
+      '| masks:', (s.masks||[]).length,
+      '| moments:', (s.moments||[]).length,
+      '| size:', usedKB + 'KB');
+  } catch (e) {
+    console.error('[save] FAILED for', accountId, e);
+
+    // ★ 新增：QuotaExceededError 时尝试清理旧数据
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      console.error('[save] localStorage 已满！尝试清理...');
+      try {
+        // 清理可能的旧版数据
+        localStorage.removeItem('aiphone8');
+        // 重试保存
+        localStorage.setItem('ai_app_account_' + accountId, json);
+        console.log('[save] 清理后重试成功');
+      } catch(e2) {
+        console.error('[save] 清理后仍然失败，数据可能丢失', e2);
+      }
+    }
+  }
 }
+
 
 function _loadAccountData(accountId) {
   try {
     var raw = localStorage.getItem('ai_app_account_' + accountId);
     if (!raw) { console.warn('[load] 无数据:', accountId); return null; }
-    var data = JSON.parse(raw);
-    console.log('[load] 账号', accountId, '| chars:', (data.characters||[]).length, '| masks:', (data.masks||[]).length, '| moments:', (data.moments||[]).length);
+
+    var data;
+    try {
+      data = JSON.parse(raw);
+    } catch(parseErr) {
+      console.error('[load] JSON 解析失败，数据可能损坏:', accountId, parseErr);
+      // ★ 新增：尝试备份损坏数据，然后返回null让系统使用默认值
+      try {
+        localStorage.setItem('ai_app_account_' + accountId + '_corrupt_backup', raw);
+      } catch(e) {}
+      return null;
+    }
+
+    if (!data || typeof data !== 'object') {
+      console.error('[load] 数据格式无效:', accountId);
+      return null;
+    }
+
+    console.log('[load] 账号', accountId,
+      '| chars:', (data.characters||[]).length,
+      '| masks:', (data.masks||[]).length,
+      '| moments:', (data.moments||[]).length);
     return data;
-  } catch (e) { console.error('[load] FAILED:', accountId, e); return null; }
+  } catch (e) {
+    console.error('[load] FAILED:', accountId, e);
+    return null;
+  }
 }
+
 
 function _deleteAccountData(accountId) {
   try { localStorage.removeItem('ai_app_account_' + accountId); } catch (e) {}
@@ -252,7 +304,16 @@ function loadState() {
   var data = _loadAccountData(accountStore.currentAccountId);
   if (data) _applyDataToState(data);
   _validateState();
+
+  // ★ 新增：加载后立即输出完整诊断信息
+  console.log('[loadState] 完成 | account:', accountStore.currentAccountId,
+    '| chars:', state.characters.length,
+    '| chats:', Object.keys(state.chats).length,
+    '| masks:', state.masks.length,
+    '| worldbooks:', state.worldbooks.length,
+    '| meetings:', state.meetings.length);
 }
+
 
 function resetState() {
   _resetStateToDefaults();
