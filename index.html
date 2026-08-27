@@ -31,7 +31,8 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         ★ Mizu Phone v12 — 丝滑水滴 + 极简关键帧  10s 沉浸开屏
+         ★ Mizu Phone v14 — 精确时间线重构
+         开场1s → 水滴3s → 涟漪4s → 退场2s = 10s
          ═══════════════════════════════════════════════════════════════ -->
     <style>
         /* ════════════════════════════════════════════
@@ -55,14 +56,15 @@
             transition: opacity 1.1s cubic-bezier(.4,0,.15,1),
                         transform 1.1s cubic-bezier(.4,0,.15,1);
         }
+        /* ★ 退场缩放改为 0.95（向内收缩，更贴合水主题） */
         #loadingIndicator.mizu-fadeout {
             opacity: 0;
-            transform: scale(1.04);
+            transform: scale(0.95);
             pointer-events: none;
         }
 
         /* ════════════════════════════════════════════
-           水面光影
+           水面光影（不变）
            ════════════════════════════════════════════ */
         .mizu-shimmer {
             position: absolute;
@@ -80,12 +82,14 @@
             opacity: 0;
             will-change: opacity;
             animation:
-                mizuFadeIn 4s ease 1s forwards,
-                mizuShimmerDrift 14s ease-in-out 1s infinite;
+                mizuFadeIn 4s ease 0.5s forwards,
+                mizuShimmerDrift 14s ease-in-out 0.5s infinite;
         }
 
         /* ════════════════════════════════════════════
            涟漪场景容器
+           ★ 位置上移 15vh（保留）
+           ★ 呼吸延迟 5s（水滴落地后 1s 启动）
            ════════════════════════════════════════════ */
         .mizu-scene {
             position: relative;
@@ -95,15 +99,19 @@
             flex-shrink: 0;
             overflow: visible;
             will-change: transform;
-            animation: mizuSceneBreathe 10s ease-in-out 5.5s infinite;
+            transform: translateY(-15vh);
+            animation: mizuSceneBreathe 10s ease-in-out 5s infinite;
         }
 
         /* ════════════════════════════════════════════
            ① SVG 水滴
-              ★ v12 修复：
-              - 延迟 1.8s（避开主线程最忙窗口）
-              - 仅 4 个关键帧（让缓动曲线做重力）
-              - 不写 translateZ(0)（will-change 已提升）
+           ★ v14 时间线（duration 4s, delay 0.5s）:
+              0.5s (0%)    ── 动画开始，不可见
+              1.0s (12.5%) ── 淡入完成，准备下落
+              4.0s (87.5%) ── 触底（下坠 3.0s ✓）
+              4.2s (92.5%) ── 轻微反弹顶点
+              4.3s (95%)   ── 回落开始消散
+              4.5s (100%)  ── 完全消散
            ════════════════════════════════════════════ */
         .mizu-drop {
             position: absolute;
@@ -115,12 +123,8 @@
             z-index: 3;
             will-change: transform, opacity;
             opacity: 0;
-            transform: translateY(-100px);
-            /* ★ 分两段动画：下落 + 消散，用逗号串联 */
-            animation:
-                mizuDropAppear .3s ease    1.8s forwards,
-                mizuDropFall   1.8s cubic-bezier(.4,0,.9,.4)  2.1s forwards,
-                mizuDropSplash .6s  ease-out 3.9s forwards;
+            transform: translateY(-60px);
+            animation: mizuDropLifecycle 4s ease 0.5s forwards;
         }
         .mizu-drop svg {
             width: 100%;
@@ -130,6 +134,7 @@
 
         /* ════════════════════════════════════════════
            ② 冲击环
+           ★ 延迟 4.0s（水滴触底瞬间），持续 1.5s
            ════════════════════════════════════════════ */
         .mizu-splash {
             position: absolute;
@@ -138,17 +143,18 @@
             width: 28px;
             height: 28px;
             margin: -14px 0 0 -14px;
-            border: 0.5px solid rgba(200,200,200,.25);
+            border: 0.5px solid rgba(215,215,215,.18);
             border-radius: 50%;
             opacity: 0;
             z-index: 2;
             pointer-events: none;
             will-change: transform, opacity;
-            animation: mizuSplashExpand 1.6s ease-out 3.9s forwards;
+            animation: mizuSplashExpand 1.5s ease-out 4.0s forwards;
         }
 
         /* ════════════════════════════════════════════
            ③ 波源点
+           ★ 延迟 4.0s（触底同步），呼吸延迟 5.0s
            ════════════════════════════════════════════ */
         .mizu-impact-dot {
             position: absolute;
@@ -158,34 +164,40 @@
             height: 4px;
             margin: -2px 0 0 -2px;
             border-radius: 50%;
-            border: 0.5px solid rgba(180,180,180,.22);
+            border: 0.5px solid rgba(200,200,200,.18);
             background: none;
             opacity: 0;
             z-index: 2;
             will-change: transform, opacity;
             animation:
-                mizuDotAppear  .8s cubic-bezier(.16,1,.3,1) 3.9s forwards,
-                mizuDotBreathe 6s  ease-in-out              5s  infinite;
+                mizuDotAppear  0.8s cubic-bezier(.16,1,.3,1) 4.0s forwards,
+                mizuDotBreathe 4s   ease-in-out              5.0s infinite;
         }
 
         /* ════════════════════════════════════════════
-           ④ 涟漪环 — 2 圈
+           ④ 涟漪环 — 3 圈
+           ★ 每圈 2.5s，间隔 ~1.3s 依次启动
+           ★ 涟漪覆盖 4.0s → 9.1s（主体 4.0~8.0s = 4 秒）
+              涟漪①: 4.0s → 6.5s
+              涟漪②: 5.3s → 7.8s
+              涟漪③: 6.6s → 9.1s（8.0s 时已 56% 近乎透明）
            ════════════════════════════════════════════ */
         .mizu-ripple {
             position: absolute;
             top: 50%; left: 50%;
             width: 80px; height: 80px;
             margin: -40px 0 0 -40px;
-            border: 0.5px solid rgba(200,200,200,.3);
+            border: 0.5px solid rgba(215,215,215,.2);
             border-radius: 50%;
             opacity: 0;
             z-index: 1;
             pointer-events: none;
             will-change: transform, opacity;
-            animation: mizuRippleExpand 7s cubic-bezier(.08,.6,.25,1) infinite;
+            animation: mizuRippleExpand 2.5s cubic-bezier(.08,.6,.25,1) forwards;
         }
-        .mizu-ripple:nth-child(1) { animation-delay: 4.2s; }
-        .mizu-ripple:nth-child(2) { animation-delay: 6.5s; }
+        .mizu-ripple:nth-child(1) { animation-delay: 4.0s; }
+        .mizu-ripple:nth-child(2) { animation-delay: 5.3s; }
+        .mizu-ripple:nth-child(3) { animation-delay: 6.6s; }
 
         /* ════════════════════════════════════════════
            品牌文字（★ 保留不变）
@@ -242,58 +254,79 @@
         }
 
         /* ════════════════════════════════════════════
-           关键帧 — ★ v12：极简，无 translateZ
+           关键帧 — ★ v14 精确时间线
            ════════════════════════════════════════════ */
 
-        /* ── 水滴淡入（在高处原地出现） ── */
-        @keyframes mizuDropAppear {
-            from { opacity: 0; }
-            to   { opacity: .4; }
+        /* ── ★ 水滴完整生命周期 (4s, delay 0.5s) ──
+             12.5% of 4s = 0.5s → 淡入段 (0.5~1.0s)
+             87.5% of 4s = 3.5s → 下落段 (1.0~4.0s = 3.0s)
+             100%  of 4s = 4.0s → 消散段 (4.0~4.5s = 0.5s)
+           ──────────────────────────────────────── */
+        @keyframes mizuDropLifecycle {
+            /* ▸ Phase 1: 开场淡入 (0~12.5% = 0.5~1.0s) */
+            0% {
+                opacity: 0;
+                transform: translateY(-60px);
+                animation-timing-function: ease-out;
+            }
+            12.5% {
+                opacity: .4;
+                transform: translateY(-60px);
+                /* ▸ Phase 2: 重力加速下落 (12.5~87.5% = 1.0~4.0s = 3.0s) */
+                animation-timing-function: cubic-bezier(.25, 0, .75, .35);
+            }
+            /* ▸ 触底 */
+            87.5% {
+                opacity: .4;
+                transform: translateY(0);
+                /* ▸ Phase 3: 轻微反弹 (87.5~92.5%) */
+                animation-timing-function: cubic-bezier(.34, 1.56, .64, 1);
+            }
+            92.5% {
+                opacity: .3;
+                transform: translateY(-5px);
+                animation-timing-function: ease-in;
+            }
+            /* ▸ Phase 4: 触水消散 (95~100%) */
+            95% {
+                opacity: .15;
+                transform: translateY(0) scaleX(1.1) scaleY(.85);
+                animation-timing-function: ease-out;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(0) scaleX(1.3) scaleY(.3);
+            }
         }
 
-        /* ── 水滴下落（仅 2 帧，靠 cubic-bezier 模拟重力加速） ──
-             cubic-bezier(.4,0,.9,.4) = 前慢后快 ≈ 自由落体
-             浏览器在 from→to 之间做一次性平滑插值，零卡顿 */
-        @keyframes mizuDropFall {
-            from { transform: translateY(-100px); }
-            to   { transform: translateY(0); }
-        }
-
-        /* ── 水滴触水消散（着陆后扁化消失） ── */
-        @keyframes mizuDropSplash {
-            0%   { transform: translateY(0) scaleX(1) scaleY(1);      opacity: .4; }
-            40%  { transform: translateY(1px) scaleX(1.15) scaleY(.7); opacity: .15; }
-            100% { transform: translateY(0) scaleX(1.3) scaleY(.3);   opacity: 0; }
-        }
-
-        /* ── 冲击环 ── */
+        /* ── 冲击环 (1.5s) ── */
         @keyframes mizuSplashExpand {
-            from { transform: scale(.35); opacity: .2; }
-            to   { transform: scale(2.6); opacity: 0; }
+            from { transform: scale(.35); opacity: .18; }
+            to   { transform: scale(3);   opacity: 0; }
         }
 
         /* ── 波源点浮现 ── */
         @keyframes mizuDotAppear {
             0%   { transform: scale(0);   opacity: 0; }
-            50%  { transform: scale(1.3); opacity: .15; }
-            100% { transform: scale(1);   opacity: .1; }
+            50%  { transform: scale(1.3); opacity: .12; }
+            100% { transform: scale(1);   opacity: .08; }
         }
 
         /* ── 波源点呼吸 ── */
         @keyframes mizuDotBreathe {
-            0%, 100% { transform: scale(1);   opacity: .1; }
-            50%      { transform: scale(1.2); opacity: .04; }
+            0%, 100% { transform: scale(1);   opacity: .08; }
+            50%      { transform: scale(1.2); opacity: .03; }
         }
 
-        /* ── 涟漪扩散 ── */
+        /* ── ★ 涟漪扩散 (2.5s，单次 forwards) ── */
         @keyframes mizuRippleExpand {
             0%   { transform: scale(.1);  opacity: 0; }
-            4%   { opacity: .32; }
-            12%  { opacity: .2; }
-            25%  { opacity: .1; }
-            42%  { opacity: .05; }
-            65%  { opacity: .015; }
-            100% { transform: scale(3);   opacity: 0; }
+            8%   { opacity: .22; }
+            20%  { opacity: .14; }
+            40%  { opacity: .08; }
+            60%  { opacity: .04; }
+            85%  { opacity: .01; }
+            100% { transform: scale(3.5); opacity: 0; }
         }
 
         /* ── 通用 ── */
@@ -308,9 +341,11 @@
             50%  { background-position: 0% 0%; }
             100% { background-position: 100% 100%; }
         }
+
+        /* ── 场景呼吸（含 -15vh 偏移） ── */
         @keyframes mizuSceneBreathe {
-            0%, 100% { transform: scale(1); }
-            50%      { transform: scale(1.018); }
+            0%, 100% { transform: translateY(-15vh) scale(1); }
+            50%      { transform: translateY(-15vh) scale(1.018); }
         }
 
         /* ════════════════════════════════════════════
@@ -320,7 +355,7 @@
             animation: mizuSceneExit .9s cubic-bezier(.4,0,.15,1) forwards !important;
         }
         @keyframes mizuSceneExit {
-            to { transform: translateY(-22px) scale(.88); opacity: 0; }
+            to { transform: translateY(calc(-15vh - 22px)) scale(.88); opacity: 0; }
         }
 
         #loadingIndicator.mizu-fadeout .mizu-ripple {
@@ -383,7 +418,7 @@
 <body>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         ★ Mizu Phone v12 — 丝滑水滴
+         ★ Mizu Phone v14 — 精确时间线: 开场1s + 水滴3s + 涟漪4s + 退场2s
          ═══════════════════════════════════════════════════════════════ -->
     <div id="loadingIndicator">
 
@@ -391,6 +426,7 @@
 
         <div class="mizu-scene">
 
+            <span class="mizu-ripple"></span>
             <span class="mizu-ripple"></span>
             <span class="mizu-ripple"></span>
 
@@ -402,18 +438,18 @@
                              C27 51, 33 45.5, 33 37
                              C33 28, 20 5, 20 5Z"
                           fill="none"
-                          stroke="#d0d0d0"
+                          stroke="#b5b5b5"
                           stroke-width="0.8"
                           stroke-linecap="round"
                           stroke-linejoin="round"/>
                     <path d="M16.5 27 Q14.5 34, 16.5 40"
                           fill="none"
-                          stroke="#ddd"
+                          stroke="#c5c5c5"
                           stroke-width="0.4"
                           stroke-linecap="round"/>
                     <circle cx="16" cy="22" r="1"
                             fill="none"
-                            stroke="#e0e0e0"
+                            stroke="#c8c8c8"
                             stroke-width="0.4"/>
                 </svg>
             </div>
