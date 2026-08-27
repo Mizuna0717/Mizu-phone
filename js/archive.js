@@ -17,6 +17,14 @@ function _downloadJSON(data, filename) {
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
+// ★ 统一维护导出/导入的 key 列表，避免多处不一致 ★
+var _ALL_STATE_KEYS = [
+  'apis','activeApiId','characters','chats','worldbooks','stickers',
+  'unread','userProfile','masks','memories','meetings','replyPrompt',
+  'charConfig','phoneData','bookmarks','groups','moments','lang',
+  'drawerFilter','drawerSort','imsgTab'
+];
+
 function _reloadAllUI() {
   try { applyLang(); } catch(e) {}
   try { renderCharList(); } catch(e) {}
@@ -24,6 +32,7 @@ function _reloadAllUI() {
   try { renderMoments(); } catch(e) {}
   try { renderWbList(); } catch(e) {}
   try { renderMemoryList(); } catch(e) {}
+  try { renderMeetingList(); } catch(e) {}
   try { renderMaskList(); } catch(e) {}
   try { renderProfileInfo(); } catch(e) {}
   try { renderProfileStickers(); } catch(e) {}
@@ -48,11 +57,10 @@ function _shortTime(iso) {
   return pad(d.getMonth()+1) + '/' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
-// ========== 导出/导入/清除（原有功能，不变） ==========
+// ========== 导出/导入/清除 ==========
 function exportAllData() {
-  var exportKeys = ['apis','activeApiId','characters','chats','worldbooks','stickers','unread','userProfile','masks','memories','replyPrompt','charConfig','phoneData','bookmarks','groups','moments','lang','drawerFilter','drawerSort','imsgTab'];
   var data = {};
-  exportKeys.forEach(function(k) { data[k] = state[k]; });
+  _ALL_STATE_KEYS.forEach(function(k) { data[k] = state[k]; });
   data._exportType = 'full'; data._exportTime = new Date().toISOString(); data._version = 1;
   try { _downloadJSON(data, 'mizu_backup_' + _archiveTimestamp() + '.json'); showToast('导出成功'); }
   catch(e) { showErrorModal('导出失败：' + e.message); }
@@ -86,8 +94,8 @@ function importData() {
 }
 
 function _applyImportData(data) {
-  var keys = ['apis','activeApiId','characters','chats','worldbooks','stickers','unread','userProfile','masks','memories','replyPrompt','charConfig','phoneData','bookmarks','groups','moments','lang','drawerFilter','drawerSort','imsgTab'];
-  keys.forEach(function(k) { if (data[k] !== undefined) state[k] = data[k]; });
+  _ALL_STATE_KEYS.forEach(function(k) { if (data[k] !== undefined) state[k] = data[k]; });
+  // 类型安全校验
   if (!Array.isArray(state.characters)) state.characters = [];
   if (!state.chats || typeof state.chats !== 'object' || Array.isArray(state.chats)) state.chats = {};
   if (!state.unread || typeof state.unread !== 'object') state.unread = {};
@@ -95,6 +103,7 @@ function _applyImportData(data) {
   if (!state.userProfile || typeof state.userProfile !== 'object') state.userProfile = { name:'User', avatar:null };
   if (!Array.isArray(state.masks)) state.masks = [];
   if (!Array.isArray(state.memories)) state.memories = [];
+  if (!Array.isArray(state.meetings)) state.meetings = [];
   if (!Array.isArray(state.bookmarks)) state.bookmarks = [];
   if (!state.charConfig || typeof state.charConfig !== 'object') state.charConfig = {};
   if (!Array.isArray(state.groups)) state.groups = [];
@@ -334,9 +343,8 @@ function _saveCloudMeta(meta) {
 
 // ── 序列化当前数据 ──
 function _serializeState() {
-  var exportKeys = ['apis','activeApiId','characters','chats','worldbooks','stickers','unread','userProfile','masks','memories','replyPrompt','charConfig','phoneData','bookmarks','groups','moments','lang','drawerFilter','drawerSort','imsgTab'];
   var data = {};
-  exportKeys.forEach(function(k) { data[k] = state[k]; });
+  _ALL_STATE_KEYS.forEach(function(k) { data[k] = state[k]; });
   data._exportType = 'cloud';
   data._exportTime = new Date().toISOString();
   data._version = 1;
