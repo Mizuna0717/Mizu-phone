@@ -1,6 +1,4 @@
 // ========== 19-init.js ==========
-// 依赖：所有其他关键文件。此文件必须在关键脚本最后载入。
-
 (function() {
   'use strict';
 
@@ -11,8 +9,21 @@
   // ═══════════════════════════════════════════════
   try { loadState(); } catch(e) { console.error('loadState failed:', e); }
 
+  // ★★★ 新增：加载后立即做数据快照，用于检测后续是否被意外重置 ★★★
+  var _postLoadChars = state.characters.length;
+  var _postLoadChats = Object.keys(state.chats).length;
+  var _postLoadMasks = state.masks.length;
+  console.log('[init] 加载后快照 | chars:', _postLoadChars,
+    '| chats:', _postLoadChats, '| masks:', _postLoadMasks);
+
   // ── 1.5 初始化系统提示词（必须在 loadState 之后） ──
   try { initSystemPrompts(); } catch(e) { console.error('initSystemPrompts failed:', e); }
+
+  // ★★★ 新增：验证 initSystemPrompts 没有破坏数据 ★★★
+  if (state.characters.length !== _postLoadChars) {
+    console.error('[init] ⚠️ initSystemPrompts 后角色数量变化！',
+      _postLoadChars, '->', state.characters.length);
+  }
 
   // ═══════════════════════════════════════════════
   //  2. 首页初始化（全部 try-catch）
@@ -49,23 +60,16 @@
   try { updateHomeBadge(); } catch(e) {}
 
   // ═══════════════════════════════════════════════
-  //  ★★★ 关键修复：使用 nav() 确保首屏正确显示 ★★★
+  //  ★★★ 首屏导航 ★★★
   // ═══════════════════════════════════════════════
   try {
     if (typeof nav === 'function') {
       nav('screen-home');
-      console.log('[init] ✅ 已通过 nav() 导航至 screen-home');
     } else {
-      console.warn('[init] ⚠️ nav() 未定义，使用手动激活');
       var initScreen = document.getElementById('screen-home');
       if (initScreen) {
         document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
         initScreen.classList.add('active');
-        console.log('[init] ✅ screen-home 已手动激活');
-      } else {
-        console.error('[init] ❌ #screen-home 不存在！请检查 home.html 是否正确加载');
-        var allScreens = document.querySelectorAll('.screen');
-        console.log('[init] 可用 screens:', Array.from(allScreens).map(function(s) { return s.id; }));
       }
     }
   } catch(e) {
@@ -73,7 +77,7 @@
   }
 
   // ═══════════════════════════════════════════════
-  //  3. 延迟渲染：将非首屏渲染推迟到空闲时执行
+  //  3. 延迟渲染
   // ═══════════════════════════════════════════════
   var deferredRenders = [
     function() { try { renderCharList(); }       catch(e) {} },
@@ -82,9 +86,6 @@
     function() { try { renderProfileStickers(); } catch(e) {} }
   ];
 
-  // ★ renderGroups 和 renderMoments 依赖延迟加载的模块，
-  //   放到延迟脚本加载完成后再执行（见 screen-loader.js 末尾）
-  // 如果对应函数已存在（非延迟加载模式），也在这里调度
   if (typeof renderGroups === 'function') {
     deferredRenders.push(function() { try { renderGroups(); } catch(e) {} });
   }
@@ -99,22 +100,39 @@
   deferredRenders.forEach(function(renderFn) {
     scheduleIdle(function() {
       renderFn();
+
+      // ★★★ 新增：每次延迟渲染后检查数据完整性 ★★★
+      if (state.characters.length !== _postLoadChars && _postLoadChars > 0) {
+        console.error('[init] ⚠️ 延迟渲染后角色数量变化！',
+          _postLoadChars, '->', state.characters.length,
+          '| 渲染函数:', renderFn.toString().slice(0, 80));
+      }
     });
   });
 
   // ═══════════════════════════════════════════════
-  //  4. 时间更新 + 自动保存（合并为单一定时器）
+  //  4. 时间更新 + 自动保存
   // ═══════════════════════════════════════════════
   try { updatePhoneTime(); } catch(e) {}
 
   var _tickTimer = setInterval(function() {
     try { updatePhoneTime(); } catch(e) {}
-    try { saveState(); } catch(e) { console.error('auto-save failed:', e); }
+
+    // ★★★ 修复：自动保存前检查状态完整性 ★★★
+    try {
+      if (typeof isStateLoaded === 'function' && !isStateLoaded()) {
+        console.warn('[auto-save] 状态尚未加载完成，跳过自动保存');
+        return;
+      }
+      saveState();
+    } catch(e) {
+      console.error('auto-save failed:', e);
+    }
   }, 30000);
 
   window.__autoSaveTimer = _tickTimer;
 
-  // ── 5. 重启自动 Moment 定时器（如果函数已存在） ──
+  // ── 5. 重启自动 Moment 定时器 ──
   try {
     if (typeof restartAllAutoMoments === 'function') {
       restartAllAutoMoments();
@@ -125,25 +143,50 @@
   //  6. ★★★ 数据持久化保障 ★★★
   // ═══════════════════════════════════════════════
 
-  // (A) 页面关闭/刷新前保存
   window.addEventListener('beforeunload', function() {
     try { saveState(); } catch(e) { console.error('beforeunload save failed:', e); }
   });
 
-  // (B) 切换标签页/最小化时保存（移动端更可靠）
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'hidden') {
       try { saveState(); } catch(e) { console.error('visibilitychange save failed:', e); }
     }
   });
 
-  // (C) 移动端 pagehide 事件（iOS Safari 专用）
   window.addEventListener('pagehide', function() {
     try { saveState(); } catch(e) { console.error('pagehide save failed:', e); }
   });
 
   // ═══════════════════════════════════════════════
-  //  7. 控制台输出
+  //  7. ★★★ 新增：延迟数据完整性终检 ★★★
+  // ═══════════════════════════════════════════════
+  setTimeout(function() {
+    var finalChars = state.characters.length;
+    var finalChats = Object.keys(state.chats).length;
+
+    if (_postLoadChars > 0 && finalChars === 0) {
+      console.error('[init] 🚨 严重：初始化后角色数据被清空！',
+        '加载时:', _postLoadChars, '当前:', finalChars,
+        '— 正在从 localStorage 恢复...');
+      // 紧急恢复
+      try {
+        var emergencyData = _loadAccountData(accountStore.currentAccountId);
+        if (emergencyData) {
+          _applyDataToState(emergencyData);
+          _validateState();
+          console.log('[init] ✅ 紧急恢复成功 | chars:', state.characters.length);
+          try { renderCharList(); } catch(e) {}
+        }
+      } catch(e) {
+        console.error('[init] ❌ 紧急恢复失败:', e);
+      }
+    } else {
+      console.log('[init] ✅ 数据完整性检查通过 | chars:', finalChars, '| chats:', finalChats);
+    }
+  }, 3000);
+
+  // ═══════════════════════════════════════════════
+  //  8. 控制台输出
   // ═══════════════════════════════════════════════
   try {
     var acct = getCurrentAccount();

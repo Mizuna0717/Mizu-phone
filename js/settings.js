@@ -3,15 +3,17 @@
 
 // ★★★ 初始化提示词（由 init.js 在 loadState 之后调用） ★★★
 function initSystemPrompts() {
-  // 安全检查：必须在账号加载完成后才能执行
   if (!accountStore || !accountStore.currentAccountId) {
     console.warn('[initSystemPrompts] 账号未就绪，跳过');
     return;
   }
 
+  // ★★★ 修复：先记录原始数据，确保不会因为保存而丢失已有数据 ★★★
+  var origChars = state.characters.length;
+  var origChats = Object.keys(state.chats).length;
+
   var needSave = false;
 
-  // iMessage 提示词：未设置时写入默认值
   if (!state.systemPromptIM) {
     if (state.replyPrompt && state.replyPrompt !== (typeof DEFAULT_REPLY_PROMPT !== 'undefined' ? DEFAULT_REPLY_PROMPT : '')) {
       state.systemPromptIM = state.replyPrompt;
@@ -21,19 +23,28 @@ function initSystemPrompts() {
     needSave = true;
   }
 
-  // Meeting 提示词：未设置时写入默认值
   if (!state.systemPromptMeeting) {
     state.systemPromptMeeting = (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
     needSave = true;
   }
 
   if (needSave) {
+    // ★ 验证：保存前确认核心数据未被破坏
+    if (state.characters.length !== origChars) {
+      console.error('[initSystemPrompts] ⚠️ 角色数量在初始化过程中发生变化！', origChars, '->', state.characters.length);
+    }
     saveState();
-    console.log('[initSystemPrompts] 已初始化默认提示词并保存 | IM长度:', state.systemPromptIM.length, '| Meeting长度:', state.systemPromptMeeting.length);
+    console.log('[initSystemPrompts] 已初始化默认提示词并保存 | IM长度:', state.systemPromptIM.length,
+      '| Meeting长度:', state.systemPromptMeeting.length,
+      '| chars:', state.characters.length, '(应为' + origChars + ')');
   } else {
-    console.log('[initSystemPrompts] 提示词已存在，无需初始化 | IM长度:', state.systemPromptIM.length, '| Meeting长度:', state.systemPromptMeeting.length);
+    console.log('[initSystemPrompts] 提示词已存在，无需初始化 | IM长度:', state.systemPromptIM.length,
+      '| Meeting长度:', state.systemPromptMeeting.length);
   }
 }
+
+// 其余代码保持不变（renderSettings, saveApi, deleteApi 等已正确调用 saveState）
+
 
 // ★★★ 核心修复：获取有效提示词值（state > 默认值，绝不返回空） ★★★
 function _getEffectivePromptIM() {
