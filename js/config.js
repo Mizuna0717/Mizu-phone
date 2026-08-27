@@ -315,7 +315,8 @@ const LANG = {
     meetingCreateFirst:'Tap + to create a new session',
     meetingNoCharsAvail:'No characters available',
     meetingNoCharsSelected:'No characters',
-    meetingNameRequired:'Session name is required',
+    meetingNameRequired:'Session name is required',meetingContextCount:    'Context Count',
+
     meetingWords:'words',
     meetingTurns:'turns',
     meetingSystem:'System',
@@ -478,7 +479,8 @@ const LANG = {
     meetingGenerating:'\u751f\u6210\u4e2d...',
     meetingDemoIntro:'\u6545\u4e8b\u4ece\u8fd9\u91cc\u5f00\u59cb...',
     meetingDemoChar:'\u89d2\u8272\u56de\u5e94...',
-    meetingDemoUser:'\u4f60\u7ee7\u7eed\u6545\u4e8b...',
+    meetingDemoUser:'\u4f60\u7ee7\u7eed\u6545\u4e8b...',meetingContextCount:    '\u4e0a\u4e0b\u6587\u6761\u6570',
+
 
     csTimeAwarenessSub:'当前日期和时间',
     csEnableTime:'启用时间感知',

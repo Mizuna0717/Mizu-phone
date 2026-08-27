@@ -456,6 +456,10 @@ function openMeetingNewArchive() {
   var iv = document.getElementById('mtgNewSummaryInterval');
   if (iv) iv.value = '5';
 
+  var cc = document.getElementById('mtgNewContextCount');
+  if (cc) cc.value = '50';
+
+
   var wv = document.getElementById('mtgNewWorldview');
   if (wv) wv.value = '';
   var ident = document.getElementById('mtgNewIdentity');
@@ -513,6 +517,9 @@ function mtgCreateArchive() {
   var turnSummary = tsEl ? tsEl.classList.contains('active') : false;
   var summaryInterval = parseInt((document.getElementById('mtgNewSummaryInterval') || {}).value) || MTG_DEFAULT_SUMMARY_INTERVAL;
 
+  var contextCount = parseInt((document.getElementById('mtgNewContextCount') || {}).value) || 50;
+
+
   var wv = '', ident = '';
   if (mode === 'if') {
     wv = (document.getElementById('mtgNewWorldview') || {}).value || '';
@@ -533,6 +540,7 @@ function mtgCreateArchive() {
     wc: { min: wcMin, max: wcMax },
     turnSummary: turnSummary,
     summaryInterval: summaryInterval,
+    contextCount: contextCount,
     worldview: wv.trim(),
     identity: ident.trim(),
     history: [],
@@ -656,6 +664,10 @@ function mtgFillSettingsPage(s) {
   var intEl = document.getElementById('mtgSettingsSummaryInterval');
   if (intEl) intEl.value = s.summaryInterval || MTG_DEFAULT_SUMMARY_INTERVAL;
 
+  var ccEl = document.getElementById('mtgSettingsContextCount');
+  if (ccEl) ccEl.value = s.contextCount || 50;
+
+ 
   // Render memory list
   mtgRenderSettingsMemory();
 }
@@ -717,6 +729,8 @@ function mtgSaveSettings() {
   s.wc.min = parseInt((document.getElementById('mtgSettingsWcMin') || {}).value) || 100;
   s.wc.max = parseInt((document.getElementById('mtgSettingsWcMax') || {}).value) || 300;
   s.summaryInterval = parseInt((document.getElementById('mtgSettingsSummaryInterval') || {}).value) || MTG_DEFAULT_SUMMARY_INTERVAL;
+  s.contextCount = parseInt((document.getElementById('mtgSettingsContextCount') || {}).value) || 50;
+
 
   saveState();
   showToast(T('meetingSaveChanges'));
@@ -1173,30 +1187,37 @@ async function mtgAiRespond(session) {
   mtgShowTyping();
 
   try {
+    // ── 逐角色生成，各自独立 try/catch ──
     for (var i = 0; i < session.charIds.length; i++) {
       var charId = session.charIds[i];
       var ch = mtgGetCharById(charId);
       if (!ch) continue;
 
-      var sysPrompt = mtgBuildSystemPrompt(session, ch);
-      var ctxMsgs = mtgBuildContextMessages(session, ch);
-      var messages = [{ role: 'system', content: sysPrompt }].concat(ctxMsgs);
+      try {
+        var sysPrompt = mtgBuildSystemPrompt(session, ch);
+        var ctxMsgs = mtgBuildContextMessages(session, ch);
+        var messages = [{ role: 'system', content: sysPrompt }].concat(ctxMsgs);
 
-      var reply = await sendChat(api, messages);
-      if (reply && reply.trim()) {
-        var newEntry = {
-          id: mtgUid(), role: 'char', charName: ch.name, charId: ch.id,
-          content: reply.trim(), timestamp: Date.now()
-        };
-        session.history.push(newEntry);
-        mtgHideTyping();
-        mtgAppendCard(newEntry);
-        if (i < session.charIds.length - 1) mtgShowTyping();
+        var reply = await sendChat(api, messages);
+        if (reply && reply.trim()) {
+          var newEntry = {
+            id: mtgUid(), role: 'char', charName: ch.name, charId: ch.id,
+            content: reply.trim(), timestamp: Date.now()
+          };
+          session.history.push(newEntry);
+          mtgHideTyping();
+          mtgAppendCard(newEntry);
+          if (i < session.charIds.length - 1) mtgShowTyping();
+        }
+      } catch (charErr) {
+        // 单角色失败：记录错误，继续下一个角色
+        console.error('[Meeting AI] Character "' + ch.name + '" failed:', charErr);
       }
     }
 
     saveState();
 
+    // ── 回合摘要（仅写入 shortTermMemory，不写入 history）──
     if (session.turnSummary && session.summaryInterval > 0 &&
         session.turnCount > 0 && session.turnCount % session.summaryInterval === 0) {
       await mtgDoSummary(session);
@@ -1210,6 +1231,8 @@ async function mtgAiRespond(session) {
     mtgHideTyping();
   }
 }
+
+
 
 async function mtgGenerateInitialScene(session) {
   var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
@@ -1287,13 +1310,26 @@ function mtgBuildSystemPrompt(session, ch) {
   return p;
 }
 
-/* ── Build Context Messages ── */
+/* ── Build Context Messages (with contextCount + mode logic) ── */
 function mtgBuildContextMessages(session, ch) {
+  var N = session.contextCount || 50;
   var msgs = [];
 
-  if (session.mode === 'continue' && ch) {
+  // 收集 Meeting 历史（排除 summary）
+  var meetingEntries = (session.history || []).filter(function(e) {
+    return e.role !== 'summary';
+  });
+  var M = meetingEntries.length;
+
+  // 确定要发送的 Meeting 条目
+  var meetingToSend = (M >= N) ? meetingEntries.slice(-N) : meetingEntries;
+
+  // ── iMessage 补充：仅限 Continue 模式，且 Meeting 记录不足时 ──
+  // IF 模式绝不补充 iMessage
+  if (session.mode === 'continue' && M < N && ch) {
+    var imsgNeeded = N - M;
     var chatHist = (state.chats && state.chats[ch.id]) ? state.chats[ch.id] : [];
-    var recent = chatHist.slice(-MTG_CONTEXT_COUNT);
+    var recent = chatHist.slice(-imsgNeeded);
     if (recent.length > 0) {
       var ctx = '[Previous conversation between ' + ch.name + ' and the user — for context only]\n\n';
       recent.forEach(function(m) {
@@ -1310,7 +1346,8 @@ function mtgBuildContextMessages(session, ch) {
     }
   }
 
-  (session.history || []).forEach(function(entry) {
+  // ── Meeting 条目 ──
+  meetingToSend.forEach(function(entry) {
     if (entry.role === 'user') {
       msgs.push({ role: 'user', content: entry.content });
     } else if (entry.role === 'char') {
@@ -1326,7 +1363,6 @@ function mtgBuildContextMessages(session, ch) {
 
   return msgs;
 }
-
 /* ── Turn Summary ── */
 async function mtgDoSummary(session) {
   var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
@@ -1361,11 +1397,8 @@ async function mtgDoSummary(session) {
       if (!session.shortTermMemory) session.shortTermMemory = [];
       session.shortTermMemory.push(mem);
 
-      session.history.push({
-        id: mtgUid(), role: 'summary', content: summary.trim(),
-        round: session.turnCount, timestamp: Date.now()
-      });
-
+      // ★ 已移除: 不再将 summary 写入 session.history ★
+      // 仅做当次会话的即时可视展示
       mtgAppendSummary(session.turnCount, summary.trim());
       saveState();
     }
