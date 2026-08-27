@@ -1,39 +1,184 @@
 <!-- WIKI -->
 <div class="screen" id="screen-wiki">
 	<div class="nav-bar">
-		<button class="nav-btn" onclick="nav('screen-home')"><svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+		<button class="nav-btn" onclick="nav('screen-home')">
+			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
 		<span class="nav-title">Wiki</span>
-		<button class="nav-btn nav-right" onclick=""><svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg></button>
+		<button class="nav-btn nav-right" id="wiki-nav-add-btn" onclick="wikiNavAddAction()">
+			<svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		</button>
 	</div>
 	<div class="large-title">Wiki</div>
-	<div class="screen-body">
-		<div style="margin:0 16px 16px;position:relative">
-			<svg viewBox="0 0 18 18" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="8" r="5.5"/><path d="M12 12l4 4"/></svg>
-			<input placeholder="Search characters..." style="width:100%;padding:10px 14px 10px 36px;border:none;border-radius:10px;background:#fff;font-size:15px;outline:none;color:#1d1d1f;border:1px solid #ececec"/>
-		</div>
-		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/></svg><span>CHARACTERS</span></div>
-		<div style="margin:0 16px 16px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
-			<div style="display:flex;align-items:center;padding:14px 16px;gap:14px;cursor:pointer;border-bottom:1px solid #f2f2f7">
-				<div style="width:44px;height:44px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 20 20" style="width:20px;height:20px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="10" cy="8" r="3.5"/><path d="M4 18c0-3.5 2.5-6 6-6s6 2.5 6 6"/></svg></div>
-				<div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:500;color:#1d1d1f">No characters yet</div><div style="font-size:12px;color:#8e8e93;margin-top:2px">Create characters in iMessage first</div></div>
-			</div>
-		</div>
-		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
-			<div style="display:flex;align-items:center;gap:8px"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/><path d="M11 3h3M12.5 1.5v3" stroke-width="1.8"/></svg><span>NPCs</span></div>
-			<button style="background:none;border:none;cursor:pointer;padding:4px 8px;display:flex;align-items:center;gap:4px;font-size:13px;color:#3a3a3c;font-weight:600" onclick=""><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#3a3a3c;fill:none;stroke-width:2"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg><span>New</span></button>
-		</div>
-		<div style="text-align:center;padding:30px;color:#8e8e93;font-size:14px">
-			<svg viewBox="0 0 44 44" style="width:40px;height:40px;stroke:#d1d1d6;fill:none;stroke-width:1;margin-bottom:8px;display:block;margin:0 auto 8px"><circle cx="22" cy="16" r="6"/><path d="M10 36c0-7 5-12 12-12s12 5 12 12"/><circle cx="10" cy="20" r="4"/><circle cx="34" cy="20" r="4"/></svg>
-			<div style="line-height:1.5">No NPCs yet<br><span style="font-size:12px">Supporting characters for your world</span></div>
-		</div>
-		<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M2 8h3l2-3 3 6 2-3h3"/></svg><span>RELATIONSHIPS</span></div>
-		<div style="margin:0 16px 16px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
-			<div style="padding:20px;text-align:center">
-				<svg viewBox="0 0 60 40" style="width:120px;height:80px;stroke:#d1d1d6;fill:none;stroke-width:1;margin-bottom:8px"><circle cx="15" cy="15" r="8"/><circle cx="45" cy="15" r="8"/><circle cx="30" cy="32" r="6"/><path d="M22 18l5 11" stroke-dasharray="2 2"/><path d="M38 18l-5 11" stroke-dasharray="2 2"/><path d="M23 15h14" stroke-dasharray="2 2"/></svg>
-				<div style="font-size:14px;color:#8e8e93;line-height:1.5">No relationships defined<br><span style="font-size:12px">Connect characters and NPCs</span></div>
-			</div>
-		</div>
-		<div style="padding:0 16px 16px"><div style="width:100%;padding:14px;border:none;font-size:16px;font-weight:600;cursor:pointer;border-radius:12px;background:#1d1d1f;color:#fff;text-align:center"><div style="display:flex;align-items:center;justify-content:center;gap:8px"><svg viewBox="0 0 16 16" style="width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2"><path d="M2 8h3l2-3 3 6 2-3h3"/></svg><span>Add Relationship</span></div></div></div>
-		<div style="height:40px"></div>
+
+	<!-- ========== Tab Bar ========== -->
+	<div class="wiki-tab-bar">
+		<button class="wiki-tab active" data-tab="characters" onclick="switchWikiTab('characters')">角色</button>
+		<button class="wiki-tab" data-tab="relationships" onclick="switchWikiTab('relationships')">关系网</button>
+		<button class="wiki-tab" data-tab="schedule" onclick="switchWikiTab('schedule')">日程表</button>
 	</div>
-</div>
+
+	<div class="screen-body">
+
+		<!-- ========== Tab: 角色 ========== -->
+		<div class="wiki-tab-content active" id="wiki-tab-characters">
+			<div style="margin:0 16px 16px;position:relative">
+				<svg viewBox="0 0 18 18" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="8" r="5.5"/><path d="M12 12l4 4"/></svg>
+				<input placeholder="Search characters..." style="width:100%;padding:10px 14px 10px 36px;border:none;border-radius:10px;background:#fff;font-size:15px;outline:none;color:#1d1d1f;border:1px solid #ececec"/>
+			</div>
+
+			<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px">
+				<svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/></svg>
+				<span>CHARACTERS</span>
+			</div>
+			<div style="margin:0 16px 16px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
+				<div style="display:flex;align-items:center;padding:14px 16px;gap:14px;cursor:pointer;border-bottom:1px solid #f2f2f7">
+					<div style="width:44px;height:44px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+						<svg viewBox="0 0 20 20" style="width:20px;height:20px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="10" cy="8" r="3.5"/><path d="M4 18c0-3.5 2.5-6 6-6s6 2.5 6 6"/></svg>
+					</div>
+					<div style="flex:1;min-width:0">
+						<div style="font-size:16px;font-weight:500;color:#1d1d1f">No characters yet</div>
+						<div style="font-size:12px;color:#8e8e93;margin-top:2px">Create characters in iMessage first</div>
+					</div>
+				</div>
+			</div>
+
+			<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
+				<div style="display:flex;align-items:center;gap:8px">
+					<svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/><path d="M11 3h3M12.5 1.5v3" stroke-width="1.8"/></svg>
+					<span>NPCs</span>
+				</div>
+				<button style="background:none;border:none;cursor:pointer;padding:4px 8px;display:flex;align-items:center;gap:4px;font-size:13px;color:#3a3a3c;font-weight:600" onclick="">
+					<svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#3a3a3c;fill:none;stroke-width:2"><path d="M8 2v12M2 8h12" stroke-linecap="round"/></svg>
+					<span>New</span>
+				</button>
+			</div>
+			<div style="text-align:center;padding:30px;color:#8e8e93;font-size:14px">
+				<svg viewBox="0 0 44 44" style="width:40px;height:40px;stroke:#d1d1d6;fill:none;stroke-width:1;margin-bottom:8px;display:block;margin:0 auto 8px"><circle cx="22" cy="16" r="6"/><path d="M10 36c0-7 5-12 12-12s12 5 12 12"/><circle cx="10" cy="20" r="4"/><circle cx="34" cy="20" r="4"/></svg>
+				<div style="line-height:1.5">No NPCs yet<br><span style="font-size:12px">Supporting characters for your world</span></div>
+			</div>
+			<div style="height:40px"></div>
+		</div>
+
+		<!-- ========== Tab: 关系网 ========== -->
+		<div class="wiki-tab-content" id="wiki-tab-relationships">
+			<div style="padding:20px 20px 8px;font-size:13px;color:#8e8e93;text-transform:uppercase;letter-spacing:.5px;font-weight:600;display:flex;align-items:center;gap:8px">
+				<svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M2 8h3l2-3 3 6 2-3h3"/></svg>
+				<span>RELATIONSHIPS</span>
+			</div>
+			<div style="margin:0 16px 16px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
+				<div style="padding:20px;text-align:center">
+					<svg viewBox="0 0 60 40" style="width:120px;height:80px;stroke:#d1d1d6;fill:none;stroke-width:1;margin-bottom:8px"><circle cx="15" cy="15" r="8"/><circle cx="45" cy="15" r="8"/><circle cx="30" cy="32" r="6"/><path d="M22 18l5 11" stroke-dasharray="2 2"/><path d="M38 18l-5 11" stroke-dasharray="2 2"/><path d="M23 15h14" stroke-dasharray="2 2"/></svg>
+					<div style="font-size:14px;color:#8e8e93;line-height:1.5">No relationships defined<br><span style="font-size:12px">Connect characters and NPCs</span></div>
+				</div>
+			</div>
+			<div style="padding:0 16px 16px">
+				<div style="width:100%;padding:14px;border:none;font-size:16px;font-weight:600;cursor:pointer;border-radius:12px;background:#1d1d1f;color:#fff;text-align:center">
+					<div style="display:flex;align-items:center;justify-content:center;gap:8px">
+						<svg viewBox="0 0 16 16" style="width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2"><path d="M2 8h3l2-3 3 6 2-3h3"/></svg>
+						<span>Add Relationship</span>
+					</div>
+				</div>
+			</div>
+			<div style="height:40px"></div>
+		</div>
+
+		<!-- ========== Tab: 日程表 ========== -->
+		<div class="wiki-tab-content" id="wiki-tab-schedule">
+			<div class="schedule-header">
+				<div class="schedule-header-left">
+					<svg class="schedule-header-icon" viewBox="0 0 16 16">
+						<rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+						<path d="M5 1v3M11 1v3M2 7h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+					</svg>
+					<span>角色日程表</span>
+				</div>
+				<button class="schedule-add-btn" onclick="openScheduleAddModal()">
+					<svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+					<span>添加</span>
+				</button>
+			</div>
+
+			<div class="schedule-filter-bar">
+				<button class="schedule-filter active" data-filter="all" onclick="filterSchedule('all')">全部</button>
+				<button class="schedule-filter" data-filter="pending" onclick="filterSchedule('pending')">待进行</button>
+				<button class="schedule-filter" data-filter="completed" onclick="filterSchedule('completed')">已完成</button>
+			</div>
+
+			<div class="schedule-timeline" id="schedule-timeline">
+				<!-- JS 动态渲染 -->
+			</div>
+			<div style="height:40px"></div>
+		</div>
+
+	</div><!-- /.screen-body -->
+
+	<!-- ========== Modal: 添加日程 ========== -->
+	<div class="wiki-modal-overlay" id="schedule-add-modal">
+		<div class="wiki-modal-bg" onclick="closeScheduleAddModal()"></div>
+		<div class="wiki-modal">
+			<div class="wiki-modal-handle"></div>
+			<div class="wiki-modal-header">
+				<button class="wiki-modal-btn" onclick="closeScheduleAddModal()">取消</button>
+				<span class="wiki-modal-title">添加日程</span>
+				<button class="wiki-modal-btn primary" onclick="closeScheduleAddModal()">保存</button>
+			</div>
+			<div class="wiki-modal-body">
+				<div class="modal-form-group">
+					<label class="modal-label">
+						<svg viewBox="0 0 16 16" class="modal-label-icon"><path d="M3 3h10M3 8h7M3 13h5" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg>
+						事件标题
+					</label>
+					<input type="text" class="modal-input" placeholder="输入日程标题..." />
+				</div>
+				<div class="modal-form-row">
+					<div class="modal-form-group" style="flex:1">
+						<label class="modal-label">
+							<svg viewBox="0 0 16 16" class="modal-label-icon"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v3M11 1v3M2 7h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+							日期
+						</label>
+						<input type="date" class="modal-input" />
+					</div>
+					<div class="modal-form-group" style="flex:1">
+						<label class="modal-label">
+							<svg viewBox="0 0 16 16" class="modal-label-icon"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+							时间
+						</label>
+						<input type="time" class="modal-input" />
+					</div>
+				</div>
+				<div class="modal-form-group">
+					<label class="modal-label">
+						<svg viewBox="0 0 16 16" class="modal-label-icon"><circle cx="6" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 14c0-3 2-5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 14c0-2.5 1.5-4 4-4s4 1.5 4 4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+						参与角色
+					</label>
+					<input type="text" class="modal-input" placeholder="例如：林夏, 陈远" />
+				</div>
+				<div class="modal-form-group">
+					<label class="modal-label">
+						<svg viewBox="0 0 16 16" class="modal-label-icon"><rect x="2" y="2" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 6h6M5 9h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+						描述
+					</label>
+					<textarea class="modal-textarea" placeholder="简短描述这个日程..." rows="3"></textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- ========== Modal: 日程详情 ========== -->
+	<div class="wiki-modal-overlay" id="schedule-detail-modal">
+		<div class="wiki-modal-bg" onclick="closeScheduleDetailModal()"></div>
+		<div class="wiki-modal">
+			<div class="wiki-modal-handle"></div>
+			<div class="wiki-modal-header">
+				<button class="wiki-modal-btn" onclick="closeScheduleDetailModal()">关闭</button>
+				<span class="wiki-modal-title">日程详情</span>
+				<button class="wiki-modal-btn primary" onclick="closeScheduleDetailModal()">编辑</button>
+			</div>
+			<div class="wiki-modal-body" id="schedule-detail-body">
+				<!-- JS 动态填充 -->
+			</div>
+		</div>
+	</div>
+
+</div><!-- /#screen-wiki -->

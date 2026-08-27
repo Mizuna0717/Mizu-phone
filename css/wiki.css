@@ -1,0 +1,652 @@
+/* ==========================================================================
+   Wiki Module — Tab Bar
+   ========================================================================== */
+
+.wiki-tab-bar {
+	display: flex;
+	margin: 4px 16px 8px;
+	padding: 3px;
+	background: #e8e8ed;
+	border-radius: 10px;
+	gap: 0;
+}
+
+.wiki-tab {
+	flex: 1;
+	padding: 7px 0;
+	border: none;
+	background: transparent;
+	font-size: 13px;
+	font-weight: 600;
+	color: #8e8e93;
+	cursor: pointer;
+	border-radius: 8px;
+	transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+	-webkit-tap-highlight-color: transparent;
+	user-select: none;
+	font-family: -apple-system, 'Inter', system-ui, sans-serif;
+}
+
+.wiki-tab.active {
+	background: #fff;
+	color: #1d1d1f;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+/* ==========================================================================
+   Wiki Module — Tab Content Switching
+   ========================================================================== */
+
+.wiki-tab-content {
+	display: none;
+}
+
+.wiki-tab-content.active {
+	display: block;
+	animation: wikiTabFadeIn 0.3s ease forwards;
+}
+
+@keyframes wikiTabFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ==========================================================================
+   Schedule — Header
+   ========================================================================== */
+
+.schedule-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 20px 8px;
+}
+
+.schedule-header-left {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 18px;
+	font-weight: 700;
+	color: #1d1d1f;
+	font-family: -apple-system, 'Inter', system-ui, sans-serif;
+}
+
+.schedule-header-icon {
+	width: 20px;
+	height: 20px;
+	color: #1d1d1f;
+}
+
+.schedule-add-btn {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 6px 12px;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	background: #fff;
+	font-size: 13px;
+	font-weight: 600;
+	color: #333;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: inherit;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.schedule-add-btn:active {
+	background: #f0f0f0;
+	transform: scale(0.97);
+}
+
+.schedule-add-btn svg {
+	width: 14px;
+	height: 14px;
+	color: #333;
+}
+
+/* ==========================================================================
+   Schedule — Filter Bar
+   ========================================================================== */
+
+.schedule-filter-bar {
+	display: flex;
+	gap: 8px;
+	padding: 8px 20px 12px;
+}
+
+.schedule-filter {
+	padding: 5px 14px;
+	border: 1px solid #e0e0e0;
+	border-radius: 20px;
+	background: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	color: #8e8e93;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: inherit;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.schedule-filter.active {
+	background: #1d1d1f;
+	color: #fff;
+	border-color: #1d1d1f;
+}
+
+.schedule-filter:active {
+	transform: scale(0.96);
+}
+
+/* ==========================================================================
+   Schedule — Timeline
+   ========================================================================== */
+
+.schedule-timeline {
+	padding: 0 16px;
+}
+
+.schedule-date-group {
+	margin-bottom: 20px;
+}
+
+.schedule-date-label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #8e8e93;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	padding: 0 4px 10px;
+}
+
+.schedule-date-label svg {
+	width: 13px;
+	height: 13px;
+	color: #8e8e93;
+}
+
+.schedule-items {
+	background: #fff;
+	border-radius: 14px;
+	border: 1px solid #ececec;
+	overflow: hidden;
+}
+
+.schedule-item {
+	display: flex;
+	gap: 12px;
+	padding: 14px 16px;
+	cursor: pointer;
+	transition: background 0.15s ease;
+	border-bottom: 1px solid #f2f2f7;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.schedule-item:last-child {
+	border-bottom: none;
+}
+
+.schedule-item:active {
+	background: #f8f8f8;
+}
+
+/* Timeline indicator column */
+.schedule-item-indicator {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 18px;
+	flex-shrink: 0;
+	padding-top: 3px;
+}
+
+.schedule-dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	border: 2px solid #d1d1d6;
+	background: #fff;
+	cursor: pointer;
+	flex-shrink: 0;
+	transition: all 0.25s ease;
+	position: relative;
+}
+
+.schedule-dot.completed {
+	background: #1d1d1f;
+	border-color: #1d1d1f;
+}
+
+/* Checkmark inside completed dot */
+.schedule-dot.completed::after {
+	content: '';
+	position: absolute;
+	top: 1.5px;
+	left: 3px;
+	width: 3px;
+	height: 5px;
+	border-right: 1.5px solid #fff;
+	border-bottom: 1.5px solid #fff;
+	transform: rotate(40deg);
+}
+
+.schedule-item-line {
+	flex: 1;
+	width: 1.5px;
+	background: #e5e5ea;
+	margin: 6px 0 2px;
+	min-height: 12px;
+}
+
+.schedule-item:last-child .schedule-item-line {
+	background: transparent;
+}
+
+/* Content column */
+.schedule-item-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.schedule-item-time {
+	font-size: 12px;
+	font-weight: 600;
+	color: #8e8e93;
+	margin-bottom: 2px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.schedule-item-time svg {
+	width: 11px;
+	height: 11px;
+	color: #8e8e93;
+}
+
+.schedule-item-title {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d1d1f;
+	margin-bottom: 4px;
+	line-height: 1.3;
+}
+
+.schedule-item.is-completed .schedule-item-title {
+	color: #b0b0b0;
+	text-decoration: line-through;
+}
+
+.schedule-item-characters {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	color: #636366;
+	margin-bottom: 4px;
+}
+
+.schedule-item-characters svg {
+	width: 12px;
+	height: 12px;
+	color: #8e8e93;
+	flex-shrink: 0;
+}
+
+.schedule-item-desc {
+	font-size: 13px;
+	color: #8e8e93;
+	line-height: 1.4;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* Status badge on the right */
+.schedule-item-status {
+	flex-shrink: 0;
+	align-self: flex-start;
+	margin-top: 2px;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.2px;
+}
+
+.schedule-item-status.pending {
+	background: #f5f5f5;
+	color: #8e8e93;
+	border: 1px solid #e0e0e0;
+}
+
+.schedule-item-status.completed {
+	background: #f0f0f0;
+	color: #636366;
+	border: 1px solid #d1d1d6;
+}
+
+/* Empty state */
+.schedule-empty {
+	text-align: center;
+	padding: 50px 20px;
+	color: #8e8e93;
+}
+
+.schedule-empty svg {
+	width: 48px;
+	height: 48px;
+	color: #d1d1d6;
+	margin-bottom: 12px;
+}
+
+.schedule-empty p {
+	font-size: 14px;
+	line-height: 1.5;
+	margin: 0;
+}
+
+.schedule-empty p span {
+	font-size: 12px;
+	color: #b0b0b0;
+}
+
+/* ==========================================================================
+   Wiki — Modal (Bottom Sheet)
+   ========================================================================== */
+
+.wiki-modal-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 200;
+	display: flex;
+	align-items: flex-end;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease;
+}
+
+.wiki-modal-overlay.active {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.wiki-modal-bg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.35);
+}
+
+.wiki-modal {
+	position: relative;
+	width: 100%;
+	background: #f5f5f5;
+	border-radius: 16px 16px 0 0;
+	max-height: 82%;
+	overflow-y: auto;
+	transform: translateY(100%);
+	transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+	-webkit-overflow-scrolling: touch;
+}
+
+.wiki-modal-overlay.active .wiki-modal {
+	transform: translateY(0);
+}
+
+.wiki-modal-handle {
+	width: 36px;
+	height: 4px;
+	background: #d1d1d6;
+	border-radius: 2px;
+	margin: 8px auto 0;
+}
+
+.wiki-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px 10px;
+	border-bottom: 1px solid #e5e5ea;
+}
+
+.wiki-modal-title {
+	font-size: 16px;
+	font-weight: 700;
+	color: #1d1d1f;
+}
+
+.wiki-modal-btn {
+	background: none;
+	border: none;
+	font-size: 15px;
+	font-weight: 500;
+	color: #8e8e93;
+	cursor: pointer;
+	padding: 4px 2px;
+	font-family: inherit;
+	min-width: 44px;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.wiki-modal-btn.primary {
+	color: #1d1d1f;
+	font-weight: 700;
+}
+
+.wiki-modal-body {
+	padding: 16px;
+}
+
+/* ==========================================================================
+   Modal — Form Elements
+   ========================================================================== */
+
+.modal-form-group {
+	margin-bottom: 16px;
+}
+
+.modal-form-row {
+	display: flex;
+	gap: 12px;
+}
+
+.modal-label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #636366;
+	margin-bottom: 6px;
+	font-family: inherit;
+}
+
+.modal-label-icon {
+	width: 14px;
+	height: 14px;
+	color: #8e8e93;
+}
+
+.modal-input {
+	width: 100%;
+	padding: 10px 14px;
+	border: 1px solid #e0e0e0;
+	border-radius: 10px;
+	background: #fff;
+	font-size: 15px;
+	color: #1d1d1f;
+	outline: none;
+	font-family: inherit;
+	transition: border-color 0.2s ease;
+	box-sizing: border-box;
+}
+
+.modal-input:focus {
+	border-color: #b0b0b0;
+}
+
+.modal-textarea {
+	width: 100%;
+	padding: 10px 14px;
+	border: 1px solid #e0e0e0;
+	border-radius: 10px;
+	background: #fff;
+	font-size: 15px;
+	color: #1d1d1f;
+	outline: none;
+	resize: vertical;
+	font-family: inherit;
+	transition: border-color 0.2s ease;
+	box-sizing: border-box;
+	min-height: 72px;
+}
+
+.modal-textarea:focus {
+	border-color: #b0b0b0;
+}
+
+/* ==========================================================================
+   Modal — Detail View
+   ========================================================================== */
+
+.detail-status-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 12px;
+	font-weight: 600;
+	margin-bottom: 16px;
+}
+
+.detail-status-badge.pending {
+	background: #fff;
+	color: #8e8e93;
+	border: 1px solid #e0e0e0;
+}
+
+.detail-status-badge.completed {
+	background: #1d1d1f;
+	color: #fff;
+	border: 1px solid #1d1d1f;
+}
+
+.detail-status-badge svg {
+	width: 12px;
+	height: 12px;
+}
+
+.detail-title {
+	font-size: 20px;
+	font-weight: 700;
+	color: #1d1d1f;
+	margin-bottom: 16px;
+	line-height: 1.3;
+}
+
+.detail-info-card {
+	background: #fff;
+	border-radius: 12px;
+	border: 1px solid #ececec;
+	overflow: hidden;
+	margin-bottom: 16px;
+}
+
+.detail-info-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 14px;
+	border-bottom: 1px solid #f2f2f7;
+}
+
+.detail-info-row:last-child {
+	border-bottom: none;
+}
+
+.detail-info-row svg {
+	width: 16px;
+	height: 16px;
+	color: #8e8e93;
+	flex-shrink: 0;
+}
+
+.detail-info-label {
+	font-size: 13px;
+	color: #8e8e93;
+	min-width: 48px;
+}
+
+.detail-info-value {
+	font-size: 15px;
+	color: #1d1d1f;
+	font-weight: 500;
+}
+
+.detail-desc-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #8e8e93;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	margin-bottom: 8px;
+}
+
+.detail-desc-body {
+	background: #fff;
+	border-radius: 12px;
+	border: 1px solid #ececec;
+	padding: 14px;
+	font-size: 15px;
+	color: #333;
+	line-height: 1.6;
+	margin-bottom: 16px;
+}
+
+.detail-toggle-btn {
+	width: 100%;
+	padding: 13px;
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	background: #fff;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d1d1f;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-family: inherit;
+	transition: all 0.2s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.detail-toggle-btn:active {
+	background: #f0f0f0;
+	transform: scale(0.98);
+}
+
+.detail-toggle-btn svg {
+	width: 16px;
+	height: 16px;
+}

@@ -293,6 +293,7 @@ var scripts = [
     'js/archive.js',
     'js/cloud.js',
     'js/auth.js',
+    'js/wiki.js',
     'js/init.js',
 ];
 
