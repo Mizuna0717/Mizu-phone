@@ -9,7 +9,7 @@
   var SUPABASE_URL      = 'https://rnhsuityufzkllaxflgw.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuaHN1aXR5dWZ6a2xsYXhmbGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5NzA1NTIsImV4cCI6MjEwMzU0NjU1Mn0.sRHOHePQxhGT4ho8lzQTPukbTTxtLIskyGZKizDFALc';
   var SUPABASE_REF      = 'rnhsuityufzkllaxflgw';
-  var EMAIL_SUFFIX      = '@qq.mizu.phone';
+  var EMAIL_SUFFIX      = '@qq.com';    // ★ 修复：使用合法邮箱域名
 
   // ═══════════════════════════════════════════════
   //  1. 初始化 Supabase Client
@@ -29,14 +29,12 @@
 
   // ═══════════════════════════════════════════════
   //  2. 同步 Session 检测（localStorage，阻塞式）
-  //     → 在 screen-loader / init.js 运行前就决定是否需要认证
   // ═══════════════════════════════════════════════
   var hasLocalSession = false;
   try {
     var raw = localStorage.getItem('sb-' + SUPABASE_REF + '-auth-token');
     if (raw) {
       var parsed = JSON.parse(raw);
-      // Supabase v2 存储格式
       if (parsed && (parsed.access_token ||
           (parsed.currentSession && parsed.currentSession.access_token))) {
         hasLocalSession = true;
@@ -81,7 +79,6 @@
     if (appEl) { appEl.style.display = ''; appEl.style.visibility = 'visible'; appEl.style.opacity = '1'; }
   }
 
-  /** DOM 就绪后执行 */
   function whenReady(fn) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', fn);
@@ -91,7 +88,24 @@
   }
 
   // ═══════════════════════════════════════════════
-  //  4. 用户数据管理
+  //  4. QQ 号 ↔ Email 转换
+  // ═══════════════════════════════════════════════
+
+  /** QQ 号 → 邮箱（传给 Supabase）*/
+  function qqToEmail(qq) {
+    return qq + EMAIL_SUFFIX;
+  }
+
+  /** 邮箱 → QQ 号（从 Supabase 数据中提取）*/
+  function emailToQQ(email) {
+    if (!email) return '';
+    // 兼容旧后缀和新后缀
+    return email.replace(/@qq\.com$/i, '')
+                .replace(/@qq\.mizu\.phone$/i, '');
+  }
+
+  // ═══════════════════════════════════════════════
+  //  5. 用户数据管理
   // ═══════════════════════════════════════════════
   function setUserFromSession(session) {
     if (!session || !session.user) return;
@@ -100,7 +114,7 @@
     var info = {
       id:     u.id,
       email:  u.email,
-      qq:     meta.qq || (u.email || '').replace(EMAIL_SUFFIX, ''),
+      qq:     meta.qq || emailToQQ(u.email),   // ★ 优先用 metadata 中的 qq，否则从 email 提取
       name:   meta.user_name || 'User',
       avatar: meta.avatar || null
     };
@@ -115,7 +129,7 @@
   }
 
   // ═══════════════════════════════════════════════
-  //  5. 表单 UI 控制
+  //  6. 表单 UI 控制
   // ═══════════════════════════════════════════════
   var currentMode = 'login';
 
@@ -127,11 +141,11 @@
     if (mode === 'login') {
       if (lf) lf.style.display = 'block';
       if (rf) rf.style.display = 'none';
-      if (tt) tt.textContent = '\u767B\u5F55';         // 登录
+      if (tt) tt.textContent = '\u767B\u5F55';
     } else {
       if (lf) lf.style.display = 'none';
       if (rf) rf.style.display = 'block';
-      if (tt) tt.textContent = '\u6CE8\u518C';         // 注册
+      if (tt) tt.textContent = '\u6CE8\u518C';
     }
     clearAuthError();
   }
@@ -160,9 +174,8 @@
   }
 
   // ═══════════════════════════════════════════════
-  //  6. 注册 / 登录 / 退出
+  //  7. 注册 / 登录 / 退出
   // ═══════════════════════════════════════════════
-  function qqToEmail(qq) { return qq + EMAIL_SUFFIX; }
 
   /** ─── 注册 ─── */
   async function handleRegister() {
@@ -175,31 +188,52 @@
     qq   = qq.trim();
     name = name.trim();
 
+    // ── 前端校验 ──
     if (!qq)                  { showAuthError('请输入 QQ 号');         return; }
     if (!/^\d+$/.test(qq))    { showAuthError('QQ 号必须为纯数字');    return; }
+    if (qq.length < 5 || qq.length > 12) { showAuthError('QQ 号长度应为 5~12 位'); return; }
     if (!name)                { showAuthError('请输入用户名');         return; }
+    if (name.length > 20)     { showAuthError('用户名不超过 20 个字符'); return; }
     if (!pwd)                 { showAuthError('请输入密码');           return; }
     if (pwd.length < 6)       { showAuthError('密码至少 6 位');       return; }
     if (pwd !== pwd2)         { showAuthError('两次密码不一致');      return; }
     if (!supabaseClient)      { showAuthError('认证服务未初始化');     return; }
 
     setAuthLoading(true);
+
     try {
+      // ★ 核心：QQ 号自动拼接 @qq.com 作为合法 email
       var email = qqToEmail(qq);
-      var res   = await supabaseClient.auth.signUp({
+      console.log('[auth] Register with email:', email);
+
+      var res = await supabaseClient.auth.signUp({
         email: email,
         password: pwd,
-        options: { data: { user_name: name, qq: qq } }
+        options: {
+          data: {
+            user_name: name,     // 存入 user_metadata.user_name
+            qq: qq               // 存入 user_metadata.qq
+          }
+        }
       });
 
       if (res.error) {
         var m = res.error.message || '';
-        showAuthError(
-          m.indexOf('already') > -1 ? '该 QQ 号已注册，请直接登录' : m
-        );
+        // 友好化错误提示
+        if (m.indexOf('already') > -1 || m.indexOf('already_exists') > -1) {
+          showAuthError('该 QQ 号已注册，请直接登录');
+        } else if (m.indexOf('valid email') > -1 || m.indexOf('invalid') > -1) {
+          showAuthError('QQ 号格式不正确，请输入纯数字');
+        } else if (m.indexOf('password') > -1) {
+          showAuthError('密码不符合要求（至少 6 位）');
+        } else {
+          showAuthError('注册失败: ' + m);
+        }
         setAuthLoading(false);
         return;
       }
+
+      console.log('[auth] signUp success, session:', !!res.data.session);
 
       // autoconfirm 开启时直接返回 session
       if (res.data.session) {
@@ -208,17 +242,24 @@
         return;
       }
 
-      // 否则尝试直接登录
-      var si = await supabaseClient.auth.signInWithPassword({ email: email, password: pwd });
+      // autoconfirm 未开启 → 尝试直接登录
+      console.log('[auth] No session returned, trying signIn...');
+      var si = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: pwd
+      });
+
       if (si.error) {
-        showAuthError('注册成功！请在 Supabase 后台关闭邮箱确认后重试登录');
+        // 注册成功但无法自动登录（需要邮箱确认）
+        showAuthError('注册成功，但需要在 Supabase 后台关闭邮箱确认（Confirm email）才能登录');
         switchAuthMode('login');
       } else {
         setUserFromSession(si.data.session);
         onAuthSuccess();
       }
     } catch (e) {
-      showAuthError('注册失败: ' + (e.message || '未知错误'));
+      console.error('[auth] Register error:', e);
+      showAuthError('注册失败: ' + (e.message || '网络错误'));
     } finally {
       setAuthLoading(false);
     }
@@ -231,27 +272,46 @@
     var pwd = (document.getElementById('loginPassword') || {}).value || '';
     qq = qq.trim();
 
+    // ── 前端校验 ──
     if (!qq)                { showAuthError('请输入 QQ 号');       return; }
     if (!/^\d+$/.test(qq))  { showAuthError('QQ 号必须为纯数字');  return; }
     if (!pwd)               { showAuthError('请输入密码');         return; }
     if (!supabaseClient)    { showAuthError('认证服务未初始化');    return; }
 
     setAuthLoading(true);
+
     try {
+      // ★ 核心：QQ 号自动拼接 @qq.com
+      var email = qqToEmail(qq);
+      console.log('[auth] Login with email:', email);
+
       var res = await supabaseClient.auth.signInWithPassword({
-        email: qqToEmail(qq),
+        email: email,
         password: pwd
       });
+
       if (res.error) {
         var m = res.error.message || '';
-        showAuthError(m.indexOf('Invalid') > -1 ? 'QQ 号或密码错误' : m);
+        // 友好化错误提示
+        if (m.indexOf('Invalid login') > -1 || m.indexOf('invalid') > -1) {
+          showAuthError('QQ 号或密码错误');
+        } else if (m.indexOf('Email not confirmed') > -1) {
+          showAuthError('账号未激活，请在 Supabase 后台关闭邮箱确认');
+        } else if (m.indexOf('too many') > -1 || m.indexOf('rate') > -1) {
+          showAuthError('登录尝试过于频繁，请稍后再试');
+        } else {
+          showAuthError('登录失败: ' + m);
+        }
         setAuthLoading(false);
         return;
       }
+
+      console.log('[auth] Login success');
       setUserFromSession(res.data.session);
       onAuthSuccess();
     } catch (e) {
-      showAuthError('登录失败: ' + (e.message || '未知错误'));
+      console.error('[auth] Login error:', e);
+      showAuthError('登录失败: ' + (e.message || '网络错误'));
     } finally {
       setAuthLoading(false);
     }
@@ -260,7 +320,12 @@
   /** ─── 退出 ─── */
   async function handleSignOut() {
     if (!supabaseClient) return;
-    try { await supabaseClient.auth.signOut(); } catch (e) { console.error('[auth] signOut:', e); }
+    try {
+      await supabaseClient.auth.signOut();
+      console.log('[auth] Signed out');
+    } catch (e) {
+      console.error('[auth] signOut error:', e);
+    }
     clearUser();
     showAuthScreen();
     // 清空表单
@@ -269,14 +334,13 @@
   }
 
   // ═══════════════════════════════════════════════
-  //  7. 认证成功后回调
+  //  8. 认证成功后回调
   // ═══════════════════════════════════════════════
   function onAuthSuccess() {
     window.__authRequired = false;
     hideAuthScreen();
     showApp();
 
-    // 尝试在原地初始化应用（避免 reload）
     if (typeof window.__runAppInit === 'function') {
       try {
         window.__runAppInit();
@@ -286,12 +350,11 @@
         console.warn('[auth] In-place init failed, reloading:', e);
       }
     }
-    // 兜底：刷新页面
     location.reload();
   }
 
   // ═══════════════════════════════════════════════
-  //  8. onAuthStateChange 监听
+  //  9. onAuthStateChange 监听
   // ═══════════════════════════════════════════════
   if (supabaseClient) {
     supabaseClient.auth.onAuthStateChange(function (event, session) {
@@ -320,14 +383,12 @@
       }
     });
 
-    // 额外异步校验（处理 localStorage 残留但 token 已过期的边缘情况）
     supabaseClient.auth.getSession().then(function (r) {
       if (r.data.session) {
         setUserFromSession(r.data.session);
         window.__authRequired = false;
         console.log('[auth] Session verified OK');
       } else if (hasLocalSession) {
-        // localStorage 有缓存但 token 无效
         console.warn('[auth] Cached session invalid');
         window.__authRequired = true;
         whenReady(showAuthScreen);
@@ -336,7 +397,6 @@
       console.error('[auth] getSession error:', e);
     });
   } else {
-    // SDK 加载失败时也要显示认证界面（带错误提示）
     window.__authRequired = true;
     whenReady(function () {
       showAuthScreen();
@@ -345,32 +405,27 @@
   }
 
   // ═══════════════════════════════════════════════
-  //  9. DOM 事件绑定
+  //  10. DOM 事件绑定
   // ═══════════════════════════════════════════════
   function bindAuthEvents() {
-    // 注册
     var regBtn = document.getElementById('authRegisterBtn');
     if (regBtn) regBtn.addEventListener('click', function (e) { e.preventDefault(); handleRegister(); });
 
-    // 登录
     var loginBtn = document.getElementById('authLoginBtn');
     if (loginBtn) loginBtn.addEventListener('click', function (e) { e.preventDefault(); handleLogin(); });
 
-    // 切换模式
     var toReg = document.getElementById('switchToRegister');
     if (toReg) toReg.addEventListener('click', function (e) { e.preventDefault(); switchAuthMode('register'); });
 
     var toLogin = document.getElementById('switchToLogin');
     if (toLogin) toLogin.addEventListener('click', function (e) { e.preventDefault(); switchAuthMode('login'); });
 
-    // Enter 快捷键
     var lp = document.getElementById('loginPassword');
     if (lp) lp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); handleLogin(); } });
 
     var rpc = document.getElementById('regPasswordConfirm');
     if (rpc) rpc.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); handleRegister(); } });
 
-    // 密码可见切换
     document.querySelectorAll('.auth-pwd-toggle').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var tid   = this.dataset.target;
@@ -387,7 +442,7 @@
   whenReady(bindAuthEvents);
 
   // ═══════════════════════════════════════════════
-  //  10. 设置页退出登录区块渲染（供 settings.js 调用）
+  //  11. 设置页退出登录区块渲染
   // ═══════════════════════════════════════════════
   function renderAuthSettingsSection() {
     var screen = document.getElementById('screen-settings');
@@ -430,7 +485,7 @@
   }
 
   // ═══════════════════════════════════════════════
-  //  11. 全局导出
+  //  12. 全局导出
   // ═══════════════════════════════════════════════
   window.mizuAuth = {
     signOut:               handleSignOut,
@@ -442,65 +497,82 @@
   };
 
   // ═══════════════════════════════════════════════
-  //  12. 一键测试工具  window.__mizuAuthTest()
+  //  13. 一键测试工具  window.__mizuAuthTest()
   // ═══════════════════════════════════════════════
   window.__mizuAuthTest = function () {
     console.group('===== Mizu Auth Diagnostics =====');
 
-    // 1) Client
     console.log('1. Supabase Client  :', supabaseClient ? 'OK' : 'FAILED');
+    console.log('2. EMAIL_SUFFIX     :', EMAIL_SUFFIX);
+    console.log('3. window.__user    :', window.__user || '(not logged in)');
+    console.log('4. __authRequired   :', window.__authRequired);
 
-    // 2) User
-    console.log('2. window.__user    :', window.__user || '(not logged in)');
-
-    // 3) Flag
-    console.log('3. __authRequired   :', window.__authRequired);
-
-    // 4) localStorage session
     var sk  = 'sb-' + SUPABASE_REF + '-auth-token';
     var sd  = localStorage.getItem(sk);
-    console.log('4. localStorage key :', sk);
+    console.log('5. localStorage key :', sk);
     console.log('   value            :', sd ? 'YES (' + sd.length + ' bytes)' : 'NO');
+    console.log('6. state.user       :', (typeof state !== 'undefined' && state.user) ? state.user : '(empty)');
 
-    // 5) state.user
-    console.log('5. state.user       :', (typeof state !== 'undefined' && state.user) ? state.user : '(empty)');
-
-    // 6) Async session
     if (supabaseClient) {
       supabaseClient.auth.getSession().then(function (r) {
         var s = r.data.session;
-        console.log('6. Active session   :', s ? 'YES — ' + s.user.email : 'NO');
+        console.log('7. Active session   :', s ? 'YES — ' + s.user.email : 'NO');
         if (s) {
           console.log('   expires_at       :', new Date(s.expires_at * 1000).toLocaleString());
-          console.log('   user_metadata    :', s.user.user_metadata);
+          console.log('   user_metadata    :', JSON.stringify(s.user.user_metadata, null, 2));
         }
         console.groupEnd();
       });
     } else {
-      console.log('6. (cannot check — no client)');
+      console.log('7. (cannot check — no client)');
       console.groupEnd();
     }
 
-    // 返回手动测试函数
     return {
-      /** 手动注册：__mizuAuthTest().register('123456','TestUser','password123') */
       register: function (qq, name, pwd) {
         if (!supabaseClient) return Promise.reject('No client');
+        var email = qqToEmail(qq);
+        console.log('[test] Registering:', email, '| user_name:', name, '| qq:', qq);
         return supabaseClient.auth.signUp({
-          email: qqToEmail(qq), password: pwd,
+          email: email,
+          password: pwd,
           options: { data: { user_name: name, qq: qq } }
-        }).then(function (r) { console.log('Register result:', r.error ? r.error.message : 'OK', r); return r; });
+        }).then(function (r) {
+          if (r.error) {
+            console.error('[test] Register FAILED:', r.error.message);
+          } else {
+            console.log('[test] Register OK');
+            console.log('  user_id:', r.data.user ? r.data.user.id : 'N/A');
+            console.log('  session:', r.data.session ? 'YES' : 'NO (需关闭邮箱确认)');
+            if (r.data.user && r.data.user.user_metadata) {
+              console.log('  user_metadata:', JSON.stringify(r.data.user.user_metadata, null, 2));
+            }
+          }
+          return r;
+        });
       },
-      /** 手动登录：__mizuAuthTest().login('123456','password123') */
       login: function (qq, pwd) {
         if (!supabaseClient) return Promise.reject('No client');
-        return supabaseClient.auth.signInWithPassword({ email: qqToEmail(qq), password: pwd })
-          .then(function (r) { console.log('Login result:', r.error ? r.error.message : 'OK', r); return r; });
+        var email = qqToEmail(qq);
+        console.log('[test] Logging in:', email);
+        return supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: pwd
+        }).then(function (r) {
+          if (r.error) {
+            console.error('[test] Login FAILED:', r.error.message);
+          } else {
+            console.log('[test] Login OK');
+            console.log('  user_id:', r.data.user.id);
+            console.log('  email:', r.data.user.email);
+            console.log('  user_metadata:', JSON.stringify(r.data.user.user_metadata, null, 2));
+          }
+          return r;
+        });
       },
-      /** 手动退出 */
       logout: function () { return handleSignOut(); }
     };
   };
 
-  console.log('[auth.js] loaded | hasLocalSession:', hasLocalSession, '| __authRequired:', window.__authRequired);
+  console.log('[auth.js] loaded | EMAIL_SUFFIX:', EMAIL_SUFFIX, '| hasLocalSession:', hasLocalSession, '| __authRequired:', window.__authRequired);
 })();
