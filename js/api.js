@@ -1,5 +1,4 @@
 // ========== 06-api.js ==========
-// 依賴：04-i18n.js (T)
 
 function normalizeUrl(r) {
   return (r || '').trim().replace(/\/+$/, '');
@@ -85,9 +84,7 @@ async function sendGroupChats(cfg, charPrompts) {
     .filter(function(r) { return r.status === 'fulfilled'; })
     .map(function(r) { return r.value; });
 }
-// ★ 在 api.js 文件末尾添加 ★
 
-// ── 便捷封装：供 meeting.js 或其他模块调用 ──
 async function summarizeMeeting(textEntries, instruction) {
   var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
   if (!api || !api.url || !api.model) throw new Error('No active API configured');
@@ -97,10 +94,119 @@ async function summarizeMeeting(textEntries, instruction) {
   ]);
 }
 
-// ── 全局导出 ──
+async function generateNPCs(count, context) {
+  var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
+  if (!api || !api.url || !api.model) {
+    throw new Error('No active API configured. Please set up an API first.');
+  }
+
+  var num = Math.max(1, Math.min(10, parseInt(count) || 1));
+
+  var worldContext = '';
+  if (context.worldbookIds && context.worldbookIds.length > 0) {
+    context.worldbookIds.forEach(function(wbId) {
+      var wb = (state.worldbooks || []).find(function(w) { return w.id === wbId; });
+      if (wb) {
+        worldContext += (wb.name || 'Worldbook') + ': ';
+        if (wb.entries && Array.isArray(wb.entries)) {
+          wb.entries.forEach(function(e) {
+            worldContext += (e.keyword || '') + ' - ' + (e.content || '') + '; ';
+          });
+        } else if (wb.content) {
+          worldContext += wb.content;
+        }
+        worldContext += '\n';
+      }
+    });
+  }
+
+  (state.worldbooks || []).forEach(function(wb) {
+    if (wb.isGlobal && worldContext.indexOf(wb.name || '') === -1) {
+      worldContext += (wb.name || 'Global Worldbook') + ': ';
+      if (wb.entries && Array.isArray(wb.entries)) {
+        wb.entries.forEach(function(e) {
+          worldContext += (e.keyword || '') + ' - ' + (e.content || '') + '; ';
+        });
+      } else if (wb.content) {
+        worldContext += wb.content;
+      }
+      worldContext += '\n';
+    }
+  });
+
+  var existingNpcs = '';
+  if (context.characterId && Array.isArray(state.npcs)) {
+    var existing = state.npcs.filter(function(n) { return n.characterId === context.characterId; });
+    if (existing.length > 0) {
+      existingNpcs = '\n\nExisting NPCs (do NOT duplicate these):\n';
+      existing.forEach(function(n) {
+        existingNpcs += '- ' + n.name + ' (' + (n.relationship || '') + ')\n';
+      });
+    }
+  }
+
+  var systemPrompt =
+    'You are a creative NPC generator for a role-playing setting. ' +
+    'Generate exactly ' + num + ' unique NPC(s) that would exist in the same world as the main character described below. ' +
+    'Each NPC must have a distinct personality and a meaningful relationship to the main character.\n\n' +
+    'IMPORTANT: Return ONLY a valid JSON array. No markdown fences, no explanation, no extra text.\n' +
+    'Format:\n' +
+    '[{"name":"NPC Name","personality":"Brief personality and traits","relationship":"Relationship to the main character"}]\n\n' +
+    'Main Character Information:\n' +
+    '- Name: ' + (context.name || 'Unknown') + '\n' +
+    (context.personality ? '- Personality: ' + context.personality + '\n' : '') +
+    (context.background ? '- Background: ' + context.background + '\n' : '') +
+    (context.systemPrompt ? '- Setting Context: ' + context.systemPrompt.substring(0, 500) + '\n' : '') +
+    (worldContext ? '\nWorld Setting:\n' + worldContext.substring(0, 800) + '\n' : '') +
+    existingNpcs +
+    '\nGenerate ' + num + ' NPC(s) now:';
+
+  var userMsg = 'Generate ' + num + ' NPC(s) for the character "' + (context.name || 'Unknown') + '". Return JSON only.';
+
+  var raw = await sendChat(api, [
+    { role: 'system', content: systemPrompt },
+    { role: 'user',   content: userMsg }
+  ]);
+
+  var jsonStr = raw.trim();
+
+  var fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) {
+    jsonStr = fenceMatch[1].trim();
+  }
+
+  var arrMatch = jsonStr.match(/\[[\s\S]*\]/);
+  if (arrMatch) {
+    jsonStr = arrMatch[0];
+  }
+
+  var npcs;
+  try {
+    npcs = JSON.parse(jsonStr);
+  } catch (e) {
+    console.error('[generateNPCs] JSON parse failed:', e, '\nRaw:', raw);
+    throw new Error('Failed to parse AI response as JSON. Please try again.');
+  }
+
+  if (!Array.isArray(npcs)) {
+    throw new Error('AI response is not an array. Please try again.');
+  }
+
+  return npcs.map(function(npc) {
+    return {
+      name: String(npc.name || 'Unnamed NPC').trim(),
+      personality: String(npc.personality || npc.description || '').trim(),
+      relationship: String(npc.relationship || npc.relation || '').trim()
+    };
+  }).filter(function(npc) {
+    return npc.name && npc.name !== 'Unnamed NPC';
+  });
+}
+
 window.sendChat           = sendChat;
 window.sendGroupChats     = sendGroupChats;
 window.fetchModelList     = fetchModelList;
 window.summarizeMeeting   = summarizeMeeting;
+window.generateNPCs       = generateNPCs;
 window.normalizeUrl       = normalizeUrl;
 window.friendlyError      = friendlyError;

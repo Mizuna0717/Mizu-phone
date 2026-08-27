@@ -10,10 +10,11 @@ let state = {
   masks: [], memories: [], imsgTab: 'messages', replyPrompt: null, charConfig: {},
   phoneData: {}, bookmarks: [], groups: [], moments: [],
   meetings: [],
+  npcs: [],
   allowQuote: true,
   systemPromptIM: '',
   systemPromptMeeting: '',
-  user: null                    // ★ NEW: Supabase 认证用户信息（运行时，不持久化）
+  user: null
 };
 
 let bubbleState = { multiMode: false, selectedIds: new Set(), quoteMsg: null, editingMsgId: null };
@@ -27,16 +28,14 @@ let tmp = {
   momentImageData: null, momentVirtualText: '', acctAvatar: null, importCharList: null
 };
 
-// ★ 注意：user 不在 SAVE_KEYS 中 — 由 Supabase session 管理，不写入 localStorage
 var SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
   'groups', 'moments', 'imsgTab',
-  'meetings', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting'
+  'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting'
 ];
 
-// ★ 状态标志
 var _stateLoaded = false;
 var _forceNextSave = false;
 var _saveGeneration = 0;
@@ -55,8 +54,9 @@ function _getStateDefaults() {
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
+    npcs: [],
     allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
-    user: null                  // ★ NEW
+    user: null
   };
 }
 
@@ -77,16 +77,15 @@ function _validateState() {
   if (!Array.isArray(state.stickers)) state.stickers = [];
   if (!Array.isArray(state.apis)) state.apis = [];
   if (!Array.isArray(state.meetings)) state.meetings = [];
+  if (!Array.isArray(state.npcs)) state.npcs = [];
   if (state.allowQuote == null) state.allowQuote = true;
   if (state.systemPromptIM == null) state.systemPromptIM = '';
   if (state.systemPromptMeeting == null) state.systemPromptMeeting = '';
 
-  // ★ NEW: 从 Supabase session 恢复 user（不从 localStorage 恢复）
   if (window.__user) {
     state.user = window.__user;
   }
 
-  // 验证每个 meeting session 的记忆字段
   if (Array.isArray(state.meetings)) {
     state.meetings.forEach(function(session) {
       if (!Array.isArray(session.shortTermMemories))  session.shortTermMemories = [];
@@ -181,7 +180,7 @@ function _saveAccountData(accountId) {
               } catch(be) {}
               return;
             }
-          } catch (pe) { /* 解析失败，允许覆写 */ }
+          } catch (pe) {}
         }
       }
     }
@@ -197,6 +196,7 @@ function _saveAccountData(accountId) {
       '| chars:', (s.characters||[]).length,
       '| chats:', Object.keys(s.chats||{}).length,
       '| masks:', (s.masks||[]).length,
+      '| npcs:', (s.npcs||[]).length,
       '| size:', usedKB + 'KB');
 
     var verify = localStorage.getItem('ai_app_account_' + accountId);
@@ -257,7 +257,8 @@ function _loadAccountData(accountId) {
     console.log('[load] 账号', accountId,
       '| chars:', (data.characters||[]).length,
       '| chats:', Object.keys(data.chats||{}).length,
-      '| masks:', (data.masks||[]).length);
+      '| masks:', (data.masks||[]).length,
+      '| npcs:', (data.npcs||[]).length);
     return data;
   } catch (e) {
     console.error('[load] FAILED:', accountId, e);
@@ -458,6 +459,7 @@ function loadState() {
     worldbooks: state.worldbooks.length,
     meetings: state.meetings.length,
     moments: state.moments.length,
+    npcs: state.npcs.length,
     timestamp: Date.now()
   };
 
@@ -465,6 +467,7 @@ function loadState() {
     '| chars:', state.characters.length,
     '| chats:', Object.keys(state.chats).length,
     '| masks:', state.masks.length,
+    '| npcs:', state.npcs.length,
     '| worldbooks:', state.worldbooks.length,
     '| meetings:', state.meetings.length);
 }
@@ -499,35 +502,23 @@ function getOtherAccountsCharacters() {
   return result;
 }
 
-
-// ═══════════════════════════════════════════════════════════
-//  全局导出
-// ═══════════════════════════════════════════════════════════
 ;(function _exportStateGlobals() {
   'use strict';
-
-  // 1. 核心数据对象
   window.state         = state;
   window.accountStore  = accountStore;
   window.bubbleState   = bubbleState;
   window.phoneState    = phoneState;
   window.tmp           = tmp;
   window.SAVE_KEYS     = SAVE_KEYS;
-
-  // 2. 核心函数
   window.saveState             = saveState;
   window.loadState             = loadState;
   window.resetState            = resetState;
-
-  // 3. 账号管理函数
   window.createAccount         = createAccount;
   window.deleteAccount         = deleteAccount;
   window.switchAccount         = switchAccount;
   window.getCurrentAccount     = getCurrentAccount;
   window.getAllAccounts         = getAllAccounts;
   window.getOtherAccountsCharacters = getOtherAccountsCharacters;
-
-  // 4. 内部函数
   window._getStateDefaults     = _getStateDefaults;
   window._loadAccountMeta      = _loadAccountMeta;
   window._loadAccountData      = _loadAccountData;
@@ -538,9 +529,8 @@ function getOtherAccountsCharacters() {
   window._resetStateToDefaults = _resetStateToDefaults;
   window._resetTransientState  = _resetTransientState;
   window._generateAccountId    = _generateAccountId;
-
-  // 5. 验证
   console.log('[state.js] 全局导出完成',
     '| window.state.characters:', state.characters.length,
+    '| window.state.npcs:', state.npcs.length,
     '| window.saveState:', typeof window.saveState);
 })();

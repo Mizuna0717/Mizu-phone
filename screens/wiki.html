@@ -11,27 +11,18 @@
 	</div>
 	<div class="large-title" id="wiki-large-title" data-i18n="wiki.title">Wiki</div>
 
-	<!-- ====================================================================
-	     VIEW 1 — Character List (Primary)
-	     ==================================================================== -->
+	<!-- VIEW 1 — Character List -->
 	<div class="wiki-view wiki-view-active" id="wiki-list-view">
 		<div class="screen-body">
-			<!-- Search -->
 			<div class="wiki-search-wrap">
 				<svg viewBox="0 0 18 18" class="wiki-search-icon"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 12l4 4" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>
 				<input class="wiki-search-input" id="wiki-search-input" data-i18n-ph="wiki.searchCharacters" placeholder="Search characters..." oninput="filterWikiCharacters(this.value)"/>
 			</div>
-
-			<!-- Character Grid -->
 			<div class="wiki-section-label">
 				<svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
 				<span data-i18n="wiki.characters">CHARACTERS</span>
 			</div>
-			<div class="wiki-char-grid" id="wiki-char-grid">
-				<!-- JS renders cards from state.characters here -->
-			</div>
-
-			<!-- Empty State -->
+			<div class="wiki-char-grid" id="wiki-char-grid"></div>
 			<div class="wiki-empty" id="wiki-list-empty" style="display:none">
 				<svg viewBox="0 0 48 48">
 					<circle cx="24" cy="18" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -45,12 +36,9 @@
 		</div>
 	</div>
 
-	<!-- ====================================================================
-	     VIEW 2 — Character Detail (Secondary)
-	     ==================================================================== -->
+	<!-- VIEW 2 — Character Detail -->
 	<div class="wiki-view" id="wiki-detail-view">
 		<div class="screen-body">
-			<!-- Detail Header -->
 			<div class="wiki-detail-header">
 				<div class="wiki-detail-avatar" id="wiki-detail-avatar">
 					<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 22c0-4.5 3.5-8 8-8s8 3.5 8 8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -58,10 +46,9 @@
 				<div class="wiki-detail-name" id="wiki-detail-name">—</div>
 			</div>
 
-			<!-- Detail Tab Bar -->
 			<div class="wiki-detail-tab-bar">
 				<button class="wiki-detail-tab active" data-dtab="npc" onclick="switchWikiDetailTab('npc')">
-					<svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+					<svg viewBox="0 0 16 16"><circle cx="5" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1 14c0-2.5 1.8-4.5 4-4.5s4 2 4 4.5M7 14c0-2.5 1.8-4.5 4-4.5s4 2 4 4.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
 					<span data-i18n="wiki.tab.npc">NPC</span>
 				</button>
 				<button class="wiki-detail-tab" data-dtab="relationships" onclick="switchWikiDetailTab('relationships')">
@@ -74,14 +61,26 @@
 				</button>
 			</div>
 
-			<!-- ── NPC Tab ── -->
+			<!-- NPC Tab -->
 			<div class="wiki-detail-panel wiki-panel-visible" id="wiki-detail-npc">
-				<div class="wiki-npc-card" id="wiki-npc-content">
-					<!-- JS fills profile fields from state.characters here -->
+				<div class="npc-header">
+					<div class="npc-header-left">
+						<svg class="npc-header-icon" viewBox="0 0 16 16">
+							<circle cx="5" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+							<circle cx="11" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+							<path d="M1 14c0-2.5 1.8-4.5 4-4.5s4 2 4 4.5M7 14c0-2.5 1.8-4.5 4-4.5s4 2 4 4.5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+						</svg>
+						<span>NPC</span>
+					</div>
+					<button class="npc-header-add" onclick="openNpcActionSheet()">
+						<svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+						<span>Add</span>
+					</button>
 				</div>
+				<div id="npc-list-wrap"></div>
 			</div>
 
-			<!-- ── Relationships Tab ── -->
+			<!-- Relationships Tab -->
 			<div class="wiki-detail-panel" id="wiki-detail-relationships">
 				<div class="wiki-rel-empty" id="wiki-rel-content">
 					<svg viewBox="0 0 60 40" class="wiki-rel-icon">
@@ -101,7 +100,7 @@
 				</div>
 			</div>
 
-			<!-- ── Schedule Tab ── -->
+			<!-- Schedule Tab -->
 			<div class="wiki-detail-panel" id="wiki-detail-schedule">
 				<div class="schedule-header">
 					<div class="schedule-header-left">
@@ -116,25 +115,112 @@
 						<span data-i18n="wiki.schedule.add">Add</span>
 					</button>
 				</div>
-
 				<div class="schedule-filter-bar">
 					<button class="schedule-filter active" data-filter="all" onclick="filterSchedule('all')" data-i18n="wiki.schedule.filterAll">All</button>
 					<button class="schedule-filter" data-filter="pending" onclick="filterSchedule('pending')" data-i18n="wiki.schedule.filterPending">Pending</button>
 					<button class="schedule-filter" data-filter="completed" onclick="filterSchedule('completed')" data-i18n="wiki.schedule.filterCompleted">Completed</button>
 				</div>
-
-				<div class="schedule-timeline" id="schedule-timeline">
-					<!-- JS renders -->
-				</div>
+				<div class="schedule-timeline" id="schedule-timeline"></div>
 			</div>
 
 			<div style="height:40px"></div>
 		</div>
 	</div>
 
-	<!-- ====================================================================
-	     Modal — Add Schedule Event (Centered)
-	     ==================================================================== -->
+	<!-- Modal: NPC Action Sheet -->
+	<div class="wiki-modal-overlay" id="npc-action-sheet">
+		<div class="wiki-modal-backdrop" onclick="closeNpcActionSheet()"></div>
+		<div class="wiki-modal wiki-modal-center" style="max-width:320px">
+			<div class="wiki-modal-header">
+				<span class="wiki-modal-title">Add NPC</span>
+				<button class="wiki-modal-close" onclick="closeNpcActionSheet()">
+					<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg>
+				</button>
+			</div>
+			<div class="npc-action-group">
+				<div class="npc-action-item" onclick="closeNpcActionSheet(); openNpcAutoGenModal();">
+					<div class="npc-action-icon">
+						<svg viewBox="0 0 20 20"><path d="M10 2l1.8 5.5H17l-4.2 3.1 1.6 5-4.4-3.2-4.4 3.2 1.6-5L3 7.5h5.2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+					</div>
+					<div class="npc-action-text">
+						<div class="npc-action-label">Auto Generate NPC</div>
+						<div class="npc-action-desc">Let AI create NPCs based on the character</div>
+					</div>
+					<svg class="npc-action-arrow" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+				</div>
+				<div class="npc-action-item" onclick="closeNpcActionSheet(); openNpcManualModal();">
+					<div class="npc-action-icon">
+						<svg viewBox="0 0 20 20"><path d="M13.5 3.5l3 3L7 16H4v-3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 6l3 3" stroke="currentColor" stroke-width="1.5"/></svg>
+					</div>
+					<div class="npc-action-text">
+						<div class="npc-action-label">Manually Add NPC</div>
+						<div class="npc-action-desc">Create your own NPC with custom details</div>
+					</div>
+					<svg class="npc-action-arrow" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal: Auto Generate NPC -->
+	<div class="wiki-modal-overlay" id="npc-auto-gen-modal">
+		<div class="wiki-modal-backdrop" onclick="closeNpcAutoGenModal()"></div>
+		<div class="wiki-modal wiki-modal-center">
+			<div class="wiki-modal-header">
+				<span class="wiki-modal-title">Auto Generate NPC</span>
+				<button class="wiki-modal-close" onclick="closeNpcAutoGenModal()">
+					<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg>
+				</button>
+			</div>
+			<div class="wiki-modal-body">
+				<div class="modal-field">
+					<label class="modal-field-label">Number of NPCs</label>
+					<input type="number" class="modal-field-input" id="npc-gen-count" min="1" max="10" value="1" placeholder="1-10"/>
+				</div>
+				<div class="npc-gen-hint">
+					<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+					<span>NPCs will be generated based on the character's personality, background, and world setting.</span>
+				</div>
+			</div>
+			<div class="wiki-modal-footer">
+				<button class="wiki-modal-btn-outline" onclick="closeNpcAutoGenModal()">Cancel</button>
+				<button class="wiki-modal-btn-outline primary" id="npc-gen-confirm-btn" onclick="triggerNpcAutoGen()">Generate NPC</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal: Manual Add NPC -->
+	<div class="wiki-modal-overlay" id="npc-manual-modal">
+		<div class="wiki-modal-backdrop" onclick="closeNpcManualModal()"></div>
+		<div class="wiki-modal wiki-modal-center">
+			<div class="wiki-modal-header">
+				<span class="wiki-modal-title">Add NPC</span>
+				<button class="wiki-modal-close" onclick="closeNpcManualModal()">
+					<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg>
+				</button>
+			</div>
+			<div class="wiki-modal-body">
+				<div class="modal-field">
+					<label class="modal-field-label">Name</label>
+					<input type="text" class="modal-field-input" id="npc-manual-name" placeholder="NPC name..."/>
+				</div>
+				<div class="modal-field">
+					<label class="modal-field-label">Personality</label>
+					<textarea class="modal-field-textarea" id="npc-manual-personality" rows="3" placeholder="Personality, traits, description..."></textarea>
+				</div>
+				<div class="modal-field">
+					<label class="modal-field-label">Relationship</label>
+					<input type="text" class="modal-field-input" id="npc-manual-relationship" placeholder="e.g. Friend, Rival, Mentor..."/>
+				</div>
+			</div>
+			<div class="wiki-modal-footer">
+				<button class="wiki-modal-btn-outline" onclick="closeNpcManualModal()">Cancel</button>
+				<button class="wiki-modal-btn-outline primary" onclick="saveManualNpc()">Add NPC</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal: Add Schedule Event -->
 	<div class="wiki-modal-overlay" id="schedule-add-modal">
 		<div class="wiki-modal-backdrop" onclick="closeScheduleAddModal()"></div>
 		<div class="wiki-modal wiki-modal-center">
@@ -147,7 +233,7 @@
 			<div class="wiki-modal-body">
 				<div class="modal-field">
 					<label class="modal-field-label" data-i18n="wiki.schedule.eventTitle">Event Title</label>
-					<input type="text" class="modal-field-input" id="sched-add-title" data-i18n-ph="wiki.schedule.eventTitlePh" placeholder="Enter event title..."/>
+					<input type="text" class="modal-field-input" id="sched-add-title" placeholder="Enter event title..."/>
 				</div>
 				<div class="modal-field-row">
 					<div class="modal-field" style="flex:1">
@@ -161,25 +247,21 @@
 				</div>
 				<div class="modal-field">
 					<label class="modal-field-label" data-i18n="wiki.schedule.characters">Characters</label>
-					<div class="modal-tag-select" id="sched-add-chars">
-						<!-- JS renders character tags from state.characters here -->
-					</div>
+					<div class="modal-tag-select" id="sched-add-chars"></div>
 				</div>
 				<div class="modal-field">
 					<label class="modal-field-label" data-i18n="wiki.schedule.description">Description</label>
-					<textarea class="modal-field-textarea" id="sched-add-desc" rows="3" data-i18n-ph="wiki.schedule.descriptionPh" placeholder="Brief description of this event..."></textarea>
+					<textarea class="modal-field-textarea" id="sched-add-desc" rows="3" placeholder="Brief description..."></textarea>
 				</div>
 			</div>
 			<div class="wiki-modal-footer">
-				<button class="wiki-modal-btn-outline" onclick="closeScheduleAddModal()" data-i18n="wiki.cancel">Cancel</button>
-				<button class="wiki-modal-btn-outline primary" onclick="saveScheduleEvent()" data-i18n="wiki.save">Save</button>
+				<button class="wiki-modal-btn-outline" onclick="closeScheduleAddModal()">Cancel</button>
+				<button class="wiki-modal-btn-outline primary" onclick="saveScheduleEvent()">Save</button>
 			</div>
 		</div>
 	</div>
 
-	<!-- ====================================================================
-	     Modal — Schedule Event Detail (Centered)
-	     ==================================================================== -->
+	<!-- Modal: Schedule Detail -->
 	<div class="wiki-modal-overlay" id="schedule-detail-modal">
 		<div class="wiki-modal-backdrop" onclick="closeScheduleDetailModal()"></div>
 		<div class="wiki-modal wiki-modal-center">
@@ -189,13 +271,9 @@
 					<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg>
 				</button>
 			</div>
-			<div class="wiki-modal-body" id="schedule-detail-body">
-				<!-- JS fills -->
-			</div>
-			<div class="wiki-modal-footer" id="schedule-detail-footer">
-				<!-- JS fills action buttons -->
-			</div>
+			<div class="wiki-modal-body" id="schedule-detail-body"></div>
+			<div class="wiki-modal-footer" id="schedule-detail-footer"></div>
 		</div>
 	</div>
 
-</div><!-- /#screen-wiki -->
+</div>
