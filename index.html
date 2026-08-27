@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
     <title>Mizu Phone</title>
 
-    <!-- 关键 CSS（同步，首屏必须） -->
+    <!-- 关键 CSS -->
     <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="css/chat.css">
     <link rel="stylesheet" href="css/characters.css">
     <link rel="stylesheet" href="css/modals.css">
     <link rel="stylesheet" href="css/components.css">
 
-    <!-- 非首屏 CSS（异步加载，不阻塞首屏渲染） -->
+    <!-- 非首屏 CSS（异步） -->
     <link rel="stylesheet" href="css/settings.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/profile.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/bubble-menu.css" media="print" onload="this.media='all'">
@@ -27,19 +28,11 @@
     <link rel="stylesheet" href="css/call.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/social.css" media="print" onload="this.media='all'">
 
-    <!-- 预连接CDN加速 -->
+    <!-- 预连接 -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://rnhsuityufzkllaxflgw.supabase.co" crossorigin>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         ★ Mizu Phone v14.1 — 水滴微调
-         开场1s → 水滴3s → 涟漪4s → 退场2s = 10s（不变）
-         ★ 水滴放大18%、下移7%、颜色加深
-         ★ 涟漪使用旧水滴色、确保触底后才扩散
-         ═══════════════════════════════════════════════════════════════ -->
     <style>
-        /* ════════════════════════════════════════════
-           容器（不变）
-           ════════════════════════════════════════════ */
         #loadingIndicator {
             position: fixed;
             inset: 0;
@@ -63,10 +56,6 @@
             transform: scale(0.95);
             pointer-events: none;
         }
-
-        /* ════════════════════════════════════════════
-           水面光影（不变）
-           ════════════════════════════════════════════ */
         .mizu-shimmer {
             position: absolute;
             inset: -60%;
@@ -86,10 +75,6 @@
                 mizuFadeIn 4s ease 0.5s forwards,
                 mizuShimmerDrift 14s ease-in-out 0.5s infinite;
         }
-
-        /* ════════════════════════════════════════════
-           涟漪场景容器（不变）
-           ════════════════════════════════════════════ */
         .mizu-scene {
             position: relative;
             width: 200px;
@@ -101,49 +86,28 @@
             transform: translateY(-15vh);
             animation: mizuSceneBreathe 10s ease-in-out 5s infinite;
         }
-
-        /* ════════════════════════════════════════════
-           ① SVG 水滴
-           ★ 尺寸放大 18%: 24×34 → 28×40
-           ★ 垂直下移 7%: top 50% → 57%
-           ★ 时间线不变 (4s duration, 0.5s delay)
-              0.5s~1.0s  淡入 (开场)
-              1.0s~4.0s  下落 (3秒)
-              4.0s~4.5s  反弹+消散
-           ════════════════════════════════════════════ */
         .mizu-drop {
             position: absolute;
-            top: 57%;                                    /* ★ 下移: 50% → 57% */
+            top: 57%;
             left: 50%;
-            width: 28px;                                 /* ★ 放大: 24 → 28 (+17%) */
-            height: 40px;                                /* ★ 放大: 34 → 40 (+18%) */
-            margin: -20px 0 0 -14px;                     /* ★ 居中修正: 半宽14 半高20 */
+            width: 28px;
+            height: 40px;
+            margin: -20px 0 0 -14px;
             z-index: 3;
             will-change: transform, opacity;
             opacity: 0;
             transform: translateY(-60px);
-            animation: mizuDropLifecycle 4s ease 0.5s forwards;  /* 时间不变 */
+            animation: mizuDropLifecycle 4s ease 0.5s forwards;
         }
-        .mizu-drop svg {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-        }
-
-        /* ════════════════════════════════════════════
-           ② 冲击环
-           ★ 垂直下移与水滴对齐: top 50% → 57%
-           ★ 颜色使用旧水滴色 #b5b5b5
-           ★ 延迟 4.0s（水滴触底瞬间）不变
-           ════════════════════════════════════════════ */
+        .mizu-drop svg { width: 100%; height: 100%; overflow: visible; }
         .mizu-splash {
             position: absolute;
-            top: 57%;                                    /* ★ 下移对齐 */
+            top: 57%;
             left: 50%;
             width: 28px;
             height: 28px;
             margin: -14px 0 0 -14px;
-            border: 0.5px solid rgba(181,181,181,.3);    /* ★ 旧水滴色 #b5=181 */
+            border: 0.5px solid rgba(181,181,181,.3);
             border-radius: 50%;
             opacity: 0;
             z-index: 2;
@@ -151,22 +115,15 @@
             will-change: transform, opacity;
             animation: mizuSplashExpand 1.5s ease-out 4.0s forwards;
         }
-
-        /* ════════════════════════════════════════════
-           ③ 波源点
-           ★ 垂直下移: top 50% → 57%
-           ★ 颜色使用旧水滴色
-           ★ 延迟 4.0s 不变
-           ════════════════════════════════════════════ */
         .mizu-impact-dot {
             position: absolute;
-            top: 57%;                                    /* ★ 下移对齐 */
+            top: 57%;
             left: 50%;
             width: 4px;
             height: 4px;
             margin: -2px 0 0 -2px;
             border-radius: 50%;
-            border: 0.5px solid rgba(181,181,181,.25);   /* ★ 旧水滴色 */
+            border: 0.5px solid rgba(181,181,181,.25);
             background: none;
             opacity: 0;
             z-index: 2;
@@ -175,20 +132,12 @@
                 mizuDotAppear  0.8s cubic-bezier(.16,1,.3,1) 4.0s forwards,
                 mizuDotBreathe 4s   ease-in-out              5.0s infinite;
         }
-
-        /* ════════════════════════════════════════════
-           ④ 涟漪环 — 3 圈
-           ★ 垂直下移: top 50% → 57%
-           ★ 颜色使用旧水滴色 rgba(181,181,181,.45)
-           ★ 延迟 4.0s / 5.3s / 6.6s（触底后依次扩散）不变
-           ★ 涟漪覆盖 4.0s → 8.0s = 4 秒 ✓
-           ════════════════════════════════════════════ */
         .mizu-ripple {
             position: absolute;
-            top: 57%; left: 50%;                         /* ★ 下移对齐 */
+            top: 57%; left: 50%;
             width: 80px; height: 80px;
             margin: -40px 0 0 -40px;
-            border: 0.5px solid rgba(181,181,181,.45);   /* ★ 旧水滴色 #b5=181 */
+            border: 0.5px solid rgba(181,181,181,.45);
             border-radius: 50%;
             opacity: 0;
             z-index: 1;
@@ -196,14 +145,9 @@
             will-change: transform, opacity;
             animation: mizuRippleExpand 2.5s cubic-bezier(.08,.6,.25,1) forwards;
         }
-        /* ★ 涟漪延迟 = 水滴触底时刻 (4.0s) 起依次扩散 */
-        .mizu-ripple:nth-child(1) { animation-delay: 4.0s; }  /* 触底即刻 */
-        .mizu-ripple:nth-child(2) { animation-delay: 5.3s; }  /* +1.3s */
-        .mizu-ripple:nth-child(3) { animation-delay: 6.6s; }  /* +1.3s */
-
-        /* ════════════════════════════════════════════
-           品牌文字（★ 保留不变）
-           ════════════════════════════════════════════ */
+        .mizu-ripple:nth-child(1) { animation-delay: 4.0s; }
+        .mizu-ripple:nth-child(2) { animation-delay: 5.3s; }
+        .mizu-ripple:nth-child(3) { animation-delay: 6.6s; }
         .mizu-brand {
             font-size: 14px;
             font-weight: 200;
@@ -217,10 +161,6 @@
             transform: translateY(16px);
             animation: mizuSlideUp 2s cubic-bezier(.16,1,.3,1) 2s forwards;
         }
-
-        /* ════════════════════════════════════════════
-           加载状态文字（★ 保留不变）
-           ════════════════════════════════════════════ */
         .mizu-status {
             font-size: 10px;
             font-weight: 300;
@@ -233,10 +173,6 @@
             transform: translateY(12px);
             animation: mizuSlideUp 1.8s cubic-bezier(.16,1,.3,1) 3.5s forwards;
         }
-
-        /* ════════════════════════════════════════════
-           进度条（★ 保留不变）
-           ════════════════════════════════════════════ */
         .mizu-progress-track {
             width: 100px;
             height: 1px;
@@ -254,146 +190,47 @@
             border-radius: .5px;
             transition: width .8s cubic-bezier(.4,0,.2,1);
         }
-
-        /* ════════════════════════════════════════════
-           关键帧 — v14.1（时间线不变，仅颜色/尺寸调整）
-           ════════════════════════════════════════════ */
-
-        /* ── 水滴完整生命周期 (4s, delay 0.5s) ──
-             0.5s~1.0s  淡入     (开场 1s)
-             1.0s~4.0s  下落     (水滴 3s)
-             4.0s~4.5s  反弹消散 (进入涟漪期)
-           ──────────────────────────────────────── */
         @keyframes mizuDropLifecycle {
-            /* Phase 1: 开场淡入 (0~12.5% = 0.5~1.0s) */
-            0% {
-                opacity: 0;
-                transform: translateY(-60px);
-                animation-timing-function: ease-out;
-            }
-            12.5% {
-                opacity: .45;                            /* ★ 稍提高可见度配合加深颜色 */
-                transform: translateY(-60px);
-                animation-timing-function: cubic-bezier(.25, 0, .75, .35);
-            }
-            /* Phase 2: 重力加速下落 → 触底 (12.5~87.5% = 1.0~4.0s = 3.0s) */
-            87.5% {
-                opacity: .45;
-                transform: translateY(0);
-                animation-timing-function: cubic-bezier(.34, 1.56, .64, 1);
-            }
-            /* Phase 3: 轻微反弹 (87.5~92.5%) */
-            92.5% {
-                opacity: .35;
-                transform: translateY(-5px);
-                animation-timing-function: ease-in;
-            }
-            /* Phase 4: 触水消散 (95~100%) */
-            95% {
-                opacity: .15;
-                transform: translateY(0) scaleX(1.1) scaleY(.85);
-                animation-timing-function: ease-out;
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(0) scaleX(1.3) scaleY(.3);
-            }
+            0%    { opacity: 0; transform: translateY(-60px); animation-timing-function: ease-out; }
+            12.5% { opacity: .45; transform: translateY(-60px); animation-timing-function: cubic-bezier(.25,0,.75,.35); }
+            87.5% { opacity: .45; transform: translateY(0); animation-timing-function: cubic-bezier(.34,1.56,.64,1); }
+            92.5% { opacity: .35; transform: translateY(-5px); animation-timing-function: ease-in; }
+            95%   { opacity: .15; transform: translateY(0) scaleX(1.1) scaleY(.85); animation-timing-function: ease-out; }
+            100%  { opacity: 0; transform: translateY(0) scaleX(1.3) scaleY(.3); }
         }
-
-        /* ── 冲击环 (1.5s) ── */
-        @keyframes mizuSplashExpand {
-            from { transform: scale(.35); opacity: .2; }
-            to   { transform: scale(3);   opacity: 0; }
-        }
-
-        /* ── 波源点浮现 ── */
-        @keyframes mizuDotAppear {
-            0%   { transform: scale(0);   opacity: 0; }
-            50%  { transform: scale(1.3); opacity: .14; }
-            100% { transform: scale(1);   opacity: .1; }
-        }
-
-        /* ── 波源点呼吸 ── */
-        @keyframes mizuDotBreathe {
-            0%, 100% { transform: scale(1);   opacity: .1; }
-            50%      { transform: scale(1.2); opacity: .04; }
-        }
-
-        /* ── ★ 涟漪扩散 (2.5s，单次 forwards) ──
-             峰值 opacity 0.38 × border-alpha 0.45 ≈ 可见度 0.17
-             整体线条"细淡"但层次分明 */
-        @keyframes mizuRippleExpand {
-            0%   { transform: scale(.1);  opacity: 0; }
-            8%   { opacity: .38; }
-            20%  { opacity: .25; }
-            40%  { opacity: .14; }
-            60%  { opacity: .07; }
-            85%  { opacity: .02; }
-            100% { transform: scale(3.5); opacity: 0; }
-        }
-
-        /* ── 通用（不变） ── */
-        @keyframes mizuSlideUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes mizuFadeIn {
-            to { opacity: 1; }
-        }
-        @keyframes mizuShimmerDrift {
-            0%   { background-position: 100% 100%; }
-            50%  { background-position: 0% 0%; }
-            100% { background-position: 100% 100%; }
-        }
-
-        /* ── 场景呼吸（含 -15vh 偏移，不变） ── */
-        @keyframes mizuSceneBreathe {
-            0%, 100% { transform: translateY(-15vh) scale(1); }
-            50%      { transform: translateY(-15vh) scale(1.018); }
-        }
-
-        /* ════════════════════════════════════════════
-           退场动画（不变）
-           ════════════════════════════════════════════ */
-        #loadingIndicator.mizu-fadeout .mizu-scene {
-            animation: mizuSceneExit .9s cubic-bezier(.4,0,.15,1) forwards !important;
-        }
-        @keyframes mizuSceneExit {
-            to { transform: translateY(calc(-15vh - 22px)) scale(.88); opacity: 0; }
-        }
-
-        #loadingIndicator.mizu-fadeout .mizu-ripple {
-            animation-play-state: paused !important;
-        }
-
-        #loadingIndicator.mizu-fadeout .mizu-impact-dot {
-            animation: none !important;
-            opacity: 0 !important;
-            transition: opacity .4s ease;
-        }
-
+        @keyframes mizuSplashExpand { from { transform: scale(.35); opacity: .2; } to { transform: scale(3); opacity: 0; } }
+        @keyframes mizuDotAppear { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.3); opacity: .14; } 100% { transform: scale(1); opacity: .1; } }
+        @keyframes mizuDotBreathe { 0%,100% { transform: scale(1); opacity: .1; } 50% { transform: scale(1.2); opacity: .04; } }
+        @keyframes mizuRippleExpand { 0% { transform: scale(.1); opacity: 0; } 8% { opacity: .38; } 20% { opacity: .25; } 40% { opacity: .14; } 60% { opacity: .07; } 85% { opacity: .02; } 100% { transform: scale(3.5); opacity: 0; } }
+        @keyframes mizuSlideUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes mizuFadeIn { to { opacity: 1; } }
+        @keyframes mizuShimmerDrift { 0% { background-position: 100% 100%; } 50% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+        @keyframes mizuSceneBreathe { 0%,100% { transform: translateY(-15vh) scale(1); } 50% { transform: translateY(-15vh) scale(1.018); } }
+        #loadingIndicator.mizu-fadeout .mizu-scene { animation: mizuSceneExit .9s cubic-bezier(.4,0,.15,1) forwards !important; }
+        @keyframes mizuSceneExit { to { transform: translateY(calc(-15vh - 22px)) scale(.88); opacity: 0; } }
+        #loadingIndicator.mizu-fadeout .mizu-ripple { animation-play-state: paused !important; }
+        #loadingIndicator.mizu-fadeout .mizu-impact-dot { animation: none !important; opacity: 0 !important; transition: opacity .4s ease; }
         #loadingIndicator.mizu-fadeout .mizu-brand,
         #loadingIndicator.mizu-fadeout .mizu-status,
-        #loadingIndicator.mizu-fadeout .mizu-progress-track {
-            animation: mizuContentExit .7s cubic-bezier(.4,0,.15,1) forwards !important;
-        }
-        @keyframes mizuContentExit {
-            to { opacity: 0; transform: translateY(14px); }
-        }
-
-        #loadingIndicator.mizu-fadeout .mizu-shimmer {
-            opacity: 0 !important;
-            transition: opacity .5s ease;
-            animation-play-state: paused;
-        }
+        #loadingIndicator.mizu-fadeout .mizu-progress-track { animation: mizuContentExit .7s cubic-bezier(.4,0,.15,1) forwards !important; }
+        @keyframes mizuContentExit { to { opacity: 0; transform: translateY(14px); } }
+        #loadingIndicator.mizu-fadeout .mizu-shimmer { opacity: 0 !important; transition: opacity .5s ease; animation-play-state: paused; }
     </style>
 
-    <!-- ★ 超时安全网：20 秒后强制移除 -->
     <script>
         (function() {
             var _loadingTimeout = setTimeout(function() {
+                if (window.__authRequired) {
+                    var el = document.getElementById('loadingIndicator');
+                    if (el && el.style.display !== 'none') {
+                        el.classList.add('mizu-fadeout');
+                        setTimeout(function() { el.style.display = 'none'; }, 1200);
+                    }
+                    return;
+                }
                 var el = document.getElementById('loadingIndicator');
                 if (el) {
-                    console.error('[安全网] ⚠️ 超过 20 秒仍在 Loading，强制移除');
+                    console.error('[安全网] 超过 20 秒仍在 Loading，强制移除');
                     el.style.display = 'none';
                     if (el.parentNode) el.parentNode.removeChild(el);
                 }
@@ -420,59 +257,150 @@
 </head>
 <body>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         ★ Mizu Phone v14.1 — 水滴微调
-         ═══════════════════════════════════════════════════════════════ -->
+    <!-- Loading Indicator -->
     <div id="loadingIndicator">
-
         <div class="mizu-shimmer"></div>
-
         <div class="mizu-scene">
-
             <span class="mizu-ripple"></span>
             <span class="mizu-ripple"></span>
             <span class="mizu-ripple"></span>
-
             <div class="mizu-drop">
                 <svg viewBox="0 0 40 56" xmlns="http://www.w3.org/2000/svg">
-                    <!-- ★ 主轮廓加深: #b5b5b5 → #ababab -->
-                    <path d="M20 5
-                             C20 5, 7 28, 7 37
-                             C7 45.5, 13 51, 20 51
-                             C27 51, 33 45.5, 33 37
-                             C33 28, 20 5, 20 5Z"
-                          fill="none"
-                          stroke="#ababab"
-                          stroke-width="0.8"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"/>
-                    <!-- ★ 高光线加深: #c5c5c5 → #bababa -->
-                    <path d="M16.5 27 Q14.5 34, 16.5 40"
-                          fill="none"
-                          stroke="#bababa"
-                          stroke-width="0.4"
-                          stroke-linecap="round"/>
-                    <!-- ★ 顶部水珠加深: #c8c8c8 → #bcbcbc -->
-                    <circle cx="16" cy="22" r="1"
-                            fill="none"
-                            stroke="#bcbcbc"
-                            stroke-width="0.4"/>
+                    <path d="M20 5 C20 5, 7 28, 7 37 C7 45.5, 13 51, 20 51 C27 51, 33 45.5, 33 37 C33 28, 20 5, 20 5Z"
+                          fill="none" stroke="#ababab" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16.5 27 Q14.5 34, 16.5 40" fill="none" stroke="#bababa" stroke-width="0.4" stroke-linecap="round"/>
+                    <circle cx="16" cy="22" r="1" fill="none" stroke="#bcbcbc" stroke-width="0.4"/>
                 </svg>
             </div>
-
             <div class="mizu-splash"></div>
             <div class="mizu-impact-dot"></div>
-
         </div>
-
         <div class="mizu-brand">Mizu Phone</div>
         <div class="mizu-status" id="mizuStatus"></div>
         <div class="mizu-progress-track">
             <div class="mizu-progress-bar" id="mizuProgress"></div>
         </div>
-
     </div>
 
+    <!-- ★ 认证界面 -->
+    <div id="authScreen" class="auth-screen">
+        <div class="auth-container">
+
+            <div class="auth-logo">
+                <svg viewBox="0 0 40 56" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 5 C20 5, 7 28, 7 37 C7 45.5, 13 51, 20 51 C27 51, 33 45.5, 33 37 C33 28, 20 5, 20 5Z"
+                          fill="none" stroke="#ababab" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16.5 27 Q14.5 34, 16.5 40" fill="none" stroke="#bababa" stroke-width="0.4" stroke-linecap="round"/>
+                    <circle cx="16" cy="22" r="1" fill="none" stroke="#bcbcbc" stroke-width="0.4"/>
+                </svg>
+            </div>
+            <div class="auth-brand">Mizu Phone</div>
+
+            <h2 id="authTitle" class="auth-title">登录</h2>
+
+            <div id="authError" class="auth-error"></div>
+
+            <!-- 登录表单 -->
+            <div id="authLoginForm" class="auth-form">
+                <div class="auth-field">
+                    <label>QQ 号</label>
+                    <input type="text" id="loginQQ" inputmode="numeric" pattern="[0-9]*"
+                           placeholder="输入 QQ 号" autocomplete="username">
+                </div>
+                <div class="auth-field">
+                    <label>密码</label>
+                    <div class="auth-pwd-wrap">
+                        <input type="password" id="loginPassword"
+                               placeholder="输入密码" autocomplete="current-password">
+                        <button type="button" class="auth-pwd-toggle" data-target="loginPassword">
+                            <svg class="pwd-icon-show" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="pwd-icon-hide" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round"
+                                 style="display:none">
+                                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button id="authLoginBtn" class="auth-submit-btn" type="button">登录</button>
+                <div class="auth-switch">
+                    没有账号？<a href="#" id="switchToRegister">去注册</a>
+                </div>
+            </div>
+
+            <!-- 注册表单 -->
+            <div id="authRegisterForm" class="auth-form" style="display:none">
+                <div class="auth-field">
+                    <label>QQ 号</label>
+                    <input type="text" id="regQQ" inputmode="numeric" pattern="[0-9]*"
+                           placeholder="输入 QQ 号（纯数字）" autocomplete="username">
+                </div>
+                <div class="auth-field">
+                    <label>用户名</label>
+                    <input type="text" id="regName"
+                           placeholder="输入显示名称" autocomplete="name">
+                </div>
+                <div class="auth-field">
+                    <label>密码</label>
+                    <div class="auth-pwd-wrap">
+                        <input type="password" id="regPassword"
+                               placeholder="至少 6 位" autocomplete="new-password">
+                        <button type="button" class="auth-pwd-toggle" data-target="regPassword">
+                            <svg class="pwd-icon-show" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="pwd-icon-hide" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round"
+                                 style="display:none">
+                                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label>确认密码</label>
+                    <div class="auth-pwd-wrap">
+                        <input type="password" id="regPasswordConfirm"
+                               placeholder="再次输入密码" autocomplete="new-password">
+                        <button type="button" class="auth-pwd-toggle" data-target="regPasswordConfirm">
+                            <svg class="pwd-icon-show" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="pwd-icon-hide" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="1.5"
+                                 stroke-linecap="round" stroke-linejoin="round"
+                                 style="display:none">
+                                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button id="authRegisterBtn" class="auth-submit-btn" type="button">注册</button>
+                <div class="auth-switch">
+                    已有账号？<a href="#" id="switchToLogin">去登录</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 主应用 -->
     <div class="app" id="app">
         <div class="screen-container" id="screenContainer"></div>
         <div class="toast" id="toast"></div>
@@ -483,6 +411,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/screen-loader.js"></script>
 </body>
 </html>

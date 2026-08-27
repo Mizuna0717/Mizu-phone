@@ -1,14 +1,13 @@
 // ========== 08-settings.js ==========
 // 依赖：02-state.js, 03-utils.js, 04-i18n.js, 05-ui.js, 06-api.js
 
-// ★★★ 初始化提示词（由 init.js 在 loadState 之后调用） ★★★
+// ★ 初始化提示词（由 init.js 在 loadState 之后调用）
 function initSystemPrompts() {
   if (!accountStore || !accountStore.currentAccountId) {
     console.warn('[initSystemPrompts] 账号未就绪，跳过');
     return;
   }
 
-  // ★★★ 修复：先记录原始数据，确保不会因为保存而丢失已有数据 ★★★
   var origChars = state.characters.length;
   var origChats = Object.keys(state.chats).length;
 
@@ -29,9 +28,8 @@ function initSystemPrompts() {
   }
 
   if (needSave) {
-    // ★ 验证：保存前确认核心数据未被破坏
     if (state.characters.length !== origChars) {
-      console.error('[initSystemPrompts] ⚠️ 角色数量在初始化过程中发生变化！', origChars, '->', state.characters.length);
+      console.error('[initSystemPrompts] 角色数量在初始化过程中发生变化！', origChars, '->', state.characters.length);
     }
     saveState();
     console.log('[initSystemPrompts] 已初始化默认提示词并保存 | IM长度:', state.systemPromptIM.length,
@@ -43,29 +41,21 @@ function initSystemPrompts() {
   }
 }
 
-// 其余代码保持不变（renderSettings, saveApi, deleteApi 等已正确调用 saveState）
 
-
-// ★★★ 核心修复：获取有效提示词值（state > 默认值，绝不返回空） ★★★
 function _getEffectivePromptIM() {
-  // 1. state 中有用户保存的内容 → 使用它
   if (state.systemPromptIM != null && state.systemPromptIM !== '') {
     return state.systemPromptIM;
   }
-  // 2. 有旧版 replyPrompt 迁移值 → 使用它
   if (state.replyPrompt && state.replyPrompt !== (typeof DEFAULT_REPLY_PROMPT !== 'undefined' ? DEFAULT_REPLY_PROMPT : '')) {
     return state.replyPrompt;
   }
-  // 3. 回退到内置默认值
   return (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM : '';
 }
 
 function _getEffectivePromptMeeting() {
-  // 1. state 中有用户保存的内容 → 使用它
   if (state.systemPromptMeeting != null && state.systemPromptMeeting !== '') {
     return state.systemPromptMeeting;
   }
-  // 2. 回退到内置默认值
   return (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
 }
 
@@ -75,7 +65,6 @@ function renderSettings() {
   renderSettingsHero();
   renderHelpAccordion();
 
-  // ★★★ 修复核心：确保 state 中有值，然后填充输入框 ★★★
   _ensurePromptsInState();
 
   var imArea = document.getElementById('promptIMArea');
@@ -84,19 +73,25 @@ function renderSettings() {
   if (mtArea) mtArea.value = _getEffectivePromptMeeting();
 
   if (!state.memories) state.memories = [];
+
+  // ★ NEW: 渲染认证区块（退出登录 + 用户信息）
+  if (typeof mizuAuth !== 'undefined' && typeof mizuAuth.renderSettingsSection === 'function') {
+    try {
+      mizuAuth.renderSettingsSection();
+    } catch(e) {
+      console.warn('[settings] renderAuthSection failed:', e);
+    }
+  }
 }
 
-// ★★★ 确保 state 中写入了有效值（不依赖 accountStore） ★★★
 function _ensurePromptsInState() {
   var needSave = false;
 
-  // 如果 state.systemPromptIM 为空/未定义，写入默认值
   if (!state.systemPromptIM) {
     state.systemPromptIM = _getEffectivePromptIM();
     if (state.systemPromptIM) needSave = true;
   }
 
-  // 如果 state.systemPromptMeeting 为空/未定义，写入默认值
   if (!state.systemPromptMeeting) {
     state.systemPromptMeeting = _getEffectivePromptMeeting();
     if (state.systemPromptMeeting) needSave = true;
@@ -141,7 +136,6 @@ function savePromptIM() {
 }
 
 function resetPromptIM() {
-  // ★★★ 重置为内置默认值，而非空字符串 ★★★
   var defaultVal = (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM : '';
   state.systemPromptIM = defaultVal;
   var area = document.getElementById('promptIMArea');
@@ -160,7 +154,6 @@ function savePromptMeeting() {
 }
 
 function resetPromptMeeting() {
-  // ★★★ 重置为内置默认值，而非空字符串 ★★★
   var defaultVal = (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
   state.systemPromptMeeting = defaultVal;
   var area = document.getElementById('promptMeetingArea');
@@ -169,7 +162,7 @@ function resetPromptMeeting() {
   showToast('Reset');
 }
 
-// ========== 向后兼容：保留旧函数避免其他地方调用报错 ==========
+// ========== 向后兼容 ==========
 function saveReplyPrompt() { savePromptIM(); }
 function resetReplyPrompt() { resetPromptIM(); }
 

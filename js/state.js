@@ -12,7 +12,8 @@ let state = {
   meetings: [],
   allowQuote: true,
   systemPromptIM: '',
-  systemPromptMeeting: ''
+  systemPromptMeeting: '',
+  user: null                    // ★ NEW: Supabase 认证用户信息（运行时，不持久化）
 };
 
 let bubbleState = { multiMode: false, selectedIds: new Set(), quoteMsg: null, editingMsgId: null };
@@ -26,6 +27,7 @@ let tmp = {
   momentImageData: null, momentVirtualText: '', acctAvatar: null, importCharList: null
 };
 
+// ★ 注意：user 不在 SAVE_KEYS 中 — 由 Supabase session 管理，不写入 localStorage
 var SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
@@ -34,7 +36,7 @@ var SAVE_KEYS = [
   'meetings', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting'
 ];
 
-// ★★★ 状态标志 ★★★
+// ★ 状态标志
 var _stateLoaded = false;
 var _forceNextSave = false;
 var _saveGeneration = 0;
@@ -53,7 +55,8 @@ function _getStateDefaults() {
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
-    allowQuote: true, systemPromptIM: '', systemPromptMeeting: ''
+    allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
+    user: null                  // ★ NEW
   };
 }
 
@@ -77,8 +80,13 @@ function _validateState() {
   if (state.allowQuote == null) state.allowQuote = true;
   if (state.systemPromptIM == null) state.systemPromptIM = '';
   if (state.systemPromptMeeting == null) state.systemPromptMeeting = '';
-  // ★ 在 _validateState() 函数末尾添加以下代码 ★
-  // ── 验证每个 meeting session 的记忆字段 ──
+
+  // ★ NEW: 从 Supabase session 恢复 user（不从 localStorage 恢复）
+  if (window.__user) {
+    state.user = window.__user;
+  }
+
+  // 验证每个 meeting session 的记忆字段
   if (Array.isArray(state.meetings)) {
     state.meetings.forEach(function(session) {
       if (!Array.isArray(session.shortTermMemories))  session.shortTermMemories = [];
@@ -88,7 +96,6 @@ function _validateState() {
       if (session.consolidateThreshold === undefined)   session.consolidateThreshold = 5;
     });
   }
-
 }
 
 function _resetTransientState() {
@@ -139,7 +146,6 @@ function _loadAccountMeta() {
   }
 }
 
-// ★★★ 防空覆写保护 ★★★
 function _saveAccountData(accountId) {
   var s = {};
   SAVE_KEYS.forEach(function(k) { s[k] = state[k]; });
@@ -148,7 +154,6 @@ function _saveAccountData(accountId) {
     var json = JSON.stringify(s);
     var usedKB = Math.round(json.length / 1024);
 
-    // ★ 防空覆写检测
     if (!_forceNextSave) {
       var newChars = (s.characters || []).length;
       var newChats = Object.keys(s.chats || {}).length;
@@ -168,7 +173,7 @@ function _saveAccountData(accountId) {
             var oldDataScore = oldChars + oldChats + oldMasks;
 
             if (oldDataScore > 0) {
-              console.error('[save] ⛔ 防空覆写！阻止空数据覆盖有效数据。',
+              console.error('[save] 防空覆写！阻止空数据覆盖有效数据。',
                 '| 现有: chars=' + oldChars + ' chats=' + oldChats + ' masks=' + oldMasks,
                 '| 试图写入: chars=' + newChars + ' chats=' + newChats + ' masks=' + newMasks);
               try {
@@ -194,12 +199,11 @@ function _saveAccountData(accountId) {
       '| masks:', (s.masks||[]).length,
       '| size:', usedKB + 'KB');
 
-    // 写入后立即验证
     var verify = localStorage.getItem('ai_app_account_' + accountId);
     if (!verify) {
-      console.error('[save] ❌ 写入后读回失败！');
+      console.error('[save] 写入后读回失败！');
     } else if (verify.length !== json.length) {
-      console.error('[save] ❌ 长度不匹配！写入:', json.length, '读回:', verify.length);
+      console.error('[save] 长度不匹配！写入:', json.length, '读回:', verify.length);
     }
   } catch (e) {
     console.error('[save] FAILED for', accountId, e);
@@ -227,7 +231,7 @@ function _loadAccountData(accountId) {
       console.warn('[load] 无数据:', accountId);
       var backupRaw = localStorage.getItem('ai_app_backup_' + accountId);
       if (backupRaw) {
-        console.log('[load] ✅ 从备份恢复:', accountId);
+        console.log('[load] 从备份恢复:', accountId);
         try {
           var backupData = JSON.parse(backupRaw);
           if (backupData && typeof backupData === 'object') {
@@ -275,7 +279,6 @@ function _resetStateToDefaults() {
   Object.keys(defaults).forEach(function(k) { state[k] = defaults[k]; });
 }
 
-// ★★★ 孤儿账号扫描 ★★★
 function _scanOrphanedAccounts() {
   var found = [];
   try {
@@ -317,7 +320,6 @@ function _migrateFromLegacy() {
   var oldData = null;
   try { oldData = JSON.parse(localStorage.getItem('aiphone8')); } catch (e) {}
 
-  // ★ 先扫描孤儿
   var orphans = _scanOrphanedAccounts();
   if (orphans.length > 0) {
     console.log('[migrate] 发现', orphans.length, '个孤儿账号，正在恢复...');
@@ -419,7 +421,7 @@ function saveState(force) {
     return;
   }
   _saveAccountData(accountStore.currentAccountId);
-  _saveAccountMeta(); // ★ 每次保存同步刷新 meta
+  _saveAccountMeta();
   _forceNextSave = false;
 }
 
@@ -459,7 +461,7 @@ function loadState() {
     timestamp: Date.now()
   };
 
-  console.log('[loadState] ✅ 完成 | account:', accountStore.currentAccountId,
+  console.log('[loadState] 完成 | account:', accountStore.currentAccountId,
     '| chars:', state.characters.length,
     '| chats:', Object.keys(state.chats).length,
     '| masks:', state.masks.length,
@@ -468,7 +470,7 @@ function loadState() {
 }
 
 function resetState() {
-  console.warn('[resetState] ⚠️ 重置所有数据！');
+  console.warn('[resetState] 重置所有数据！');
   _resetStateToDefaults();
   if (typeof DEFAULT_REPLY_PROMPT !== 'undefined') state.replyPrompt = DEFAULT_REPLY_PROMPT;
   _resetTransientState();
@@ -498,15 +500,13 @@ function getOtherAccountsCharacters() {
 }
 
 
-
 // ═══════════════════════════════════════════════════════════
-//  ★★★ 全局导出 — 解决模块作用域隔离问题 ★★★
-//  必须放在 state.js 最末尾，所有函数定义之后
+//  全局导出
 // ═══════════════════════════════════════════════════════════
 ;(function _exportStateGlobals() {
   'use strict';
 
-  // ── 1. 核心数据对象（直接引用，所有模块共享同一对象）──
+  // 1. 核心数据对象
   window.state         = state;
   window.accountStore  = accountStore;
   window.bubbleState   = bubbleState;
@@ -514,12 +514,12 @@ function getOtherAccountsCharacters() {
   window.tmp           = tmp;
   window.SAVE_KEYS     = SAVE_KEYS;
 
-  // ── 2. 核心函数 ──
+  // 2. 核心函数
   window.saveState             = saveState;
   window.loadState             = loadState;
   window.resetState            = resetState;
 
-  // ── 3. 账号管理函数 ──
+  // 3. 账号管理函数
   window.createAccount         = createAccount;
   window.deleteAccount         = deleteAccount;
   window.switchAccount         = switchAccount;
@@ -527,7 +527,7 @@ function getOtherAccountsCharacters() {
   window.getAllAccounts         = getAllAccounts;
   window.getOtherAccountsCharacters = getOtherAccountsCharacters;
 
-  // ── 4. 内部函数（诊断工具 & 其他模块需要）──
+  // 4. 内部函数
   window._getStateDefaults     = _getStateDefaults;
   window._loadAccountMeta      = _loadAccountMeta;
   window._loadAccountData      = _loadAccountData;
@@ -539,8 +539,8 @@ function getOtherAccountsCharacters() {
   window._resetTransientState  = _resetTransientState;
   window._generateAccountId    = _generateAccountId;
 
-  // ── 5. 验证导出成功 ──
-  console.log('[state.js] ✅ 全局导出完成',
+  // 5. 验证
+  console.log('[state.js] 全局导出完成',
     '| window.state.characters:', state.characters.length,
     '| window.saveState:', typeof window.saveState);
 })();

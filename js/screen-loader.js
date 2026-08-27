@@ -292,6 +292,7 @@ var scripts = [
     'js/call.js',
     'js/archive.js',
     'js/cloud.js',
+    'js/auth.js',
     'js/init.js',
 ];
 
