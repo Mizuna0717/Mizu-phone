@@ -1,5 +1,5 @@
 // ========== meeting.js ==========
-// Meeting — Complete Redesign
+// Meeting — Complete Redesign (v2.0 Memory System Integrated)
 // Card-based UI · Grey-white · Line icons · No emoji
 
 /* ══════════════════════════════════
@@ -166,10 +166,12 @@
    ══════════════════════════════════ */
 var MTG_CONTEXT_COUNT = 50;
 var MTG_DEFAULT_SUMMARY_INTERVAL = 5;
+var MTG_MEM_CONSOLIDATE_THRESHOLD = 5;
 var mtgCurrentSession = null;
 var mtgGenerating = false;
 var mtgEditingEntryId = null;
 var mtgSettingsReturnTo = 'screen-meeting-write';
+var _mtgSummarizing = false;  // ★ 并发锁：防止同时触发多个总结
 
 /* ══════════════════════════════════
    Utilities
@@ -250,6 +252,41 @@ function mtgGetUserAvatar() {
 }
 
 /* ══════════════════════════════════
+   ★ 记忆字段初始化 & 兼容
+   ══════════════════════════════════ */
+function mtgEnsureMemoryFields(session) {
+  if (!session) {
+    console.warn('[Meeting-Memory] mtgEnsureMemoryFields called with null session');
+    return;
+  }
+  if (!Array.isArray(session.shortTermMemories))  session.shortTermMemories = [];
+  if (!Array.isArray(session.shortTermMemory))    session.shortTermMemory = [];
+  if (session.lastSummarizedEntryIdx === undefined) session.lastSummarizedEntryIdx = 0;
+  if (session.consolidateThreshold === undefined)   session.consolidateThreshold = MTG_MEM_CONSOLIDATE_THRESHOLD;
+  if (!Array.isArray(session.history)) session.history = [];
+
+  // ★ 向前兼容：如果旧 shortTermMemory 有数据但 shortTermMemories 没有，迁移
+  if (session.shortTermMemory.length > 0 && session.shortTermMemories.length === 0) {
+    console.log('[Meeting-Memory] Migrating', session.shortTermMemory.length, 'old STMs to new format');
+    session.shortTermMemory.forEach(function(old) {
+      session.shortTermMemories.push({
+        id: old.id || mtgUid(),
+        date: new Date(old.timestamp || Date.now()).toISOString().split('T')[0],
+        content: old.content,
+        turnRange: null,
+        timestamp: old.timestamp || Date.now(),
+        _writtenToLibrary: false
+      });
+    });
+  }
+
+  console.log('[Meeting-Memory] Fields ensured for session:', session.id,
+    '| STMs:', session.shortTermMemories.length,
+    '| lastIdx:', session.lastSummarizedEntryIdx,
+    '| history:', session.history.length);
+}
+
+/* ══════════════════════════════════
    Segmented Control Toggle
    ══════════════════════════════════ */
 function mtgSegToggle(el) {
@@ -300,23 +337,13 @@ function _mtgArchiveCardHTML(s) {
   var isEnded = s.status === 'ended';
 
   var h = '<div class="mtg-archive-card">';
-
-  // Card body — clickable to enter
   h += '<div class="mtg-archive-card-body" onclick="openMeetingWrite(\'' + s.id + '\')">';
-
-  // Name
   h += '<div class="mtg-archive-card-name">' + mtgEsc(s.name) + '</div>';
-
-  // Info rows
   h += '<div class="mtg-archive-card-info">';
-
-  // Characters
   h += '<div class="mtg-archive-info-row">';
   h += '<svg viewBox="0 0 16 16"><circle cx="8" cy="5.5" r="3"/><path d="M2.5 15c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/></svg>';
   h += '<span>' + mtgEsc(charNames) + '</span>';
   h += '</div>';
-
-  // Date + Status
   h += '<div class="mtg-archive-info-row">';
   h += '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 1.5v3M11 1.5v3M2 6.5h12"/></svg>';
   h += '<span>' + dateStr + '</span>';
@@ -331,23 +358,15 @@ function _mtgArchiveCardHTML(s) {
     h += '</span>';
   }
 
-  h += '</div>';
-  h += '</div>'; // card-info
-  h += '</div>'; // card-body
-
-  // Action bar
+  h += '</div></div></div>';
   h += '<div class="mtg-archive-actions">';
   h += '<button class="mtg-archive-action-btn" onclick="event.stopPropagation();mtgOpenSettingsForArchive(\'' + s.id + '\')">';
   h += '<svg viewBox="0 0 16 16"><path d="M10 2l4 4M3 9l7-7 4 4-7 7H3V9z"/></svg>';
-  h += '<span>' + T('meetingEdit') + '</span>';
-  h += '</button>';
+  h += '<span>' + T('meetingEdit') + '</span></button>';
   h += '<button class="mtg-archive-action-btn" onclick="event.stopPropagation();mtgDeleteArchive(\'' + s.id + '\')">';
   h += '<svg viewBox="0 0 16 16"><path d="M3 4h10"/><path d="M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1"/><path d="M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4"/></svg>';
-  h += '<span>' + T('meetingDelete') + '</span>';
-  h += '</button>';
-  h += '</div>';
-
-  h += '</div>'; // archive-card
+  h += '<span>' + T('meetingDelete') + '</span></button>';
+  h += '</div></div>';
   return h;
 }
 
@@ -357,7 +376,6 @@ function _mtgArchiveCardHTML(s) {
    ══════════════════════════════════ */
 function _mtgGroupHeaderHTML(mode) {
   var label, iconSvg;
-
   if (mode === 'continue') {
     label = T('meetingContinue');
     iconSvg = '<svg viewBox="0 0 16 16"><path d="M3 13V3h7l3 3v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M10 3v3h3"/><path d="M6 9h4M6 11h2"/></svg>';
@@ -365,13 +383,12 @@ function _mtgGroupHeaderHTML(mode) {
     label = T('meetingIF');
     iconSvg = '<svg viewBox="0 0 16 16"><circle cx="8" cy="2.5" r="1.5"/><path d="M8 4v3"/><path d="M4.5 9.5L8 7l3.5 2.5"/><path d="M4.5 9.5v3"/><path d="M11.5 9.5v3"/></svg>';
   }
-
   return '<div class="mtg-group-header">' + iconSvg + '<span>' + label + '</span></div>';
 }
 
 
 /* ══════════════════════════════════
-   1. MAIN PAGE — Archive List (grouped by mode)
+   1. MAIN PAGE — Archive List
    ══════════════════════════════════ */
 function initMeetingPage() {
   mtgEnsureState();
@@ -381,7 +398,6 @@ function initMeetingPage() {
 function mtgRenderArchiveList() {
   var container = document.getElementById('meetingArchiveList');
   if (!container) return;
-
   mtgEnsureState();
   var list = state.meetings;
 
@@ -398,28 +414,17 @@ function mtgRenderArchiveList() {
     return;
   }
 
-  // Separate by mode
   var continueList = list.filter(function(s) { return s.mode === 'continue'; });
   var ifList = list.filter(function(s) { return s.mode === 'if'; });
-
   var h = '';
-
-  // Continue section
   if (continueList.length > 0) {
     h += _mtgGroupHeaderHTML('continue');
-    continueList.forEach(function(s) {
-      h += _mtgArchiveCardHTML(s);
-    });
+    continueList.forEach(function(s) { h += _mtgArchiveCardHTML(s); });
   }
-
-  // IF section
   if (ifList.length > 0) {
     h += _mtgGroupHeaderHTML('if');
-    ifList.forEach(function(s) {
-      h += _mtgArchiveCardHTML(s);
-    });
+    ifList.forEach(function(s) { h += _mtgArchiveCardHTML(s); });
   }
-
   container.innerHTML = h;
 }
 
@@ -428,7 +433,6 @@ function mtgRenderArchiveList() {
    2. NEW ARCHIVE PAGE
    ══════════════════════════════════ */
 function openMeetingNewArchive() {
-  // Reset form
   var el = document.getElementById('mtgNewName');
   if (el) el.value = '';
 
@@ -459,7 +463,6 @@ function openMeetingNewArchive() {
   var cc = document.getElementById('mtgNewContextCount');
   if (cc) cc.value = '50';
 
-
   var wv = document.getElementById('mtgNewWorldview');
   if (wv) wv.value = '';
   var ident = document.getElementById('mtgNewIdentity');
@@ -470,9 +473,7 @@ function openMeetingNewArchive() {
   nav('screen-meeting-new');
 }
 
-function exitMeetingNew() {
-  nav('screen-meeting');
-}
+function exitMeetingNew() { nav('screen-meeting'); }
 
 function mtgNewModeChanged() {
   var modeEl = document.querySelector('#mtgNewModeSeg .mtg-seg-opt.active');
@@ -516,9 +517,7 @@ function mtgCreateArchive() {
   var tsEl = document.getElementById('mtgNewToggleSummary');
   var turnSummary = tsEl ? tsEl.classList.contains('active') : false;
   var summaryInterval = parseInt((document.getElementById('mtgNewSummaryInterval') || {}).value) || MTG_DEFAULT_SUMMARY_INTERVAL;
-
   var contextCount = parseInt((document.getElementById('mtgNewContextCount') || {}).value) || 50;
-
 
   var wv = '', ident = '';
   if (mode === 'if') {
@@ -544,14 +543,21 @@ function mtgCreateArchive() {
     worldview: wv.trim(),
     identity: ident.trim(),
     history: [],
-    shortTermMemory: [],
     turnCount: 0,
-    status: 'active'
+    status: 'active',
+    // ★★★ v2.0 记忆系统字段 ★★★
+    shortTermMemory: [],
+    shortTermMemories: [],
+    lastSummarizedEntryIdx: 0,
+    consolidateThreshold: MTG_MEM_CONSOLIDATE_THRESHOLD
   };
 
   mtgEnsureState();
   state.meetings.unshift(session);
   saveState();
+
+  console.log('[Meeting-Memory] Archive created:', session.id,
+    '| turnSummary:', turnSummary, '| interval:', summaryInterval);
 
   showToast(T('meetingArchiveCreated'));
   mtgRenderArchiveList();
@@ -576,7 +582,6 @@ function exitMeetingManage() {
 function mtgRenderManageList() {
   var container = document.getElementById('mtgManageArchiveList');
   if (!container) return;
-
   mtgEnsureState();
   var list = state.meetings;
 
@@ -596,27 +601,17 @@ function mtgRenderManageList() {
   list.forEach(function(s) {
     var charNames = (s.characters && s.characters.length) ? s.characters.join(', ') : T('meetingNoCharsSelected');
     var dateStr = mtgFormatDateTime(s.date || s.createdAt);
-
     h += '<div class="mtg-manage-card">';
     h += '<div class="mtg-manage-card-name">' + mtgEsc(s.name) + '</div>';
     h += '<div class="mtg-manage-card-info">';
-
-    // Characters
     h += '<div class="mtg-manage-info-row">';
     h += '<svg viewBox="0 0 16 16"><circle cx="8" cy="5.5" r="3"/><path d="M2.5 15c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/></svg>';
-    h += '<span>' + mtgEsc(charNames) + '</span>';
-    h += '</div>';
-
-    // Date
+    h += '<span>' + mtgEsc(charNames) + '</span></div>';
     h += '<div class="mtg-manage-info-row">';
     h += '<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 1.5v3M11 1.5v3M2 6.5h12"/></svg>';
-    h += '<span>' + dateStr + '</span>';
-    h += '</div>';
-
-    h += '</div>'; // card-info
-    h += '</div>'; // manage-card
+    h += '<span>' + dateStr + '</span></div>';
+    h += '</div></div>';
   });
-
   container.innerHTML = h;
 }
 
@@ -667,8 +662,6 @@ function mtgFillSettingsPage(s) {
   var ccEl = document.getElementById('mtgSettingsContextCount');
   if (ccEl) ccEl.value = s.contextCount || 50;
 
- 
-  // Render memory list
   mtgRenderSettingsMemory();
 }
 
@@ -676,30 +669,47 @@ function mtgRenderSettingsMemory() {
   var c = document.getElementById('mtgSettingsMemoryList');
   if (!c || !mtgCurrentSession) return;
 
-  var mems = mtgCurrentSession.shortTermMemory || [];
-  if (mems.length === 0) {
-    c.innerHTML =
-      '<div class="mtg-form-card" style="padding:24px;text-align:center;color:#86868b;font-size:14px">' +
-        T('meetingNoMemories') +
-      '</div>';
+  mtgEnsureMemoryFields(mtgCurrentSession);
+  var mems = mtgCurrentSession.shortTermMemories;
+
+  if (!mems || mems.length === 0) {
+    var unsumm = mtgCountUnsummarizedTurns(mtgCurrentSession);
+    var hint = T('meetingNoMemories');
+    if (unsumm > 0) {
+      hint += '<br><span style="font-size:11px;color:#c7c7cc">' + unsumm +
+        (state.lang === 'zh' ? ' \u8f6e\u5f85\u603b\u7ed3' : ' turns pending') + '</span>';
+    }
+    c.innerHTML = '<div class="mtg-form-card" style="padding:24px;text-align:center;color:#86868b;font-size:14px">' + hint + '</div>';
     return;
   }
 
   var h = '';
-  mems.forEach(function(m) {
-    h += '<div class="mtg-mem-card">';
-    h += '<div class="mtg-mem-round">' + T('meetingSummaryRound') + ' ' + m.round + '</div>';
+  mems.forEach(function(m, idx) {
+    var written = m._writtenToLibrary;
+    h += '<div class="mtg-mem-card" style="border-left:3px solid ' + (written ? '#34c759' : '#007aff') + '">';
+    h += '<div class="mtg-mem-round">';
+    h += T('meetingSummaryRound') + ' ' + (idx + 1);
+    if (written) h += ' <span style="font-size:10px;color:#34c759">\u2713</span>';
+    h += '</div>';
     h += '<div class="mtg-mem-text">' + mtgEsc(m.content) + '</div>';
+    if (m.date) h += '<div style="font-size:10px;color:#c7c7cc;margin-top:4px">' + m.date + '</div>';
     h += '</div>';
   });
+
+  var unsummarizedTurns = mtgCountUnsummarizedTurns(mtgCurrentSession);
+  h += '<div style="text-align:center;padding:8px;font-size:11px;color:#8e8e93">';
+  h += mems.length + (state.lang === 'zh' ? ' \u6761\u77ed\u671f\u8bb0\u5fc6' : ' short-term memories');
+  if (unsummarizedTurns > 0) {
+    h += ' \u00b7 ' + unsummarizedTurns + (state.lang === 'zh' ? ' \u8f6e\u5f85\u603b\u7ed3' : ' turns pending');
+  }
+  h += '</div>';
+
   c.innerHTML = h;
 }
 
 function exitMeetingSettings() {
   var returnTo = mtgSettingsReturnTo || 'screen-meeting';
-  if (returnTo === 'screen-meeting') {
-    mtgRenderArchiveList();
-  }
+  if (returnTo === 'screen-meeting') mtgRenderArchiveList();
   nav(returnTo);
 }
 
@@ -710,7 +720,6 @@ function mtgSaveSettings() {
   var nameEl = document.getElementById('mtgSettingsName');
   if (nameEl && nameEl.value.trim()) s.name = nameEl.value.trim();
 
-  // Update characters
   var selCharIds = [];
   var selCharNames = [];
   document.querySelectorAll('#mtgSettingsCharList .mtg-char-check:checked').forEach(function(cb) {
@@ -731,18 +740,15 @@ function mtgSaveSettings() {
   s.summaryInterval = parseInt((document.getElementById('mtgSettingsSummaryInterval') || {}).value) || MTG_DEFAULT_SUMMARY_INTERVAL;
   s.contextCount = parseInt((document.getElementById('mtgSettingsContextCount') || {}).value) || 50;
 
-
   saveState();
   showToast(T('meetingSaveChanges'));
 
-  // Update write screen title if returning there
   if (mtgSettingsReturnTo === 'screen-meeting-write') {
     var titleEl = document.getElementById('meetingWriteTitle');
     if (titleEl) titleEl.textContent = s.name;
     var charEl = document.getElementById('meetingWriteCharName');
     if (charEl) charEl.textContent = s.characters.join(', ');
   }
-
   exitMeetingSettings();
 }
 
@@ -754,9 +760,7 @@ function mtgDeleteArchive(id) {
   if (!confirm(T('meetingDeleteConfirm'))) return;
   mtgEnsureState();
   state.meetings = state.meetings.filter(function(s) { return s.id !== id; });
-  if (mtgCurrentSession && mtgCurrentSession.id === id) {
-    mtgCurrentSession = null;
-  }
+  if (mtgCurrentSession && mtgCurrentSession.id === id) mtgCurrentSession = null;
   saveState();
   mtgRenderArchiveList();
   mtgRenderManageList();
@@ -778,6 +782,7 @@ function openMeetingWrite(sid) {
 
   mtgCurrentSession = session;
   mtgEditingEntryId = null;
+  mtgEnsureMemoryFields(session);
 
   var titleEl = document.getElementById('meetingWriteTitle');
   if (titleEl) titleEl.textContent = session.name;
@@ -805,28 +810,19 @@ function exitMeetingWrite() {
   nav('screen-meeting');
 }
 
-
-/* ── Build avatar HTML ── */
 function _mtgAvatarHTML(role, entry) {
   if (role === 'user') {
     var ua = mtgGetUserAvatar();
-    if (ua) {
-      return '<div class="mtg-msg-avatar"><img src="' + ua + '" alt=""></div>';
-    }
+    if (ua) return '<div class="mtg-msg-avatar"><img src="' + ua + '" alt=""></div>';
     return '<div class="mtg-msg-avatar"><div class="mtg-msg-avatar-placeholder"><svg viewBox="0 0 16 16"><circle cx="8" cy="6" r="3"/><path d="M2.5 15c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/></svg></div></div>';
   }
   if (role === 'char' && entry && entry.charId) {
     var ca = mtgGetCharAvatar(entry.charId);
-    if (ca) {
-      return '<div class="mtg-msg-avatar"><img src="' + ca + '" alt=""></div>';
-    }
+    if (ca) return '<div class="mtg-msg-avatar"><img src="' + ca + '" alt=""></div>';
   }
-  // Default avatar
   return '<div class="mtg-msg-avatar"><div class="mtg-msg-avatar-placeholder"><svg viewBox="0 0 16 16"><circle cx="8" cy="6" r="3"/><path d="M2.5 15c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5"/></svg></div></div>';
 }
 
-
-/* ── Build message card HTML ── */
 function _mtgMsgCardHTML(entry) {
   var isUser   = entry.role === 'user';
   var isChar   = entry.role === 'char';
@@ -840,20 +836,14 @@ function _mtgMsgCardHTML(entry) {
   var eid = entry.id || '';
 
   var h = '<div class="' + cardCls + '" data-entry-id="' + eid + '">';
-
-  // Header with avatar
   h += '<div class="mtg-msg-header">';
   h += _mtgAvatarHTML(entry.role, entry);
   h += '<div class="mtg-msg-meta">';
   h += '<span class="mtg-msg-sender">' + mtgEsc(sender) + '</span>';
   if (time) h += '<span class="mtg-msg-time">' + time + '</span>';
-  h += '</div>';
-  h += '</div>';
-
-  // Body
+  h += '</div></div>';
   h += '<div class="mtg-msg-body">' + mtgEsc(entry.content) + '</div>';
 
-  // Actions (user & char only)
   if (isUser) {
     h += '<div class="mtg-msg-actions">';
     h += '<button class="mtg-msg-action-btn" onclick="mtgDeleteEntry(\'' + eid + '\')">';
@@ -861,8 +851,7 @@ function _mtgMsgCardHTML(entry) {
     h += '<span>' + T('meetingDelete') + '</span></button>';
     h += '<button class="mtg-msg-action-btn" onclick="mtgEditEntry(\'' + eid + '\')">';
     h += '<svg viewBox="0 0 16 16"><path d="M11 2l3 3M3 10l8-8 3 3-8 8H3v-3z"/></svg>';
-    h += '<span>' + T('meetingEdit') + '</span></button>';
-    h += '</div>';
+    h += '<span>' + T('meetingEdit') + '</span></button></div>';
   } else if (isChar) {
     h += '<div class="mtg-msg-actions">';
     h += '<button class="mtg-msg-action-btn" onclick="mtgRegenerateEntry(\'' + eid + '\')">';
@@ -870,20 +859,16 @@ function _mtgMsgCardHTML(entry) {
     h += '<span>' + T('meetingRetry') + '</span></button>';
     h += '<button class="mtg-msg-action-btn" onclick="mtgEditEntry(\'' + eid + '\')">';
     h += '<svg viewBox="0 0 16 16"><path d="M11 2l3 3M3 10l8-8 3 3-8 8H3v-3z"/></svg>';
-    h += '<span>' + T('meetingEdit') + '</span></button>';
-    h += '</div>';
+    h += '<span>' + T('meetingEdit') + '</span></button></div>';
   }
 
   h += '</div>';
   return h;
 }
 
-
-/* ── Render full chat ── */
 function mtgRenderChat(s) {
   var content = document.getElementById('mtgChatContent');
   if (!content) return;
-
   var h = '';
 
   if (!s.history || s.history.length === 0) {
@@ -910,22 +895,16 @@ function mtgRenderChat(s) {
   }
 
   content.innerHTML = h;
-
   var body = document.getElementById('meetingWriteBody');
   if (body) setTimeout(function() { body.scrollTop = body.scrollHeight; }, 50);
 }
 
-
-/* ── Append a single card ── */
 function mtgAppendCard(entry) {
   var content = document.getElementById('mtgChatContent');
   if (!content) return;
-
   var empty = content.querySelector('.mtg-chat-empty');
   if (empty) empty.remove();
-
   content.insertAdjacentHTML('beforeend', _mtgMsgCardHTML(entry));
-
   var body = document.getElementById('meetingWriteBody');
   if (body) body.scrollTop = body.scrollHeight;
 }
@@ -933,7 +912,6 @@ function mtgAppendCard(entry) {
 function mtgAppendSummary(round, text) {
   var content = document.getElementById('mtgChatContent');
   if (!content) return;
-
   var div = document.createElement('div');
   div.className = 'mtg-summary-card';
   div.innerHTML =
@@ -943,26 +921,20 @@ function mtgAppendSummary(round, text) {
     '</div>' +
     '<div class="mtg-summary-text">' + mtgEsc(text) + '</div>';
   content.appendChild(div);
-
   var body = document.getElementById('meetingWriteBody');
   if (body) body.scrollTop = body.scrollHeight;
 }
 
-
-/* ── Typing indicator ── */
 function mtgShowTyping() {
   var content = document.getElementById('mtgChatContent');
   if (!content || document.getElementById('mtgTypingInd')) return;
-
   var empty = content.querySelector('.mtg-chat-empty');
   if (empty) empty.remove();
-
   var ind = document.createElement('div');
   ind.id = 'mtgTypingInd';
   ind.className = 'mtg-typing-indicator';
   ind.innerHTML = '<span></span><span></span><span></span>';
   content.appendChild(ind);
-
   var body = document.getElementById('meetingWriteBody');
   if (body) body.scrollTop = body.scrollHeight;
 }
@@ -981,39 +953,30 @@ function mtgSetSendEnabled(v) {
 /* ══════════════════════════════════
    Message Actions: Delete / Edit / Regenerate
    ══════════════════════════════════ */
-
-/* ── Delete ── */
 function mtgDeleteEntry(entryId) {
   if (!mtgCurrentSession) return;
   if (!confirm(T('meetingDeleteMsgConfirm'))) return;
-
   var s = mtgCurrentSession;
   s.history = s.history.filter(function(e) { return e.id !== entryId; });
   saveState();
-
   var card = document.querySelector('.mtg-msg-card[data-entry-id="' + entryId + '"]');
   if (card) {
     card.style.opacity = '0';
     card.style.transform = 'scale(.96)';
     setTimeout(function() { card.remove(); }, 220);
   }
-
   showToast(T('meetingDeleted'));
 }
 
-/* ── Edit ── */
 function mtgEditEntry(entryId) {
   if (!mtgCurrentSession) return;
-
   var s = mtgCurrentSession;
   var entry = null;
   for (var i = 0; i < s.history.length; i++) {
     if (s.history[i].id === entryId) { entry = s.history[i]; break; }
   }
   if (!entry) return;
-
   mtgEditingEntryId = entryId;
-
   var inp = document.getElementById('meetingWriteInput');
   if (inp) {
     inp.value = entry.content;
@@ -1021,21 +984,17 @@ function mtgEditEntry(entryId) {
     inp.style.height = 'auto';
     inp.style.height = Math.min(inp.scrollHeight, 100) + 'px';
   }
-
   mtgShowEditBanner();
 }
 
-/* ── Regenerate (char only) ── */
 async function mtgRegenerateEntry(entryId) {
   if (mtgGenerating || !mtgCurrentSession) return;
-
   var s = mtgCurrentSession;
   var entryIdx = -1;
   for (var i = 0; i < s.history.length; i++) {
     if (s.history[i].id === entryId) { entryIdx = i; break; }
   }
   if (entryIdx < 0) return;
-
   var entry = s.history[entryIdx];
   if (entry.role !== 'char') return;
 
@@ -1052,7 +1011,6 @@ async function mtgRegenerateEntry(entryId) {
 
   s.history.splice(entryIdx, 1);
   saveState();
-
   var oldCard = document.querySelector('.mtg-msg-card[data-entry-id="' + entryId + '"]');
   if (oldCard) oldCard.remove();
 
@@ -1064,7 +1022,6 @@ async function mtgRegenerateEntry(entryId) {
     var sysPrompt = mtgBuildSystemPrompt(s, ch);
     var ctxMsgs = mtgBuildContextMessages(s, ch);
     var messages = [{ role: 'system', content: sysPrompt }].concat(ctxMsgs);
-
     var reply = await sendChat(api, messages);
     if (reply && reply.trim()) {
       var newEntry = {
@@ -1076,7 +1033,7 @@ async function mtgRegenerateEntry(entryId) {
       mtgRenderChat(s);
     }
   } catch (e) {
-    console.error('[Meeting Regenerate]', e);
+    console.error('[Meeting-Memory] Regenerate failed:', e);
     showToast(T('error') + ': ' + (e.message || String(e)));
   } finally {
     mtgGenerating = false;
@@ -1085,8 +1042,6 @@ async function mtgRegenerateEntry(entryId) {
   }
 }
 
-
-/* ── Edit Banner ── */
 function mtgShowEditBanner() {
   var banner = document.getElementById('mtgEditBanner');
   if (!banner) return;
@@ -1110,10 +1065,7 @@ function mtgCancelEdit() {
   mtgEditingEntryId = null;
   mtgHideEditBanner();
   var inp = document.getElementById('meetingWriteInput');
-  if (inp) {
-    inp.value = '';
-    inp.style.height = 'auto';
-  }
+  if (inp) { inp.value = ''; inp.style.height = 'auto'; }
 }
 
 
@@ -1128,7 +1080,6 @@ function meetingWriteSend() {
 
   var s = mtgCurrentSession;
 
-  // ── Editing mode ──
   if (mtgEditingEntryId) {
     var found = false;
     for (var i = 0; i < s.history.length; i++) {
@@ -1143,7 +1094,6 @@ function meetingWriteSend() {
     mtgHideEditBanner();
     inp.value = '';
     inp.style.height = 'auto';
-
     if (found) {
       saveState();
       mtgRenderChat(s);
@@ -1152,7 +1102,6 @@ function meetingWriteSend() {
     return;
   }
 
-  // ── Normal send ──
   var newEntry = {
     id: mtgUid(), role: 'user', content: text, timestamp: Date.now()
   };
@@ -1187,7 +1136,6 @@ async function mtgAiRespond(session) {
   mtgShowTyping();
 
   try {
-    // ── 逐角色生成，各自独立 try/catch ──
     for (var i = 0; i < session.charIds.length; i++) {
       var charId = session.charIds[i];
       var ch = mtgGetCharById(charId);
@@ -1210,20 +1158,19 @@ async function mtgAiRespond(session) {
           if (i < session.charIds.length - 1) mtgShowTyping();
         }
       } catch (charErr) {
-        // 单角色失败：记录错误，继续下一个角色
-        console.error('[Meeting AI] Character "' + ch.name + '" failed:', charErr);
+        console.error('[Meeting-Memory] Character "' + ch.name + '" failed:', charErr);
       }
     }
 
     saveState();
 
-    // ── 回合摘要（仅写入 shortTermMemory，不写入 history）──
-    if (session.turnSummary && session.summaryInterval > 0 &&
-        session.turnCount > 0 && session.turnCount % session.summaryInterval === 0) {
-      await mtgDoSummary(session);
+    // ★★★ v2.0：自动总结系统 ★★★
+    if (session.turnSummary) {
+      await mtgCheckAutoSummarize(session);
     }
+
   } catch (e) {
-    console.error('[Meeting AI]', e);
+    console.error('[Meeting-Memory] AI respond error:', e);
     showToast(T('error') + ': ' + (e.message || String(e)));
   } finally {
     mtgGenerating = false;
@@ -1231,8 +1178,6 @@ async function mtgAiRespond(session) {
     mtgHideTyping();
   }
 }
-
-
 
 async function mtgGenerateInitialScene(session) {
   var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
@@ -1246,7 +1191,6 @@ async function mtgGenerateInitialScene(session) {
   try {
     var ch = mtgGetCharById(session.charIds[0]);
     if (!ch) return;
-
     var sysPrompt = mtgBuildSystemPrompt(session, ch);
     sysPrompt += '\n\nGenerate the opening scene. Set the stage, describe the world, and establish the initial situation. Write as the narrator.\n';
 
@@ -1265,7 +1209,7 @@ async function mtgGenerateInitialScene(session) {
       mtgAppendCard(newEntry);
     }
   } catch (e) {
-    console.error('[Meeting] Initial scene failed:', e);
+    console.error('[Meeting-Memory] Initial scene failed:', e);
   } finally {
     mtgGenerating = false;
     mtgSetSendEnabled(true);
@@ -1299,7 +1243,14 @@ function mtgBuildSystemPrompt(session, ch) {
   p += '6. Output only narrative prose. No meta-commentary, no character name prefix.\n';
   p += '---\n';
 
-  if (session.shortTermMemory && session.shortTermMemory.length > 0) {
+  // ★ 优先 shortTermMemories，fallback 到 shortTermMemory
+  if (session.shortTermMemories && session.shortTermMemories.length > 0) {
+    p += '\nSTORY SUMMARIES (for context):\n';
+    session.shortTermMemories.forEach(function(mem, idx) {
+      p += '- Summary ' + (idx + 1) + ': ' + mem.content + '\n';
+    });
+    p += '\n';
+  } else if (session.shortTermMemory && session.shortTermMemory.length > 0) {
     p += '\nSTORY SUMMARIES (for context):\n';
     session.shortTermMemory.forEach(function(mem) {
       p += '- Round ' + mem.round + ': ' + mem.content + '\n';
@@ -1310,22 +1261,17 @@ function mtgBuildSystemPrompt(session, ch) {
   return p;
 }
 
-/* ── Build Context Messages (with contextCount + mode logic) ── */
+/* ── Build Context Messages ── */
 function mtgBuildContextMessages(session, ch) {
   var N = session.contextCount || 50;
   var msgs = [];
 
-  // 收集 Meeting 历史（排除 summary）
   var meetingEntries = (session.history || []).filter(function(e) {
     return e.role !== 'summary';
   });
   var M = meetingEntries.length;
-
-  // 确定要发送的 Meeting 条目
   var meetingToSend = (M >= N) ? meetingEntries.slice(-N) : meetingEntries;
 
-  // ── iMessage 补充：仅限 Continue 模式，且 Meeting 记录不足时 ──
-  // IF 模式绝不补充 iMessage
   if (session.mode === 'continue' && M < N && ch) {
     var imsgNeeded = N - M;
     var chatHist = (state.chats && state.chats[ch.id]) ? state.chats[ch.id] : [];
@@ -1346,7 +1292,6 @@ function mtgBuildContextMessages(session, ch) {
     }
   }
 
-  // ── Meeting 条目 ──
   meetingToSend.forEach(function(entry) {
     if (entry.role === 'user') {
       msgs.push({ role: 'user', content: entry.content });
@@ -1363,75 +1308,583 @@ function mtgBuildContextMessages(session, ch) {
 
   return msgs;
 }
-/* ── Turn Summary ── */
-async function mtgDoSummary(session) {
+
+
+/* ══════════════════════════════════════════════════════════════
+   ★★★ v2.0 MEETING MEMORY SYSTEM ★★★
+   自动总结 · 结束写入 · STM→LTM 合并
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 计算未总结的用户轮数 ── */
+function mtgCountUnsummarizedTurns(session) {
+  if (!session || !session.history) return 0;
+  mtgEnsureMemoryFields(session);
+  var count = 0;
+  for (var i = session.lastSummarizedEntryIdx; i < session.history.length; i++) {
+    if (session.history[i].role === 'user') count++;
+  }
+  return count;
+}
+
+/* ── 获取未总结的条目 ── */
+function mtgGetUnsummarizedEntries(session) {
+  if (!session || !session.history) return [];
+  mtgEnsureMemoryFields(session);
+  return session.history.slice(session.lastSummarizedEntryIdx);
+}
+
+/* ── 按轮数截取条目 ── */
+function _mtgSliceByTurns(entries, maxTurns) {
+  var result = [];
+  var turnCount = 0;
+  for (var i = 0; i < entries.length; i++) {
+    result.push(entries[i]);
+    if (entries[i].role === 'user') {
+      turnCount++;
+      if (turnCount >= maxTurns) {
+        // 同时包含该轮对应的 AI 回复
+        for (var j = i + 1; j < entries.length; j++) {
+          if (entries[j].role === 'user') break;
+          result.push(entries[j]);
+        }
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+/* ── 会议专用短期记忆总结 (API 调用) ── */
+async function mtgCallSummarize(session, entries, api) {
+  console.log('[Meeting-Memory] mtgCallSummarize called | entries:', entries.length);
+
+  if (!api || !api.url || !api.model) {
+    throw new Error('[Meeting-Memory] No valid API config for summarize');
+  }
+  if (typeof sendChat !== 'function') {
+    throw new Error('[Meeting-Memory] sendChat is not available');
+  }
+
+  var userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : '\u7528\u6237';
+  var charNames = (session.characters && session.characters.length)
+    ? session.characters.join('\u3001') : '\u89d2\u8272';
+
+  var formatted = entries.map(function(e) {
+    var who;
+    if (e.role === 'user') {
+      who = session.identity ? (session.identity.split(/[,\uff0c]/)[0].trim() || userName) : userName;
+    } else if (e.role === 'system') {
+      who = '[\u65c1\u767d]';
+    } else {
+      var ch = e.charId ? mtgGetCharById(e.charId) : null;
+      who = ch ? ch.name : (e.charName || charNames);
+    }
+    return who + ':\n' + (e.content || '').slice(0, 3000);
+  }).join('\n\n---\n\n');
+
+  var sessionLabel = session.name ? '\u300c' + session.name + '\u300d' : '\u8fd9\u6b21\u89c1\u9762';
+
+  var prompt = '\u4f60\u662f\u4e00\u4f4d\u7ec6\u817b\u7684\u6545\u4e8b\u8bb0\u5fc6\u8005\u3002\u8bf7\u5c06\u4ee5\u4e0b' + sessionLabel + '\u573a\u666f\u4e2d\u53d1\u751f\u7684\u4e8b\uff0c\u4ee5\u7b2c\u4e00\u4eba\u79f0\uff08\u300c\u6211\u300d\u5373 ' + userName + '\uff09\u7684\u89c6\u89d2\uff0c\u5199\u6210\u4e00\u6bb5\u79c1\u5bc6\u7684\u8bb0\u5fc6\u7247\u6bb5\u3002\n\n' +
+    '\u3010\u5199\u4f5c\u89c4\u5219\u3011\n\n' +
+    '1. \u8fc7\u6ee4\u5e9f\u8bdd\n' +
+    '   - \u8df3\u8fc7\u65e0\u5b9e\u8d28\u5185\u5bb9\u7684\u5bd2\u6684\u3001\u91cd\u590d\u63cf\u5199\u548c\u8fc7\u6e21\u53e5\u3002\n' +
+    '   - \u5982\u679c\u6574\u6bb5\u573a\u666f\u90fd\u662f\u65e5\u5e38\uff0c\u53ea\u7528\u4e00\u53e5\u8bdd\u6982\u62ec\u6c1b\u56f4\u3002\n\n' +
+    '2. \u4fdd\u7559\u6838\u5fc3\n' +
+    '   - \u63d0\u53d6\u5173\u952e\u5267\u60c5\u4e8b\u4ef6\u3001\u89d2\u8272\u4e92\u52a8\u3001\u60c5\u611f\u8f6c\u6298\u3001\u5173\u7cfb\u91cc\u7a0b\u7891\u3002\n' +
+    '   - \u5982\u679c\u51fa\u73b0\u627f\u8bfa\u3001\u7ea6\u5b9a\u3001\u8eab\u4f53\u63a5\u89e6\u3001\u8868\u767d\u3001\u4e89\u6267\u7b49\u91cd\u8981\u8282\u70b9\uff0c\u5fc5\u987b\u8bb0\u5f55\u3002\n\n' +
+    '3. \u8bb0\u5f55\u65f6\u7a7a\u4e0e\u4e8b\u4ef6\n' +
+    '   - \u8fd8\u539f\u573a\u666f\u4e2d\u7684\u65f6\u95f4\u3001\u5730\u70b9\u548c\u5177\u4f53\u4e8b\u4ef6\u3002\n\n' +
+    '4. \u60c5\u611f\u6e29\u5ea6\n' +
+    '   - \u6355\u6349\u8ba9\u6211\u5fc3\u52a8\u3001\u5fc3\u75bc\u3001\u7d27\u5f20\u3001\u5931\u843d\u7684\u77ac\u95f4\u3002\n' +
+    '   - \u4e0d\u8981\u5199\u6210\u51b0\u51b7\u7684\u5267\u60c5\u6458\u8981\uff0c\u8981\u5199\u6210\u771f\u5b9e\u7684\u8bb0\u5fc6\u3002\n\n' +
+    '5. \u771f\u4eba\u8bb0\u5fc6\u611f\n' +
+    '   - \u4fdd\u7559\u5177\u4f53\u7684\u3001\u6709\u753b\u9762\u611f\u7684\u7ec6\u8282\u3002\n\n' +
+    '6. \u683c\u5f0f\n' +
+    '   - \u5168\u7a0b\u4e2d\u6587\uff0c\u4ee5\u300c\u6211\u300d\u7684\u53e3\u543b\u3002\u63a7\u5236\u5728 80\uff5e200 \u5b57\u3002\n' +
+    '   - \u4e0d\u52a0\u6807\u9898\u3001\u6807\u7b7e\u3001\u7f16\u53f7\u3002\u5fe0\u4e8e\u5185\u5bb9\uff0c\u7edd\u4e0d\u865a\u6784\u3002\u76f4\u63a5\u8f93\u51fa\u8bb0\u5fc6\u6587\u672c\u3002\n\n' +
+    '\u573a\u666f\u5185\u5bb9\uff1a\n' + formatted + '\n\n\u8bf7\u76f4\u63a5\u4ee5\u300c\u6211\u300d\u7684\u7b2c\u4e00\u4eba\u79f0\u5199\u4e0b\u8fd9\u6bb5\u8bb0\u5fc6\u3002';
+
+  var result = await sendChat(api, [
+    { role: 'system', content: prompt },
+    { role: 'user', content: '\u8bf7\u5f00\u59cb\u8bb0\u5fc6\u3002' }
+  ]);
+
+  console.log('[Meeting-Memory] mtgCallSummarize result length:', (result || '').length);
+  return result;
+}
+
+/* ── 会议专用长期记忆合并 (API 调用) ── */
+async function mtgCallConsolidate(session, stmList, api) {
+  console.log('[Meeting-Memory] mtgCallConsolidate called | stmList:', stmList.length);
+
+  if (!api || !api.url || !api.model) {
+    throw new Error('[Meeting-Memory] No valid API config for consolidate');
+  }
+  if (typeof sendChat !== 'function') {
+    throw new Error('[Meeting-Memory] sendChat is not available');
+  }
+
+  var userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : '\u7528\u6237';
+  var charNames = (session.characters && session.characters.length)
+    ? session.characters.join('\u3001') : '\u89d2\u8272';
+
+  var formatted = stmList.map(function(m, i) {
+    return '[\u7247\u6bb5 ' + (i + 1) + ' - ' + (m.date || '') + ']\n' + m.content;
+  }).join('\n\n');
+
+  var sessionLabel = session.name ? '\u300c' + session.name + '\u300d' : '\u8fd9\u6bb5\u7ecf\u5386';
+
+  var prompt = '\u4f60\u662f ' + userName + '\u3002\u4e0b\u9762\u662f\u4f60\u5728' + sessionLabel + '\u4e2d\u8bb0\u4e0b\u7684 ' + stmList.length + ' \u6bb5\u77ed\u671f\u8bb0\u5fc6\u788e\u7247\uff0c\u6d89\u53ca\u7684\u89d2\u8272\u6709 ' + charNames + '\u3002\n' +
+    '\u73b0\u5728\u4f60\u8981\u628a\u5b83\u4eec\u6574\u7406\u6210\u4e00\u6bb5\u5b8c\u6574\u7684\u957f\u671f\u8bb0\u5fc6\u3002\n\n' +
+    '\u3010\u5199\u4f5c\u89c4\u5219\u3011\n\n' +
+    '1. \u5408\u5e76\u91cd\u590d\u5185\u5bb9\uff0c\u53ea\u4fdd\u7559\u6700\u6709\u60c5\u611f\u91cd\u91cf\u7684\u7248\u672c\u3002\n' +
+    '2. \u4fdd\u7559\u6240\u6709\u5173\u952e\u8f6c\u6298\u548c\u89d2\u8272\u7279\u5f81\u3002\n' +
+    '3. \u6309\u65f6\u95f4\u987a\u5e8f\u7ec4\u7ec7\u3002\n' +
+    '4. \u5199\u51fa\u60c5\u611f\u7684\u53d8\u5316\u548c\u5c42\u6b21\u3002\n' +
+    '5. \u4fdd\u7559\u5177\u4f53\u7684\u3001\u6709\u753b\u9762\u611f\u7684\u7ec6\u8282\u3002\n' +
+    '6. \u5168\u7a0b\u4e2d\u6587\uff0c\u4ee5\u300c\u6211\u300d\u7684\u53e3\u543b\u3002\u63a7\u5236\u5728 150\uff5e400 \u5b57\u3002\n' +
+    '   \u4e0d\u52a0\u6807\u9898\u3001\u7f16\u53f7\u3002\u4e0d\u865a\u6784\u3002\u76f4\u63a5\u8f93\u51fa\u8bb0\u5fc6\u6587\u672c\u3002\n\n' +
+    '\u77ed\u671f\u8bb0\u5fc6\u7247\u6bb5\uff1a\n' + formatted + '\n\n\u8bf7\u76f4\u63a5\u4ee5\u300c\u6211\u300d\u7684\u7b2c\u4e00\u4eba\u79f0\u5199\u4e0b\u8fd9\u6bb5\u957f\u671f\u8bb0\u5fc6\u3002';
+
+  var result = await sendChat(api, [
+    { role: 'system', content: prompt },
+    { role: 'user', content: '\u8bf7\u5f00\u59cb\u6574\u7406\u8bb0\u5fc6\u3002' }
+  ]);
+
+  console.log('[Meeting-Memory] mtgCallConsolidate result length:', (result || '').length);
+  return result;
+}
+
+/* ──────────────────────────────────
+   ★ 核心函数 1：自动总结检查
+   ────────────────────────────────── */
+async function mtgCheckAutoSummarize(session) {
+  if (!session) {
+    console.log('[Meeting-Memory] mtgCheckAutoSummarize: no session, skip');
+    return;
+  }
+
+  // ★ 并发锁
+  if (_mtgSummarizing) {
+    console.log('[Meeting-Memory] Already summarizing, skip concurrent call');
+    return;
+  }
+
+  mtgEnsureMemoryFields(session);
+
+  if (!session.turnSummary) {
+    console.log('[Meeting-Memory] Turn summary disabled for session:', session.id);
+    return;
+  }
+
+  var interval = session.summaryInterval || MTG_DEFAULT_SUMMARY_INTERVAL;
+  var unsummarizedTurns = mtgCountUnsummarizedTurns(session);
+
+  console.log('[Meeting-Memory] Auto-check | unsummarized:', unsummarizedTurns,
+    '| interval:', interval,
+    '| lastIdx:', session.lastSummarizedEntryIdx,
+    '| totalHistory:', session.history.length);
+
+  if (unsummarizedTurns < interval) {
+    console.log('[Meeting-Memory] Not yet reached interval (' + unsummarizedTurns + '/' + interval + '), skip');
+    return;
+  }
+
   var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
-  if (!api || !api.url || !api.model || typeof sendChat !== 'function') return;
+  if (!api || !api.url || !api.model) {
+    console.warn('[Meeting-Memory] No active API, cannot auto-summarize');
+    return;
+  }
 
-  var recentEntries = [];
-  (session.history || []).forEach(function(e) {
-    if (e.role !== 'summary') recentEntries.push(e);
-  });
-  var count = (session.summaryInterval || MTG_DEFAULT_SUMMARY_INTERVAL) * 3;
-  recentEntries = recentEntries.slice(-count);
-  if (recentEntries.length === 0) return;
-
-  var summaryPrompt = 'Summarize the following collaborative story entries concisely. Focus on:\n' +
-    '- Key plot developments\n- Character emotional changes\n- Important decisions\n' +
-    'Keep the summary under 150 words.\n\n';
-
-  recentEntries.forEach(function(e) {
-    var lbl = e.role === 'user' ? 'User' : (e.charName || 'Character');
-    summaryPrompt += lbl + ': ' + e.content + '\n';
-  });
+  _mtgSummarizing = true; // ★ 加锁
 
   try {
-    var summary = await sendChat(api, [{ role: 'system', content: summaryPrompt }]);
-    if (summary && summary.trim()) {
-      var mem = {
-        id: mtgUid(),
-        round: session.turnCount,
-        content: summary.trim(),
-        timestamp: Date.now()
-      };
-      if (!session.shortTermMemory) session.shortTermMemory = [];
-      session.shortTermMemory.push(mem);
+    var allUnsummarized = mtgGetUnsummarizedEntries(session);
+    var entriesToSummarize = _mtgSliceByTurns(allUnsummarized, interval);
 
-      // ★ 已移除: 不再将 summary 写入 session.history ★
-      // 仅做当次会话的即时可视展示
-      mtgAppendSummary(session.turnCount, summary.trim());
-      saveState();
+    console.log('[Meeting-Memory] Auto-summarizing', entriesToSummarize.length,
+      'entries (', interval, 'turns)...');
+
+    var summary = await mtgCallSummarize(session, entriesToSummarize, api);
+
+    if (!summary || !summary.trim()) {
+      console.warn('[Meeting-Memory] Empty summary returned, skip saving');
+      return;
+    }
+
+    // ★ 写入新格式 shortTermMemories
+    var stm = {
+      id: mtgUid(),
+      date: new Date().toISOString().split('T')[0],
+      content: summary.trim(),
+      turnRange: [session.lastSummarizedEntryIdx,
+                  session.lastSummarizedEntryIdx + entriesToSummarize.length],
+      timestamp: Date.now(),
+      _writtenToLibrary: false
+    };
+    session.shortTermMemories.push(stm);
+
+    // ★ 同步写入旧格式 shortTermMemory
+    session.shortTermMemory.push({
+      id: stm.id,
+      round: session.turnCount || session.shortTermMemories.length,
+      content: summary.trim(),
+      timestamp: stm.timestamp
+    });
+
+    session.lastSummarizedEntryIdx += entriesToSummarize.length;
+    saveState();
+
+    console.log('[Meeting-Memory] STM #' + session.shortTermMemories.length + ' saved',
+      '| length:', summary.length,
+      '| preview:', summary.slice(0, 60) + '...');
+
+    mtgAppendSummary(session.turnCount || session.shortTermMemories.length, summary);
+    mtgRenderSettingsMemory();
+
+    if (typeof showToast === 'function') {
+      showToast(T('summarized') || '\u5df2\u603b\u7ed3');
+    }
+
+    // ★ 解锁后递归检查
+    _mtgSummarizing = false;
+    var remainingTurns = mtgCountUnsummarizedTurns(session);
+    if (remainingTurns >= interval) {
+      console.log('[Meeting-Memory] Still', remainingTurns, 'turns unsummarized, continuing...');
+      await mtgCheckAutoSummarize(session);
     }
   } catch (e) {
-    console.warn('[Meeting] Summary failed:', e);
+    console.error('[Meeting-Memory] Auto-summarize failed:', e);
+  } finally {
+    _mtgSummarizing = false; // ★ 确保解锁
   }
+}
+
+/* ──────────────────────────────────
+   ★ 核心函数 2：总结剩余轮数
+   ────────────────────────────────── */
+async function mtgSummarizeRemaining(session) {
+  if (!session) {
+    console.warn('[Meeting-Memory] mtgSummarizeRemaining: no session');
+    return false;
+  }
+  mtgEnsureMemoryFields(session);
+
+  var entries = mtgGetUnsummarizedEntries(session);
+  var unsummarizedTurns = mtgCountUnsummarizedTurns(session);
+
+  console.log('[Meeting-Memory] Summarize remaining | entries:', entries.length,
+    '| turns:', unsummarizedTurns);
+
+  if (entries.length < 2 || unsummarizedTurns < 1) {
+    console.log('[Meeting-Memory] Not enough remaining entries to summarize');
+    return false;
+  }
+
+  var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
+  if (!api || !api.url || !api.model) {
+    console.warn('[Meeting-Memory] No active API for remaining summarize');
+    return false;
+  }
+  if (typeof sendChat !== 'function') {
+    console.warn('[Meeting-Memory] sendChat not available');
+    return false;
+  }
+
+  console.log('[Meeting-Memory] Summarizing remaining', entries.length,
+    'entries (', unsummarizedTurns, 'turns)...');
+
+  try {
+    var summary = await mtgCallSummarize(session, entries, api);
+
+    if (!summary || !summary.trim()) {
+      console.warn('[Meeting-Memory] Empty remaining summary, skip');
+      return false;
+    }
+
+    var stm = {
+      id: mtgUid(),
+      date: new Date().toISOString().split('T')[0],
+      content: summary.trim(),
+      turnRange: [session.lastSummarizedEntryIdx,
+                  session.lastSummarizedEntryIdx + entries.length],
+      timestamp: Date.now(),
+      _writtenToLibrary: false
+    };
+    session.shortTermMemories.push(stm);
+
+    session.shortTermMemory.push({
+      id: stm.id,
+      round: session.turnCount || session.shortTermMemories.length,
+      content: summary.trim(),
+      timestamp: stm.timestamp
+    });
+
+    session.lastSummarizedEntryIdx += entries.length;
+    saveState();
+
+    console.log('[Meeting-Memory] Remaining STM saved',
+      '| length:', summary.length,
+      '| preview:', summary.slice(0, 60) + '...');
+    return true;
+  } catch (e) {
+    console.error('[Meeting-Memory] Remaining summarize failed:', e);
+    return false;
+  }
+}
+
+/* ──────────────────────────────────
+   ★ 核心函数 3：写入记忆库 + LTM 合并
+   ────────────────────────────────── */
+async function mtgWriteToMemoryLibrary(sessionId) {
+  var session;
+  if (typeof sessionId === 'string') {
+    session = mtgFindSession(sessionId);
+  } else if (sessionId && sessionId.id) {
+    session = sessionId; // 允许直接传入 session 对象
+  }
+  if (!session) {
+    console.error('[Meeting-Memory] mtgWriteToMemoryLibrary: session not found:', sessionId);
+    return 0;
+  }
+  mtgEnsureMemoryFields(session);
+
+  // Step 1：总结剩余
+  var unsummarized = mtgGetUnsummarizedEntries(session);
+  if (unsummarized.length >= 2 && mtgCountUnsummarizedTurns(session) >= 1) {
+    console.log('[Meeting-Memory] Step 1: Summarizing remaining', unsummarized.length, 'entries...');
+    if (typeof showToast === 'function') {
+      showToast(T('summarizing') || '\u6b63\u5728\u603b\u7ed3\u5269\u4f59\u5185\u5bb9...');
+    }
+    await mtgSummarizeRemaining(session);
+  } else {
+    console.log('[Meeting-Memory] Step 1: No remaining entries to summarize');
+  }
+
+  var stms = session.shortTermMemories || [];
+  if (stms.length === 0) {
+    console.log('[Meeting-Memory] No STMs to write');
+    if (typeof showToast === 'function') {
+      showToast(T('meetingEndNoMem') || '\u6682\u65e0\u77ed\u671f\u8bb0\u5fc6\u53ef\u5199\u5165');
+    }
+    return 0;
+  }
+
+  // Step 2：确定关联角色
+  var primaryCharId = (session.charIds && session.charIds.length > 0)
+    ? session.charIds[0] : null;
+  var charNames = (session.characters && session.characters.length)
+    ? session.characters.join('\u3001') : 'Meeting';
+
+  console.log('[Meeting-Memory] Step 2: Writing', stms.length, 'STMs to memory library',
+    '| primaryCharId:', primaryCharId, '| chars:', charNames);
+
+  // ★ 确保 state.memories 存在
+  if (!Array.isArray(state.memories)) state.memories = [];
+
+  // Step 3：逐条写入 state.memories
+  var writtenCount = 0;
+  stms.forEach(function(stm) {
+    if (!stm._writtenToLibrary) {
+      if (typeof saveMemoryEntry === 'function') {
+        saveMemoryEntry(
+          primaryCharId,
+          'stm',
+          (session.name || 'Meeting') + ' \u00b7 ' + charNames,
+          stm.content
+        );
+      } else {
+        // ★ Fallback: 直接写入 state.memories
+        state.memories.push({
+          id: mtgUid(),
+          title: (session.name || 'Meeting') + ' \u00b7 ' + charNames,
+          date: stm.date || new Date().toISOString().split('T')[0],
+          content: stm.content,
+          mood: '', photo: null,
+          charId: primaryCharId,
+          memType: 'stm',
+          autoGenerated: true,
+          timestamp: stm.timestamp || Date.now()
+        });
+        console.log('[Meeting-Memory] Fallback: wrote STM directly to state.memories');
+      }
+      stm._writtenToLibrary = true;
+      writtenCount++;
+    }
+  });
+
+  saveState();
+  console.log('[Meeting-Memory] Written', writtenCount, 'STMs to state.memories',
+    '| Total memories now:', (state.memories || []).length);
+
+  // Step 4：检查 LTM 合并阈值
+  var threshold = session.consolidateThreshold || MTG_MEM_CONSOLIDATE_THRESHOLD;
+
+  if (primaryCharId && typeof getUnconsolidatedSTM === 'function') {
+    var unconsolidatedSTMs = getUnconsolidatedSTM(primaryCharId);
+
+    console.log('[Meeting-Memory] Step 4: Consolidation check',
+      '| unconsolidated:', unconsolidatedSTMs.length,
+      '| threshold:', threshold);
+
+    if (unconsolidatedSTMs.length >= threshold) {
+      console.log('[Meeting-Memory] Threshold reached! Starting LTM consolidation...');
+      if (typeof showToast === 'function') {
+        showToast(T('consolidating') || '\u6b63\u5728\u5408\u5e76\u957f\u671f\u8bb0\u5fc6...');
+      }
+
+      var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
+      if (api && api.url && api.model && typeof sendChat === 'function') {
+        var toMerge = unconsolidatedSTMs.slice(0, threshold);
+
+        try {
+          var ltmContent = await mtgCallConsolidate(session, toMerge, api);
+
+          if (ltmContent && ltmContent.trim()) {
+            if (typeof saveMemoryEntry === 'function') {
+              saveMemoryEntry(
+                primaryCharId,
+                'ltm',
+                (T('longTermMemory') || 'LTM') + ': ' + (session.name || charNames),
+                ltmContent.trim()
+              );
+            } else {
+              state.memories.push({
+                id: mtgUid(),
+                title: (T('longTermMemory') || 'LTM') + ': ' + (session.name || charNames),
+                date: new Date().toISOString().split('T')[0],
+                content: ltmContent.trim(),
+                mood: '', photo: null,
+                charId: primaryCharId,
+                memType: 'ltm',
+                autoGenerated: true,
+                timestamp: Date.now()
+              });
+            }
+
+            toMerge.forEach(function(m) { m.consolidated = true; });
+            saveState();
+
+            console.log('[Meeting-Memory] LTM created!',
+              '| length:', ltmContent.length,
+              '| merged', toMerge.length, 'STMs',
+              '| preview:', ltmContent.slice(0, 60) + '...');
+          }
+        } catch (e) {
+          console.error('[Meeting-Memory] LTM consolidation failed:', e);
+        }
+      } else {
+        console.warn('[Meeting-Memory] No API for consolidation');
+      }
+    } else {
+      console.log('[Meeting-Memory] Consolidation not triggered (' +
+        unconsolidatedSTMs.length + '/' + threshold + ')');
+    }
+  } else {
+    // ★ Fallback: 当 getUnconsolidatedSTM 不存在时，用 session 内数据判断
+    console.log('[Meeting-Memory] getUnconsolidatedSTM not available, using session-level check');
+    var unwritten = stms.filter(function(s) { return !s.consolidated; });
+    if (unwritten.length >= threshold) {
+      console.log('[Meeting-Memory] Session-level threshold reached:', unwritten.length, '/', threshold);
+      var api2 = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
+      if (api2 && api2.url && api2.model && typeof sendChat === 'function') {
+        var toMerge2 = unwritten.slice(0, threshold);
+        try {
+          var ltm2 = await mtgCallConsolidate(session, toMerge2, api2);
+          if (ltm2 && ltm2.trim()) {
+            state.memories.push({
+              id: mtgUid(),
+              title: (T('longTermMemory') || 'LTM') + ': ' + (session.name || charNames),
+              date: new Date().toISOString().split('T')[0],
+              content: ltm2.trim(),
+              mood: '', photo: null,
+              charId: primaryCharId,
+              memType: 'ltm',
+              autoGenerated: true,
+              timestamp: Date.now()
+            });
+            toMerge2.forEach(function(m) { m.consolidated = true; });
+            saveState();
+            console.log('[Meeting-Memory] Fallback LTM created! length:', ltm2.length);
+          }
+        } catch (e2) {
+          console.error('[Meeting-Memory] Fallback LTM consolidation failed:', e2);
+        }
+      }
+    }
+  }
+
+  mtgRenderSettingsMemory();
+  if (typeof showToast === 'function') {
+    showToast((T('meetingMemWrittenPre') || '\u5df2\u5199\u5165 ') + writtenCount +
+      (T('meetingMemWrittenPost') || ' \u6761\u8bb0\u5fc6'));
+  }
+
+  return writtenCount;
 }
 
 
 /* ══════════════════════════════════
-   End Session
+   ★ 结束会议
    ══════════════════════════════════ */
-function mtgEndSession() {
-  if (!mtgCurrentSession) return;
-  if (mtgGenerating) { showToast(T('error')); return; }
+function mtgEndSession(sessionId) {
+  var session;
+  if (sessionId) {
+    session = mtgFindSession(sessionId);
+  } else {
+    session = mtgCurrentSession;
+  }
+  if (!session) {
+    console.warn('[Meeting-Memory] mtgEndSession: no session found');
+    return;
+  }
+  if (mtgGenerating) {
+    if (typeof showToast === 'function') showToast(T('error'));
+    return;
+  }
 
-  mtgCloseEndModal();
+  mtgEnsureMemoryFields(session);
 
-  var s = mtgCurrentSession;
-  var turnCount = s.turnCount || 0;
+  var turnCount = session.turnCount || 0;
   var msgCount = 0;
-  (s.history || []).forEach(function(e) { if (e.role !== 'summary') msgCount++; });
-  var memCount = (s.shortTermMemory || []).length;
+  (session.history || []).forEach(function(e) { if (e.role !== 'summary') msgCount++; });
+  var memCount = session.shortTermMemories.length;
+  var unsummarizedTurns = mtgCountUnsummarizedTurns(session);
+
+  console.log('[Meeting-Memory] mtgEndSession called | turns:', turnCount,
+    '| msgs:', msgCount, '| STMs:', memCount, '| unsummarized:', unsummarizedTurns);
+
+  var msgText = (T('meetingEndMsg') || '\u672c\u6b21\u4f1a\u8bdd\u5df2\u8fdb\u884c {turns} \u8f6e\uff0c\u5171 {msgs} \u6761\u6d88\u606f\u3002')
+    .replace('{turns}', turnCount)
+    .replace('{msgs}', msgCount);
+
+  if (unsummarizedTurns > 0) {
+    msgText += '\n' + (state.lang === 'zh'
+      ? '\u8fd8\u6709 ' + unsummarizedTurns + ' \u8f6e\u672a\u603b\u7ed3\uff0c\u5c06\u81ea\u52a8\u603b\u7ed3\u540e\u5199\u5165\u3002'
+      : unsummarizedTurns + ' turns not yet summarized, will be summarized first.');
+  }
+
+  if (memCount > 0) {
+    msgText += '\n' + (state.lang === 'zh'
+      ? '\u5f53\u524d\u5df2\u6709 ' + memCount + ' \u6761\u77ed\u671f\u8bb0\u5fc6\u3002'
+      : memCount + ' short-term memories ready.');
+  }
+
+  var subText = (memCount > 0 || unsummarizedTurns > 0)
+    ? (T('meetingEndWriteQ') || '\u662f\u5426\u5c06\u77ed\u671f\u8bb0\u5fc6\u5199\u5165\u603b\u8bb0\u5fc6\u5e93\uff1f')
+    : (T('meetingEndNoMem') || '\u6682\u65e0\u77ed\u671f\u8bb0\u5fc6\u53ef\u5199\u5165\u3002');
+
+  var oldModal = document.getElementById('mtgEndModal');
+  if (oldModal) oldModal.remove();
 
   var overlay = document.createElement('div');
   overlay.id = 'mtgEndModal';
   overlay.className = 'mtg-modal-overlay';
   overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) mtgCloseEndModal();
+    if (e.target === overlay) overlay.remove();
   });
 
-  var msgText = T('meetingEndMsg').replace('{turns}', turnCount).replace('{msgs}', msgCount);
-  var subText = memCount > 0 ? T('meetingEndWriteQ') : T('meetingEndNoMem');
+  var theSessionId = session.id;
 
   var mh = '<div class="mtg-modal">';
   mh += '<div class="mtg-modal-icon">';
@@ -1445,57 +1898,52 @@ function mtgEndSession() {
   mh += '<p class="mtg-modal-sub">' + mtgEsc(subText) + '</p>';
   mh += '</div>';
   mh += '<div class="mtg-modal-btns">';
-  mh += '<button class="mtg-modal-btn mtg-modal-btn-primary" onclick="mtgConfirmEnd(true)">' + T('meetingSaveAndWrite') + '</button>';
-  mh += '<button class="mtg-modal-btn mtg-modal-btn-secondary" onclick="mtgConfirmEnd(false)">' + T('meetingSaveOnly') + '</button>';
-  mh += '<button class="mtg-modal-btn mtg-modal-btn-cancel" onclick="mtgCloseEndModal()">' + T('meetingContinueWrite') + '</button>';
+  mh += '<button id="mtgEndWriteBtn" class="mtg-modal-btn mtg-modal-btn-primary">' + T('meetingSaveAndWrite') + '</button>';
+  mh += '<button id="mtgEndSaveBtn" class="mtg-modal-btn mtg-modal-btn-secondary">' + T('meetingSaveOnly') + '</button>';
+  mh += '<button id="mtgEndCancelBtn" class="mtg-modal-btn mtg-modal-btn-cancel">' + T('meetingContinueWrite') + '</button>';
   mh += '</div></div>';
 
   overlay.innerHTML = mh;
   document.body.appendChild(overlay);
+
+  document.getElementById('mtgEndWriteBtn').onclick = async function() {
+    this.disabled = true;
+    this.textContent = '\u5904\u7406\u4e2d...';
+    session.status = 'ended';
+    saveState();
+    await mtgWriteToMemoryLibrary(theSessionId);
+    overlay.remove();
+    mtgCurrentSession = null;
+    mtgRenderArchiveList();
+    nav('screen-meeting');
+  };
+
+  document.getElementById('mtgEndSaveBtn').onclick = function() {
+    session.status = 'ended';
+    saveState();
+    if (typeof showToast === 'function') showToast(T('meetingSavedNoWrite'));
+    overlay.remove();
+    mtgCurrentSession = null;
+    mtgRenderArchiveList();
+    nav('screen-meeting');
+  };
+
+  document.getElementById('mtgEndCancelBtn').onclick = function() {
+    overlay.remove();
+  };
 }
 
-function mtgCloseEndModal() {
-  var el = document.getElementById('mtgEndModal');
-  if (el) el.remove();
-}
-
-function mtgConfirmEnd(writeToMemory) {
-  var s = mtgCurrentSession;
-  if (!s) { mtgCloseEndModal(); return; }
-
-  s.status = 'ended';
-
-  if (writeToMemory) {
-    if (!Array.isArray(state.memories)) state.memories = [];
-    var mems = s.shortTermMemory || [];
-    var count = 0;
-    var today = new Date().toISOString().split('T')[0];
-
-    mems.forEach(function(mem) {
-      var tags = ['meeting', s.mode];
-      if (s.charIds && s.charIds.length) tags = tags.concat(s.charIds);
-
-      state.memories.push({
-        id: 'mem_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-        charId: null, memType: 'ftm',
-        title: 'Meeting: ' + s.name + ' (Round ' + mem.round + ')',
-        content: mem.content, date: today, mood: '', photo: null,
-        timestamp: Date.now(), tags: tags
-      });
-      count++;
-    });
-
-    saveState();
-    showToast(T('meetingMemWrittenPre') + count + T('meetingMemWrittenPost'));
-  } else {
-    saveState();
-    showToast(T('meetingSavedNoWrite'));
+/* ── 手动触发写入记忆库 ── */
+async function mtgManualWriteToMemory() {
+  if (!mtgCurrentSession) {
+    console.warn('[Meeting-Memory] mtgManualWriteToMemory: no active session');
+    if (typeof showToast === 'function') showToast('No active session');
+    return 0;
   }
-
-  mtgCloseEndModal();
-  mtgCurrentSession = null;
-  mtgRenderArchiveList();
-  nav('screen-meeting');
+  console.log('[Meeting-Memory] Manual write triggered for session:', mtgCurrentSession.id);
+  var count = await mtgWriteToMemoryLibrary(mtgCurrentSession.id);
+  mtgRenderSettingsMemory();
+  return count;
 }
 
 
@@ -1506,9 +1954,180 @@ function openMeetingSettings() { openMeetingNewArchive(); }
 function startMeetingSession() { mtgCreateArchive(); }
 function renderMeetingCards() { mtgRenderArchiveList(); }
 function openMeetingManageFromWrite() { openMeetingSettingsFromWrite(); }
-
 function mtgSetToggleSeg(el) { mtgSegToggle(el); }
 function mtgSetModeChanged() { mtgNewModeChanged(); }
 function mtgSetSummaryToggled() { mtgNewSummaryToggled(); }
 function mtgSetRenderCharSelect() { mtgRenderCharSelectList('mtgNewCharList', []); }
 function exitMeetingSettings_legacy() { exitMeetingSettings(); }
+function mtgCloseEndModal() { var el = document.getElementById('mtgEndModal'); if (el) el.remove(); }
+function mtgConfirmEnd(writeToMemory) { /* 已被新 mtgEndSession 替代 */ }
+function mtgRenderSessionMemories(session) { mtgRenderSettingsMemory(); }
+
+
+/* ══════════════════════════════════════════════════════════════
+   ★★★ 诊断测试函数 ★★★
+   在浏览器控制台运行 __mizuMeetingTest() 即可验证
+   ══════════════════════════════════════════════════════════════ */
+function __mizuMeetingTest() {
+  console.log('%c══════ Mizu Meeting Memory Test ══════', 'color:#007aff;font-weight:bold;font-size:14px');
+
+  var funcs = [
+    { name: 'mtgEnsureMemoryFields',     ref: mtgEnsureMemoryFields },
+    { name: 'mtgCheckAutoSummarize',     ref: mtgCheckAutoSummarize },
+    { name: 'mtgSummarizeRemaining',     ref: mtgSummarizeRemaining },
+    { name: 'mtgWriteToMemoryLibrary',   ref: mtgWriteToMemoryLibrary },
+    { name: 'mtgEndSession',             ref: mtgEndSession },
+    { name: 'mtgCallSummarize',          ref: mtgCallSummarize },
+    { name: 'mtgCallConsolidate',        ref: mtgCallConsolidate },
+    { name: 'mtgCountUnsummarizedTurns', ref: mtgCountUnsummarizedTurns },
+    { name: 'mtgGetUnsummarizedEntries', ref: mtgGetUnsummarizedEntries },
+    { name: 'mtgManualWriteToMemory',    ref: mtgManualWriteToMemory }
+  ];
+
+  var pass = 0, fail = 0;
+  funcs.forEach(function(f) {
+    var windowOk = typeof window[f.name] === 'function';
+    var localOk  = typeof f.ref === 'function';
+    if (windowOk && localOk) {
+      console.log('%c  \u2705 ' + f.name, 'color:#34c759');
+      pass++;
+    } else {
+      console.log('%c  \u274c ' + f.name +
+        ' (window: ' + (windowOk ? 'OK' : 'MISSING') +
+        ', local: ' + (localOk ? 'OK' : 'MISSING') + ')', 'color:#ff3b30');
+      fail++;
+    }
+  });
+
+  // 辅助函数检查
+  console.log('%c── Helper Functions ──', 'color:#8e8e93');
+  var helpers = [
+    { name: 'saveMemoryEntry',      avail: typeof saveMemoryEntry === 'function' },
+    { name: 'getUnconsolidatedSTM', avail: typeof getUnconsolidatedSTM === 'function' },
+    { name: 'sendChat',             avail: typeof sendChat === 'function' },
+    { name: 'saveState',            avail: typeof saveState === 'function' },
+    { name: 'showToast',            avail: typeof showToast === 'function' },
+    { name: 'T (i18n)',             avail: typeof T === 'function' }
+  ];
+  helpers.forEach(function(h) {
+    console.log('  ' + (h.avail ? '\u2705' : '\u26a0\ufe0f') + ' ' + h.name +
+      (h.avail ? '' : ' (not found, fallback will be used)'));
+  });
+
+  // State 检查
+  console.log('%c── State Check ──', 'color:#8e8e93');
+  var stateOk = typeof state !== 'undefined';
+  console.log('  ' + (stateOk ? '\u2705' : '\u274c') + ' state object');
+  if (stateOk) {
+    console.log('    meetings: ' + (state.meetings || []).length);
+    console.log('    memories: ' + (state.memories || []).length);
+    console.log('    characters: ' + (state.characters || []).length);
+    console.log('    apis: ' + (state.apis || []).length);
+    console.log('    activeApiId: ' + (state.activeApiId || 'null'));
+  }
+
+  // 功能测试
+  console.log('%c── Functional Test ──', 'color:#8e8e93');
+  try {
+    var testSession = {
+      id: 'test-' + Date.now(),
+      name: 'Test Session',
+      history: [
+        { id: 't1', role: 'user', content: 'Hello', timestamp: Date.now() },
+        { id: 't2', role: 'char', content: 'Hi there', charName: 'Test', timestamp: Date.now() }
+      ],
+      turnCount: 1,
+      turnSummary: true,
+      summaryInterval: 5,
+      charIds: [],
+      characters: ['Test']
+    };
+
+    mtgEnsureMemoryFields(testSession);
+    console.log('  \u2705 mtgEnsureMemoryFields: shortTermMemories=' +
+      testSession.shortTermMemories.length + ', lastIdx=' + testSession.lastSummarizedEntryIdx);
+
+    var count = mtgCountUnsummarizedTurns(testSession);
+    console.log('  \u2705 mtgCountUnsummarizedTurns: ' + count);
+
+    var entries = mtgGetUnsummarizedEntries(testSession);
+    console.log('  \u2705 mtgGetUnsummarizedEntries: ' + entries.length + ' entries');
+  } catch (e) {
+    console.error('  \u274c Functional test failed:', e);
+    fail++;
+  }
+
+  // 总结
+  console.log('%c══════ Result: ' + pass + '/' + funcs.length + ' passed ══════',
+    fail === 0 ? 'color:#34c759;font-weight:bold;font-size:14px' : 'color:#ff3b30;font-weight:bold;font-size:14px');
+
+  if (fail === 0) {
+    console.log('%c\ud83c\udf89 All meeting memory functions are properly defined and exported!', 'color:#34c759;font-size:12px');
+  } else {
+    console.log('%c\u26a0\ufe0f ' + fail + ' functions are missing. Ensure meeting.js is properly loaded.', 'color:#ff3b30;font-size:12px');
+  }
+
+  return { pass: pass, fail: fail, total: funcs.length };
+}
+
+
+/* ══════════════════════════════════
+   ★★★ 全局导出 — 必须在文件最末尾 ★★★
+   ══════════════════════════════════ */
+;(function _exportMeetingGlobals() {
+  'use strict';
+  try {
+    // ── 10 个核心业务函数 ──
+    window.mtgEnsureMemoryFields     = mtgEnsureMemoryFields;
+    window.mtgCheckAutoSummarize     = mtgCheckAutoSummarize;
+    window.mtgSummarizeRemaining     = mtgSummarizeRemaining;
+    window.mtgWriteToMemoryLibrary   = mtgWriteToMemoryLibrary;
+    window.mtgEndSession             = mtgEndSession;
+    window.mtgCallSummarize          = mtgCallSummarize;
+    window.mtgCallConsolidate        = mtgCallConsolidate;
+    window.mtgCountUnsummarizedTurns = mtgCountUnsummarizedTurns;
+    window.mtgGetUnsummarizedEntries = mtgGetUnsummarizedEntries;
+    window.mtgManualWriteToMemory    = mtgManualWriteToMemory;
+
+    // ── UI & 页面函数 ──
+    window.initMeetingPage           = initMeetingPage;
+    window.mtgRenderArchiveList      = mtgRenderArchiveList;
+    window.openMeetingNewArchive     = openMeetingNewArchive;
+    window.exitMeetingNew            = exitMeetingNew;
+    window.mtgNewModeChanged         = mtgNewModeChanged;
+    window.mtgNewSummaryToggled      = mtgNewSummaryToggled;
+    window.mtgCreateArchive          = mtgCreateArchive;
+    window.openMeetingManage         = openMeetingManage;
+    window.exitMeetingManage         = exitMeetingManage;
+    window.mtgOpenSettingsForArchive = mtgOpenSettingsForArchive;
+    window.openMeetingSettingsFromWrite = openMeetingSettingsFromWrite;
+    window.exitMeetingSettings       = exitMeetingSettings;
+    window.mtgSaveSettings           = mtgSaveSettings;
+    window.mtgDeleteArchive          = mtgDeleteArchive;
+    window.openMeetingWrite          = openMeetingWrite;
+    window.exitMeetingWrite          = exitMeetingWrite;
+    window.meetingWriteSend          = meetingWriteSend;
+    window.mtgDeleteEntry            = mtgDeleteEntry;
+    window.mtgEditEntry              = mtgEditEntry;
+    window.mtgRegenerateEntry        = mtgRegenerateEntry;
+    window.mtgCancelEdit             = mtgCancelEdit;
+    window.mtgSegToggle              = mtgSegToggle;
+    window.mtgRenderSettingsMemory   = mtgRenderSettingsMemory;
+    window.mtgRenderSessionMemories  = mtgRenderSessionMemories;
+
+    // ── 向后兼容 ──
+    window.openMeetingSettings       = openMeetingSettings;
+    window.startMeetingSession       = startMeetingSession;
+    window.renderMeetingCards        = renderMeetingCards;
+    window.mtgCloseEndModal          = mtgCloseEndModal;
+
+    // ── 测试函数 ──
+    window.__mizuMeetingTest         = __mizuMeetingTest;
+
+    console.log('[Meeting-Memory] \u2705 All globals exported successfully.',
+      '| Core functions: 10',
+      '| Test: __mizuMeetingTest');
+  } catch (exportErr) {
+    console.error('[Meeting-Memory] \u274c Global export FAILED:', exportErr);
+  }
+})();

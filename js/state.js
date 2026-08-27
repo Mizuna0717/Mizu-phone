@@ -77,6 +77,18 @@ function _validateState() {
   if (state.allowQuote == null) state.allowQuote = true;
   if (state.systemPromptIM == null) state.systemPromptIM = '';
   if (state.systemPromptMeeting == null) state.systemPromptMeeting = '';
+  // ★ 在 _validateState() 函数末尾添加以下代码 ★
+  // ── 验证每个 meeting session 的记忆字段 ──
+  if (Array.isArray(state.meetings)) {
+    state.meetings.forEach(function(session) {
+      if (!Array.isArray(session.shortTermMemories))  session.shortTermMemories = [];
+      if (!Array.isArray(session.shortTermMemory))    session.shortTermMemory = [];
+      if (!Array.isArray(session.history))             session.history = [];
+      if (session.lastSummarizedEntryIdx === undefined) session.lastSummarizedEntryIdx = 0;
+      if (session.consolidateThreshold === undefined)   session.consolidateThreshold = 5;
+    });
+  }
+
 }
 
 function _resetTransientState() {

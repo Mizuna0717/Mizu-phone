@@ -85,3 +85,22 @@ async function sendGroupChats(cfg, charPrompts) {
     .filter(function(r) { return r.status === 'fulfilled'; })
     .map(function(r) { return r.value; });
 }
+// ★ 在 api.js 文件末尾添加 ★
+
+// ── 便捷封装：供 meeting.js 或其他模块调用 ──
+async function summarizeMeeting(textEntries, instruction) {
+  var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
+  if (!api || !api.url || !api.model) throw new Error('No active API configured');
+  return await sendChat(api, [
+    { role: 'system', content: instruction || 'Summarize the following content concisely.' },
+    { role: 'user',   content: textEntries }
+  ]);
+}
+
+// ── 全局导出 ──
+window.sendChat           = sendChat;
+window.sendGroupChats     = sendGroupChats;
+window.fetchModelList     = fetchModelList;
+window.summarizeMeeting   = summarizeMeeting;
+window.normalizeUrl       = normalizeUrl;
+window.friendlyError      = friendlyError;
