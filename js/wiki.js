@@ -1,124 +1,277 @@
 /* ==========================================================================
-   Wiki Module — JavaScript (v3 — 使用 wiki-panel-visible 避免全局冲突)
+   Wiki Module — Restructured (v4)
+   Two-level navigation: Character List → Character Detail (NPC / Rel / Sched)
+   Full i18n via wikiT() helper
    ========================================================================== */
 
-// ======================== 常量 ========================
-// ★ 面板专用类名，与全局 active 隔离
+// ====================== Constants ======================
 const WIKI_PANEL_CLASS = 'wiki-panel-visible';
 
-// ======================== 示例日程数据 ========================
+// ====================== i18n Helper ======================
+function wikiT(key) {
+	const lang = window.currentLang || (typeof getLang === 'function' ? getLang() : 'en');
+	if (LANG && LANG[lang] && LANG[lang][key] !== undefined) return LANG[lang][key];
+	if (LANG && LANG.en && LANG.en[key] !== undefined) return LANG.en[key];
+	return key;
+}
 
-const wikiScheduleData = [
-	{
-		id: 1,
-		date: '2025-01-20',
-		time: '10:00',
-		title: '团队战略会议',
-		characters: ['林夏', '陈远'],
-		description: '在指挥室讨论下一阶段的行动计划与资源分配方案，重点评估西区形势。',
-		status: 'completed'
-	},
-	{
-		id: 2,
-		date: '2025-01-20',
-		time: '15:30',
-		title: '情报交接',
-		characters: ['苏晴'],
-		description: '接收来自北区前哨站的最新侦查报告，整理关键线索。',
-		status: 'completed'
-	},
-	{
-		id: 3,
-		date: '2025-01-21',
-		time: '09:00',
-		title: '体能训练',
-		characters: ['林夏'],
-		description: '在东区训练场进行战术机动与近战对抗专项训练。',
-		status: 'pending'
-	},
-	{
-		id: 4,
-		date: '2025-01-21',
-		time: '19:00',
-		title: '私人晚餐',
-		characters: ['苏晴', '陈远'],
-		description: '城中心餐厅的非正式聚会，讨论近期个人事务与团队动态。',
-		status: 'pending'
-	},
-	{
-		id: 5,
-		date: '2025-01-22',
-		time: '11:00',
-		title: '世界观设定审核',
-		characters: ['赵明'],
-		description: '审核并更新当前世界线的关键时间节点文档，校对设定一致性。',
-		status: 'pending'
+/** Re-apply all data-i18n / data-i18n-ph in #screen-wiki */
+function wikiApplyI18n() {
+	const root = document.getElementById('screen-wiki');
+	if (!root) return;
+	root.querySelectorAll('[data-i18n]').forEach(el => {
+		el.textContent = wikiT(el.getAttribute('data-i18n'));
+	});
+	root.querySelectorAll('[data-i18n-ph]').forEach(el => {
+		el.placeholder = wikiT(el.getAttribute('data-i18n-ph'));
+	});
+}
+
+// ====================== Character Data ======================
+let wikiSelectedCharId = null;
+
+function getWikiCharacters() {
+	// Attempt to read from global app state
+	if (window.characters && Array.isArray(window.characters)) {
+		return window.characters.map((c, i) => ({
+			id: c.id || 'char-' + i,
+			name: c.name || c.charName || 'Unnamed',
+			avatar: c.avatar || c.image || null,
+			age: c.age || '',
+			identity: c.identity || c.role || '',
+			personality: c.personality || '',
+			backstory: c.backstory || c.background || c.notes || '',
+			prompt: c.prompt || ''
+		}));
 	}
+	// Try localStorage
+	try {
+		const stored = localStorage.getItem('mizu_characters') || localStorage.getItem('characters');
+		if (stored) {
+			const arr = JSON.parse(stored);
+			if (Array.isArray(arr) && arr.length) {
+				return arr.map((c, i) => ({
+					id: c.id || 'char-' + i,
+					name: c.name || c.charName || 'Unnamed',
+					avatar: c.avatar || c.image || null,
+					age: c.age || '',
+					identity: c.identity || c.role || '',
+					personality: c.personality || '',
+					backstory: c.backstory || c.background || c.notes || '',
+					prompt: c.prompt || ''
+				}));
+			}
+		}
+	} catch (e) { /* ignore */ }
+	return [];
+}
+
+// ====================== Schedule Data ======================
+const _today = new Date();
+const _fmt = d => d.toISOString().split('T')[0];
+const _yesterday = new Date(_today); _yesterday.setDate(_today.getDate() - 1);
+const _tomorrow = new Date(_today); _tomorrow.setDate(_today.getDate() + 1);
+const _dayAfter = new Date(_today); _dayAfter.setDate(_today.getDate() + 2);
+
+let wikiScheduleData = [
+	{ id: 1, date: _fmt(_yesterday), time: '10:00', title: 'Strategy Meeting', characters: ['Lin Xia', 'Chen Yuan'], description: 'Discuss next-phase action plans and resource allocation in the command room.', status: 'completed' },
+	{ id: 2, date: _fmt(_yesterday), time: '15:30', title: 'Intel Handover', characters: ['Su Qing'], description: 'Receive latest reconnaissance reports from the northern outpost.', status: 'completed' },
+	{ id: 3, date: _fmt(_today), time: '09:00', title: 'Physical Training', characters: ['Lin Xia'], description: 'Tactical mobility and close-quarters combat drills at the eastern training ground.', status: 'pending' },
+	{ id: 4, date: _fmt(_today), time: '19:00', title: 'Private Dinner', characters: ['Su Qing', 'Chen Yuan'], description: 'Informal gathering at the downtown restaurant to discuss personal matters.', status: 'pending' },
+	{ id: 5, date: _fmt(_tomorrow), time: '11:00', title: 'Lore Review', characters: ['Zhao Ming'], description: 'Review and update key timeline documents for the current world setting.', status: 'pending' },
+	{ id: 6, date: _fmt(_dayAfter), time: '14:00', title: 'Equipment Check', characters: ['Lin Xia', 'Zhao Ming'], description: 'Inspect and catalog gear in preparation for the upcoming field operation.', status: 'pending' }
 ];
 
 let currentScheduleFilter = 'all';
+let wikiScheduleNextId = 100;
+let selectedScheduleChars = new Set();
 
+// ====================== View Navigation ======================
 
-// ======================== Tab 切换（v3 修复）========================
+function wikiNavBack() {
+	if (wikiSelectedCharId !== null) {
+		wikiShowListView();
+	} else {
+		nav('screen-home');
+	}
+}
 
-function switchWikiTab(tabName) {
-	// 限定作用域到 wiki 屏幕内部，避免影响其他模块
-	const wikiRoot = document.getElementById('screen-wiki');
-	if (!wikiRoot) {
-		console.warn('[Wiki] screen-wiki not found in DOM');
+function wikiShowListView() {
+	wikiSelectedCharId = null;
+	const listView = document.getElementById('wiki-list-view');
+	const detailView = document.getElementById('wiki-detail-view');
+	if (detailView) detailView.classList.remove('wiki-view-active', 'wiki-view-back');
+	if (listView) {
+		listView.classList.remove('wiki-view-active');
+		listView.classList.add('wiki-view-active', 'wiki-view-back');
+	}
+	// Update nav
+	const title = document.getElementById('wiki-nav-title');
+	const largeTitle = document.getElementById('wiki-large-title');
+	if (title) title.textContent = wikiT('wiki.title');
+	if (largeTitle) { largeTitle.textContent = wikiT('wiki.title'); largeTitle.style.display = ''; }
+	// Show add button (for adding characters)
+	const addBtn = document.getElementById('wiki-nav-add-btn');
+	if (addBtn) addBtn.style.display = '';
+}
+
+function wikiShowDetailView(charId) {
+	const chars = getWikiCharacters();
+	const char = chars.find(c => c.id === charId);
+	if (!char && chars.length === 0) return;
+	const target = char || chars[0];
+
+	wikiSelectedCharId = target.id;
+
+	// Fill detail header
+	const avatarEl = document.getElementById('wiki-detail-avatar');
+	if (avatarEl) {
+		if (target.avatar) {
+			avatarEl.innerHTML = `<img src="${target.avatar}" alt="${target.name}"/>`;
+		} else {
+			avatarEl.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 22c0-4.5 3.5-8 8-8s8 3.5 8 8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`;
+		}
+	}
+	const nameEl = document.getElementById('wiki-detail-name');
+	if (nameEl) nameEl.textContent = target.name;
+
+	// Update nav
+	const title = document.getElementById('wiki-nav-title');
+	if (title) title.textContent = target.name;
+	const largeTitle = document.getElementById('wiki-large-title');
+	if (largeTitle) largeTitle.style.display = 'none';
+
+	// Fill NPC tab
+	renderNpcProfile(target);
+
+	// Switch view
+	const listView = document.getElementById('wiki-list-view');
+	const detailView = document.getElementById('wiki-detail-view');
+	if (listView) listView.classList.remove('wiki-view-active', 'wiki-view-back');
+	if (detailView) {
+		detailView.classList.remove('wiki-view-active', 'wiki-view-back');
+		detailView.classList.add('wiki-view-active');
+	}
+
+	// Reset to NPC tab
+	switchWikiDetailTab('npc');
+}
+
+// ====================== Character List ======================
+
+function renderWikiCharacterList() {
+	const grid = document.getElementById('wiki-char-grid');
+	const empty = document.getElementById('wiki-list-empty');
+	if (!grid) return;
+
+	const chars = getWikiCharacters();
+
+	if (chars.length === 0) {
+		grid.innerHTML = '';
+		if (empty) empty.style.display = '';
 		return;
 	}
 
-	// 1) 更新 Tab 按钮样式（按钮用 active 没问题，因为在 screen-body 外面）
-	wikiRoot.querySelectorAll('.wiki-tab').forEach(btn => {
-		btn.classList.toggle('active', btn.dataset.tab === tabName);
+	if (empty) empty.style.display = 'none';
+
+	grid.innerHTML = chars.map(c => `
+		<div class="wiki-char-card" onclick="wikiShowDetailView('${c.id}')">
+			<div class="wiki-char-card-avatar">
+				${c.avatar
+					? `<img src="${c.avatar}" alt="${c.name}"/>`
+					: `<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 22c0-4.5 3.5-8 8-8s8 3.5 8 8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`
+				}
+			</div>
+			<div class="wiki-char-card-name">${c.name}</div>
+		</div>
+	`).join('');
+}
+
+function filterWikiCharacters(query) {
+	const grid = document.getElementById('wiki-char-grid');
+	if (!grid) return;
+	const q = query.toLowerCase().trim();
+	grid.querySelectorAll('.wiki-char-card').forEach(card => {
+		const name = card.querySelector('.wiki-char-card-name');
+		if (!name) return;
+		card.style.display = name.textContent.toLowerCase().includes(q) || !q ? '' : 'none';
+	});
+}
+
+// ====================== NPC Profile ======================
+
+function renderNpcProfile(char) {
+	const container = document.getElementById('wiki-npc-content');
+	if (!container) return;
+
+	const fields = [
+		{ key: 'wiki.npc.name', icon: '<circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.5"/>', value: char.name },
+		{ key: 'wiki.npc.age', icon: '<rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v3M11 1v3M2 7h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>', value: char.age },
+		{ key: 'wiki.npc.identity', icon: '<path d="M2 4h12M2 8h8M2 12h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>', value: char.identity },
+		{ key: 'wiki.npc.personality', icon: '<circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 10c.8 1.2 1.8 2 3 2s2.2-.8 3-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6.5" r=".8" fill="currentColor"/><circle cx="10" cy="6.5" r=".8" fill="currentColor"/>', value: char.personality },
+		{ key: 'wiki.npc.backstory', icon: '<rect x="2" y="2" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 5h6M5 8h4M5 11h5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>', value: char.backstory }
+	];
+
+	const hasData = fields.some(f => f.value);
+	if (!hasData) {
+		container.innerHTML = `<div class="wiki-npc-empty">${wikiT('wiki.npc.noInfo')}</div>`;
+		return;
+	}
+
+	container.innerHTML = fields
+		.filter(f => f.value)
+		.map(f => `
+			<div class="wiki-npc-row">
+				<div class="wiki-npc-label">
+					<svg viewBox="0 0 16 16" style="width:14px;height:14px">${f.icon}</svg>
+					${wikiT(f.key)}
+				</div>
+				<div class="wiki-npc-value">${f.value}</div>
+			</div>
+		`).join('');
+}
+
+// ====================== Detail Tab Switching ======================
+
+function switchWikiDetailTab(tabName) {
+	const wikiRoot = document.getElementById('screen-wiki');
+	if (!wikiRoot) return;
+
+	wikiRoot.querySelectorAll('.wiki-detail-tab').forEach(btn => {
+		btn.classList.toggle('active', btn.dataset.dtab === tabName);
 	});
 
-	// 2) ★ 用 WIKI_PANEL_CLASS 而非 'active' 切换面板
-	wikiRoot.querySelectorAll('.wiki-tab-content').forEach(panel => {
+	wikiRoot.querySelectorAll('.wiki-detail-panel').forEach(panel => {
 		panel.classList.remove(WIKI_PANEL_CLASS);
 	});
 
-	const target = document.getElementById('wiki-tab-' + tabName);
-	if (target) {
-		target.classList.add(WIKI_PANEL_CLASS);
-	} else {
-		console.warn('[Wiki] Panel not found: wiki-tab-' + tabName);
-	}
+	const target = document.getElementById('wiki-detail-' + tabName);
+	if (target) target.classList.add(WIKI_PANEL_CLASS);
 
-	// 3) 滚回顶部
-	const body = wikiRoot.querySelector('.screen-body');
+	const body = wikiRoot.querySelector('#wiki-detail-view .screen-body');
 	if (body) body.scrollTop = 0;
 
-	// 4) 进入日程表时渲染
-	if (tabName === 'schedule') {
-		renderScheduleTimeline();
-	}
+	if (tabName === 'schedule') renderScheduleTimeline();
 }
 
-
-// ======================== 导航栏按钮 ========================
+// ====================== Nav Add Button ======================
 
 function wikiNavAddAction() {
-	const activeTab = document.querySelector('#screen-wiki .wiki-tab.active');
-	const tabName = activeTab ? activeTab.dataset.tab : 'characters';
-
-	switch (tabName) {
-		case 'schedule':
+	if (wikiSelectedCharId !== null) {
+		// Inside detail view
+		const activeTab = document.querySelector('#screen-wiki .wiki-detail-tab.active');
+		const tabName = activeTab ? activeTab.dataset.dtab : 'npc';
+		if (tabName === 'schedule') {
 			openScheduleAddModal();
-			break;
-		case 'relationships':
-			console.log('[Wiki] Add Relationship — placeholder');
-			break;
-		case 'characters':
-		default:
-			console.log('[Wiki] Add Character — placeholder');
-			break;
+		} else {
+			console.log('[Wiki] Add action for tab:', tabName);
+		}
+	} else {
+		console.log('[Wiki] Add Character — placeholder');
 	}
 }
 
-
-// ======================== 日程表渲染 ========================
+// ====================== Schedule Rendering ======================
 
 function renderScheduleTimeline() {
 	const container = document.getElementById('schedule-timeline');
@@ -134,23 +287,32 @@ function renderScheduleTimeline() {
 		return;
 	}
 
-	data.sort((a, b) => {
-		if (a.date !== b.date) return a.date.localeCompare(b.date);
-		return a.time.localeCompare(b.time);
-	});
+	data.sort((a, b) => a.date !== b.date ? a.date.localeCompare(b.date) : a.time.localeCompare(b.time));
 
 	const groups = {};
 	data.forEach(item => {
-		if (!groups[item.date]) groups[item.date] = [];
-		groups[item.date].push(item);
+		const label = getDateGroupLabel(item.date);
+		if (!groups[label]) groups[label] = [];
+		groups[label].push(item);
+	});
+
+	// Sort groups: Yesterday → Today → Upcoming dates
+	const order = ['Yesterday', 'Today'];
+	const sortedKeys = Object.keys(groups).sort((a, b) => {
+		const ai = order.indexOf(a), bi = order.indexOf(b);
+		if (ai !== -1 && bi !== -1) return ai - bi;
+		if (ai !== -1) return -1;
+		if (bi !== -1) return 1;
+		return a.localeCompare(b);
 	});
 
 	let html = '';
-	for (const [date, items] of Object.entries(groups)) {
+	for (const label of sortedKeys) {
+		const items = groups[label];
 		html += `<div class="schedule-date-group">`;
 		html += `<div class="schedule-date-label">
 			<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v3M11 1v3M2 7h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-			${formatScheduleDate(date)}
+			${label}
 		</div>`;
 		html += `<div class="schedule-items">`;
 
@@ -174,15 +336,14 @@ function renderScheduleTimeline() {
 					</div>
 					<div class="schedule-item-desc">${item.description}</div>
 				</div>
-				<div class="schedule-item-status ${item.status}">
-					${isCompleted ? '已完成' : '待进行'}
-				</div>
+				<button class="schedule-item-more" onclick="event.stopPropagation(); openScheduleDetail(${item.id})">
+					<svg viewBox="0 0 16 16"><circle cx="8" cy="3" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="13" r="1.2" fill="currentColor"/></svg>
+				</button>
 			</div>`;
 		});
 
 		html += `</div></div>`;
 	}
-
 	container.innerHTML = html;
 }
 
@@ -194,37 +355,53 @@ function renderScheduleEmpty() {
 			<path d="M16 6v6M32 6v6M8 18h32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
 			<path d="M18 26h12M18 32h8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
 		</svg>
-		<p>暂无日程<br><span>点击右上角「添加」创建第一条日程</span></p>
+		<p>${wikiT('wiki.schedule.empty')}</p>
+		<span>${wikiT('wiki.schedule.emptySub')}</span>
+		<br/>
+		<button class="schedule-empty-add" onclick="openScheduleAddModal()">
+			<svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+			${wikiT('wiki.schedule.add')}
+		</button>
 	</div>`;
 }
 
+// ====================== Date Helpers ======================
 
-// ======================== 日期格式化 ========================
+function getDateGroupLabel(dateStr) {
+	const today = new Date(); today.setHours(0,0,0,0);
+	const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+	const target = new Date(dateStr + 'T00:00:00'); target.setHours(0,0,0,0);
+
+	if (target.getTime() === today.getTime()) return wikiT('wiki.schedule.today');
+	if (target.getTime() === yesterday.getTime()) return wikiT('wiki.schedule.yesterday');
+
+	// Format as readable date
+	return formatScheduleDate(dateStr);
+}
 
 function formatScheduleDate(dateStr) {
 	const date = new Date(dateStr + 'T00:00:00');
-	const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-	const month = date.getMonth() + 1;
-	const day = date.getDate();
-	const weekday = weekdays[date.getDay()];
-	return month + '月' + day + '日 · ' + weekday;
+	const lang = window.currentLang || 'en';
+	if (lang === 'zh') {
+		const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+		return (date.getMonth()+1) + '月' + date.getDate() + '日 · ' + weekdays[date.getDay()];
+	}
+	const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+	const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+	return days[date.getDay()] + ', ' + months[date.getMonth()] + ' ' + date.getDate();
 }
 
-
-// ======================== 过滤器 ========================
+// ====================== Filters ======================
 
 function filterSchedule(filterType) {
 	currentScheduleFilter = filterType;
-
 	document.querySelectorAll('#screen-wiki .schedule-filter').forEach(btn => {
 		btn.classList.toggle('active', btn.dataset.filter === filterType);
 	});
-
 	renderScheduleTimeline();
 }
 
-
-// ======================== 状态切换 ========================
+// ====================== Status Toggle ======================
 
 function toggleScheduleStatus(id) {
 	const item = wikiScheduleData.find(d => d.id === id);
@@ -233,29 +410,93 @@ function toggleScheduleStatus(id) {
 	renderScheduleTimeline();
 }
 
-
-// ======================== 添加日程弹窗 ========================
+// ====================== Add Schedule Modal ======================
 
 function openScheduleAddModal() {
 	const modal = document.getElementById('schedule-add-modal');
 	if (!modal) return;
+
+	// Reset form
+	const titleInput = document.getElementById('sched-add-title');
+	const dateInput = document.getElementById('sched-add-date');
+	const timeInput = document.getElementById('sched-add-time');
+	const descInput = document.getElementById('sched-add-desc');
+	if (titleInput) titleInput.value = '';
+	if (dateInput) dateInput.value = _fmt(new Date());
+	if (timeInput) timeInput.value = '12:00';
+	if (descInput) descInput.value = '';
+
+	// Populate character tags
+	selectedScheduleChars.clear();
+	renderScheduleCharTags();
+
 	modal.classList.add('active');
 }
 
 function closeScheduleAddModal() {
 	const modal = document.getElementById('schedule-add-modal');
-	if (!modal) return;
-	modal.classList.remove('active');
+	if (modal) modal.classList.remove('active');
 }
 
+function renderScheduleCharTags() {
+	const container = document.getElementById('sched-add-chars');
+	if (!container) return;
 
-// ======================== 日程详情弹窗 ========================
+	const chars = getWikiCharacters();
+	if (chars.length === 0) {
+		container.innerHTML = `<div class="modal-tag-empty">${wikiT('wiki.schedule.noCharsAvailable')}</div>`;
+		return;
+	}
+
+	container.innerHTML = chars.map(c => {
+		const sel = selectedScheduleChars.has(c.name) ? 'selected' : '';
+		return `<span class="modal-tag ${sel}" onclick="toggleScheduleCharTag(this, '${c.name}')">${c.name}</span>`;
+	}).join('');
+}
+
+function toggleScheduleCharTag(el, name) {
+	if (selectedScheduleChars.has(name)) {
+		selectedScheduleChars.delete(name);
+		el.classList.remove('selected');
+	} else {
+		selectedScheduleChars.add(name);
+		el.classList.add('selected');
+	}
+}
+
+function saveScheduleEvent() {
+	const title = document.getElementById('sched-add-title')?.value.trim();
+	const date = document.getElementById('sched-add-date')?.value;
+	const time = document.getElementById('sched-add-time')?.value;
+	const desc = document.getElementById('sched-add-desc')?.value.trim();
+
+	if (!title) {
+		document.getElementById('sched-add-title')?.focus();
+		return;
+	}
+
+	wikiScheduleData.push({
+		id: ++wikiScheduleNextId,
+		date: date || _fmt(new Date()),
+		time: time || '12:00',
+		title: title,
+		characters: Array.from(selectedScheduleChars),
+		description: desc || '',
+		status: 'pending'
+	});
+
+	closeScheduleAddModal();
+	renderScheduleTimeline();
+}
+
+// ====================== Schedule Detail Modal ======================
 
 function openScheduleDetail(id) {
 	const item = wikiScheduleData.find(d => d.id === id);
 	if (!item) return;
 
 	const body = document.getElementById('schedule-detail-body');
+	const footer = document.getElementById('schedule-detail-footer');
 	if (!body) return;
 
 	const isCompleted = item.status === 'completed';
@@ -263,35 +504,43 @@ function openScheduleDetail(id) {
 	body.innerHTML = `
 		<div class="detail-status-badge ${item.status}">
 			${isCompleted
-				? '<svg viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5 6.5-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 已完成'
-				: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> 待进行'}
+				? `<svg viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5 6.5-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> ${wikiT('wiki.schedule.completed')}`
+				: `<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg> ${wikiT('wiki.schedule.pending')}`}
 		</div>
 		<div class="detail-title">${item.title}</div>
 		<div class="detail-info-card">
 			<div class="detail-info-row">
 				<svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v3M11 1v3M2 7h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-				<span class="detail-info-label">日期</span>
+				<span class="detail-info-label">${wikiT('wiki.schedule.date')}</span>
 				<span class="detail-info-value">${formatScheduleDate(item.date)}</span>
 			</div>
 			<div class="detail-info-row">
 				<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2.5 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-				<span class="detail-info-label">时间</span>
+				<span class="detail-info-label">${wikiT('wiki.schedule.time')}</span>
 				<span class="detail-info-value">${item.time}</span>
 			</div>
 			<div class="detail-info-row">
 				<svg viewBox="0 0 16 16"><circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-				<span class="detail-info-label">角色</span>
-				<span class="detail-info-value">${item.characters.join(', ')}</span>
+				<span class="detail-info-label">${wikiT('wiki.schedule.characters')}</span>
+				<span class="detail-info-value">${item.characters.length ? item.characters.join(', ') : '—'}</span>
 			</div>
 		</div>
-		<div class="detail-desc-title">描述</div>
-		<div class="detail-desc-body">${item.description}</div>
-		<button class="detail-toggle-btn" onclick="toggleScheduleStatus(${item.id}); openScheduleDetail(${item.id});">
-			${isCompleted
-				? '<svg viewBox="0 0 16 16"><path d="M4 8h8" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/></svg> 标记为待进行'
-				: '<svg viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5 6.5-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 标记为已完成'}
-		</button>
+		${item.description ? `
+			<div class="detail-desc-title">${wikiT('wiki.schedule.description')}</div>
+			<div class="detail-desc-body">${item.description}</div>
+		` : ''}
 	`;
+
+	if (footer) {
+		footer.innerHTML = `
+			<button class="wiki-modal-btn-outline" onclick="deleteScheduleEvent(${item.id})">
+				${wikiT('wiki.schedule.delete')}
+			</button>
+			<button class="wiki-modal-btn-outline primary" onclick="toggleScheduleStatus(${item.id}); openScheduleDetail(${item.id});">
+				${isCompleted ? wikiT('wiki.schedule.markPending') : wikiT('wiki.schedule.markCompleted')}
+			</button>
+		`;
+	}
 
 	const modal = document.getElementById('schedule-detail-modal');
 	if (modal) modal.classList.add('active');
@@ -303,12 +552,19 @@ function closeScheduleDetailModal() {
 	renderScheduleTimeline();
 }
 
+function deleteScheduleEvent(id) {
+	wikiScheduleData = wikiScheduleData.filter(d => d.id !== id);
+	closeScheduleDetailModal();
+}
 
-// ======================== 初始化 ========================
+// ====================== Init ======================
+
+function initWikiModule() {
+	wikiApplyI18n();
+	renderWikiCharacterList();
+	wikiShowListView();
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-	const activeTab = document.querySelector('#screen-wiki .wiki-tab.active');
-	if (activeTab && activeTab.dataset.tab === 'schedule') {
-		renderScheduleTimeline();
-	}
+	initWikiModule();
 });

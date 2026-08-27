@@ -161,7 +161,61 @@ const LANG = {
 
     // ── Meeting (Batch 1 — Revised) ──
     meetingTitle:'Meeting',
-    meetingContinue:'Continue',
+    meetingContinue:'Continue', // ── Wiki Module ──
+    'wiki.title': 'Wiki',
+    'wiki.back': 'Back',
+    'wiki.characters': 'CHARACTERS',
+    'wiki.searchCharacters': 'Search characters...',
+    'wiki.noCharacters': 'No characters yet',
+    'wiki.noCharactersSub': 'Create characters in iMessage first',
+
+    // Detail Tabs
+    'wiki.tab.npc': 'NPC',
+    'wiki.tab.relationships': 'Relationships',
+    'wiki.tab.schedule': 'Schedule',
+
+    // NPC Profile
+    'wiki.npc.name': 'Name',
+    'wiki.npc.age': 'Age',
+    'wiki.npc.identity': 'Identity',
+    'wiki.npc.personality': 'Personality',
+    'wiki.npc.backstory': 'Backstory',
+    'wiki.npc.noInfo': 'No profile information available',
+
+    // Relationships
+    'wiki.relationships.empty': 'No relationships defined',
+    'wiki.relationships.emptySub': 'Connect characters and NPCs',
+    'wiki.relationships.add': 'Add Relationship',
+
+    // Schedule
+    'wiki.schedule.title': 'Schedule',
+    'wiki.schedule.add': 'Add',
+    'wiki.schedule.addEvent': 'Add Schedule Event',
+    'wiki.schedule.empty': 'No scheduled events',
+    'wiki.schedule.emptySub': 'Tap + to create your first event',
+    'wiki.schedule.filterAll': 'All',
+    'wiki.schedule.filterPending': 'Pending',
+    'wiki.schedule.filterCompleted': 'Completed',
+    'wiki.schedule.today': 'Today',
+    'wiki.schedule.yesterday': 'Yesterday',
+    'wiki.schedule.pending': 'Pending',
+    'wiki.schedule.completed': 'Completed',
+    'wiki.schedule.eventTitle': 'Event Title',
+    'wiki.schedule.eventTitlePh': 'Enter event title...',
+    'wiki.schedule.date': 'Date',
+    'wiki.schedule.time': 'Time',
+    'wiki.schedule.characters': 'Characters',
+    'wiki.schedule.noCharsAvailable': 'No characters available',
+    'wiki.schedule.description': 'Description',
+    'wiki.schedule.descriptionPh': 'Brief description of this event...',
+    'wiki.schedule.detail': 'Event Detail',
+    'wiki.schedule.delete': 'Delete',
+    'wiki.schedule.markPending': 'Mark as Pending',
+    'wiki.schedule.markCompleted': 'Mark as Completed',
+
+    // Common
+    'wiki.cancel': 'Cancel',
+    'wiki.save': 'Save',
     meetingIF:'IF',
     meetingNewSession:'New Session',
     meetingSessionName:'Session Name',
@@ -362,7 +416,61 @@ const LANG = {
     wiki:'百科',searchChars:'搜索角色...',wikiCharacters:'角色',noCharsYet:'暫無角色',createCharsFirst:'請先在 iMessage 中創建角色',wikiNpcs:'NPC',noNpcsYet:'暫無 NPC',npcsSub:'你世界觀中的配角',wikiRelationships:'關係',noRelationships:'暫無關係設定',connectCharsSub:'連接角色和 NPC',addRelationship:'添加關係',memory:'記憶',memories:'記憶',memoryTitle:'記憶匣子',memorySub:'珍藏每一個瞬間',memoryStats:'概覽',totalMemories:'共計',firstMemory:'第一條',thisMonth:'本月',memoryTimeline:'時間線',addMemory:'新建記憶',editMemory:'編輯記憶',memoryTitle2:'標題',memoryDate:'日期',memoryContent:'內容',memoryMood:'心情',tapAddPhoto:'點擊添加照片',noMemories:'暫無記憶',noMemoriesSub:'點 + 記錄一個瞬間',memorySaved:'已保存',deleteMemory:'刪除記憶',memoryDeleted:'已刪除',moodCalm:'平靜',moodHappy:'開心',moodExcited:'興奮',moodSad:'難過',moodNostalgic:'懷念',moodGrateful:'感恩',chatSettings:'聊天設置',memorySummary:'記憶總結',autoSummarize:'自動總結',interval:'間隔',autoSummarizeHint:'每 N 條消息自動總結對話並保存到記憶。',
     shortTermMemory:'短期記憶',
     longTermMemory:'長期記憶',
-    shortTermCount:'短期',
+    shortTermCount:'短期', // ── Wiki 模块 ──
+    'wiki.title': '百科',
+    'wiki.back': '返回',
+    'wiki.characters': '角色',
+    'wiki.searchCharacters': '搜索角色...',
+    'wiki.noCharacters': '暂无角色',
+    'wiki.noCharactersSub': '请先在 iMessage 中创建角色',
+
+    // 详情页 Tab
+    'wiki.tab.npc': 'NPC',
+    'wiki.tab.relationships': '关系网',
+    'wiki.tab.schedule': '日程表',
+
+    // NPC 档案
+    'wiki.npc.name': '姓名',
+    'wiki.npc.age': '年龄',
+    'wiki.npc.identity': '身份',
+    'wiki.npc.personality': '性格',
+    'wiki.npc.backstory': '背景故事',
+    'wiki.npc.noInfo': '暂无档案信息',
+
+    // 关系网
+    'wiki.relationships.empty': '暂无关系设定',
+    'wiki.relationships.emptySub': '连接角色与 NPC',
+    'wiki.relationships.add': '添加关系',
+
+    // 日程表
+    'wiki.schedule.title': '日程表',
+    'wiki.schedule.add': '添加',
+    'wiki.schedule.addEvent': '添加日程',
+    'wiki.schedule.empty': '暂无日程',
+    'wiki.schedule.emptySub': '点击 + 创建第一条日程',
+    'wiki.schedule.filterAll': '全部',
+    'wiki.schedule.filterPending': '待进行',
+    'wiki.schedule.filterCompleted': '已完成',
+    'wiki.schedule.today': '今天',
+    'wiki.schedule.yesterday': '昨天',
+    'wiki.schedule.pending': '待进行',
+    'wiki.schedule.completed': '已完成',
+    'wiki.schedule.eventTitle': '事件标题',
+    'wiki.schedule.eventTitlePh': '输入日程标题...',
+    'wiki.schedule.date': '日期',
+    'wiki.schedule.time': '时间',
+    'wiki.schedule.characters': '参与角色',
+    'wiki.schedule.noCharsAvailable': '暂无可选角色',
+    'wiki.schedule.description': '描述',
+    'wiki.schedule.descriptionPh': '简短描述这个日程...',
+    'wiki.schedule.detail': '日程详情',
+    'wiki.schedule.delete': '删除',
+    'wiki.schedule.markPending': '标记为待进行',
+    'wiki.schedule.markCompleted': '标记为已完成',
+
+    // 通用
+    'wiki.cancel': '取消',
+    'wiki.save': '保存',
     longTermCount:'長期',// ===== 追加到 LANG.zh 的 Meeting 区块（替换原有同名 key） =====
 
     // ── Meeting (Batch 1 — Revised) ──

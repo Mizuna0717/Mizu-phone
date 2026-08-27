@@ -1,18 +1,211 @@
 /* ==========================================================================
-   Wiki Module — Tab Bar
+   Wiki Module — Complete Restyle
    ========================================================================== */
 
-.wiki-tab-bar {
+/* ── View Switching ── */
+.wiki-view {
+	display: none;
+}
+.wiki-view.wiki-view-active {
+	display: block;
+	animation: wikiFadeIn .3s ease forwards;
+}
+@keyframes wikiFadeIn {
+	from { opacity: 0; transform: translateX(12px); }
+	to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes wikiFadeBack {
+	from { opacity: 0; transform: translateX(-12px); }
+	to   { opacity: 1; transform: translateX(0); }
+}
+.wiki-view.wiki-view-back {
+	display: block;
+	animation: wikiFadeBack .3s ease forwards;
+}
+
+/* ==========================================================================
+   Character List — Search
+   ========================================================================== */
+.wiki-search-wrap {
+	margin: 0 16px 16px;
+	position: relative;
+}
+.wiki-search-icon {
+	position: absolute;
+	left: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 16px;
+	height: 16px;
+	color: #8e8e93;
+}
+.wiki-search-input {
+	width: 100%;
+	padding: 10px 14px 10px 36px;
+	border: 1px solid #ececec;
+	border-radius: 10px;
+	background: #fff;
+	font-size: 15px;
+	outline: none;
+	color: #1d1d1f;
+	font-family: -apple-system, 'Inter', system-ui, sans-serif;
+	box-sizing: border-box;
+	transition: border-color .2s;
+}
+.wiki-search-input:focus {
+	border-color: #b0b0b0;
+}
+
+/* ── Section Label ── */
+.wiki-section-label {
 	display: flex;
-	margin: 4px 16px 8px;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 20px 10px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #8e8e93;
+	text-transform: uppercase;
+	letter-spacing: .6px;
+}
+.wiki-section-label svg {
+	width: 14px;
+	height: 14px;
+	color: #8e8e93;
+}
+
+/* ==========================================================================
+   Character Grid — Cards
+   ========================================================================== */
+.wiki-char-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 12px;
+	padding: 0 16px 16px;
+}
+.wiki-char-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 20px 8px 16px;
+	background: #fff;
+	border: 1px solid #ececec;
+	border-radius: 16px;
+	cursor: pointer;
+	transition: transform .2s, box-shadow .2s;
+	-webkit-tap-highlight-color: transparent;
+}
+.wiki-char-card:active {
+	transform: scale(.96);
+	box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+.wiki-char-card-avatar {
+	width: 52px;
+	height: 52px;
+	border-radius: 50%;
+	background: #f0f0f5;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 10px;
+	overflow: hidden;
+	flex-shrink: 0;
+}
+.wiki-char-card-avatar svg {
+	width: 24px;
+	height: 24px;
+	color: #b0b0b5;
+}
+.wiki-char-card-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.wiki-char-card-name {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d1d1f;
+	text-align: center;
+	line-height: 1.3;
+	word-break: break-word;
+}
+
+/* ── Empty State ── */
+.wiki-empty {
+	text-align: center;
+	padding: 60px 20px 40px;
+	color: #8e8e93;
+}
+.wiki-empty svg {
+	width: 52px;
+	height: 52px;
+	color: #d1d1d6;
+	margin-bottom: 14px;
+}
+.wiki-empty p {
+	font-size: 15px;
+	font-weight: 600;
+	color: #636366;
+	margin: 0 0 4px;
+}
+.wiki-empty span {
+	font-size: 13px;
+	color: #b0b0b0;
+}
+
+/* ==========================================================================
+   Character Detail — Header
+   ========================================================================== */
+.wiki-detail-header {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 8px 16px 20px;
+}
+.wiki-detail-avatar {
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	background: #f0f0f5;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 10px;
+	overflow: hidden;
+}
+.wiki-detail-avatar svg {
+	width: 32px;
+	height: 32px;
+	color: #b0b0b5;
+}
+.wiki-detail-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.wiki-detail-name {
+	font-size: 20px;
+	font-weight: 700;
+	color: #1d1d1f;
+	text-align: center;
+}
+
+/* ==========================================================================
+   Detail — Tab Bar
+   ========================================================================== */
+.wiki-detail-tab-bar {
+	display: flex;
+	margin: 0 16px 12px;
 	padding: 3px;
 	background: #e8e8ed;
 	border-radius: 10px;
-	gap: 0;
 }
-
-.wiki-tab {
+.wiki-detail-tab {
 	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
 	padding: 7px 0;
 	border: none;
 	background: transparent;
@@ -21,54 +214,138 @@
 	color: #8e8e93;
 	cursor: pointer;
 	border-radius: 8px;
-	transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+	transition: all .25s cubic-bezier(.25,.1,.25,1);
 	-webkit-tap-highlight-color: transparent;
 	user-select: none;
 	font-family: -apple-system, 'Inter', system-ui, sans-serif;
 }
-
-.wiki-tab.active {
+.wiki-detail-tab svg {
+	width: 14px;
+	height: 14px;
+}
+.wiki-detail-tab.active {
 	background: #fff;
 	color: #1d1d1f;
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 1px 4px rgba(0,0,0,.08), 0 0 1px rgba(0,0,0,.04);
+}
+
+/* ── Detail Panel Switching ── */
+.wiki-detail-panel {
+	display: none;
+}
+.wiki-detail-panel.wiki-panel-visible {
+	display: block;
+	animation: wikiTabFadeIn .3s ease forwards;
+}
+@keyframes wikiTabFadeIn {
+	from { opacity: 0; transform: translateY(6px); }
+	to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================================================
-   Wiki Module — Tab Content Switching
-   ★ 使用 .wiki-panel-visible 替代 .active 避免全局冲突
+   NPC Tab — Profile Card
    ========================================================================== */
-
-.wiki-tab-content {
-	display: none;
+.wiki-npc-card {
+	margin: 0 16px;
+	background: #fff;
+	border-radius: 14px;
+	border: 1px solid #ececec;
+	overflow: hidden;
+}
+.wiki-npc-row {
+	display: flex;
+	padding: 14px 16px;
+	border-bottom: 1px solid #f2f2f7;
+	gap: 12px;
+}
+.wiki-npc-row:last-child {
+	border-bottom: none;
+}
+.wiki-npc-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: #8e8e93;
+	min-width: 80px;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.wiki-npc-label svg {
+	width: 14px;
+	height: 14px;
+	color: #8e8e93;
+}
+.wiki-npc-value {
+	font-size: 15px;
+	color: #1d1d1f;
+	line-height: 1.5;
+	word-break: break-word;
+}
+.wiki-npc-empty {
+	padding: 40px 20px;
+	text-align: center;
+	color: #8e8e93;
+	font-size: 14px;
 }
 
-.wiki-tab-content.wiki-panel-visible {
-	display: block;
-	animation: wikiTabFadeIn 0.3s ease forwards;
+/* ==========================================================================
+   Relationships Tab
+   ========================================================================== */
+.wiki-rel-empty {
+	text-align: center;
+	padding: 40px 20px;
 }
-
-@keyframes wikiTabFadeIn {
-	from {
-		opacity: 0;
-		transform: translateY(6px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
+.wiki-rel-icon {
+	width: 120px;
+	height: 80px;
+	color: #d1d1d6;
+	margin-bottom: 8px;
+}
+.wiki-rel-empty p {
+	font-size: 14px;
+	color: #8e8e93;
+	margin: 0 0 4px;
+}
+.wiki-rel-empty span {
+	font-size: 12px;
+	color: #b0b0b0;
+}
+.wiki-btn-primary {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	padding: 14px;
+	border: none;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	border-radius: 12px;
+	background: #1d1d1f;
+	color: #fff;
+	font-family: inherit;
+	transition: transform .15s;
+	-webkit-tap-highlight-color: transparent;
+}
+.wiki-btn-primary svg {
+	width: 16px;
+	height: 16px;
+}
+.wiki-btn-primary:active {
+	transform: scale(.98);
 }
 
 /* ==========================================================================
    Schedule — Header
    ========================================================================== */
-
 .schedule-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding: 16px 20px 8px;
 }
-
 .schedule-header-left {
 	display: flex;
 	align-items: center;
@@ -78,13 +355,11 @@
 	color: #1d1d1f;
 	font-family: -apple-system, 'Inter', system-ui, sans-serif;
 }
-
 .schedule-header-icon {
 	width: 20px;
 	height: 20px;
 	color: #1d1d1f;
 }
-
 .schedule-add-btn {
 	display: flex;
 	align-items: center;
@@ -97,32 +372,26 @@
 	font-weight: 600;
 	color: #333;
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: all .2s;
 	font-family: inherit;
 	-webkit-tap-highlight-color: transparent;
 }
-
 .schedule-add-btn:active {
 	background: #f0f0f0;
-	transform: scale(0.97);
+	transform: scale(.97);
 }
-
 .schedule-add-btn svg {
 	width: 14px;
 	height: 14px;
 	color: #333;
 }
 
-/* ==========================================================================
-   Schedule — Filter Bar
-   ========================================================================== */
-
+/* ── Filter Bar ── */
 .schedule-filter-bar {
 	display: flex;
 	gap: 8px;
 	padding: 8px 20px 12px;
 }
-
 .schedule-filter {
 	padding: 5px 14px;
 	border: 1px solid #e0e0e0;
@@ -132,33 +401,28 @@
 	font-weight: 600;
 	color: #8e8e93;
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: all .2s;
 	font-family: inherit;
 	-webkit-tap-highlight-color: transparent;
 }
-
 .schedule-filter.active {
 	background: #1d1d1f;
 	color: #fff;
 	border-color: #1d1d1f;
 }
-
 .schedule-filter:active {
-	transform: scale(0.96);
+	transform: scale(.96);
 }
 
 /* ==========================================================================
    Schedule — Timeline
    ========================================================================== */
-
 .schedule-timeline {
 	padding: 0 16px;
 }
-
 .schedule-date-group {
 	margin-bottom: 20px;
 }
-
 .schedule-date-label {
 	display: flex;
 	align-items: center;
@@ -167,41 +431,37 @@
 	font-weight: 600;
 	color: #8e8e93;
 	text-transform: uppercase;
-	letter-spacing: 0.3px;
+	letter-spacing: .3px;
 	padding: 0 4px 10px;
 }
-
 .schedule-date-label svg {
 	width: 13px;
 	height: 13px;
 	color: #8e8e93;
 }
-
 .schedule-items {
 	background: #fff;
 	border-radius: 14px;
 	border: 1px solid #ececec;
 	overflow: hidden;
 }
-
 .schedule-item {
 	display: flex;
 	gap: 12px;
 	padding: 14px 16px;
 	cursor: pointer;
-	transition: background 0.15s ease;
+	transition: background .15s;
 	border-bottom: 1px solid #f2f2f7;
 	-webkit-tap-highlight-color: transparent;
 }
-
 .schedule-item:last-child {
 	border-bottom: none;
 }
-
 .schedule-item:active {
 	background: #f8f8f8;
 }
 
+/* ── Indicator Column ── */
 .schedule-item-indicator {
 	display: flex;
 	flex-direction: column;
@@ -210,7 +470,6 @@
 	flex-shrink: 0;
 	padding-top: 3px;
 }
-
 .schedule-dot {
 	width: 12px;
 	height: 12px;
@@ -219,15 +478,13 @@
 	background: #fff;
 	cursor: pointer;
 	flex-shrink: 0;
-	transition: all 0.25s ease;
+	transition: all .25s;
 	position: relative;
 }
-
 .schedule-dot.completed {
 	background: #1d1d1f;
 	border-color: #1d1d1f;
 }
-
 .schedule-dot.completed::after {
 	content: '';
 	position: absolute;
@@ -239,7 +496,6 @@
 	border-bottom: 1.5px solid #fff;
 	transform: rotate(40deg);
 }
-
 .schedule-item-line {
 	flex: 1;
 	width: 1.5px;
@@ -247,16 +503,15 @@
 	margin: 6px 0 2px;
 	min-height: 12px;
 }
-
 .schedule-item:last-child .schedule-item-line {
 	background: transparent;
 }
 
+/* ── Item Body ── */
 .schedule-item-body {
 	flex: 1;
 	min-width: 0;
 }
-
 .schedule-item-time {
 	font-size: 12px;
 	font-weight: 600;
@@ -266,13 +521,11 @@
 	align-items: center;
 	gap: 4px;
 }
-
 .schedule-item-time svg {
 	width: 11px;
 	height: 11px;
 	color: #8e8e93;
 }
-
 .schedule-item-title {
 	font-size: 15px;
 	font-weight: 600;
@@ -280,12 +533,10 @@
 	margin-bottom: 4px;
 	line-height: 1.3;
 }
-
 .schedule-item.is-completed .schedule-item-title {
 	color: #b0b0b0;
 	text-decoration: line-through;
 }
-
 .schedule-item-characters {
 	display: flex;
 	align-items: center;
@@ -294,14 +545,12 @@
 	color: #636366;
 	margin-bottom: 4px;
 }
-
 .schedule-item-characters svg {
 	width: 12px;
 	height: 12px;
 	color: #8e8e93;
 	flex-shrink: 0;
 }
-
 .schedule-item-desc {
 	font-size: 13px;
 	color: #8e8e93;
@@ -312,217 +561,277 @@
 	overflow: hidden;
 }
 
-.schedule-item-status {
+/* ── More Button ── */
+.schedule-item-more {
 	flex-shrink: 0;
 	align-self: flex-start;
 	margin-top: 2px;
-	padding: 2px 8px;
-	border-radius: 10px;
-	font-size: 10px;
-	font-weight: 600;
-	letter-spacing: 0.2px;
+	padding: 4px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	border-radius: 6px;
+	transition: background .15s;
+	-webkit-tap-highlight-color: transparent;
 }
-
-.schedule-item-status.pending {
-	background: #f5f5f5;
-	color: #8e8e93;
-	border: 1px solid #e0e0e0;
-}
-
-.schedule-item-status.completed {
+.schedule-item-more:active {
 	background: #f0f0f0;
-	color: #636366;
-	border: 1px solid #d1d1d6;
+}
+.schedule-item-more svg {
+	width: 16px;
+	height: 16px;
+	color: #8e8e93;
 }
 
+/* ── Empty ── */
 .schedule-empty {
 	text-align: center;
 	padding: 50px 20px;
 	color: #8e8e93;
 }
-
 .schedule-empty svg {
 	width: 48px;
 	height: 48px;
 	color: #d1d1d6;
 	margin-bottom: 12px;
 }
-
 .schedule-empty p {
-	font-size: 14px;
-	line-height: 1.5;
-	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	color: #636366;
+	margin: 0 0 4px;
 }
-
-.schedule-empty p span {
-	font-size: 12px;
+.schedule-empty span {
+	font-size: 13px;
 	color: #b0b0b0;
+}
+.schedule-empty-add {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 16px;
+	padding: 8px 20px;
+	border: 1px solid #e0e0e0;
+	border-radius: 20px;
+	background: #fff;
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d1d1f;
+	cursor: pointer;
+	transition: all .2s;
+	font-family: inherit;
+}
+.schedule-empty-add svg {
+	width: 14px;
+	height: 14px;
+}
+.schedule-empty-add:active {
+	transform: scale(.96);
+	background: #f5f5f5;
 }
 
 /* ==========================================================================
-   Wiki — Modal (Bottom Sheet)
+   Modal — Overlay & Container (Centered)
    ========================================================================== */
-
 .wiki-modal-overlay {
 	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
+	top: 0; left: 0; right: 0; bottom: 0;
 	z-index: 200;
 	display: flex;
-	align-items: flex-end;
+	align-items: center;
+	justify-content: center;
 	opacity: 0;
 	pointer-events: none;
-	transition: opacity 0.3s ease;
+	transition: opacity .3s;
 }
-
 .wiki-modal-overlay.active {
 	opacity: 1;
 	pointer-events: auto;
 }
-
-.wiki-modal-bg {
+.wiki-modal-backdrop {
 	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(0, 0, 0, 0.35);
+	top: 0; left: 0; right: 0; bottom: 0;
+	background: rgba(0,0,0,.3);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
 }
-
-.wiki-modal {
+.wiki-modal-center {
 	position: relative;
-	width: 100%;
-	background: #f5f5f5;
-	border-radius: 16px 16px 0 0;
-	max-height: 82%;
+	width: calc(100% - 48px);
+	max-width: 380px;
+	max-height: 80%;
+	background: #fafafa;
+	border-radius: 16px;
 	overflow-y: auto;
-	transform: translateY(100%);
-	transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
 	-webkit-overflow-scrolling: touch;
+	transform: scale(.92);
+	transition: transform .3s cubic-bezier(.32,.72,0,1);
+	box-shadow: 0 12px 40px rgba(0,0,0,.12);
+}
+.wiki-modal-overlay.active .wiki-modal-center {
+	transform: scale(1);
 }
 
-.wiki-modal-overlay.active .wiki-modal {
-	transform: translateY(0);
-}
-
-.wiki-modal-handle {
-	width: 36px;
-	height: 4px;
-	background: #d1d1d6;
-	border-radius: 2px;
-	margin: 8px auto 0;
-}
-
+/* ── Modal Header ── */
 .wiki-modal-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 12px 16px 10px;
-	border-bottom: 1px solid #e5e5ea;
+	padding: 18px 20px 14px;
+	border-bottom: 1px solid #ececec;
 }
-
 .wiki-modal-title {
 	font-size: 16px;
 	font-weight: 700;
 	color: #1d1d1f;
 }
-
-.wiki-modal-btn {
-	background: none;
+.wiki-modal-close {
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	border: none;
-	font-size: 15px;
-	font-weight: 500;
-	color: #8e8e93;
+	background: #e8e8ed;
+	border-radius: 50%;
 	cursor: pointer;
-	padding: 4px 2px;
-	font-family: inherit;
-	min-width: 44px;
+	transition: background .15s;
 	-webkit-tap-highlight-color: transparent;
 }
-
-.wiki-modal-btn.primary {
-	color: #1d1d1f;
-	font-weight: 700;
+.wiki-modal-close svg {
+	width: 12px;
+	height: 12px;
+	color: #636366;
+}
+.wiki-modal-close:active {
+	background: #d1d1d6;
 }
 
+/* ── Modal Body ── */
 .wiki-modal-body {
-	padding: 16px;
+	padding: 20px;
+}
+
+/* ── Modal Footer ── */
+.wiki-modal-footer {
+	display: flex;
+	gap: 10px;
+	padding: 0 20px 20px;
+}
+.wiki-modal-btn-outline {
+	flex: 1;
+	padding: 11px 0;
+	border: 1px solid #d1d1d6;
+	border-radius: 10px;
+	background: #fff;
+	font-size: 15px;
+	font-weight: 600;
+	color: #636366;
+	cursor: pointer;
+	font-family: inherit;
+	transition: all .15s;
+	-webkit-tap-highlight-color: transparent;
+}
+.wiki-modal-btn-outline.primary {
+	background: #1d1d1f;
+	border-color: #1d1d1f;
+	color: #fff;
+}
+.wiki-modal-btn-outline:active {
+	transform: scale(.97);
 }
 
 /* ==========================================================================
-   Modal — Form Elements
+   Modal — Form Fields (Bottom-border Style)
    ========================================================================== */
-
-.modal-form-group {
-	margin-bottom: 16px;
+.modal-field {
+	margin-bottom: 20px;
 }
-
-.modal-form-row {
+.modal-field-row {
 	display: flex;
-	gap: 12px;
+	gap: 14px;
 }
-
-.modal-label {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: 13px;
-	font-weight: 600;
-	color: #636366;
-	margin-bottom: 6px;
-	font-family: inherit;
-}
-
-.modal-label-icon {
-	width: 14px;
-	height: 14px;
+.modal-field-label {
+	display: block;
+	font-size: 12px;
+	font-weight: 700;
 	color: #8e8e93;
+	text-transform: uppercase;
+	letter-spacing: .4px;
+	margin-bottom: 6px;
 }
-
-.modal-input {
+.modal-field-input {
 	width: 100%;
-	padding: 10px 14px;
-	border: 1px solid #e0e0e0;
-	border-radius: 10px;
-	background: #fff;
+	padding: 8px 0;
+	border: none;
+	border-bottom: 1.5px solid #e0e0e0;
+	background: transparent;
 	font-size: 15px;
 	color: #1d1d1f;
 	outline: none;
 	font-family: inherit;
-	transition: border-color 0.2s ease;
+	transition: border-color .2s;
 	box-sizing: border-box;
 }
-
-.modal-input:focus {
-	border-color: #b0b0b0;
+.modal-field-input:focus {
+	border-bottom-color: #1d1d1f;
 }
-
-.modal-textarea {
+.modal-field-textarea {
 	width: 100%;
-	padding: 10px 14px;
-	border: 1px solid #e0e0e0;
-	border-radius: 10px;
-	background: #fff;
+	padding: 8px 0;
+	border: none;
+	border-bottom: 1.5px solid #e0e0e0;
+	background: transparent;
 	font-size: 15px;
 	color: #1d1d1f;
 	outline: none;
-	resize: vertical;
+	resize: none;
 	font-family: inherit;
-	transition: border-color 0.2s ease;
+	transition: border-color .2s;
 	box-sizing: border-box;
-	min-height: 72px;
+	min-height: 60px;
+}
+.modal-field-textarea:focus {
+	border-bottom-color: #1d1d1f;
 }
 
-.modal-textarea:focus {
-	border-color: #b0b0b0;
+/* ── Tag Selector ── */
+.modal-tag-select {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding-top: 4px;
+}
+.modal-tag {
+	padding: 5px 12px;
+	border: 1px solid #e0e0e0;
+	border-radius: 16px;
+	background: #fff;
+	font-size: 13px;
+	font-weight: 500;
+	color: #636366;
+	cursor: pointer;
+	transition: all .2s;
+	-webkit-tap-highlight-color: transparent;
+	user-select: none;
+}
+.modal-tag.selected {
+	background: #1d1d1f;
+	color: #fff;
+	border-color: #1d1d1f;
+}
+.modal-tag:active {
+	transform: scale(.95);
+}
+.modal-tag-empty {
+	font-size: 13px;
+	color: #b0b0b0;
+	padding: 4px 0;
 }
 
 /* ==========================================================================
    Modal — Detail View
    ========================================================================== */
-
 .detail-status-badge {
 	display: inline-flex;
 	align-items: center;
@@ -531,26 +840,22 @@
 	border-radius: 20px;
 	font-size: 12px;
 	font-weight: 600;
-	margin-bottom: 16px;
+	margin-bottom: 14px;
 }
-
 .detail-status-badge.pending {
 	background: #fff;
 	color: #8e8e93;
 	border: 1px solid #e0e0e0;
 }
-
 .detail-status-badge.completed {
 	background: #1d1d1f;
 	color: #fff;
 	border: 1px solid #1d1d1f;
 }
-
 .detail-status-badge svg {
 	width: 12px;
 	height: 12px;
 }
-
 .detail-title {
 	font-size: 20px;
 	font-weight: 700;
@@ -558,7 +863,6 @@
 	margin-bottom: 16px;
 	line-height: 1.3;
 }
-
 .detail-info-card {
 	background: #fff;
 	border-radius: 12px;
@@ -566,7 +870,6 @@
 	overflow: hidden;
 	margin-bottom: 16px;
 }
-
 .detail-info-row {
 	display: flex;
 	align-items: center;
@@ -574,39 +877,33 @@
 	padding: 12px 14px;
 	border-bottom: 1px solid #f2f2f7;
 }
-
 .detail-info-row:last-child {
 	border-bottom: none;
 }
-
 .detail-info-row svg {
 	width: 16px;
 	height: 16px;
 	color: #8e8e93;
 	flex-shrink: 0;
 }
-
 .detail-info-label {
 	font-size: 13px;
 	color: #8e8e93;
 	min-width: 48px;
 }
-
 .detail-info-value {
 	font-size: 15px;
 	color: #1d1d1f;
 	font-weight: 500;
 }
-
 .detail-desc-title {
-	font-size: 13px;
-	font-weight: 600;
+	font-size: 12px;
+	font-weight: 700;
 	color: #8e8e93;
 	text-transform: uppercase;
-	letter-spacing: 0.3px;
+	letter-spacing: .3px;
 	margin-bottom: 8px;
 }
-
 .detail-desc-body {
 	background: #fff;
 	border-radius: 12px;
@@ -616,33 +913,4 @@
 	color: #333;
 	line-height: 1.6;
 	margin-bottom: 16px;
-}
-
-.detail-toggle-btn {
-	width: 100%;
-	padding: 13px;
-	border: 1px solid #e0e0e0;
-	border-radius: 12px;
-	background: #fff;
-	font-size: 15px;
-	font-weight: 600;
-	color: #1d1d1f;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 8px;
-	font-family: inherit;
-	transition: all 0.2s ease;
-	-webkit-tap-highlight-color: transparent;
-}
-
-.detail-toggle-btn:active {
-	background: #f0f0f0;
-	transform: scale(0.98);
-}
-
-.detail-toggle-btn svg {
-	width: 16px;
-	height: 16px;
 }
