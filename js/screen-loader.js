@@ -8,7 +8,7 @@ ScreenLoader v7 — Mizu Phone 10s 沉浸开屏
 8.5~9.0s ─ 驻留展示完成状态（500ms）
 9.0~10.1s ─ 退场淡出（CSS 1.1s transition）
 ~10.2s ──── DOM 移除
-**/
+* */
 (async function () {
 'use strict';
 // ══════════════════════════════════════════════
@@ -294,6 +294,7 @@ var scripts = [
     'js/cloud.js',
     'js/auth.js',
     'js/wiki.js',
+    'js/phone-message.js',
     'js/init.js',
 ];
 

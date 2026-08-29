@@ -8,7 +8,7 @@ let state = {
   charEditFrom: 'screen-imessage', drawerFilter: 'all', drawerSort: 'recent',
   drawerSearch: '', lang: 'en', userProfile: { name: 'User', avatar: null },
   masks: [], memories: [], imsgTab: 'messages', replyPrompt: null, charConfig: {},
-  phoneData: {}, bookmarks: [], groups: [], moments: [],
+  phoneData: {}, bookmarks: [], groups: [], moments: [],messageChats: [], 
   meetings: [],
   npcs: [],
   allowQuote: true,
@@ -32,7 +32,7 @@ var SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
-  'groups', 'moments', 'imsgTab',
+  'groups', 'moments', 'imsgTab','messageChats' ,           
   'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting'
 ];
 
@@ -54,7 +54,7 @@ function _getStateDefaults() {
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
-    npcs: [],
+    npcs: [],messageChats: [],  
     allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
     user: null
   };
@@ -77,6 +77,7 @@ function _validateState() {
   if (!Array.isArray(state.stickers)) state.stickers = [];
   if (!Array.isArray(state.apis)) state.apis = [];
   if (!Array.isArray(state.meetings)) state.meetings = [];
+   if (!Array.isArray(state.messageChats)) state.messageChats = []; 
   if (!Array.isArray(state.npcs)) state.npcs = [];
   if (state.allowQuote == null) state.allowQuote = true;
   if (state.systemPromptIM == null) state.systemPromptIM = '';
