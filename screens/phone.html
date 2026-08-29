@@ -39,8 +39,8 @@
         <div id="phoneCharList"></div>
     </div>
 
-    <!-- Phone Frame -->
-    <div id="phoneFrameWrap" style="display:none;flex:1;overflow-y:auto">
+    <!-- Phone Frame — FIXED: overflow:hidden prevents child from escaping container -->
+    <div id="phoneFrameWrap" style="display:none;flex:1;overflow:hidden">
         <div class="phone-frame" id="phoneFrame">
             <div class="phone-statusbar">
                 <div class="phone-statusbar-left">
@@ -87,4 +87,3 @@
         </div>
     </div>
 </div>
-

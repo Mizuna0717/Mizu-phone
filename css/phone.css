@@ -1,6 +1,6 @@
 /* ========== phone.css ========== */
 
-.phone-frame{margin:0 auto;width:100%;max-width:400px;background:linear-gradient(165deg,#1a1a1e 0%,#2c2c30 40%,#1a1a1e 100%);min-height:calc(100vh - 52px);position:relative;overflow-y:auto;padding-bottom:40px}
+.phone-frame{margin:0 auto;width:100%;max-width:400px;background:linear-gradient(165deg,#1a1a1e 0%,#2c2c30 40%,#1a1a1e 100%);height:100%;box-sizing:border-box;position:relative;overflow-y:auto;padding-bottom:40px}
 .phone-statusbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px 8px;color:rgba(255,255,255,.6);font-size:12px;font-weight:500}
 .phone-statusbar-left{display:flex;align-items:center;gap:4px}
 .phone-statusbar-right{display:flex;align-items:center;gap:6px}
@@ -73,7 +73,7 @@
   width:100%;
   max-width:400px;
   margin:0 auto;
-  height:calc(100vh - 52px);
+  height:100%;
   background:#000;
   overflow:hidden
 }
