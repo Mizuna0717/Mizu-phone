@@ -1,0 +1,57 @@
+<!-- ============================================================
+     PHONE MESSAGE — Chat Detail Page Template
+     This HTML is rendered dynamically by js/phone-message.js
+     into #phoneAppPage. Kept here as reference/documentation.
+     ============================================================ -->
+
+<!--
+  When openMessageChat(chatId) is called, #phoneAppPage.innerHTML
+  is replaced with the following structure:-->
+
+<div class="pmsg-dark">
+
+  <div class="pmsg-chat-header">
+    <button class="pmsg-back-btn" onclick="backToMessageList()">
+      <svg viewBox="0 0 20 20">
+        <path d="M13 4l-6 6 6 6" stroke="#0a84ff" fill="none"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="pmsg-chat-center">
+      <div class="pmsg-chat-avatar">张</div>
+      <div class="pmsg-chat-name">小张 (张伟)</div>
+    </div>
+    <div class="pmsg-chat-header-right"></div>
+  </div>
+
+  <div class="pmsg-chat-messages" id="pmsgChatMessages">
+    <div class="pmsg-time-label">Today 14:30</div>
+
+    <div class="pmsg-msg-row pmsg-msg-sent pmsg-group-first">
+      <div class="pmsg-msg-bubble">Hey, are you free tonight?</div>
+    </div>
+
+    <div class="pmsg-msg-row pmsg-msg-received pmsg-group-first">
+      <div class="pmsg-msg-bubble">Yeah! What's up?</div>
+    </div>
+
+    <div class="pmsg-msg-row pmsg-msg-sent pmsg-group-first">
+      <div class="pmsg-msg-bubble">Want to grab dinner?</div>
+    </div>
+  </div>
+
+  <div class="pmsg-chat-input-bar">
+    <div class="pmsg-chat-input-wrap">
+      <input type="text" class="pmsg-chat-input" placeholder="Message" readonly />
+    </div>
+    <button class="pmsg-chat-send-btn" disabled>
+      <svg viewBox="0 0 20 20" stroke="#fff" fill="none"
+           stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M3.5 10L16 3.5 12.5 17l-3-5.5z"/>
+        <path d="M16 3.5L9.5 11.5"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+

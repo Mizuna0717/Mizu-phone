@@ -177,6 +177,7 @@ var screenFragments = [
     'screens/memory-edit.html',
     'screens/bookmarks.html',
     'screens/chat-config.html',
+    'screens/phone-message.html',
     'screens/chat-settings.html',
 ];
 

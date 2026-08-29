@@ -15,12 +15,33 @@
 .phone-app-icon svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 .phone-app-name{font-size:11px;color:rgba(255,255,255,.7);font-weight:400;text-align:center;line-height:1.2;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .phone-app-badge{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;background:#ff3b30;color:#fff;font-size:10px;font-weight:700;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
-.phone-app-icon.pi-msg{background:linear-gradient(135deg,#3a3a3c,#48484a)}.phone-app-icon.pi-notes{background:linear-gradient(135deg,#4a4a4c,#5a5a5c)}.phone-app-icon.pi-photos{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}.phone-app-icon.pi-travel{background:linear-gradient(135deg,#48484a,#58585a)}.phone-app-icon.pi-wallet{background:linear-gradient(135deg,#2c2c2e,#3c3c3e)}.phone-app-icon.pi-music{background:linear-gradient(135deg,#4a4a4c,#3a3a3c)}.phone-app-icon.pi-browser{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}.phone-app-icon.pi-contacts{background:linear-gradient(135deg,#48484a,#3a3a3c)}.phone-app-icon.pi-phone{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}.phone-app-icon.pi-shop{background:linear-gradient(135deg,#4a4a4c,#5a5a5c)}.phone-app-icon.pi-calendar{background:linear-gradient(135deg,#3c3c3e,#2c2c2e)}.phone-app-icon.pi-camera{background:linear-gradient(135deg,#48484a,#58585a)}.phone-app-icon.pi-maps{background:linear-gradient(135deg,#3a3a3c,#48484a)}.phone-app-icon.pi-weather{background:linear-gradient(135deg,#4a4a4c,#3c3c3e)}.phone-app-icon.pi-clock{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}.phone-app-icon.pi-settings{background:linear-gradient(135deg,#48484a,#3a3a3c)}.phone-app-icon.pi-files{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}.phone-app-icon.pi-health{background:linear-gradient(135deg,#4a4a4c,#3c3c3e)}.phone-app-icon.pi-video{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}.phone-app-icon.pi-recorder{background:linear-gradient(135deg,#48484a,#58585a)}.phone-app-icon.pi-check{background:linear-gradient(135deg,#2c2c2e,#3a3a3c)}
+.phone-app-icon.pi-msg{background:linear-gradient(135deg,#3a3a3c,#48484a)}
+.phone-app-icon.pi-notes{background:linear-gradient(135deg,#4a4a4c,#5a5a5c)}
+.phone-app-icon.pi-photos{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}
+.phone-app-icon.pi-travel{background:linear-gradient(135deg,#48484a,#58585a)}
+.phone-app-icon.pi-wallet{background:linear-gradient(135deg,#2c2c2e,#3c3c3e)}
+.phone-app-icon.pi-music{background:linear-gradient(135deg,#4a4a4c,#3a3a3c)}
+.phone-app-icon.pi-browser{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}
+.phone-app-icon.pi-contacts{background:linear-gradient(135deg,#48484a,#3a3a3c)}
+.phone-app-icon.pi-phone{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}
+.phone-app-icon.pi-shop{background:linear-gradient(135deg,#4a4a4c,#5a5a5c)}
+.phone-app-icon.pi-calendar{background:linear-gradient(135deg,#3c3c3e,#2c2c2e)}
+.phone-app-icon.pi-camera{background:linear-gradient(135deg,#48484a,#58585a)}
+.phone-app-icon.pi-maps{background:linear-gradient(135deg,#3a3a3c,#48484a)}
+.phone-app-icon.pi-weather{background:linear-gradient(135deg,#4a4a4c,#3c3c3e)}
+.phone-app-icon.pi-clock{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}
+.phone-app-icon.pi-settings{background:linear-gradient(135deg,#48484a,#3a3a3c)}
+.phone-app-icon.pi-files{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}
+.phone-app-icon.pi-health{background:linear-gradient(135deg,#4a4a4c,#3c3c3e)}
+.phone-app-icon.pi-video{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}
+.phone-app-icon.pi-recorder{background:linear-gradient(135deg,#48484a,#58585a)}
+.phone-app-icon.pi-check{background:linear-gradient(135deg,#2c2c2e,#3a3a3c)}
 .phone-folder-icon{width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative;transition:transform .15s ease}
 .phone-folder-icon:active{transform:scale(.92)}
 .phone-folder-preview{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:4px}
 .phone-folder-preview-grid{display:grid;gap:2px;width:100%;height:100%}
-.phone-folder-grid-2{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}.phone-folder-grid-3{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.phone-folder-grid-2{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}
+.phone-folder-grid-3{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
 .phone-folder-mini{background:rgba(255,255,255,.06);border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .phone-folder-mini svg{width:60%;height:60%;stroke:rgba(255,255,255,.5);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .phone-folder-mini-empty{background:transparent}
@@ -31,23 +52,42 @@
 .phone-folder-popup-header{display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:16px}
 .phone-folder-popup-title{text-align:center;color:rgba(255,255,255,.5);font-size:14px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
 .phone-folder-close-btn{position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;transition:background .15s}
-.phone-folder-close-btn:active{background:rgba(255,255,255,.2)}.phone-folder-close-btn svg{width:14px;height:14px}
+.phone-folder-close-btn:active{background:rgba(255,255,255,.2)}
+.phone-folder-close-btn svg{width:14px;height:14px}
 .phone-folder-popup-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 10px}
-.phone-folder-popup-grid .phone-app-icon{width:50px;height:50px;border-radius:12px}.phone-folder-popup-grid .phone-app-icon svg{width:22px;height:22px}.phone-folder-popup-grid .phone-app-name{font-size:10px;max-width:56px}
-.phone-dock{position:sticky;bottom:0;left:0;right:0;display:flex;justify-content:center;gap:18px;padding:12px 24px 20px;background:linear-gradient(transparent,rgba(26,26,30,.95) 30%)}
+.phone-folder-popup-grid .phone-app-icon{width:50px;height:50px;border-radius:12px}
+.phone-folder-popup-grid .phone-app-icon svg{width:22px;height:22px}
+.phone-folder-popup-grid .phone-app-name{font-size:10px;max-width:56px}
+
+/* === FIXED: dock pinned to bottom with z-index === */
+.phone-dock{position:sticky;bottom:0;left:0;right:0;z-index:10;display:flex;justify-content:center;gap:18px;padding:12px 24px 20px;background:linear-gradient(transparent,rgba(26,26,30,.98) 30%)}
 .phone-dock .phone-app-icon{width:58px;height:58px;border-radius:15px;backdrop-filter:blur(10px);background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.06);cursor:pointer}
 .phone-dock .phone-app-icon:active{transform:scale(.9)}
 .phone-home-bar{width:36%;height:4px;border-radius:2px;background:rgba(255,255,255,.3);margin:0 auto}
 @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
 
-/* ===== PHONE APP PAGES ===== */
-.phone-app-page{display:flex;flex-direction:column;width:100%;max-width:400px;margin:0 auto;min-height:calc(100vh - 52px);background:#000}
+/* ===== PHONE APP PAGES — FIXED LAYOUT ===== */
+.phone-app-page{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:400px;
+  margin:0 auto;
+  height:calc(100vh - 52px);
+  background:#000;
+  overflow:hidden
+}
 .papp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1c1c1e;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
 .papp-back{background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;gap:4px;color:#0a84ff;font-size:14px;-webkit-tap-highlight-color:transparent}
 .papp-back svg{flex-shrink:0}
 .papp-title{font-size:17px;font-weight:600;color:#fff;text-align:center;flex:1}
 .papp-header-right{width:32px;flex-shrink:0}
-.papp-body{flex:1;overflow-y:auto;background:#000}
+.papp-body{
+  flex:1;
+  overflow-y:auto;
+  background:#000;
+  min-height:0
+}
 .papp-search{display:flex;align-items:center;gap:8px;margin:12px 16px;padding:10px 12px;background:#1c1c1e;border-radius:12px;color:rgba(255,255,255,.3);font-size:15px}
 .papp-search svg{width:16px;height:16px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
 .papp-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
@@ -67,7 +107,10 @@
 .papp-seg-active{background:#3a3a3c;color:#fff}
 .papp-call-icon{width:16px;height:16px;flex-shrink:0}
 .papp-call-icon svg{width:16px;height:16px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.papp-call-in svg{stroke:rgba(255,255,255,.4)}.papp-call-out svg{stroke:rgba(255,255,255,.4)}.papp-call-missed svg{stroke:#ff453a}.papp-call-missed .papp-item-name{color:#ff453a}
+.papp-call-in svg{stroke:rgba(255,255,255,.4)}
+.papp-call-out svg{stroke:rgba(255,255,255,.4)}
+.papp-call-missed svg{stroke:#ff453a}
+.papp-call-missed .papp-item-name{color:#ff453a}
 .papp-mail-dot{width:10px;height:10px;border-radius:50%;background:#0a84ff;flex-shrink:0}
 .papp-mail-dot-spacer{width:10px;flex-shrink:0}
 .papp-mail-subject{font-size:14px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
@@ -124,7 +167,8 @@
 .papp-draw-toolbar{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:#1c1c1e;border-bottom:1px solid rgba(255,255,255,.06)}
 .papp-draw-tool{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:default}
 .papp-draw-tool svg{width:18px;height:18px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.papp-draw-tool-active{background:rgba(255,255,255,.08)}.papp-draw-tool-active svg{stroke:rgba(255,255,255,.7)}
+.papp-draw-tool-active{background:rgba(255,255,255,.08)}
+.papp-draw-tool-active svg{stroke:rgba(255,255,255,.7)}
 .papp-draw-canvas{flex:1;min-height:300px;background:#0a0a0a;display:flex;align-items:center;justify-content:center}
 .papp-draw-palette{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;background:#1c1c1e;border-top:1px solid rgba(255,255,255,.06)}
 .papp-draw-color{width:24px;height:24px;border-radius:50%;cursor:default;border:2px solid transparent}
@@ -149,11 +193,7 @@
 .papp-trans-result{color:rgba(10,132,255,.7)}
 .papp-trans-actions{display:flex;gap:16px;margin-top:12px}
 
-/* ===================================================
-   Batch 3: Media & Entertainment
-   =================================================== */
-
-/* --- Music --- */
+/* ===== Batch 3: Media ===== */
 .papp-music-now{display:flex;align-items:center;gap:16px;padding:20px 16px;background:#1c1c1e;margin:12px 16px;border-radius:16px}
 .papp-music-cover{width:72px;height:72px;border-radius:12px;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-music-info{flex:1;min-width:0}
@@ -168,8 +208,6 @@
 .papp-music-play{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center}
 .papp-music-play svg{width:24px;height:24px;stroke:rgba(255,255,255,.8);fill:rgba(255,255,255,.8)}
 .papp-music-num{width:24px;font-size:13px;color:rgba(255,255,255,.2);text-align:center;flex-shrink:0}
-
-/* --- Videos --- */
 .papp-video-scroll{display:flex;gap:12px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .papp-video-scroll::-webkit-scrollbar{display:none}
 .papp-video-card{flex-shrink:0;width:200px}
@@ -179,13 +217,9 @@
 .papp-video-title{font-size:13px;color:rgba(255,255,255,.7);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .papp-video-list-thumb{width:48px;height:32px;border-radius:6px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-video-list-thumb svg{width:16px;height:16px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Photos --- */
 .papp-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:0 2px}
 .papp-photo-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center}
 .papp-photo-tall{grid-row:span 2}
-
-/* --- Camera --- */
 .papp-camera-viewfinder{flex:1;min-height:320px;background:#0a0a0a;position:relative;display:flex;align-items:center;justify-content:center}
 .papp-camera-corners{position:absolute;inset:24px}
 .papp-camera-corner{position:absolute;width:24px;height:24px;border-color:rgba(255,255,255,.25);border-style:solid;border-width:0}
@@ -210,8 +244,6 @@
 .papp-camera-shutter{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;cursor:default}
 .papp-camera-shutter-inner{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.85)}
 .papp-camera-flip{width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:default}
-
-/* --- Games --- */
 .papp-game-featured{margin:12px 16px;border-radius:16px;background:#1c1c1e;padding:24px 20px;position:relative;overflow:hidden}
 .papp-game-featured-bg{position:absolute;right:16px;top:50%;transform:translateY(-50%);opacity:.4}
 .papp-game-featured-info{position:relative;z-index:1}
@@ -221,18 +253,12 @@
 .papp-game-cat-active{background:rgba(255,255,255,.1);color:#fff}
 .papp-game-icon{width:36px;height:36px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-game-icon svg{width:18px;height:18px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Podcast --- */
 .papp-pod-mini{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#1c1c1e;border-bottom:1px solid rgba(255,255,255,.06)}
 .papp-pod-mini-cover{width:36px;height:36px;border-radius:8px;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-pod-cover{width:44px;height:44px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,.06)}
 .papp-pod-cover svg{width:20px;height:20px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.5;stroke-linecap:round}
 
-/* ===================================================
-   Batch 4: Life Tools
-   =================================================== */
-
-/* --- Calendar --- */
+/* ===== Batch 4: Life Tools ===== */
 .papp-cal-month-header{display:flex;align-items:center;justify-content:center;gap:20px;padding:16px 16px 12px}
 .papp-cal-month-title{font-size:18px;font-weight:600;color:#fff;min-width:160px;text-align:center}
 .papp-cal-nav-arrow{width:20px;height:20px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;cursor:default}
@@ -255,8 +281,6 @@
 .papp-cal-event-title{font-size:14px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .papp-cal-event-loc{font-size:12px;color:rgba(255,255,255,.3);margin-top:3px}
 .papp-cal-upcoming-time{flex-shrink:0;width:44px;font-size:13px;color:rgba(255,255,255,.35);font-weight:500;text-align:right}
-
-/* --- Clock --- */
 .papp-clock-face-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 16px 8px}
 .papp-clock-face{width:200px;height:200px;position:relative}
 .papp-clock-face svg{width:100%;height:100%}
@@ -268,8 +292,6 @@
 .papp-clock-toggle-on{background:rgba(48,209,88,.45)}
 .papp-clock-toggle-knob{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.8);position:absolute;top:2px;left:2px;transition:left .2s}
 .papp-clock-toggle-on .papp-clock-toggle-knob{left:18px}
-
-/* --- Weather --- */
 .papp-weather-current{text-align:center;padding:28px 16px 24px;background:linear-gradient(180deg,rgba(10,132,255,.08) 0%,transparent 100%)}
 .papp-weather-city{font-size:22px;font-weight:500;color:#fff}
 .papp-weather-temp{font-size:72px;font-weight:200;color:#fff;line-height:1;margin-top:4px;letter-spacing:-4px}
@@ -300,8 +322,6 @@
 .papp-weather-detail-item{padding:10px 14px}
 .papp-weather-detail-label{font-size:11px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.3px;font-weight:500}
 .papp-weather-detail-val{font-size:18px;color:rgba(255,255,255,.6);font-weight:400;margin-top:4px}
-
-/* --- Maps --- */
 .papp-maps-view{width:100%;height:240px;background:#0a0a0c;position:relative;overflow:hidden}
 .papp-maps-compass{position:absolute;top:12px;right:12px;width:32px;height:32px;background:rgba(28,28,30,.85);border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
 .papp-maps-compass svg{width:18px;height:18px}
@@ -314,8 +334,6 @@
 .papp-maps-action-label{font-size:11px;color:rgba(255,255,255,.4);font-weight:500}
 .papp-maps-place-icon{width:32px;height:32px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-maps-place-icon svg{width:18px;height:18px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Compass --- */
 .papp-compass-wrap{display:flex;flex-direction:column;align-items:center;padding:32px 16px 20px}
 .papp-compass-ring{width:260px;height:260px;position:relative}
 .papp-compass-ring svg{width:100%;height:100%}
@@ -329,8 +347,6 @@
 .papp-compass-coord-label{font-size:11px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 .papp-compass-coord-val{font-size:16px;color:rgba(255,255,255,.6);margin-top:4px;font-weight:400;letter-spacing:.3px}
 .papp-compass-coord-divider{width:1px;height:32px;background:rgba(255,255,255,.06);flex-shrink:0}
-
-/* --- Calculator --- */
 .papp-calc-display{padding:32px 20px 20px;text-align:right}
 .papp-calc-expr{font-size:18px;color:rgba(255,255,255,.3);font-weight:300;margin-bottom:8px;letter-spacing:.5px;min-height:22px}
 .papp-calc-result{font-size:56px;font-weight:200;color:#fff;letter-spacing:-1px;line-height:1}
@@ -344,8 +360,6 @@
 .papp-calc-op{background:rgba(10,132,255,.35);color:rgba(255,255,255,.9)}
 .papp-calc-eq{background:rgba(10,132,255,.5)}
 .papp-calc-zero{grid-column:span 2;justify-content:flex-start;padding-left:24px}
-
-/* --- Reminders --- */
 .papp-remind-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px}
 .papp-remind-sum-card{background:#1c1c1e;border-radius:14px;padding:14px 16px}
 .papp-remind-sum-count{font-size:28px;font-weight:700;line-height:1}
@@ -357,11 +371,7 @@
 .papp-remind-done .papp-remind-text{text-decoration:line-through;color:rgba(255,255,255,.5)}
 .papp-remind-meta{font-size:12px;color:rgba(255,255,255,.25);margin-top:4px}
 
-/* ===================================================
-   Batch 5: Info & Health
-   =================================================== */
-
-/* --- News --- */
+/* ===== Batch 5: Info & Health ===== */
 .papp-news-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
 .papp-news-featured-img{height:140px;background:#141416;display:flex;align-items:center;justify-content:center}
 .papp-news-featured-img svg{width:40px;height:40px}
@@ -376,8 +386,6 @@
 .papp-news-item-meta{font-size:12px;color:rgba(255,255,255,.2);margin-top:6px}
 .papp-news-item-thumb{width:56px;height:56px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-news-item-thumb svg{width:20px;height:20px;stroke:rgba(255,255,255,.12);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Stocks --- */
 .papp-stocks-summary{padding:24px 16px 12px;text-align:center}
 .papp-stocks-portfolio-label{font-size:13px;color:rgba(255,255,255,.3);font-weight:500}
 .papp-stocks-portfolio-val{font-size:36px;font-weight:300;color:#fff;margin-top:4px;letter-spacing:-1px}
@@ -390,8 +398,6 @@
 .papp-stocks-range-active{background:rgba(255,255,255,.08);color:#fff}
 .papp-stocks-price{font-size:15px;color:#fff;font-weight:500;flex-shrink:0}
 .papp-stocks-change{font-size:12px;font-weight:500;flex-shrink:0}
-
-/* --- Coding --- */
 .papp-code-editor{background:#0a0a0c;border-bottom:1px solid rgba(255,255,255,.06)}
 .papp-code-tabs{display:flex;padding:0;border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none}
 .papp-code-tabs::-webkit-scrollbar{display:none}
@@ -418,8 +424,6 @@
 .papp-code-term-cursor{display:inline-block;width:7px;height:13px;background:rgba(255,255,255,.4);animation:blink 1s infinite}
 .papp-code-proj-icon{width:32px;height:32px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-code-proj-icon svg{width:16px;height:16px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Health --- */
 .papp-health-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px}
 .papp-health-card{background:#1c1c1e;border-radius:14px;padding:14px 16px}
 .papp-health-card-icon{width:24px;height:24px;margin-bottom:8px}
@@ -431,8 +435,6 @@
 .papp-health-rings-legend{flex:1}
 .papp-health-ring-label{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.5);padding:4px 0}
 .papp-health-ring-label span{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-
-/* --- Fitness --- */
 .papp-fit-today{margin:12px 16px;background:#1c1c1e;border-radius:14px;padding:16px}
 .papp-fit-today-header{font-size:15px;font-weight:600;color:#fff;margin-bottom:14px}
 .papp-fit-stats{display:flex;align-items:center;justify-content:space-around}
@@ -449,8 +451,6 @@
 .papp-fit-bar-day{font-size:10px;color:rgba(255,255,255,.25);font-weight:500;flex-shrink:0}
 .papp-fit-icon{width:36px;height:36px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-fit-icon svg{width:18px;height:18px;stroke:rgba(48,209,88,.5);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Meditation --- */
 .papp-med-hero{display:flex;flex-direction:column;align-items:center;padding:28px 16px 20px}
 .papp-med-circle{position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center}
 .papp-med-circle svg{position:absolute;top:0;left:0}
@@ -475,11 +475,7 @@
 .papp-med-month-stat-val{font-size:22px;font-weight:600;color:rgba(175,130,255,.7);line-height:1}
 .papp-med-month-stat-label{font-size:11px;color:rgba(255,255,255,.25);margin-top:4px;font-weight:500}
 
-/* ===================================================
-   Batch 6: System & Life
-   =================================================== */
-
-/* --- Settings --- */
+/* ===== Batch 6: System & Life ===== */
 .papp-settings-profile{display:flex;align-items:center;gap:14px;padding:16px;margin:12px 16px 0;background:#1c1c1e;border-radius:14px}
 .papp-settings-avatar{width:52px;height:52px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-settings-avatar svg{width:26px;height:26px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round}
@@ -492,8 +488,6 @@
 .papp-settings-last{border-bottom:none!important}
 .papp-settings-icon{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-settings-icon svg{width:16px;height:16px;stroke:rgba(255,255,255,.4);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Wallet --- */
 .papp-wallet-balance{text-align:center;padding:24px 16px 16px}
 .papp-wallet-balance-label{font-size:13px;color:rgba(255,255,255,.3);font-weight:500}
 .papp-wallet-balance-val{font-size:36px;font-weight:300;color:#fff;margin-top:4px;letter-spacing:-1px}
@@ -510,8 +504,6 @@
 .papp-wallet-action-label{font-size:11px;color:rgba(255,255,255,.35);font-weight:500}
 .papp-wallet-amount{font-size:14px;font-weight:500;color:rgba(255,255,255,.6);flex-shrink:0}
 .papp-wallet-income{color:rgba(48,209,88,.7)}
-
-/* --- Shopping --- */
 .papp-shop-cats{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none}
 .papp-shop-cats::-webkit-scrollbar{display:none}
 .papp-shop-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
@@ -520,8 +512,6 @@
 .papp-shop-featured-info{padding:14px 16px}
 .papp-shop-thumb{width:40px;height:40px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-shop-thumb svg{width:18px;height:18px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Recipes --- */
 .papp-recipe-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
 .papp-recipe-featured-img{height:100px;background:#141416;display:flex;align-items:center;justify-content:center}
 .papp-recipe-featured-info{padding:14px 16px}
@@ -529,8 +519,6 @@
 .papp-recipe-featured-meta{font-size:13px;color:rgba(255,255,255,.35);margin-top:4px}
 .papp-recipe-icon{width:36px;height:36px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .papp-recipe-icon svg{width:18px;height:18px;stroke:rgba(255,159,10,.4);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-
-/* --- Travel --- */
 .papp-travel-upcoming{margin:12px 16px;background:#1c1c1e;border-radius:14px;padding:16px}
 .papp-travel-upcoming-header{font-size:13px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
 .papp-travel-route{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}

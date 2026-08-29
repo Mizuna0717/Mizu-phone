@@ -1,7 +1,7 @@
 /* ========== PHONE MESSAGE APP — Dark Theme Chat Detail ========== */
 
 /* ============================================================
-   ROOT CONTAINER
+   ROOT CONTAINER — FIXED: proper height containment
    ============================================================ */
 .pmsg-dark {
   display: flex;
@@ -14,7 +14,7 @@
 }
 
 /* ============================================================
-   CHAT HEADER (Dark top bar)
+   CHAT HEADER
    ============================================================ */
 .pmsg-chat-header {
   display: flex;
@@ -96,10 +96,11 @@
 }
 
 /* ============================================================
-   MESSAGE LIST
+   MESSAGE LIST — FIXED: min-height:0 for flex containment
    ============================================================ */
 .pmsg-chat-messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -140,6 +141,7 @@
   max-width: 78%;
   margin-top: 3px;
   animation: pmsgFadeIn .2s ease;
+  flex-shrink: 0;
 }
 
 .pmsg-msg-row.pmsg-group-first {
@@ -200,17 +202,18 @@
 }
 
 /* ============================================================
-   INPUT BAR
+   INPUT BAR — FIXED: stays at bottom, no overlap
    ============================================================ */
 .pmsg-chat-input-bar {
   display: flex;
   align-items: center;
   padding: 8px 10px;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
   background: #2c2c2e;
   border-top: 1px solid #3a3a3c;
   gap: 8px;
   flex-shrink: 0;
+  z-index: 5;
 }
 
 .pmsg-chat-input-wrap {
@@ -342,4 +345,36 @@
   color: rgba(255,255,255,.2);
   text-align: center;
   margin: 6px 0 2px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   USER PINNED CHAT ITEM — subtle highlight
+   ============================================================ */
+.pmsg-chat-item {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+
+.pmsg-chat-item:active {
+  background: rgba(255,255,255,.04);
+}
+
+.pmsg-user-pinned {
+  background: rgba(10, 132, 255, .04);
+  border-bottom: 1px solid rgba(10, 132, 255, .08) !important;
+}
+
+.pmsg-avatar-user {
+  background: #0a84ff !important;
+  color: #fff !important;
+  font-size: 16px !important;
+}
+
+.pmsg-pin-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-left: 4px;
+  opacity: .6;
 }
