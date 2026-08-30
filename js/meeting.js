@@ -484,11 +484,17 @@ function mtgNewModeChanged() {
   });
 }
 
-function mtgNewSummaryToggled() {
-  var toggle = document.getElementById('mtgNewToggleSummary');
-  var wrap = document.getElementById('mtgNewSummaryIntervalWrap');
+function mtgSettingsSummaryToggled() {
+  var toggle = document.getElementById('mtgSettingsToggleSummary');
+  var wrap = document.getElementById('mtgSettingsSummaryIntervalWrap');
+  if (toggle) {
+    toggle.classList.toggle('active');
+    console.log('[Meeting-Fix] Settings turnSummary toggled to:', toggle.classList.contains('active'));
+  }
   if (toggle && wrap) wrap.style.display = toggle.classList.contains('active') ? '' : 'none';
 }
+
+
 
 function mtgCreateArchive() {
   var nameEl = document.getElementById('mtgNewName');
@@ -661,8 +667,20 @@ function mtgFillSettingsPage(s) {
   var ccEl = document.getElementById('mtgSettingsContextCount');
   if (ccEl) ccEl.value = s.contextCount || 50;
 
+  // ★★★ 修复 Bug 1：回填 turnSummary 开关状态 ★★★
+  var tsToggle = document.getElementById('mtgSettingsToggleSummary');
+  if (tsToggle) {
+    tsToggle.classList.toggle('active', !!s.turnSummary);
+    console.log('[Meeting-Fix] Settings page loaded turnSummary:', !!s.turnSummary);
+  }
+  var siWrap = document.getElementById('mtgSettingsSummaryIntervalWrap');
+  if (siWrap) {
+    siWrap.style.display = s.turnSummary ? '' : 'none';
+  }
+
   mtgRenderSettingsMemory();
 }
+
 
 function mtgRenderSettingsMemory() {
   var c = document.getElementById('mtgSettingsMemoryList');
@@ -738,6 +756,13 @@ function mtgSaveSettings() {
   s.wc.max = parseInt((document.getElementById('mtgSettingsWcMax') || {}).value) || 300;
   s.summaryInterval = parseInt((document.getElementById('mtgSettingsSummaryInterval') || {}).value) || MTG_DEFAULT_SUMMARY_INTERVAL;
   s.contextCount = parseInt((document.getElementById('mtgSettingsContextCount') || {}).value) || 50;
+
+  // ★★★ 修复 Bug 1：保存 turnSummary 开关状态 ★★★
+  var tsToggle = document.getElementById('mtgSettingsToggleSummary');
+  if (tsToggle) {
+    s.turnSummary = tsToggle.classList.contains('active');
+    console.log('[Meeting-Fix] turnSummary saved:', s.turnSummary);
+  }
 
   saveState();
   showToast(T('meetingSaveChanges'));
@@ -1590,6 +1615,11 @@ async function mtgCallSummarize(session, entries, api) {
   var charNames = (session.characters && session.characters.length)
     ? session.characters.join('\u3001') : '\u89d2\u8272';
 
+  // ★★★ 修复 Bug 2：获取主要角色名，用于角色第一人称视角 ★★★
+  var primaryCharId = (session.charIds && session.charIds.length > 0) ? session.charIds[0] : null;
+  var primaryChar = primaryCharId ? mtgGetCharById(primaryCharId) : null;
+  var primaryCharName = primaryChar ? primaryChar.name : charNames;
+
   var formatted = entries.map(function(e) {
     var who;
     if (e.role === 'user') {
@@ -1605,7 +1635,9 @@ async function mtgCallSummarize(session, entries, api) {
 
   var sessionLabel = session.name ? '\u300c' + session.name + '\u300d' : '\u8fd9\u6b21\u89c1\u9762';
 
-  var prompt = '\u4f60\u662f\u4e00\u4f4d\u7ec6\u817b\u7684\u6545\u4e8b\u8bb0\u5fc6\u8005\u3002\u8bf7\u5c06\u4ee5\u4e0b' + sessionLabel + '\u573a\u666f\u4e2d\u53d1\u751f\u7684\u4e8b\uff0c\u4ee5\u7b2c\u4e00\u4eba\u79f0\uff08\u300c\u6211\u300d\u5373 ' + userName + '\uff09\u7684\u89c6\u89d2\uff0c\u5199\u6210\u4e00\u6bb5\u79c1\u5bc6\u7684\u8bb0\u5fc6\u7247\u6bb5\u3002\n\n' +
+  // ★★★ 修复 Bug 2：将提示词从「用户第一人称」改为「角色第一人称」★★★
+  var prompt = '\u4f60\u662f\u4e00\u4f4d\u7ec6\u817b\u7684\u6545\u4e8b\u8bb0\u5fc6\u8005\u3002\u8bf7\u5c06\u4ee5\u4e0b' + sessionLabel + '\u573a\u666f\u4e2d\u53d1\u751f\u7684\u4e8b\uff0c\u4ee5 ' + primaryCharName + ' \u7684\u7b2c\u4e00\u4eba\u79f0\uff08\u300c\u6211\u300d\u5373 ' + primaryCharName + '\uff09\u7684\u89c6\u89d2\uff0c\u5199\u6210\u4e00\u6bb5\u79c1\u5bc6\u7684\u8bb0\u5fc6\u7247\u6bb5\u3002\n\n' +
+    '\u91cd\u8981\uff1a\u4f60\u73b0\u5728\u662f ' + primaryCharName + '\uff0c\u4e0d\u662f ' + userName + '\u3002\u6240\u6709\u7684\u300c\u6211\u300d\u90fd\u6307\u7684\u662f ' + primaryCharName + '\u3002' + userName + ' \u662f\u4f60\u7684\u5bf9\u8bdd\u5bf9\u8c61\uff0c\u8bf7\u79f0\u547c\u5176\u4e3a\u300c' + userName + '\u300d\u6216\u300c\u4ed6/\u5979\u300d\u3002\n\n' +
     '\u3010\u5199\u4f5c\u89c4\u5219\u3011\n\n' +
     '1. \u8fc7\u6ee4\u5e9f\u8bdd\n' +
     '   - \u8df3\u8fc7\u65e0\u5b9e\u8d28\u5185\u5bb9\u7684\u5bd2\u6684\u3001\u91cd\u590d\u63cf\u5199\u548c\u8fc7\u6e21\u53e5\u3002\n' +
@@ -1616,14 +1648,16 @@ async function mtgCallSummarize(session, entries, api) {
     '3. \u8bb0\u5f55\u65f6\u7a7a\u4e0e\u4e8b\u4ef6\n' +
     '   - \u8fd8\u539f\u573a\u666f\u4e2d\u7684\u65f6\u95f4\u3001\u5730\u70b9\u548c\u5177\u4f53\u4e8b\u4ef6\u3002\n\n' +
     '4. \u60c5\u611f\u6e29\u5ea6\n' +
-    '   - \u6355\u6349\u8ba9\u6211\u5fc3\u52a8\u3001\u5fc3\u75bc\u3001\u7d27\u5f20\u3001\u5931\u843d\u7684\u77ac\u95f4\u3002\n' +
+    '   - \u6355\u6349\u8ba9\u6211\uff08' + primaryCharName + '\uff09\u5fc3\u52a8\u3001\u5fc3\u75bc\u3001\u7d27\u5f20\u3001\u5931\u843d\u7684\u77ac\u95f4\u3002\n' +
     '   - \u4e0d\u8981\u5199\u6210\u51b0\u51b7\u7684\u5267\u60c5\u6458\u8981\uff0c\u8981\u5199\u6210\u771f\u5b9e\u7684\u8bb0\u5fc6\u3002\n\n' +
     '5. \u771f\u4eba\u8bb0\u5fc6\u611f\n' +
     '   - \u4fdd\u7559\u5177\u4f53\u7684\u3001\u6709\u753b\u9762\u611f\u7684\u7ec6\u8282\u3002\n\n' +
     '6. \u683c\u5f0f\n' +
-    '   - \u5168\u7a0b\u4e2d\u6587\uff0c\u4ee5\u300c\u6211\u300d\u7684\u53e3\u543b\u3002\u63a7\u5236\u5728 80\uff5e200 \u5b57\u3002\n' +
+    '   - \u5168\u7a0b\u4e2d\u6587\uff0c\u4ee5\u300c\u6211\u300d\uff08\u5373 ' + primaryCharName + '\uff09\u7684\u53e3\u543b\u3002\u63a7\u5236\u5728 80\uff5e200 \u5b57\u3002\n' +
     '   - \u4e0d\u52a0\u6807\u9898\u3001\u6807\u7b7e\u3001\u7f16\u53f7\u3002\u5fe0\u4e8e\u5185\u5bb9\uff0c\u7edd\u4e0d\u865a\u6784\u3002\u76f4\u63a5\u8f93\u51fa\u8bb0\u5fc6\u6587\u672c\u3002\n\n' +
-    '\u573a\u666f\u5185\u5bb9\uff1a\n' + formatted + '\n\n\u8bf7\u76f4\u63a5\u4ee5\u300c\u6211\u300d\u7684\u7b2c\u4e00\u4eba\u79f0\u5199\u4e0b\u8fd9\u6bb5\u8bb0\u5fc6\u3002';
+    '\u573a\u666f\u5185\u5bb9\uff1a\n' + formatted + '\n\n\u8bf7\u76f4\u63a5\u4ee5\u300c\u6211\u300d\uff08' + primaryCharName + '\uff09\u7684\u7b2c\u4e00\u4eba\u79f0\u5199\u4e0b\u8fd9\u6bb5\u8bb0\u5fc6\u3002';
+
+  console.log('[Meeting-Memory] Summary prompt perspective: Character "' + primaryCharName + '" as "I", User "' + userName + '" as third person');
 
   var result = await sendChat(api, [
     { role: 'system', content: prompt },
@@ -1633,6 +1667,7 @@ async function mtgCallSummarize(session, entries, api) {
   console.log('[Meeting-Memory] mtgCallSummarize result length:', (result || '').length);
   return result;
 }
+
 
 async function mtgCallConsolidate(session, stmList, api) {
   console.log('[Meeting-Memory] mtgCallConsolidate called | stmList:', stmList.length);
@@ -1648,23 +1683,32 @@ async function mtgCallConsolidate(session, stmList, api) {
   var charNames = (session.characters && session.characters.length)
     ? session.characters.join('\u3001') : '\u89d2\u8272';
 
+  // ★★★ 修复 Bug 2：获取主要角色名 ★★★
+  var primaryCharId = (session.charIds && session.charIds.length > 0) ? session.charIds[0] : null;
+  var primaryChar = primaryCharId ? mtgGetCharById(primaryCharId) : null;
+  var primaryCharName = primaryChar ? primaryChar.name : charNames;
+
   var formatted = stmList.map(function(m, i) {
     return '[\u7247\u6bb5 ' + (i + 1) + ' - ' + (m.date || '') + ']\n' + m.content;
   }).join('\n\n');
 
   var sessionLabel = session.name ? '\u300c' + session.name + '\u300d' : '\u8fd9\u6bb5\u7ecf\u5386';
 
-  var prompt = '\u4f60\u662f ' + userName + '\u3002\u4e0b\u9762\u662f\u4f60\u5728' + sessionLabel + '\u4e2d\u8bb0\u4e0b\u7684 ' + stmList.length + ' \u6bb5\u77ed\u671f\u8bb0\u5fc6\u788e\u7247\uff0c\u6d89\u53ca\u7684\u89d2\u8272\u6709 ' + charNames + '\u3002\n' +
+  // ★★★ 修复 Bug 2：角色第一人称 ★★★
+  var prompt = '\u4f60\u662f ' + primaryCharName + '\u3002\u4e0b\u9762\u662f\u4f60\u5728' + sessionLabel + '\u4e2d\u8bb0\u4e0b\u7684 ' + stmList.length + ' \u6bb5\u77ed\u671f\u8bb0\u5fc6\u788e\u7247\uff0c\u6d89\u53ca\u7684\u5bf9\u8bdd\u5bf9\u8c61\u6709 ' + userName + '\u3002\n' +
     '\u73b0\u5728\u4f60\u8981\u628a\u5b83\u4eec\u6574\u7406\u6210\u4e00\u6bb5\u5b8c\u6574\u7684\u957f\u671f\u8bb0\u5fc6\u3002\n\n' +
+    '\u91cd\u8981\uff1a\u4f60\u662f ' + primaryCharName + '\uff0c\u300c\u6211\u300d\u6307\u7684\u662f ' + primaryCharName + '\u3002' + userName + ' \u662f\u4f60\u7684\u5bf9\u8bdd\u5bf9\u8c61\u3002\n\n' +
     '\u3010\u5199\u4f5c\u89c4\u5219\u3011\n\n' +
     '1. \u5408\u5e76\u91cd\u590d\u5185\u5bb9\uff0c\u53ea\u4fdd\u7559\u6700\u6709\u60c5\u611f\u91cd\u91cf\u7684\u7248\u672c\u3002\n' +
     '2. \u4fdd\u7559\u6240\u6709\u5173\u952e\u8f6c\u6298\u548c\u89d2\u8272\u7279\u5f81\u3002\n' +
     '3. \u6309\u65f6\u95f4\u987a\u5e8f\u7ec4\u7ec7\u3002\n' +
     '4. \u5199\u51fa\u60c5\u611f\u7684\u53d8\u5316\u548c\u5c42\u6b21\u3002\n' +
     '5. \u4fdd\u7559\u5177\u4f53\u7684\u3001\u6709\u753b\u9762\u611f\u7684\u7ec6\u8282\u3002\n' +
-    '6. \u5168\u7a0b\u4e2d\u6587\uff0c\u4ee5\u300c\u6211\u300d\u7684\u53e3\u543b\u3002\u63a7\u5236\u5728 150\uff5e400 \u5b57\u3002\n' +
+    '6. \u5168\u7a0b\u4e2d\u6587\uff0c\u4ee5\u300c\u6211\u300d\uff08\u5373 ' + primaryCharName + '\uff09\u7684\u53e3\u543b\u3002\u63a7\u5236\u5728 150\uff5e400 \u5b57\u3002\n' +
     '   \u4e0d\u52a0\u6807\u9898\u3001\u7f16\u53f7\u3002\u4e0d\u865a\u6784\u3002\u76f4\u63a5\u8f93\u51fa\u8bb0\u5fc6\u6587\u672c\u3002\n\n' +
-    '\u77ed\u671f\u8bb0\u5fc6\u7247\u6bb5\uff1a\n' + formatted + '\n\n\u8bf7\u76f4\u63a5\u4ee5\u300c\u6211\u300d\u7684\u7b2c\u4e00\u4eba\u79f0\u5199\u4e0b\u8fd9\u6bb5\u957f\u671f\u8bb0\u5fc6\u3002';
+    '\u77ed\u671f\u8bb0\u5fc6\u7247\u6bb5\uff1a\n' + formatted + '\n\n\u8bf7\u76f4\u63a5\u4ee5\u300c\u6211\u300d\uff08' + primaryCharName + '\uff09\u7684\u7b2c\u4e00\u4eba\u79f0\u5199\u4e0b\u8fd9\u6bb5\u957f\u671f\u8bb0\u5fc6\u3002';
+
+  console.log('[Meeting-Memory] Consolidate prompt perspective: Character "' + primaryCharName + '" as "I"');
 
   var result = await sendChat(api, [
     { role: 'system', content: prompt },
@@ -1674,6 +1718,7 @@ async function mtgCallConsolidate(session, stmList, api) {
   console.log('[Meeting-Memory] mtgCallConsolidate result length:', (result || '').length);
   return result;
 }
+
 
 async function mtgCheckAutoSummarize(session) {
   if (!session) {
@@ -2598,3 +2643,6 @@ function __mizuMeetingPromptTest() {
     console.error('[Meeting v2.1] Global export FAILED:', exportErr);
   }
 })();
+
+
+window.mtgSettingsSummaryToggled = mtgSettingsSummaryToggled;
