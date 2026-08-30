@@ -1,6 +1,7 @@
 // ========== meeting.js ==========
 // Meeting — Complete Redesign (v2.0 Memory System Integrated)
 // Card-based UI · Grey-white · Line icons · No emoji
+// ★★★ v2.1: 世界书 + 角色人设 + 面具 提示词修复 ★★★
 
 /* ══════════════════════════════════
    i18n Keys
@@ -171,7 +172,7 @@ var mtgCurrentSession = null;
 var mtgGenerating = false;
 var mtgEditingEntryId = null;
 var mtgSettingsReturnTo = 'screen-meeting-write';
-var _mtgSummarizing = false;  // ★ 并发锁：防止同时触发多个总结
+var _mtgSummarizing = false;
 
 /* ══════════════════════════════════
    Utilities
@@ -252,7 +253,7 @@ function mtgGetUserAvatar() {
 }
 
 /* ══════════════════════════════════
-   ★ 记忆字段初始化 & 兼容
+   Memory Fields Init & Compat
    ══════════════════════════════════ */
 function mtgEnsureMemoryFields(session) {
   if (!session) {
@@ -265,7 +266,6 @@ function mtgEnsureMemoryFields(session) {
   if (session.consolidateThreshold === undefined)   session.consolidateThreshold = MTG_MEM_CONSOLIDATE_THRESHOLD;
   if (!Array.isArray(session.history)) session.history = [];
 
-  // ★ 向前兼容：如果旧 shortTermMemory 有数据但 shortTermMemories 没有，迁移
   if (session.shortTermMemory.length > 0 && session.shortTermMemories.length === 0) {
     console.log('[Meeting-Memory] Migrating', session.shortTermMemory.length, 'old STMs to new format');
     session.shortTermMemory.forEach(function(old) {
@@ -545,7 +545,6 @@ function mtgCreateArchive() {
     history: [],
     turnCount: 0,
     status: 'active',
-    // ★★★ v2.0 记忆系统字段 ★★★
     shortTermMemory: [],
     shortTermMemories: [],
     lastSummarizedEntryIdx: 0,
@@ -1164,7 +1163,6 @@ async function mtgAiRespond(session) {
 
     saveState();
 
-    // ★★★ v2.0：自动总结系统 ★★★
     if (session.turnSummary) {
       await mtgCheckAutoSummarize(session);
     }
@@ -1217,22 +1215,170 @@ async function mtgGenerateInitialScene(session) {
   }
 }
 
-/* ── Build System Prompt ── */
+
+/* ══════════════════════════════════════════════════════════════
+   ★★★ v2.1 FIX: Build System Prompt — 世界书 + 人设 + 面具 ★★★
+   ══════════════════════════════════════════════════════════════ */
 function mtgBuildSystemPrompt(session, ch) {
   var p = '';
 
-  p += 'You are ' + ch.name + '.\n';
-  if (ch.prompt) p += ch.prompt + '\n';
-  if (ch.notes) p += '\nNotes: ' + ch.notes + '\n';
-  p += '\n';
-
-  if (session.mode === 'if') {
-    if (session.worldview) p += 'WORLDVIEW:\n' + session.worldview + '\n\n';
-    if (session.identity)  p += 'IDENTITY:\n' + session.identity + '\n\n';
+  // ★ 1. Meeting 专用系统提示词（来自 prompt.js 的 getActiveSystemPrompt）
+  if (typeof getActiveSystemPrompt === 'function') {
+    var prevMode = (typeof tmp !== 'undefined' && tmp.chatMode) ? tmp.chatMode : undefined;
+    if (typeof tmp !== 'undefined') tmp.chatMode = 'meeting';
+    var activePrompt = getActiveSystemPrompt();
+    if (typeof tmp !== 'undefined') {
+      if (prevMode !== undefined) tmp.chatMode = prevMode;
+      else delete tmp.chatMode;
+    }
+    if (activePrompt) {
+      var _userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User';
+      activePrompt = activePrompt.replace(/\{\{user\}\}/g, _userName).replace(/\{\{char\}\}/g, ch.name);
+      p += activePrompt + '\n\n';
+      console.log('[Meeting-Prompt] Active system prompt injected | length:', activePrompt.length);
+    }
+  } else {
+    console.log('[Meeting-Prompt] getActiveSystemPrompt not available, skipping base prompt');
   }
 
-  var cpDesc = { first: 'first person (I, me, my)', second: 'second person (you, your)', third: 'third person (' + ch.name + ', he/she/they)' };
-  var upDesc = { first: 'first person (I, me, my)', second: 'second person (you, your)', third: 'third person' };
+  // ★ 2. 角色完整人设信息
+  p += '--- CHARACTER PROFILE ---\n';
+  p += 'Name: ' + ch.name + '\n';
+
+  if (ch.identity) {
+    p += 'Identity: ' + ch.identity + '\n';
+    console.log('[Meeting-Prompt] Identity included for', ch.name, '| length:', ch.identity.length);
+  }
+
+  if (ch.age) {
+    p += 'Age: ' + ch.age + '\n';
+    console.log('[Meeting-Prompt] Age included for', ch.name, ':', ch.age);
+  }
+
+  if (ch.personality) {
+    p += 'Personality: ' + ch.personality + '\n';
+    console.log('[Meeting-Prompt] Personality included for', ch.name, '| length:', ch.personality.length);
+  }
+
+  if (ch.background) {
+    p += 'Background: ' + ch.background + '\n';
+    console.log('[Meeting-Prompt] Background included for', ch.name, '| length:', ch.background.length);
+  }
+
+  if (ch.systemPrompt) {
+    p += '\n' + ch.systemPrompt + '\n';
+    console.log('[Meeting-Prompt] systemPrompt included for', ch.name, '| length:', ch.systemPrompt.length);
+  } else if (ch.prompt) {
+    p += '\n' + ch.prompt + '\n';
+    console.log('[Meeting-Prompt] prompt (legacy) included for', ch.name, '| length:', ch.prompt.length);
+  }
+
+  if (ch.notes) {
+    p += '\nNotes: ' + ch.notes + '\n';
+    console.log('[Meeting-Prompt] Notes included for', ch.name, '| length:', ch.notes.length);
+  }
+
+  p += '--- END CHARACTER PROFILE ---\n\n';
+
+  // ★ 3. 关联面具（Mask）信息
+  var mask = null;
+  if (typeof getMaskForChar === 'function') {
+    mask = getMaskForChar(ch.id);
+  } else {
+    // Fallback: 手动查找面具
+    mask = (state.masks || []).find(function(m) {
+      return (m.charIds || []).indexOf(ch.id) >= 0;
+    }) || null;
+  }
+
+  if (mask) {
+    p += '[User Identity / Mask]\n';
+    if (mask.name) {
+      p += 'User Name: ' + mask.name + '\n';
+    }
+    if (mask.persona) {
+      p += mask.persona + '\n';
+    }
+    if (mask.description) {
+      p += mask.description + '\n';
+    }
+    p += '\n';
+    console.log('[Meeting-Prompt] Mask included for', ch.name,
+      '| maskName:', mask.name || '(none)',
+      '| persona length:', (mask.persona || '').length);
+  } else {
+    // 没有面具时使用用户基本信息
+    if (state.userProfile && state.userProfile.name && state.userProfile.name !== 'User') {
+      p += 'User: ' + state.userProfile.name + '\n\n';
+    }
+    console.log('[Meeting-Prompt] No mask found for', ch.name);
+  }
+
+  // ★ 4. 世界书（Worldbook）信息
+  var worldbooks = state.worldbooks || [];
+  var activeBooks = [];
+
+  if (typeof getActiveWorldBooks === 'function') {
+    activeBooks = getActiveWorldBooks(ch, worldbooks);
+    console.log('[Meeting-Prompt] getActiveWorldBooks returned', activeBooks.length, 'books for', ch.name);
+  } else {
+    // Fallback: 手动筛选
+    var charWbIds = ch.worldbookIds || [];
+    activeBooks = worldbooks.filter(function(wb) {
+      return wb.isGlobal || charWbIds.indexOf(wb.id) >= 0;
+    });
+    console.log('[Meeting-Prompt] Manual worldbook filter:', activeBooks.length, 'books for', ch.name);
+  }
+
+  if (activeBooks.length > 0) {
+    p += '[World Setting]\n';
+    activeBooks.forEach(function(wb) {
+      var tag = wb.isGlobal ? '[Global]' : '[Character]';
+      p += '\u00b7 ' + tag + ' ' + (wb.name || 'Unnamed Worldbook');
+      if (wb.content) p += '\uff1a' + wb.content;
+      p += '\n';
+
+      if (wb.entries && Array.isArray(wb.entries) && wb.entries.length > 0) {
+        wb.entries.forEach(function(e) {
+          if (e.keyword || e.content) {
+            p += '  - ' + (e.keyword || '') + (e.content ? ': ' + e.content : '') + '\n';
+          }
+        });
+      }
+
+      console.log('[Meeting-Prompt] Worldbook "' + (wb.name || 'unnamed') + '"',
+        '| global:', !!wb.isGlobal,
+        '| entries:', (wb.entries || []).length,
+        '| content length:', (wb.content || '').length);
+    });
+    p += '\n';
+  } else {
+    console.log('[Meeting-Prompt] No active worldbooks for', ch.name,
+      '| total worldbooks:', worldbooks.length,
+      '| char worldbookIds:', JSON.stringify(ch.worldbookIds || []));
+  }
+
+  // ★ 5. IF 模式专用字段
+  if (session.mode === 'if') {
+    if (session.worldview) {
+      p += 'WORLDVIEW:\n' + session.worldview + '\n\n';
+    }
+    if (session.identity) {
+      p += 'USER IDENTITY IN THIS SCENARIO:\n' + session.identity + '\n\n';
+    }
+  }
+
+  // ★ 6. 协作写作规则
+  var cpDesc = {
+    first: 'first person (I, me, my)',
+    second: 'second person (you, your)',
+    third: 'third person (' + ch.name + ', he/she/they)'
+  };
+  var upDesc = {
+    first: 'first person (I, me, my)',
+    second: 'second person (you, your)',
+    third: 'third person'
+  };
 
   p += '--- COLLABORATIVE WRITING SESSION RULES ---\n';
   p += '1. Write your response using ' + (cpDesc[session.charPerson] || cpDesc.first) + ' narration.\n';
@@ -1243,7 +1389,25 @@ function mtgBuildSystemPrompt(session, ch) {
   p += '6. Output only narrative prose. No meta-commentary, no character name prefix.\n';
   p += '---\n';
 
-  // ★ 优先 shortTermMemories，fallback 到 shortTermMemory
+  // ★ 7. 多角色场景上下文
+  if (session.charIds && session.charIds.length > 1) {
+    p += '\n[Group Scene Context]\n';
+    p += 'This is a meeting/group scene with multiple characters.\n';
+    p += 'You are playing the role of **' + ch.name + '**. Respond ONLY as ' + ch.name + '.\n';
+    p += 'Other characters in this scene:\n';
+    session.charIds.forEach(function(cid) {
+      if (cid === ch.id) return;
+      var otherCh = mtgGetCharById(cid);
+      if (otherCh) {
+        p += '- ' + otherCh.name;
+        if (otherCh.personality) p += ' (' + otherCh.personality.substring(0, 100) + ')';
+        p += '\n';
+      }
+    });
+    p += 'Interact naturally with the other characters. Do not speak for them.\n\n';
+  }
+
+  // ★ 8. 会话内记忆摘要（原有逻辑保留）
   if (session.shortTermMemories && session.shortTermMemories.length > 0) {
     p += '\nSTORY SUMMARIES (for context):\n';
     session.shortTermMemories.forEach(function(mem, idx) {
@@ -1258,8 +1422,71 @@ function mtgBuildSystemPrompt(session, ch) {
     p += '\n';
   }
 
+  // ★ 9. 角色的长期/短期记忆（来自记忆库 state.memories）
+  if (typeof getCharMemoriesByType === 'function') {
+    var charLTM = getCharMemoriesByType(ch.id, 'ltm') || [];
+    var charSTM = (getCharMemoriesByType(ch.id, 'stm') || []).filter(function(m) { return !m.consolidated; });
+    var charFTM = getCharMemoriesByType(ch.id, 'ftm') || [];
+
+    if (charLTM.length > 0 || charSTM.length > 0 || charFTM.length > 0) {
+      p += '\n[Character Memories for ' + ch.name + ']\n';
+
+      if (charLTM.length > 0) {
+        p += '\u2014 Long-term Memories (core, important) \u2014\n';
+        charLTM.slice(0, 5).forEach(function(m) {
+          p += '- (' + (m.date || '') + ') ' + m.content + '\n';
+        });
+      }
+
+      if (charSTM.length > 0) {
+        p += '\u2014 Recent Short-term Memories \u2014\n';
+        charSTM.slice(0, 8).forEach(function(m) {
+          p += '- (' + (m.date || '') + ') ' + m.content + '\n';
+        });
+      }
+
+      if (charFTM.length > 0) {
+        p += '\u2014 Vague / Forgettable Memories \u2014\n';
+        charFTM.slice(0, 3).forEach(function(m) {
+          p += '- (' + (m.date || '') + ') ' + m.content + '\n';
+        });
+      }
+
+      p += '\n';
+      console.log('[Meeting-Prompt] Character memories included | LTM:', charLTM.length,
+        '| STM:', charSTM.length, '| FTM:', charFTM.length);
+    }
+  } else {
+    // Fallback: 手动读取 state.memories
+    var _allMem = (state.memories || []).filter(function(m) { return m.charId === ch.id; });
+    if (_allMem.length > 0) {
+      p += '\n[Character Memories for ' + ch.name + ']\n';
+      _allMem.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+      _allMem.slice(0, 10).forEach(function(m) {
+        p += '- (' + (m.date || '') + ') ' + (m.title ? m.title + ': ' : '') + m.content + '\n';
+      });
+      p += '\n';
+      console.log('[Meeting-Prompt] Fallback memories included:', _allMem.length);
+    }
+  }
+
+  // ★ 最终日志
+  console.log('[Meeting-Prompt] ======= System Prompt Built =======',
+    '\n| Character:', ch.name,
+    '\n| Session:', session.name,
+    '\n| Mode:', session.mode,
+    '\n| Has personality:', !!ch.personality,
+    '\n| Has background:', !!ch.background,
+    '\n| Has identity:', !!ch.identity,
+    '\n| Has systemPrompt:', !!ch.systemPrompt,
+    '\n| Has mask:', !!mask,
+    '\n| Active worldbooks:', activeBooks.length,
+    '\n| Session memories:', (session.shortTermMemories || []).length,
+    '\n| Prompt length:', p.length, 'chars');
+
   return p;
 }
+
 
 /* ── Build Context Messages ── */
 function mtgBuildContextMessages(session, ch) {
@@ -1277,7 +1504,7 @@ function mtgBuildContextMessages(session, ch) {
     var chatHist = (state.chats && state.chats[ch.id]) ? state.chats[ch.id] : [];
     var recent = chatHist.slice(-imsgNeeded);
     if (recent.length > 0) {
-      var ctx = '[Previous conversation between ' + ch.name + ' and the user — for context only]\n\n';
+      var ctx = '[Previous conversation between ' + ch.name + ' and the user \u2014 for context only]\n\n';
       recent.forEach(function(m) {
         if (m.recalled) return;
         var lbl = m.role === 'assistant' ? ch.name : 'User';
@@ -1312,10 +1539,8 @@ function mtgBuildContextMessages(session, ch) {
 
 /* ══════════════════════════════════════════════════════════════
    ★★★ v2.0 MEETING MEMORY SYSTEM ★★★
-   自动总结 · 结束写入 · STM→LTM 合并
    ══════════════════════════════════════════════════════════════ */
 
-/* ── 计算未总结的用户轮数 ── */
 function mtgCountUnsummarizedTurns(session) {
   if (!session || !session.history) return 0;
   mtgEnsureMemoryFields(session);
@@ -1326,14 +1551,12 @@ function mtgCountUnsummarizedTurns(session) {
   return count;
 }
 
-/* ── 获取未总结的条目 ── */
 function mtgGetUnsummarizedEntries(session) {
   if (!session || !session.history) return [];
   mtgEnsureMemoryFields(session);
   return session.history.slice(session.lastSummarizedEntryIdx);
 }
 
-/* ── 按轮数截取条目 ── */
 function _mtgSliceByTurns(entries, maxTurns) {
   var result = [];
   var turnCount = 0;
@@ -1342,7 +1565,6 @@ function _mtgSliceByTurns(entries, maxTurns) {
     if (entries[i].role === 'user') {
       turnCount++;
       if (turnCount >= maxTurns) {
-        // 同时包含该轮对应的 AI 回复
         for (var j = i + 1; j < entries.length; j++) {
           if (entries[j].role === 'user') break;
           result.push(entries[j]);
@@ -1354,7 +1576,6 @@ function _mtgSliceByTurns(entries, maxTurns) {
   return result;
 }
 
-/* ── 会议专用短期记忆总结 (API 调用) ── */
 async function mtgCallSummarize(session, entries, api) {
   console.log('[Meeting-Memory] mtgCallSummarize called | entries:', entries.length);
 
@@ -1413,7 +1634,6 @@ async function mtgCallSummarize(session, entries, api) {
   return result;
 }
 
-/* ── 会议专用长期记忆合并 (API 调用) ── */
 async function mtgCallConsolidate(session, stmList, api) {
   console.log('[Meeting-Memory] mtgCallConsolidate called | stmList:', stmList.length);
 
@@ -1455,16 +1675,12 @@ async function mtgCallConsolidate(session, stmList, api) {
   return result;
 }
 
-/* ──────────────────────────────────
-   ★ 核心函数 1：自动总结检查
-   ────────────────────────────────── */
 async function mtgCheckAutoSummarize(session) {
   if (!session) {
     console.log('[Meeting-Memory] mtgCheckAutoSummarize: no session, skip');
     return;
   }
 
-  // ★ 并发锁
   if (_mtgSummarizing) {
     console.log('[Meeting-Memory] Already summarizing, skip concurrent call');
     return;
@@ -1496,7 +1712,7 @@ async function mtgCheckAutoSummarize(session) {
     return;
   }
 
-  _mtgSummarizing = true; // ★ 加锁
+  _mtgSummarizing = true;
 
   try {
     var allUnsummarized = mtgGetUnsummarizedEntries(session);
@@ -1512,7 +1728,6 @@ async function mtgCheckAutoSummarize(session) {
       return;
     }
 
-    // ★ 写入新格式 shortTermMemories
     var stm = {
       id: mtgUid(),
       date: new Date().toISOString().split('T')[0],
@@ -1524,7 +1739,6 @@ async function mtgCheckAutoSummarize(session) {
     };
     session.shortTermMemories.push(stm);
 
-    // ★ 同步写入旧格式 shortTermMemory
     session.shortTermMemory.push({
       id: stm.id,
       round: session.turnCount || session.shortTermMemories.length,
@@ -1546,7 +1760,6 @@ async function mtgCheckAutoSummarize(session) {
       showToast(T('summarized') || '\u5df2\u603b\u7ed3');
     }
 
-    // ★ 解锁后递归检查
     _mtgSummarizing = false;
     var remainingTurns = mtgCountUnsummarizedTurns(session);
     if (remainingTurns >= interval) {
@@ -1556,13 +1769,10 @@ async function mtgCheckAutoSummarize(session) {
   } catch (e) {
     console.error('[Meeting-Memory] Auto-summarize failed:', e);
   } finally {
-    _mtgSummarizing = false; // ★ 确保解锁
+    _mtgSummarizing = false;
   }
 }
 
-/* ──────────────────────────────────
-   ★ 核心函数 2：总结剩余轮数
-   ────────────────────────────────── */
 async function mtgSummarizeRemaining(session) {
   if (!session) {
     console.warn('[Meeting-Memory] mtgSummarizeRemaining: no session');
@@ -1633,15 +1843,12 @@ async function mtgSummarizeRemaining(session) {
   }
 }
 
-/* ──────────────────────────────────
-   ★ 核心函数 3：写入记忆库 + LTM 合并
-   ────────────────────────────────── */
 async function mtgWriteToMemoryLibrary(sessionId) {
   var session;
   if (typeof sessionId === 'string') {
     session = mtgFindSession(sessionId);
   } else if (sessionId && sessionId.id) {
-    session = sessionId; // 允许直接传入 session 对象
+    session = sessionId;
   }
   if (!session) {
     console.error('[Meeting-Memory] mtgWriteToMemoryLibrary: session not found:', sessionId);
@@ -1649,7 +1856,6 @@ async function mtgWriteToMemoryLibrary(sessionId) {
   }
   mtgEnsureMemoryFields(session);
 
-  // Step 1：总结剩余
   var unsummarized = mtgGetUnsummarizedEntries(session);
   if (unsummarized.length >= 2 && mtgCountUnsummarizedTurns(session) >= 1) {
     console.log('[Meeting-Memory] Step 1: Summarizing remaining', unsummarized.length, 'entries...');
@@ -1670,7 +1876,6 @@ async function mtgWriteToMemoryLibrary(sessionId) {
     return 0;
   }
 
-  // Step 2：确定关联角色
   var primaryCharId = (session.charIds && session.charIds.length > 0)
     ? session.charIds[0] : null;
   var charNames = (session.characters && session.characters.length)
@@ -1679,10 +1884,8 @@ async function mtgWriteToMemoryLibrary(sessionId) {
   console.log('[Meeting-Memory] Step 2: Writing', stms.length, 'STMs to memory library',
     '| primaryCharId:', primaryCharId, '| chars:', charNames);
 
-  // ★ 确保 state.memories 存在
   if (!Array.isArray(state.memories)) state.memories = [];
 
-  // Step 3：逐条写入 state.memories
   var writtenCount = 0;
   stms.forEach(function(stm) {
     if (!stm._writtenToLibrary) {
@@ -1694,7 +1897,6 @@ async function mtgWriteToMemoryLibrary(sessionId) {
           stm.content
         );
       } else {
-        // ★ Fallback: 直接写入 state.memories
         state.memories.push({
           id: mtgUid(),
           title: (session.name || 'Meeting') + ' \u00b7 ' + charNames,
@@ -1717,7 +1919,6 @@ async function mtgWriteToMemoryLibrary(sessionId) {
   console.log('[Meeting-Memory] Written', writtenCount, 'STMs to state.memories',
     '| Total memories now:', (state.memories || []).length);
 
-  // Step 4：检查 LTM 合并阈值
   var threshold = session.consolidateThreshold || MTG_MEM_CONSOLIDATE_THRESHOLD;
 
   if (primaryCharId && typeof getUnconsolidatedSTM === 'function') {
@@ -1781,7 +1982,6 @@ async function mtgWriteToMemoryLibrary(sessionId) {
         unconsolidatedSTMs.length + '/' + threshold + ')');
     }
   } else {
-    // ★ Fallback: 当 getUnconsolidatedSTM 不存在时，用 session 内数据判断
     console.log('[Meeting-Memory] getUnconsolidatedSTM not available, using session-level check');
     var unwritten = stms.filter(function(s) { return !s.consolidated; });
     if (unwritten.length >= threshold) {
@@ -1825,7 +2025,7 @@ async function mtgWriteToMemoryLibrary(sessionId) {
 
 
 /* ══════════════════════════════════
-   ★ 结束会议
+   End Session
    ══════════════════════════════════ */
 function mtgEndSession(sessionId) {
   var session;
@@ -1933,7 +2133,6 @@ function mtgEndSession(sessionId) {
   };
 }
 
-/* ── 手动触发写入记忆库 ── */
 async function mtgManualWriteToMemory() {
   if (!mtgCurrentSession) {
     console.warn('[Meeting-Memory] mtgManualWriteToMemory: no active session');
@@ -1960,16 +2159,15 @@ function mtgSetSummaryToggled() { mtgNewSummaryToggled(); }
 function mtgSetRenderCharSelect() { mtgRenderCharSelectList('mtgNewCharList', []); }
 function exitMeetingSettings_legacy() { exitMeetingSettings(); }
 function mtgCloseEndModal() { var el = document.getElementById('mtgEndModal'); if (el) el.remove(); }
-function mtgConfirmEnd(writeToMemory) { /* 已被新 mtgEndSession 替代 */ }
+function mtgConfirmEnd(writeToMemory) { /* replaced by mtgEndSession */ }
 function mtgRenderSessionMemories(session) { mtgRenderSettingsMemory(); }
 
 
 /* ══════════════════════════════════════════════════════════════
-   ★★★ 诊断测试函数 ★★★
-   在浏览器控制台运行 __mizuMeetingTest() 即可验证
+   ★★★ Diagnostic Test — __mizuMeetingTest ★★★
    ══════════════════════════════════════════════════════════════ */
 function __mizuMeetingTest() {
-  console.log('%c══════ Mizu Meeting Memory Test ══════', 'color:#007aff;font-weight:bold;font-size:14px');
+  console.log('%c\u2550\u2550\u2550\u2550\u2550\u2550 Mizu Meeting Memory Test \u2550\u2550\u2550\u2550\u2550\u2550', 'color:#007aff;font-weight:bold;font-size:14px');
 
   var funcs = [
     { name: 'mtgEnsureMemoryFields',     ref: mtgEnsureMemoryFields },
@@ -1999,35 +2197,38 @@ function __mizuMeetingTest() {
     }
   });
 
-  // 辅助函数检查
-  console.log('%c── Helper Functions ──', 'color:#8e8e93');
+  console.log('%c\u2500\u2500 Helper Functions \u2500\u2500', 'color:#8e8e93');
   var helpers = [
     { name: 'saveMemoryEntry',      avail: typeof saveMemoryEntry === 'function' },
     { name: 'getUnconsolidatedSTM', avail: typeof getUnconsolidatedSTM === 'function' },
     { name: 'sendChat',             avail: typeof sendChat === 'function' },
     { name: 'saveState',            avail: typeof saveState === 'function' },
     { name: 'showToast',            avail: typeof showToast === 'function' },
-    { name: 'T (i18n)',             avail: typeof T === 'function' }
+    { name: 'T (i18n)',             avail: typeof T === 'function' },
+    { name: 'getActiveWorldBooks',  avail: typeof getActiveWorldBooks === 'function' },
+    { name: 'getMaskForChar',       avail: typeof getMaskForChar === 'function' },
+    { name: 'getActiveSystemPrompt',avail: typeof getActiveSystemPrompt === 'function' },
+    { name: 'getCharMemoriesByType',avail: typeof getCharMemoriesByType === 'function' }
   ];
   helpers.forEach(function(h) {
     console.log('  ' + (h.avail ? '\u2705' : '\u26a0\ufe0f') + ' ' + h.name +
       (h.avail ? '' : ' (not found, fallback will be used)'));
   });
 
-  // State 检查
-  console.log('%c── State Check ──', 'color:#8e8e93');
+  console.log('%c\u2500\u2500 State Check \u2500\u2500', 'color:#8e8e93');
   var stateOk = typeof state !== 'undefined';
   console.log('  ' + (stateOk ? '\u2705' : '\u274c') + ' state object');
   if (stateOk) {
     console.log('    meetings: ' + (state.meetings || []).length);
     console.log('    memories: ' + (state.memories || []).length);
     console.log('    characters: ' + (state.characters || []).length);
+    console.log('    worldbooks: ' + (state.worldbooks || []).length);
+    console.log('    masks: ' + (state.masks || []).length);
     console.log('    apis: ' + (state.apis || []).length);
     console.log('    activeApiId: ' + (state.activeApiId || 'null'));
   }
 
-  // 功能测试
-  console.log('%c── Functional Test ──', 'color:#8e8e93');
+  console.log('%c\u2500\u2500 Functional Test \u2500\u2500', 'color:#8e8e93');
   try {
     var testSession = {
       id: 'test-' + Date.now(),
@@ -2057,27 +2258,288 @@ function __mizuMeetingTest() {
     fail++;
   }
 
-  // 总结
-  console.log('%c══════ Result: ' + pass + '/' + funcs.length + ' passed ══════',
+  console.log('%c\u2550\u2550\u2550\u2550\u2550\u2550 Result: ' + pass + '/' + funcs.length + ' passed \u2550\u2550\u2550\u2550\u2550\u2550',
     fail === 0 ? 'color:#34c759;font-weight:bold;font-size:14px' : 'color:#ff3b30;font-weight:bold;font-size:14px');
 
   if (fail === 0) {
-    console.log('%c\ud83c\udf89 All meeting memory functions are properly defined and exported!', 'color:#34c759;font-size:12px');
+    console.log('%c All meeting memory functions are properly defined and exported!', 'color:#34c759;font-size:12px');
   } else {
-    console.log('%c\u26a0\ufe0f ' + fail + ' functions are missing. Ensure meeting.js is properly loaded.', 'color:#ff3b30;font-size:12px');
+    console.log('%c ' + fail + ' functions are missing. Ensure meeting.js is properly loaded.', 'color:#ff3b30;font-size:12px');
   }
 
   return { pass: pass, fail: fail, total: funcs.length };
 }
 
 
+/* ══════════════════════════════════════════════════════════════
+   ★★★ Prompt Integrity Test — __mizuMeetingPromptTest ★★★
+   ══════════════════════════════════════════════════════════════ */
+function __mizuMeetingPromptTest() {
+  console.log('%c\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550', 'color:#007aff;font-weight:bold;font-size:14px');
+  console.log('%c  Mizu Meeting Prompt Integrity Test v2.1', 'color:#007aff;font-weight:bold;font-size:14px');
+  console.log('%c\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550', 'color:#007aff;font-weight:bold;font-size:14px');
+
+  var pass = 0, fail = 0, warn = 0;
+
+  function _pass(msg) { pass++; console.log('%c  \u2705 ' + msg, 'color:#34c759'); }
+  function _fail(msg) { fail++; console.log('%c  \u274c ' + msg, 'color:#ff3b30'); }
+  function _warn(msg) { warn++; console.log('%c  \u26a0\ufe0f ' + msg, 'color:#ff9500'); }
+
+  // Step 0: Prerequisites
+  console.log('%c\u2500\u2500 Step 0: Prerequisites \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  if (typeof state === 'undefined' || !state) { _fail('state object not found'); return; }
+  else _pass('state object exists');
+
+  if (typeof mtgBuildSystemPrompt !== 'function') { _fail('mtgBuildSystemPrompt function not found'); return; }
+  else _pass('mtgBuildSystemPrompt function exists');
+
+  var chars = state.characters || [];
+  if (chars.length === 0) { _fail('No characters in state. Create a character first.'); return; }
+  else _pass('Characters found: ' + chars.length);
+
+  var worldbooks = state.worldbooks || [];
+  console.log('  Total worldbooks: ' + worldbooks.length);
+  var globalWbs = worldbooks.filter(function(wb) { return wb.isGlobal; });
+  console.log('  Global worldbooks: ' + globalWbs.length);
+
+  var masks = state.masks || [];
+  console.log('  Total masks: ' + masks.length);
+
+  // Step 1: Select test character
+  console.log('%c\u2500\u2500 Step 1: Select Test Character \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  var testChar = null;
+  for (var i = 0; i < chars.length; i++) {
+    if (chars[i].worldbookIds && chars[i].worldbookIds.length > 0) {
+      testChar = chars[i];
+      break;
+    }
+  }
+  if (!testChar) testChar = chars[0];
+
+  console.log('  Test character: ' + testChar.name + ' (id: ' + testChar.id + ')');
+  console.log('  Has personality: ' + !!testChar.personality + (testChar.personality ? ' (' + testChar.personality.length + ' chars)' : ''));
+  console.log('  Has background: ' + !!testChar.background + (testChar.background ? ' (' + testChar.background.length + ' chars)' : ''));
+  console.log('  Has identity: ' + !!testChar.identity);
+  console.log('  Has age: ' + !!testChar.age);
+  console.log('  Has systemPrompt: ' + !!testChar.systemPrompt + (testChar.systemPrompt ? ' (' + testChar.systemPrompt.length + ' chars)' : ''));
+  console.log('  worldbookIds: ' + JSON.stringify(testChar.worldbookIds || []));
+
+  // Step 2: Mock session
+  console.log('%c\u2500\u2500 Step 2: Build Mock Session \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  var mockSession = {
+    id: 'test-prompt-' + Date.now(),
+    name: 'Prompt Test Session',
+    mode: 'continue',
+    charPerson: 'first',
+    userPerson: 'first',
+    wc: { min: 100, max: 300 },
+    charIds: [testChar.id],
+    characters: [testChar.name],
+    worldview: 'A fantasy world with magic and dragons.',
+    identity: 'A traveling merchant.',
+    turnSummary: false,
+    summaryInterval: 5,
+    contextCount: 50,
+    history: [],
+    shortTermMemories: [],
+    shortTermMemory: [],
+    lastSummarizedEntryIdx: 0,
+    status: 'active'
+  };
+
+  console.log('  Mock session created (mode: continue)');
+
+  // Step 3: Generate prompt
+  console.log('%c\u2500\u2500 Step 3: Generate System Prompt \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  var prompt = '';
+  try {
+    prompt = mtgBuildSystemPrompt(mockSession, testChar);
+    _pass('mtgBuildSystemPrompt executed | length: ' + prompt.length + ' chars');
+  } catch (e) {
+    _fail('mtgBuildSystemPrompt threw error: ' + e.message);
+    return;
+  }
+
+  // Step 4: Verify character profile
+  console.log('%c\u2500\u2500 Step 4: Verify Character Profile \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  if (prompt.indexOf(testChar.name) >= 0) _pass('Character name "' + testChar.name + '" found');
+  else _fail('Character name "' + testChar.name + '" NOT found');
+
+  if (prompt.indexOf('CHARACTER PROFILE') >= 0) _pass('CHARACTER PROFILE section found');
+  else _fail('CHARACTER PROFILE section NOT found');
+
+  if (testChar.personality) {
+    if (prompt.indexOf(testChar.personality.substring(0, 30)) >= 0) _pass('Personality content found');
+    else _fail('Personality content NOT found');
+  } else _warn('No personality field on character');
+
+  if (testChar.background) {
+    if (prompt.indexOf(testChar.background.substring(0, 30)) >= 0) _pass('Background content found');
+    else _fail('Background content NOT found');
+  } else _warn('No background field on character');
+
+  if (testChar.identity) {
+    if (prompt.indexOf(testChar.identity.substring(0, 20)) >= 0) _pass('Identity content found');
+    else _fail('Identity content NOT found');
+  } else _warn('No identity field on character');
+
+  if (testChar.systemPrompt) {
+    if (prompt.indexOf(testChar.systemPrompt.substring(0, 30)) >= 0) _pass('systemPrompt content found');
+    else _fail('systemPrompt content NOT found');
+  } else _warn('No systemPrompt field on character');
+
+  // Step 5: Verify worldbooks
+  console.log('%c\u2500\u2500 Step 5: Verify Worldbooks \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  var charWbIds = testChar.worldbookIds || [];
+  var expectedWbs = worldbooks.filter(function(wb) {
+    return wb.isGlobal || charWbIds.indexOf(wb.id) >= 0;
+  });
+
+  if (expectedWbs.length === 0) {
+    _warn('No worldbooks expected (no global + no character-bound)');
+  } else {
+    if (prompt.indexOf('World Setting') >= 0) _pass('World Setting section found');
+    else _fail('World Setting section NOT found');
+
+    expectedWbs.forEach(function(wb) {
+      if (prompt.indexOf(wb.name) >= 0) _pass('Worldbook "' + wb.name + '" (' + (wb.isGlobal ? 'global' : 'char') + ') found');
+      else _fail('Worldbook "' + wb.name + '" (' + (wb.isGlobal ? 'global' : 'char') + ') NOT found');
+    });
+  }
+
+  // Step 6: Verify mask
+  console.log('%c\u2500\u2500 Step 6: Verify Mask \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  var expectedMask = masks.find(function(m) {
+    return (m.charIds || []).indexOf(testChar.id) >= 0;
+  });
+
+  if (expectedMask) {
+    if (prompt.indexOf('User Identity') >= 0 || prompt.indexOf('Mask') >= 0) _pass('Mask section found');
+    else _fail('Mask section NOT found');
+
+    if (expectedMask.persona && prompt.indexOf(expectedMask.persona.substring(0, 20)) >= 0) _pass('Mask persona found');
+    else if (expectedMask.persona) _fail('Mask persona NOT found');
+
+    if (expectedMask.name && prompt.indexOf(expectedMask.name) >= 0) _pass('Mask name found');
+    else if (expectedMask.name) _fail('Mask name NOT found');
+  } else {
+    _warn('No mask bound to "' + testChar.name + '"');
+  }
+
+  // Step 7: Verify writing rules
+  console.log('%c\u2500\u2500 Step 7: Verify Writing Rules \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  if (prompt.indexOf('COLLABORATIVE WRITING') >= 0) _pass('Writing rules section found');
+  else _fail('Writing rules section NOT found');
+
+  // Step 8: IF mode test
+  console.log('%c\u2500\u2500 Step 8: IF Mode Test \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  var ifSession = JSON.parse(JSON.stringify(mockSession));
+  ifSession.mode = 'if';
+  try {
+    var ifPrompt = mtgBuildSystemPrompt(ifSession, testChar);
+    if (ifPrompt.indexOf('WORLDVIEW') >= 0) _pass('IF mode: WORLDVIEW section found');
+    else _fail('IF mode: WORLDVIEW section missing');
+    if (ifPrompt.indexOf('USER IDENTITY') >= 0 || ifPrompt.indexOf('traveling merchant') >= 0) _pass('IF mode: USER IDENTITY found');
+    else _fail('IF mode: USER IDENTITY missing');
+  } catch (e) {
+    _fail('IF mode prompt failed: ' + e.message);
+  }
+
+  // Step 9: Multi-char test
+  console.log('%c\u2500\u2500 Step 9: Multi-Character Test \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  if (chars.length >= 2) {
+    var multiSession = JSON.parse(JSON.stringify(mockSession));
+    multiSession.charIds = [chars[0].id, chars[1].id];
+    multiSession.characters = [chars[0].name, chars[1].name];
+    try {
+      var multiPrompt = mtgBuildSystemPrompt(multiSession, chars[0]);
+      if (multiPrompt.indexOf('Group Scene') >= 0 || multiPrompt.indexOf(chars[1].name) >= 0)
+        _pass('Multi-char: Other character "' + chars[1].name + '" mentioned');
+      else _fail('Multi-char: Other character NOT mentioned');
+    } catch (e) {
+      _fail('Multi-char prompt failed: ' + e.message);
+    }
+  } else _warn('Only 1 character, skipping multi-char test');
+
+  // Step 10: Helper functions
+  console.log('%c\u2500\u2500 Step 10: Helper Functions \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+
+  [
+    ['getActiveWorldBooks', typeof getActiveWorldBooks],
+    ['getMaskForChar', typeof getMaskForChar],
+    ['getActiveSystemPrompt', typeof getActiveSystemPrompt],
+    ['getCharMemoriesByType', typeof getCharMemoriesByType],
+    ['sendChat', typeof sendChat]
+  ].forEach(function(h) {
+    if (h[1] === 'function') _pass(h[0] + ' available');
+    else _warn(h[0] + ' NOT available (fallback used)');
+  });
+
+  // Step 11: Print full prompt
+  console.log('%c\u2500\u2500 Step 11: Full Prompt Output \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+  console.log('%c BEGIN SYSTEM PROMPT (' + prompt.length + ' chars)', 'color:#007aff');
+  var lines = prompt.split('\n');
+  var section = '';
+  var sn = 0;
+  for (var li = 0; li < lines.length; li++) {
+    section += lines[li] + '\n';
+    if (section.length > 800 || li === lines.length - 1) {
+      sn++;
+      console.log('  [Part ' + sn + ']\n' + section);
+      section = '';
+    }
+  }
+  console.log('%c END SYSTEM PROMPT', 'color:#007aff');
+
+  // Step 12: Full messages array
+  console.log('%c\u2500\u2500 Step 12: Full Messages Array \u2500\u2500', 'color:#8e8e93;font-weight:bold');
+  try {
+    var ctxMsgs = mtgBuildContextMessages(mockSession, testChar);
+    var fullMessages = [{ role: 'system', content: prompt }].concat(ctxMsgs);
+    console.log('  Total messages: ' + fullMessages.length);
+    fullMessages.forEach(function(m, idx) {
+      console.log('    [' + idx + '] role: ' + m.role + ' | length: ' + (m.content || '').length);
+    });
+    _pass('Full messages array: ' + fullMessages.length + ' messages');
+  } catch (e) {
+    _fail('mtgBuildContextMessages failed: ' + e.message);
+  }
+
+  // Summary
+  console.log('%c\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550', 'color:#007aff;font-weight:bold;font-size:14px');
+  var total = pass + fail;
+  var summary = '  Results: ' + pass + ' passed, ' + fail + ' failed, ' + warn + ' warnings / ' + total + ' checks';
+  console.log('%c' + summary, fail === 0 ? 'color:#34c759;font-weight:bold;font-size:13px' : 'color:#ff3b30;font-weight:bold;font-size:13px');
+
+  if (fail > 0 || warn > 0) {
+    console.log('%c\u2500\u2500 Quick Fix Suggestions \u2500\u2500', 'color:#ff9500;font-weight:bold');
+    if (!testChar.personality) console.log('  Add personality: state.characters.find(c=>c.id==="' + testChar.id + '").personality = "..."; saveState();');
+    if (!testChar.background) console.log('  Add background: state.characters.find(c=>c.id==="' + testChar.id + '").background = "..."; saveState();');
+    if (expectedWbs.length === 0 && worldbooks.length > 0) console.log('  Bind worldbook or set one as global');
+    if (!expectedMask && masks.length === 0) console.log('  Create a mask and bind it to a character');
+  }
+
+  return { pass: pass, fail: fail, warn: warn, total: total, promptLength: prompt.length };
+}
+
+
 /* ══════════════════════════════════
-   ★★★ 全局导出 — 必须在文件最末尾 ★★★
+   ★★★ Global Exports ★★★
    ══════════════════════════════════ */
 ;(function _exportMeetingGlobals() {
   'use strict';
   try {
-    // ── 10 个核心业务函数 ──
+    // Core business functions
     window.mtgEnsureMemoryFields     = mtgEnsureMemoryFields;
     window.mtgCheckAutoSummarize     = mtgCheckAutoSummarize;
     window.mtgSummarizeRemaining     = mtgSummarizeRemaining;
@@ -2089,7 +2551,7 @@ function __mizuMeetingTest() {
     window.mtgGetUnsummarizedEntries = mtgGetUnsummarizedEntries;
     window.mtgManualWriteToMemory    = mtgManualWriteToMemory;
 
-    // ── UI & 页面函数 ──
+    // UI & page functions
     window.initMeetingPage           = initMeetingPage;
     window.mtgRenderArchiveList      = mtgRenderArchiveList;
     window.openMeetingNewArchive     = openMeetingNewArchive;
@@ -2115,19 +2577,24 @@ function __mizuMeetingTest() {
     window.mtgRenderSettingsMemory   = mtgRenderSettingsMemory;
     window.mtgRenderSessionMemories  = mtgRenderSessionMemories;
 
-    // ── 向后兼容 ──
+    // ★★★ v2.1: Prompt builder (exported for testing)
+    window.mtgBuildSystemPrompt      = mtgBuildSystemPrompt;
+    window.mtgBuildContextMessages   = mtgBuildContextMessages;
+
+    // Backward compat
     window.openMeetingSettings       = openMeetingSettings;
     window.startMeetingSession       = startMeetingSession;
     window.renderMeetingCards        = renderMeetingCards;
     window.mtgCloseEndModal          = mtgCloseEndModal;
 
-    // ── 测试函数 ──
+    // Test functions
     window.__mizuMeetingTest         = __mizuMeetingTest;
+    window.__mizuMeetingPromptTest   = __mizuMeetingPromptTest;
 
-    console.log('[Meeting-Memory] \u2705 All globals exported successfully.',
-      '| Core functions: 10',
-      '| Test: __mizuMeetingTest');
+    console.log('[Meeting v2.1] All globals exported.',
+      '| Core: 10 | Prompt: mtgBuildSystemPrompt + mtgBuildContextMessages',
+      '| Tests: __mizuMeetingTest + __mizuMeetingPromptTest');
   } catch (exportErr) {
-    console.error('[Meeting-Memory] \u274c Global export FAILED:', exportErr);
+    console.error('[Meeting v2.1] Global export FAILED:', exportErr);
   }
 })();
