@@ -29,6 +29,12 @@ function updateHomePages() {
   document.getElementById('homeDot1').classList.toggle('active', homePageIndex === 1);
 }
 
+// ========== Together 入口 ==========
+function openTogether() {
+  console.log('[Together] Opening Together app');
+  nav('screen-together');
+}
+
 // ========== HOME WIDGETS ==========
 function setHomeBanner(inp) {
   if (inp.files?.[0]) {

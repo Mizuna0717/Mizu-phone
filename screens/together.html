@@ -1,0 +1,398 @@
+<!-- TOGETHER -->
+<div class="screen" id="screen-together">
+  <div class="together-container">
+    <!-- 顶部导航 -->
+    <div class="together-header">
+      <button class="together-back" onclick="nav('screen-home')">
+        <svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="together-title" id="togetherHeaderTitle">Together</div>
+      <div style="width:32px"></div>
+    </div>
+
+    <!-- 内容区（三个子页面） -->
+    <div class="together-content">
+
+      <!-- ════════════════════════════════════════ -->
+      <!--            一起听 · Listen              -->
+      <!-- ════════════════════════════════════════ -->
+      <div class="together-pane active" id="togetherListen">
+        <div class="tg-listen-scroll">
+
+          <!-- 在线指示 -->
+          <div class="tg-online-bar">
+            <div class="tg-online-dot"></div>
+            <span>2 people listening</span>
+          </div>
+
+          <!-- 专辑封面 -->
+          <div class="tg-album-wrap">
+            <div class="tg-album-cover">
+              <svg viewBox="0 0 80 80" class="tg-album-icon">
+                <circle cx="40" cy="40" r="28" />
+                <circle cx="40" cy="40" r="8" />
+                <path d="M40 12v8M40 60v8M12 40h8M60 40h8" />
+              </svg>
+            </div>
+            <div class="tg-album-ring"></div>
+          </div>
+
+          <!-- 歌曲信息 -->
+          <div class="tg-song-info">
+            <div class="tg-song-title"><div class="tg-skel" style="width:140px;height:16px"></div></div>
+            <div class="tg-song-artist"><div class="tg-skel" style="width:90px;height:12px"></div></div>
+          </div>
+
+          <!-- 进度条 -->
+          <div class="tg-progress-wrap">
+            <div class="tg-progress-track">
+              <div class="tg-progress-fill" style="width:38%"></div>
+              <div class="tg-progress-thumb" style="left:38%"></div>
+            </div>
+            <div class="tg-progress-time">
+              <span>1:24</span>
+              <span>3:47</span>
+            </div>
+          </div>
+
+          <!-- 播放控制 -->
+          <div class="tg-controls">
+            <button class="tg-ctrl-btn tg-ctrl-sm">
+              <svg viewBox="0 0 24 24"><path d="M19 20L9 12l10-8v16z"/><path d="M5 4v16"/></svg>
+            </button>
+            <button class="tg-ctrl-btn tg-ctrl-play">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="tg-ctrl-btn tg-ctrl-sm">
+              <svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 4v16"/></svg>
+            </button>
+          </div>
+
+          <!-- 音量 -->
+          <div class="tg-volume-wrap">
+            <svg viewBox="0 0 20 20" class="tg-vol-icon">
+              <path d="M3 8v4h3l4 4V4L6 8H3z"/>
+            </svg>
+            <div class="tg-volume-track">
+              <div class="tg-volume-fill" style="width:65%"></div>
+            </div>
+            <svg viewBox="0 0 20 20" class="tg-vol-icon">
+              <path d="M3 8v4h3l4 4V4L6 8H3z"/>
+              <path d="M14 7.5a4 4 0 010 5M16.5 5a8 8 0 010 10"/>
+            </svg>
+          </div>
+
+          <!-- 歌词区域 -->
+          <div class="tg-section-label">LYRICS</div>
+          <div class="tg-lyrics-card">
+            <div class="tg-lyric-line active"><div class="tg-skel" style="width:75%"></div></div>
+            <div class="tg-lyric-line"><div class="tg-skel" style="width:60%"></div></div>
+            <div class="tg-lyric-line"><div class="tg-skel" style="width:82%"></div></div>
+            <div class="tg-lyric-line"><div class="tg-skel" style="width:48%"></div></div>
+            <div class="tg-lyric-line"><div class="tg-skel" style="width:70%"></div></div>
+          </div>
+
+          <!-- 播放列表 -->
+          <div class="tg-section-label">UP NEXT</div>
+          <div class="tg-playlist">
+            <div class="tg-playlist-item">
+              <div class="tg-pl-cover"></div>
+              <div class="tg-pl-info">
+                <div class="tg-skel" style="width:110px;height:12px"></div>
+                <div class="tg-skel" style="width:70px;height:10px;margin-top:5px"></div>
+              </div>
+              <span class="tg-pl-dur">3:21</span>
+            </div>
+            <div class="tg-playlist-item">
+              <div class="tg-pl-cover"></div>
+              <div class="tg-pl-info">
+                <div class="tg-skel" style="width:95px;height:12px"></div>
+                <div class="tg-skel" style="width:60px;height:10px;margin-top:5px"></div>
+              </div>
+              <span class="tg-pl-dur">4:05</span>
+            </div>
+            <div class="tg-playlist-item">
+              <div class="tg-pl-cover"></div>
+              <div class="tg-pl-info">
+                <div class="tg-skel" style="width:125px;height:12px"></div>
+                <div class="tg-skel" style="width:80px;height:10px;margin-top:5px"></div>
+              </div>
+              <span class="tg-pl-dur">2:58</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════ -->
+      <!--            一起看 · Watch               -->
+      <!-- ════════════════════════════════════════ -->
+      <div class="together-pane" id="togetherWatch">
+        <div class="tg-watch-scroll">
+
+          <!-- 在线指示 -->
+          <div class="tg-online-bar">
+            <div class="tg-online-dot"></div>
+            <span>2 people watching</span>
+          </div>
+
+          <!-- 视频播放器 -->
+          <div class="tg-video-player">
+            <div class="tg-video-screen">
+              <svg viewBox="0 0 64 64" class="tg-video-play-icon">
+                <circle cx="32" cy="32" r="20" />
+                <path d="M26 20l20 12-20 12z" />
+              </svg>
+            </div>
+            <!-- 视频控制条 -->
+            <div class="tg-video-controls">
+              <button class="tg-vc-btn">
+                <svg viewBox="0 0 20 20"><path d="M4 4l12 7-12 7z"/></svg>
+              </button>
+              <div class="tg-vc-progress">
+                <div class="tg-vc-fill" style="width:24%"></div>
+              </div>
+              <span class="tg-vc-time">3:42 / 15:20</span>
+              <button class="tg-vc-btn">
+                <svg viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" rx="2"/><path d="M6 2v16M2 6h16"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- 视频信息 -->
+          <div class="tg-video-info">
+            <div class="tg-vi-title"><div class="tg-skel" style="width:85%;height:16px"></div></div>
+            <div class="tg-vi-meta">
+              <div class="tg-skel" style="width:120px;height:11px"></div>
+            </div>
+          </div>
+
+          <!-- 操作栏 -->
+          <div class="tg-video-actions">
+            <div class="tg-va-item">
+              <svg viewBox="0 0 24 24"><path d="M14 9V5l7 7-7 7v-4c-5 0-8.5 1.5-11 5 1-5 4-10 11-11z"/></svg>
+              <span>Share</span>
+            </div>
+            <div class="tg-va-item">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z"/></svg>
+              <span>Like</span>
+            </div>
+            <div class="tg-va-item">
+              <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+              <span>Save</span>
+            </div>
+          </div>
+
+          <div class="tg-divider"></div>
+
+          <!-- 推荐视频列表 -->
+          <div class="tg-section-label">RECOMMENDED</div>
+          <div class="tg-video-list">
+            <div class="tg-vl-item">
+              <div class="tg-vl-thumb">
+                <svg viewBox="0 0 32 32" class="tg-vl-play"><path d="M12 8l12 8-12 8z"/></svg>
+                <span class="tg-vl-badge">12:34</span>
+              </div>
+              <div class="tg-vl-info">
+                <div class="tg-skel" style="width:100%;height:12px"></div>
+                <div class="tg-skel" style="width:70%;height:10px;margin-top:6px"></div>
+                <div class="tg-skel" style="width:45%;height:9px;margin-top:4px"></div>
+              </div>
+            </div>
+            <div class="tg-vl-item">
+              <div class="tg-vl-thumb">
+                <svg viewBox="0 0 32 32" class="tg-vl-play"><path d="M12 8l12 8-12 8z"/></svg>
+                <span class="tg-vl-badge">8:15</span>
+              </div>
+              <div class="tg-vl-info">
+                <div class="tg-skel" style="width:90%;height:12px"></div>
+                <div class="tg-skel" style="width:55%;height:10px;margin-top:6px"></div>
+                <div class="tg-skel" style="width:40%;height:9px;margin-top:4px"></div>
+              </div>
+            </div>
+            <div class="tg-vl-item">
+              <div class="tg-vl-thumb">
+                <svg viewBox="0 0 32 32" class="tg-vl-play"><path d="M12 8l12 8-12 8z"/></svg>
+                <span class="tg-vl-badge">21:07</span>
+              </div>
+              <div class="tg-vl-info">
+                <div class="tg-skel" style="width:80%;height:12px"></div>
+                <div class="tg-skel" style="width:65%;height:10px;margin-top:6px"></div>
+                <div class="tg-skel" style="width:35%;height:9px;margin-top:4px"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════ -->
+      <!--            一起读 · Read                -->
+      <!-- ════════════════════════════════════════ -->
+      <div class="together-pane" id="togetherRead">
+        <div class="tg-read-scroll">
+
+          <!-- 在线指示 -->
+          <div class="tg-online-bar">
+            <div class="tg-online-dot"></div>
+            <span>2 people reading</span>
+          </div>
+
+          <!-- 书籍信息 -->
+          <div class="tg-book-header">
+            <div class="tg-book-cover-wrap">
+              <div class="tg-book-cover">
+                <svg viewBox="0 0 48 64" class="tg-book-icon">
+                  <rect x="4" y="2" width="40" height="60" rx="3"/>
+                  <path d="M12 14h24M12 22h24M12 30h18"/>
+                  <path d="M12 44h10M26 44h10"/>
+                </svg>
+              </div>
+            </div>
+            <div class="tg-book-meta">
+              <div class="tg-skel" style="width:130px;height:15px"></div>
+              <div class="tg-skel" style="width:80px;height:11px;margin-top:6px"></div>
+              <div class="tg-book-progress-label">
+                <span>Chapter 3 / 12</span>
+              </div>
+              <div class="tg-book-progress-bar">
+                <div class="tg-book-progress-fill" style="width:25%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 阅读页面卡片 -->
+          <div class="tg-page-card">
+            <!-- 书签 -->
+            <div class="tg-bookmark">
+              <svg viewBox="0 0 16 22"><path d="M2 1h12a1 1 0 011 1v19l-7-4-7 4V2a1 1 0 011-1z"/></svg>
+            </div>
+
+            <!-- 章节标题 -->
+            <div class="tg-chapter-title">
+              <div class="tg-skel" style="width:60%;height:14px;margin:0 auto"></div>
+            </div>
+
+            <!-- 模拟段落 -->
+            <div class="tg-paragraph">
+              <div class="tg-text-line" style="width:100%"></div>
+              <div class="tg-text-line" style="width:95%"></div>
+              <div class="tg-text-line" style="width:88%"></div>
+              <div class="tg-text-line" style="width:100%"></div>
+              <div class="tg-text-line" style="width:72%"></div>
+            </div>
+            <div class="tg-paragraph">
+              <div class="tg-text-line" style="width:100%"></div>
+              <div class="tg-text-line" style="width:92%"></div>
+              <div class="tg-text-line" style="width:100%"></div>
+              <div class="tg-text-line" style="width:85%"></div>
+              <div class="tg-text-line" style="width:100%"></div>
+              <div class="tg-text-line" style="width:64%"></div>
+            </div>
+            <div class="tg-paragraph">
+              <div class="tg-text-line" style="width:100%"></div>
+              <div class="tg-text-line" style="width:96%"></div>
+              <div class="tg-text-line" style="width:78%"></div>
+            </div>
+
+            <!-- 页码 -->
+            <div class="tg-page-num">42</div>
+          </div>
+
+          <!-- 翻页控制 -->
+          <div class="tg-page-controls">
+            <button class="tg-page-btn">
+              <svg viewBox="0 0 20 20"><path d="M13 15l-5-5 5-5"/></svg>
+              <span>Prev</span>
+            </button>
+            <div class="tg-page-indicator">
+              <span>Page 42 of 186</span>
+            </div>
+            <button class="tg-page-btn">
+              <span>Next</span>
+              <svg viewBox="0 0 20 20"><path d="M7 5l5 5-5 5"/></svg>
+            </button>
+          </div>
+
+          <!-- 阅读设置 -->
+          <div class="tg-section-label">READING</div>
+          <div class="tg-read-settings">
+            <div class="tg-rs-row">
+              <svg viewBox="0 0 20 20" class="tg-rs-icon"><path d="M3 5h14M3 10h14M3 15h10"/></svg>
+              <span>Font Size</span>
+              <div class="tg-rs-control">
+                <span class="tg-rs-btn">A-</span>
+                <span class="tg-rs-val">16</span>
+                <span class="tg-rs-btn">A+</span>
+              </div>
+            </div>
+            <div class="tg-rs-row">
+              <svg viewBox="0 0 20 20" class="tg-rs-icon"><circle cx="10" cy="10" r="7"/><path d="M10 3v14"/></svg>
+              <span>Theme</span>
+              <div class="tg-rs-control">
+                <span class="tg-theme-dot tg-td-light active"></span>
+                <span class="tg-theme-dot tg-td-sepia"></span>
+                <span class="tg-theme-dot tg-td-dark"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 目录占位 -->
+          <div class="tg-section-label">TABLE OF CONTENTS</div>
+          <div class="tg-toc">
+            <div class="tg-toc-item">
+              <span class="tg-toc-num">1</span>
+              <div class="tg-skel" style="width:120px;height:11px"></div>
+            </div>
+            <div class="tg-toc-item">
+              <span class="tg-toc-num">2</span>
+              <div class="tg-skel" style="width:100px;height:11px"></div>
+            </div>
+            <div class="tg-toc-item active">
+              <span class="tg-toc-num">3</span>
+              <div class="tg-skel" style="width:135px;height:11px"></div>
+              <span class="tg-toc-current">Reading</span>
+            </div>
+            <div class="tg-toc-item">
+              <span class="tg-toc-num">4</span>
+              <div class="tg-skel" style="width:95px;height:11px"></div>
+            </div>
+            <div class="tg-toc-item">
+              <span class="tg-toc-num">5</span>
+              <div class="tg-skel" style="width:115px;height:11px"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 底部 Tab 栏 -->
+    <div class="together-tabs">
+      <div class="together-tab active" id="tabListen" onclick="switchTogetherTab('listen')">
+        <svg viewBox="0 0 24 24">
+          <path d="M5 17V12a7 7 0 0114 0v5"/>
+          <rect x="2" y="15" width="4" height="6" rx="1.5"/>
+          <rect x="18" y="15" width="4" height="6" rx="1.5"/>
+        </svg>
+        <span data-i18n="together.listen">Listen Together</span>
+      </div>
+      <div class="together-tab" id="tabWatch" onclick="switchTogetherTab('watch')">
+        <svg viewBox="0 0 24 24">
+          <rect x="2" y="4" width="20" height="13" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+          <path d="M10 9l5 3-5 3z"/>
+        </svg>
+        <span data-i18n="together.watch">Watch Together</span>
+      </div>
+      <div class="together-tab" id="tabRead" onclick="switchTogetherTab('read')">
+        <svg viewBox="0 0 24 24">
+          <path d="M2 4h7a3 3 0 013 3v13s-1.5-2-5-2H2V4z"/>
+          <path d="M22 4h-7a3 3 0 00-3 3v13s1.5-2 5-2h5V4z"/>
+        </svg>
+        <span data-i18n="together.read">Read Together</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -178,6 +178,7 @@ var screenFragments = [
     'screens/bookmarks.html',
     'screens/chat-config.html',
     'screens/phone-message.html',
+    'screens/together.html',
     'screens/chat-settings.html',
 ];
 
@@ -301,6 +302,7 @@ var scripts = [
     'js/auth.js',
     'js/wiki.js',
     'js/phone-message.js',
+    'js/together.js',
     'js/init.js',
 ];
 
