@@ -154,18 +154,22 @@
       '<button class="pmsg-back-btn" onclick="backToMessageList()"><svg viewBox="0 0 20 20"><path d="M13 4l-6 6 6 6"/></svg></button>' +
       '<div class="pmsg-chat-center"><div class="pmsg-chat-avatar">'+_pmsgEscHtml(initial)+'</div><div class="pmsg-chat-name">'+_pmsgEscHtml(name)+'</div></div>' +
       '<div class="pmsg-chat-header-right"></div></div>';
-    h+='<div class="pmsg-chat-messages" id="pmsgChatMessages">';
+        h+='<div class="pmsg-chat-messages" id="pmsgChatMessages">';
     if(chat.messages&&chat.messages.length){
+      // ★ 只渲染本会话自己的 messages（已按 chat 隔离），并按时间排序，明确区分 sender
+      var msgs=chat.messages.slice().sort(function(a,b){return (a.timestamp||0)-(b.timestamp||0);});
       var prevSender=null, prevTs=0;
-      chat.messages.forEach(function(msg,idx){
+      msgs.forEach(function(msg,idx){
+        var sender=_pmsgNormSender(msg);              // ★ 归一化 sender
         if(msg.timestamp&&(msg.timestamp-prevTs>1800000||idx===0)) h+='<div class="pmsg-time-label">'+_pmsgFormatFullTime(msg.timestamp)+'</div>';
-        var isSent=(msg.sender==='user'), isGF=(msg.sender!==prevSender);
+        var isSent=(sender==='user'), isGF=(sender!==prevSender);
         var cls='pmsg-msg-row '+(isSent?'pmsg-msg-sent':'pmsg-msg-received'); if(isGF) cls+=' pmsg-group-first';
         h+='<div class="'+cls+'"><div class="pmsg-msg-bubble">'+_pmsgEscHtml(msg.content)+'</div></div>';
-        prevSender=msg.sender; prevTs=msg.timestamp||0;
+        prevSender=sender; prevTs=msg.timestamp||0;
       });
     } else { h+='<div class="pmsg-info-line">No messages</div>'; }
     h+='</div>';
+
     h+='<div class="pmsg-chat-input-bar"><div class="pmsg-chat-input-wrap"><input type="text" class="pmsg-chat-input" placeholder="Message" readonly /></div>' +
       '<button class="pmsg-chat-send-btn" disabled><svg viewBox="0 0 20 20" stroke="#fff" fill="none" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 10L16 3.5 12.5 17l-3-5.5z"/><path d="M16 3.5L9.5 11.5"/></svg></button></div>';
     h+='</div>';
@@ -177,7 +181,7 @@
     if(typeof openPhoneApp==='function') openPhoneApp('messages');
   };
 
-  window.rollMessageChats = async function() {
+    window.rollMessageChats = async function() {
     var selectedNpcs=[], usingFictional=false;
     if(state.npcs&&state.npcs.length>0){
       var pool=state.npcs.slice(); var pickCount=Math.min(pool.length,5+Math.floor(Math.random()*6));
@@ -190,9 +194,40 @@
     if(!api||!api.url){if(typeof showErrorModal==='function')showErrorModal(typeof T==='function'?T('configApi'):'Please configure API');else showToast('Please configure API first');return;}
     var bodyEl=document.querySelector('#phoneAppPage .papp-body');
     if(bodyEl){bodyEl.innerHTML='<div class="pmsg-loading"><div class="pmsg-loading-dots"><span></span><span></span><span></span></div><p style="font-size:14px">Generating conversations...</p></div>';}
-    var npcList=selectedNpcs.map(function(npc,idx){var name=npc.name||('NPC_'+idx);var pers=npc.personality||npc.systemPrompt||npc.notes||npc.desc||'a friendly person';var nick=npc.nickname||npc.displayName||'';return(idx+1)+'. Name: "'+name+'"'+(nick?', Nickname: "'+nick+'"':'')+', Personality: "'+pers+'"';}).join('\n');
+
+    // ★★★ 人设注入：0-based Index + 尽量多字段（性格/背景/说话风格）★★★
+    var npcList=selectedNpcs.map(function(npc,idx){
+      var name  = npc.name || ('NPC_'+idx);
+      var nick  = npc.nickname || npc.displayName || '';
+      var pers  = npc.personality || npc.persona || npc.systemPrompt || npc.notes || npc.desc || npc.description || 'a friendly person';
+      var bg    = npc.background || npc.setting || npc.bio || '';
+      var style = npc.speakingStyle || npc.speaking_style || npc.style || npc.tone || '';
+      var line = 'Index ' + idx + ':\n  - Name: "' + name + '"';
+      if(nick)  line += '\n  - Nickname: "' + nick + '"';
+      line += '\n  - Personality: "' + pers + '"';
+      if(bg)    line += '\n  - Background: "' + bg + '"';
+      if(style) line += '\n  - Speaking style: "' + style + '"';
+      return line;
+    }).join('\n\n');
+
     var userName=(state.userProfile&&state.userProfile.name)||'User';
-    var prompt='You are generating realistic text-message chat histories. The user is "'+userName+'".\n\n'+(usingFictional?'These are fictional contacts:\n':'NPCs:\n')+npcList+'\n\nRULES:\n1. For EACH person, generate a separate conversation with 3-8 messages.\n2. Messages alternate between "user" and "npc".\n3. Content must be natural and fit the personality.\n4. Use the language matching the name.\n5. Each conversation should have a coherent topic.\n\nReturn ONLY a valid JSON array:\n[\n  { "npcIndex": 0, "messages": [ { "sender": "user", "content": "..." }, { "sender": "npc", "content": "..." } ] }\n]';
+    var prompt =
+      'You are generating realistic text-message chat histories. The phone owner (the "user") is "'+userName+'".\n\n'+
+      (usingFictional?'These are fictional contacts:\n\n':'These are the contacts:\n\n')+npcList+'\n\n'+
+      'RULES:\n'+
+      '1. Generate ONE separate conversation for EACH contact listed above (3-8 messages each).\n'+
+      '2. Tag every message with "sender": use exactly "user" for '+userName+', and exactly "npc" for the contact.\n'+
+      '3. CRITICAL: every "npc" message MUST clearly reflect THAT contact\'s Personality, Background and Speaking style. '+
+         'Do NOT write generic/interchangeable filler. Two different contacts must sound obviously different in vocabulary, tone and attitude.\n'+
+      '4. Messages should alternate naturally between "user" and "npc" (realistic, not strictly one-by-one).\n'+
+      '5. Use the language that matches the contact\'s name/persona.\n'+
+      '6. Each conversation must have a coherent topic that fits the persona.\n'+
+      '7. "npcIndex" in the output MUST equal the exact Index number shown above for that contact (0-based). Never shift it.\n\n'+
+      'Return ONLY a valid JSON array, one object per contact:\n'+
+      '[\n'+
+      '  { "npcIndex": 0, "messages": [ { "sender": "user", "content": "..." }, { "sender": "npc", "content": "..." } ] }\n'+
+      ']';
+
     try {
       var rawReply=await sendChat(api,[{role:'user',content:prompt}]);
       var convos=null;
@@ -201,13 +236,21 @@
       if(!state.messageChats)state.messageChats=[];
       var now=Date.now();
       convos.forEach(function(convo,ci){
-        var npcIdx=(convo.npcIndex!=null)?convo.npcIndex:ci;
+        // ★ 严格校验 npcIndex，非法则回退到顺序索引，避免错位/越界导致 A 混入 B
+        var npcIdx=(convo.npcIndex!=null && convo.npcIndex>=0 && convo.npcIndex<selectedNpcs.length)
+          ? convo.npcIndex : ci;
         if(npcIdx<0||npcIdx>=selectedNpcs.length)return;
         var npc=selectedNpcs[npcIdx]; var msgs=convo.messages;
         if(!Array.isArray(msgs)||msgs.length<1)return;
         var npcName=npc.name||('NPC_'+npcIdx); var displayName=_pmsgMakeDisplayName(npc);
         var baseTime=now-(msgs.length*240000)-(ci*2400000);
-        var stamped=msgs.map(function(m,mi){return{sender:(m.sender==='user')?'user':'npc',content:(m.content||'').trim(),timestamp:baseTime+mi*(60000+Math.floor(Math.random()*300000))};}).filter(function(m){return m.content.length>0;});
+        var stamped=msgs.map(function(m,mi){
+          return {
+            sender:_pmsgNormSender(m),   // ★ 归一化 sender，防止全挤一边
+            content:(m.content||m.text||m.message||'').toString().trim(),
+            timestamp:baseTime+mi*(60000+Math.floor(Math.random()*300000))
+          };
+        }).filter(function(m){return m.content.length>0;});
         if(stamped.length===0)return;
         var lastMsg=stamped[stamped.length-1]; var npcId=npc.id||('npc_'+npcIdx);
         var found=false;
@@ -228,6 +271,14 @@
   function _pmsgEscAttr(s){return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
   function _pmsgFormatTime(ts){if(!ts)return '';var d=new Date(ts);var now=new Date();var diff=now.getTime()-d.getTime();if(diff<60000)return 'now';if(diff<3600000)return Math.floor(diff/60000)+'m';if(diff<86400000)return(''+d.getHours()).padStart(2,'0')+':'+(''+d.getMinutes()).padStart(2,'0');if(diff<604800000)return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];return(d.getMonth()+1)+'/'+d.getDate();}
   function _pmsgFormatFullTime(ts){if(!ts)return '';var d=new Date(ts);var now=new Date();var diff=now.getTime()-d.getTime();var time=(''+d.getHours()).padStart(2,'0')+':'+(''+d.getMinutes()).padStart(2,'0');if(diff<86400000)return 'Today '+time;if(diff<172800000)return 'Yesterday '+time;return(d.getMonth()+1)+'/'+d.getDate()+' '+time;}
+  function _pmsgNormSender(m){
+   if(!m) return 'npc';
+   if(m.isUser===true) return 'user';
+   var s = (m.sender!=null ? m.sender : (m.role!=null ? m.role : (m.from!=null ? m.from : '')));
+   s = String(s).trim().toLowerCase();
+   if(s==='user'||s==='me'||s==='self'||s==='u') return 'user';
+  return 'npc';
+ }
 
   // ==========================================================
   //  CONSOLE TEST SUITE — __mizuMessageTest()
