@@ -91,11 +91,7 @@
     meetingStatusLabel:     'Status',
     meetingNoSessions:      'No sessions',
     meetingCreateFirst:     'Create one to start',
-    // ★★★ NEW i18n keys ★★★
-    meetingArchiveBtn:      'Archive',
-    meetingOptionsSection:  'OPTIONS',
-    meetingNoNSFW:          'No NSFW Content',
-    meetingAntiInterrupt:   'Anti-interrupt'
+        meetingArchiveBtn:      'Archive'
   });
   _add('zh', {
     meetingTitle:           '\u89c1\u9762',
@@ -169,11 +165,7 @@
     meetingStatusLabel:     '\u72b6\u6001',
     meetingNoSessions:      '\u6682\u65e0\u4f1a\u8bdd',
     meetingCreateFirst:     '\u521b\u5efa\u4e00\u4e2a\u5f00\u59cb',
-    // ★★★ NEW i18n keys (zh) ★★★
-    meetingArchiveBtn:      '\u5b58\u6863',
-    meetingOptionsSection:  '\u9009\u9879',
-    meetingNoNSFW:          '\u4e0d\u5199 NSFW \u5185\u5bb9',
-    meetingAntiInterrupt:   '\u9632\u62a2\u8bdd'
+        meetingArchiveBtn:      '\u5b58\u6863'
   });
 })();
 
@@ -203,21 +195,29 @@ function mtgArchiveSession() {
 }
 
 /* ══════════════════════════════════
-   ★★★ NEW: No-NSFW Toggle Handler (UI only) ★★★
+   New Archive toggles (meeting-settings.html)
    ══════════════════════════════════ */
-function mtgSetNoNSFWToggled() {
-  var toggle = document.getElementById('mtgSetToggleNoNSFW');
-  var isActive = toggle ? toggle.classList.contains('active') : false;
-  console.log('[Meeting] No-NSFW toggled:', isActive, '(UI only — no filtering logic)');
+function mtgNewBanNsfwToggled() {
+  var isActive = document.getElementById('mtgNewToggleBanNsfw').classList.contains('active');
+  console.log('[Meeting] New archive banNsfw:', isActive);
+}
+
+function mtgNewAntiSnatchToggled() {
+  var isActive = document.getElementById('mtgNewToggleAntiSnatch').classList.contains('active');
+  console.log('[Meeting] New archive antiSnatch:', isActive);
 }
 
 /* ══════════════════════════════════
-   ★★★ NEW: Anti-interrupt Toggle Handler (UI only) ★★★
+   Manage page toggles (meeting-manage.html)
    ══════════════════════════════════ */
-function mtgSetAntiInterruptToggled() {
-  var toggle = document.getElementById('mtgSetToggleAntiInterrupt');
-  var isActive = toggle ? toggle.classList.contains('active') : false;
-  console.log('[Meeting] Anti-interrupt toggled:', isActive, '(UI only — no anti-interrupt logic)');
+function mtgManageBanNsfwToggled() {
+  var isActive = document.getElementById('mtgManageToggleBanNsfw').classList.contains('active');
+  console.log('[Meeting] Manage banNsfw:', isActive);
+}
+
+function mtgManageAntiSnatchToggled() {
+  var isActive = document.getElementById('mtgManageToggleAntiSnatch').classList.contains('active');
+  console.log('[Meeting] Manage antiSnatch:', isActive);
 }
 
 
@@ -656,10 +656,11 @@ function __mizuMeetingPromptTest() {
     window.mtgBuildSystemPrompt      = mtgBuildSystemPrompt;
     window.mtgBuildContextMessages   = mtgBuildContextMessages;
 
-    // ★★★ NEW: Archive + toggle handlers ★★★
-    window.mtgArchiveSession         = mtgArchiveSession;
-    window.mtgSetNoNSFWToggled       = mtgSetNoNSFWToggled;
-    window.mtgSetAntiInterruptToggled = mtgSetAntiInterruptToggled;
+        window.mtgArchiveSession              = mtgArchiveSession;
+    window.mtgNewBanNsfwToggled           = mtgNewBanNsfwToggled;
+    window.mtgNewAntiSnatchToggled        = mtgNewAntiSnatchToggled;
+    window.mtgManageBanNsfwToggled        = mtgManageBanNsfwToggled;
+    window.mtgManageAntiSnatchToggled     = mtgManageAntiSnatchToggled;
 
     // Backward compat
     window.openMeetingSettings       = openMeetingSettings;
@@ -671,9 +672,9 @@ function __mizuMeetingPromptTest() {
     window.__mizuMeetingTest         = __mizuMeetingTest;
     window.__mizuMeetingPromptTest   = __mizuMeetingPromptTest;
 
-    console.log('[Meeting v2.1] All globals exported.',
+        console.log('[Meeting v2.1] All globals exported.',
       '| Core: 10 | Prompt: mtgBuildSystemPrompt + mtgBuildContextMessages',
-      '| NEW: mtgArchiveSession + mtgSetNoNSFWToggled + mtgSetAntiInterruptToggled',
+      '| Toggles: mtgNewBanNsfwToggled + mtgNewAntiSnatchToggled + mtgManageBanNsfwToggled + mtgManageAntiSnatchToggled',
       '| Tests: __mizuMeetingTest + __mizuMeetingPromptTest');
   } catch (exportErr) {
     console.error('[Meeting v2.1] Global export FAILED:', exportErr);

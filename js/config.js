@@ -638,9 +638,16 @@ const LANG = {
     meetingDemoIntro:'The story begins here...',
     meetingDemoChar:'The character responds...',
     meetingDemoUser:'You continue the story...',
-    meetingPerson:'PERSON',
+        meetingPerson:'PERSON',
+    meetingOptionsSection:'OPTIONS',
+    meetingBanNsfw:'Ban NSFW',
+    meetingBanNsfwDesc:'No explicit, adult, or violent content',
+    meetingAntiSnatch:'Anti-Snatch',
+    meetingAntiSnatchDesc:'Wait for user to finish before replying',
+    meetingBanNsfwInjected:'NSFW ban instruction injected',
+    meetingAntiSnatchInjected:'Anti-snatch instruction injected',
 
-        // ── Schedule Awareness ──
+    // ── Schedule Awareness ──
     scheduleAware:'Schedule Awareness',
     scheduleAwareDesc:'Auto-adjust replies based on character schedule',
     scheduleAwareRequireTime:'Enable Time Awareness first',
@@ -1160,9 +1167,16 @@ const LANG = {
     meetingDemoIntro:'故事从这里开始...',
     meetingDemoChar:'角色回应...',
     meetingDemoUser:'你继续故事...',
-    meetingPerson:'人称',
+        meetingPerson:'人称',
+    meetingOptionsSection:'选项',
+    meetingBanNsfw:'禁止 NSFW',
+    meetingBanNsfwDesc:'禁止生成色情、成人、暴力等内容',
+    meetingAntiSnatch:'防抢话',
+    meetingAntiSnatchDesc:'等待用户完整说完后再回复',
+    meetingBanNsfwInjected:'已注入 NSFW 禁止指令',
+    meetingAntiSnatchInjected:'已注入防抢话指令',
 
-        // ── 日程感知 ──
+    // ── 日程感知 ──
     scheduleAware:'日程感知',
     scheduleAwareDesc:'根据日程自动调整回复行为',
     scheduleAwareRequireTime:'请先开启时间感知',

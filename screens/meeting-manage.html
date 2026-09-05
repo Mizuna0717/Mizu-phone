@@ -90,7 +90,7 @@
       </button>
     </div>
 
-    <!-- ★★★ NEW: Archive Button (UI placeholder only) ★★★ -->
+        <!-- Archive Button -->
     <div style="padding:10px 16px 0">
       <button class="mtg-panel-secondary-btn" id="mtgManageArchiveBtn" onclick="mtgArchiveSession()">
         <svg viewBox="0 0 16 16" style="width:14px;height:14px;margin-right:6px">
@@ -101,7 +101,28 @@
         <span data-i18n="meetingArchiveBtn">Archive</span>
       </button>
     </div>
-    <!-- ★★★ END NEW ★★★ -->
+
+    <!-- Options: Ban NSFW + Anti-Snatch -->
+    <div class="mtg-panel-section-hdr" data-i18n="meetingOptionsSection">OPTIONS</div>
+    <div class="mtg-panel-card">
+      <div class="mtg-panel-row">
+        <div class="mtg-toggle-label-col">
+          <span class="mtg-panel-label" data-i18n="meetingBanNsfw">Ban NSFW</span>
+          <span class="mtg-panel-hint" data-i18n="meetingBanNsfwDesc">No explicit, adult, or violent content</span>
+        </div>
+        <div class="mtg-toggle" id="mtgManageToggleBanNsfw"
+             onclick="this.classList.toggle('active');mtgManageBanNsfwToggled()"></div>
+      </div>
+      <div class="mtg-panel-divider"></div>
+      <div class="mtg-panel-row">
+        <div class="mtg-toggle-label-col">
+          <span class="mtg-panel-label" data-i18n="meetingAntiSnatch">Anti-Snatch</span>
+          <span class="mtg-panel-hint" data-i18n="meetingAntiSnatchDesc">Wait for user to finish before replying</span>
+        </div>
+        <div class="mtg-toggle" id="mtgManageToggleAntiSnatch"
+             onclick="this.classList.toggle('active');mtgManageAntiSnatchToggled()"></div>
+      </div>
+    </div>
 
     <!-- Short-Term Memory -->
     <div class="mtg-panel-section-hdr" data-i18n="meetingShortTermMemory">SHORT-TERM MEMORY</div>

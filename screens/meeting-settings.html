@@ -134,37 +134,27 @@
       </div>
     </div>
 
-    <!-- ★★★ NEW: 9. Options — No NSFW / Anti-interrupt ★★★ -->
+        <!-- 9. Options: Ban NSFW + Anti-Snatch -->
     <div class="mtg-panel-section-hdr" data-i18n="meetingOptionsSection">OPTIONS</div>
     <div class="mtg-panel-card">
-      <!-- No NSFW Content toggle -->
       <div class="mtg-panel-row">
-        <div class="mtg-panel-label-with-icon">
-          <svg viewBox="0 0 16 16" class="mtg-panel-label-icon">
-            <path d="M8 1L1 5v6l7 4 7-4V5L8 1z" stroke="#86868b" fill="none" stroke-width="1.3" stroke-linejoin="round"/>
-            <path d="M5 8l2 2 4-4" stroke="#86868b" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span data-i18n="meetingNoNSFW">No NSFW Content</span>
+        <div class="mtg-toggle-label-col">
+          <span class="mtg-panel-label" data-i18n="meetingBanNsfw">Ban NSFW</span>
+          <span class="mtg-panel-hint" data-i18n="meetingBanNsfwDesc">No explicit, adult, or violent content</span>
         </div>
-        <div class="mtg-toggle" id="mtgSetToggleNoNSFW"
-             onclick="this.classList.toggle('active');mtgSetNoNSFWToggled()"></div>
+        <div class="mtg-toggle" id="mtgNewToggleBanNsfw"
+             onclick="this.classList.toggle('active');mtgNewBanNsfwToggled()"></div>
       </div>
       <div class="mtg-panel-divider"></div>
-      <!-- Anti-interrupt toggle -->
       <div class="mtg-panel-row">
-        <div class="mtg-panel-label-with-icon">
-          <svg viewBox="0 0 16 16" class="mtg-panel-label-icon">
-            <circle cx="8" cy="8" r="6" stroke="#86868b" fill="none" stroke-width="1.3"/>
-            <path d="M8 5v4" stroke="#86868b" fill="none" stroke-width="1.4" stroke-linecap="round"/>
-            <circle cx="8" cy="11.5" r=".7" fill="#86868b"/>
-          </svg>
-          <span data-i18n="meetingAntiInterrupt">Anti-interrupt</span>
+        <div class="mtg-toggle-label-col">
+          <span class="mtg-panel-label" data-i18n="meetingAntiSnatch">Anti-Snatch</span>
+          <span class="mtg-panel-hint" data-i18n="meetingAntiSnatchDesc">Wait for user to finish before replying</span>
         </div>
-        <div class="mtg-toggle" id="mtgSetToggleAntiInterrupt"
-             onclick="this.classList.toggle('active');mtgSetAntiInterruptToggled()"></div>
+        <div class="mtg-toggle" id="mtgNewToggleAntiSnatch"
+             onclick="this.classList.toggle('active');mtgNewAntiSnatchToggled()"></div>
       </div>
     </div>
-    <!-- ★★★ END NEW ★★★ -->
 
     <!-- Start Button -->
     <div style="padding:24px 16px 0">

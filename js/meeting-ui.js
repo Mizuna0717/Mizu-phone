@@ -242,6 +242,11 @@ function mtgCreateArchive() {
     ident = (document.getElementById('mtgNewIdentity') || {}).value || '';
   }
 
+    var banNsfwEl = document.getElementById('mtgNewToggleBanNsfw');
+  var banNsfw = banNsfwEl ? banNsfwEl.classList.contains('active') : false;
+  var antiSnatchEl = document.getElementById('mtgNewToggleAntiSnatch');
+  var antiSnatch = antiSnatchEl ? antiSnatchEl.classList.contains('active') : false;
+
   var now = new Date();
   var session = {
     id: mtgUid(),
@@ -259,6 +264,8 @@ function mtgCreateArchive() {
     contextCount: contextCount,
     worldview: wv.trim(),
     identity: ident.trim(),
+    banNsfw: banNsfw,
+    antiSnatch: antiSnatch,
     history: [],
     turnCount: 0,
     status: 'active',
@@ -272,8 +279,9 @@ function mtgCreateArchive() {
   state.meetings.unshift(session);
   saveState();
 
-  console.log('[Meeting-Memory] Archive created:', session.id,
-    '| turnSummary:', turnSummary, '| interval:', summaryInterval);
+    console.log('[Meeting-Memory] Archive created:', session.id,
+    '| turnSummary:', turnSummary, '| interval:', summaryInterval,
+    '| banNsfw:', banNsfw, '| antiSnatch:', antiSnatch);
 
   showToast(T('meetingArchiveCreated'));
   mtgRenderArchiveList();
@@ -390,6 +398,11 @@ function mtgFillSettingsPage(s) {
   }
 
   mtgRenderSettingsMemory();
+
+  var banNsfwToggle = document.getElementById('mtgManageToggleBanNsfw');
+  if (banNsfwToggle) banNsfwToggle.classList.toggle('active', !!s.banNsfw);
+  var antiSnatchToggle = document.getElementById('mtgManageToggleAntiSnatch');
+  if (antiSnatchToggle) antiSnatchToggle.classList.toggle('active', !!s.antiSnatch);
 }
 
 
@@ -468,12 +481,19 @@ function mtgSaveSettings() {
   s.summaryInterval = parseInt((document.getElementById('mtgSettingsSummaryInterval') || {}).value) || MTG_DEFAULT_SUMMARY_INTERVAL;
   s.contextCount = parseInt((document.getElementById('mtgSettingsContextCount') || {}).value) || 50;
 
-  // ★★★ 修复 Bug 1：保存 turnSummary 开关状态 ★★★
+    // ★★★ 修复 Bug 1：保存 turnSummary 开关状态 ★★★
   var tsToggle = document.getElementById('mtgSettingsToggleSummary');
   if (tsToggle) {
     s.turnSummary = tsToggle.classList.contains('active');
     console.log('[Meeting-Fix] turnSummary saved:', s.turnSummary);
   }
+
+  var banNsfwToggle = document.getElementById('mtgManageToggleBanNsfw');
+  if (banNsfwToggle) s.banNsfw = banNsfwToggle.classList.contains('active');
+  var antiSnatchToggle = document.getElementById('mtgManageToggleAntiSnatch');
+  if (antiSnatchToggle) s.antiSnatch = antiSnatchToggle.classList.contains('active');
+
+  console.log('[Meeting] banNsfw saved:', s.banNsfw, '| antiSnatch saved:', s.antiSnatch);
 
   saveState();
   showToast(T('meetingSaveChanges'));

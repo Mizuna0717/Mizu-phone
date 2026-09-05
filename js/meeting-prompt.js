@@ -137,10 +137,26 @@ function mtgBuildSystemPrompt(session, ch) {
     }
   }
 
+    // ★ 8. Ban NSFW 指令注入
+  if (session.banNsfw) {
+    p += '\n[CONTENT RESTRICTION]\n';
+    p += '禁止生成任何 NSFW 内容，包括色情、成人、暴力、血腥等相关描写。Do NOT generate any NSFW content, including pornographic, adult, violent, or gory depictions.\n';
+    console.log('[Meeting-Prompt] Ban-NSFW instruction injected.');
+  }
+
+  // ★ 9. Anti-Snatch 指令注入
+  if (session.antiSnatch) {
+    p += '\n[TURN DISCIPLINE]\n';
+    p += '等待用户完整说完后再回复，禁止在用户发言中间插话或抢话。Wait for the user to finish their full message before responding. Do NOT interrupt mid-speech.\n';
+    console.log('[Meeting-Prompt] Anti-snatch instruction injected.');
+  }
+
   console.log('[Meeting-Prompt] ======= System Prompt Built =======',
     '\n| Character:', ch.name,
     '\n| Session:', session.name,
     '\n| Mode:', session.mode,
+    '\n| banNsfw:', !!session.banNsfw,
+    '\n| antiSnatch:', !!session.antiSnatch,
     '\n| Prompt length:', p.length, 'chars');
 
   return p;
