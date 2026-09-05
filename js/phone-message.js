@@ -7,50 +7,36 @@
 //  - Fixed nickname (realname) display format
 // ==========================================================
 
-// ★★★ NEW: 读取用户人设（问题③ - 用户人设）★★★
+// ==========================================================
+//  PHONE MESSAGE APP (Revised)
+// ==========================================================
+
+// ★ 复用全局统一构建器（去重 + 防 undefined）
 function _pmsgBuildUserPersonaBlock() {
+  if (typeof buildUserPersonaBlock === 'function') return buildUserPersonaBlock(null);
   var up = state.userProfile || {};
-  var u  = state.user || {};
-  var name = up.name || u.name || 'User';
-  var persona = up.persona || up.personality || u.personality || u.persona || '';
-  var bg      = up.background || up.bio || u.background || '';
-  var lines = ['  - Name: "' + name + '"'];
-  if (persona) lines.push('  - Personality: "' + persona + '"');
-  if (bg)      lines.push('  - Background: "' + bg + '"');
-  return lines.join('\n');
+  return '  - Name: "' + (up.name || 'User') + '"';
 }
 
-// ★★★ NEW: 读取世界书（问题③ - 世界书）★★★
 function _pmsgBuildWorldbookBlock() {
-  var wbs = (state.worldbooks && Array.isArray(state.worldbooks)) ? state.worldbooks : [];
-  if (!wbs.length) return '';
-  var parts = [];
-  wbs.forEach(function(wb) {
-    if (!wb.isGlobal) return;            // 手机短信是全局语境，注入全局世界书
-    var seg = '· ' + (wb.name || 'World');
-    if (wb.content) seg += '：' + wb.content;
-    if (wb.entries && wb.entries.length) {
-      wb.entries.forEach(function(e) {
-        if (e.keyword || e.content)
-          seg += '\n    - ' + (e.keyword || '') + (e.content ? ': ' + e.content : '');
-      });
-    }
-    parts.push(seg);
-  });
-  return parts.join('\n');
+  if (typeof buildWorldbookBlock === 'function') return buildWorldbookBlock(null, state.worldbooks);
+  return '';
 }
 
-// ★★★ NEW: 把 npc 关联到 state.characters，补齐完整 systemPrompt（问题① - 角色人设）★★★
 function _pmsgResolveFullPersona(npc) {
   if (!npc) return '';
   var chars = (state.characters && Array.isArray(state.characters)) ? state.characters : [];
-  var matched = null;
   for (var i = 0; i < chars.length; i++) {
-    if (chars[i].id === npc.id || chars[i].name === npc.name) { matched = chars[i]; break; }
+    if (chars[i].id === npc.id || chars[i].name === npc.name) {
+      if (typeof buildCharacterPersonaBlock === 'function') return buildCharacterPersonaBlock(chars[i]);
+      var sp = (chars[i].systemPrompt || '').trim();
+      return sp;
+    }
   }
-  if (matched && matched.systemPrompt) return matched.systemPrompt.trim();
   return '';
 }
+
+// —— 以下 ;(function(){ ... })(); 整个 IIFE 保持你当前文件不变 ——
 
 ;(function() {
   'use strict';

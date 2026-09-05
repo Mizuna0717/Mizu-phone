@@ -49,6 +49,19 @@ function _flattenMsgs(msgs) {
 
 async function sendChat(cfg, msgs) {
   var flatMsgs = _flattenMsgs(msgs);
+
+  // ★ 调试探针（通过 window.__ctxDebug 开关，不影响逻辑）
+  if (window.__ctxDebug) {
+    try {
+      var _sys = flatMsgs.filter(function (m) { return m && m.role === 'system'; })
+                         .map(function (m) { return m.content; }).join('\n');
+      console.log('[sendChat/ctx] 世界书:', /World Setting/i.test(_sys),
+        '| 角色人设:', /Character Profile|Personality/i.test(_sys),
+        '| 用户人设:', /User Identity|User Name/i.test(_sys),
+        '| undefined污染:', /undefined/i.test(_sys));
+    } catch (e) {}
+  }
+
   const c = cfg._resolvedBase ? [cfg._resolvedBase] : getCandidates(cfg.url);
   let l = null;
   for (const b of c) {
@@ -145,6 +158,9 @@ async function generateNPCs(count, context) {
     }
   }
 
+  // ★ 新增：用户人设块（统一构建器）
+  var _userBlk = (typeof buildUserPersonaBlock === 'function') ? buildUserPersonaBlock(null) : '';
+
   var systemPrompt =
     'You are a creative NPC generator for a role-playing setting. ' +
     'Generate exactly ' + num + ' unique NPC(s) that would exist in the same world as the main character described below. ' +
@@ -158,6 +174,7 @@ async function generateNPCs(count, context) {
     (context.background ? '- Background: ' + context.background + '\n' : '') +
     (context.systemPrompt ? '- Setting Context: ' + context.systemPrompt.substring(0, 500) + '\n' : '') +
     (worldContext ? '\nWorld Setting:\n' + worldContext.substring(0, 800) + '\n' : '') +
+    (_userBlk ? '\n' + _userBlk + '\n' : '') +     // ★ 用户人设注入
     existingNpcs +
     '\nGenerate ' + num + ' NPC(s) now:';
 

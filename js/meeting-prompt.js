@@ -1,15 +1,10 @@
 // ========== meeting-prompt.js ==========
-// Meeting Prompt — 提示詞構建器
-// ★★★ v2.1 FIX: 世界书 + 角色人设 + 面具 提示词修复 ★★★
-// requires: meeting-core.js (mtgGetCharById, mtgEsc, state globals)
+// Meeting Prompt — 提示詞構建器（v3：统一上下文构建器）
 
-/* ══════════════════════════════════════════════════════════════
-   ★★★ v2.1 FIX: Build System Prompt — 世界书 + 人设 + 面具 ★★★
-   ══════════════════════════════════════════════════════════════ */
 function mtgBuildSystemPrompt(session, ch) {
   var p = '';
 
-  // ★ 1. Meeting 专用系统提示词（来自 prompt.js 的 getActiveSystemPrompt）
+  // ★ 1. Meeting 专用系统提示词
   if (typeof getActiveSystemPrompt === 'function') {
     var prevMode = (typeof tmp !== 'undefined' && tmp.chatMode) ? tmp.chatMode : undefined;
     if (typeof tmp !== 'undefined') tmp.chatMode = 'meeting';
@@ -22,130 +17,22 @@ function mtgBuildSystemPrompt(session, ch) {
       var _userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User';
       activePrompt = activePrompt.replace(/\{\{user\}\}/g, _userName).replace(/\{\{char\}\}/g, ch.name);
       p += activePrompt + '\n\n';
-      console.log('[Meeting-Prompt] Active system prompt injected | length:', activePrompt.length);
     }
+  }
+
+  // ★★★ 2. 统一注入三要素（角色人设 + 用户/面具人设 + 世界书）★★★
+  if (typeof buildUnifiedContext === 'function') {
+    p += buildUnifiedContext({ character: ch, worldbooks: state.worldbooks }) + '\n\n';
+    console.log('[Meeting-Prompt] Unified context injected for', ch.name);
   } else {
-    console.log('[Meeting-Prompt] getActiveSystemPrompt not available, skipping base prompt');
+    // 兜底：极简人设
+    p += '[Character Profile]\nName: ' + ch.name +
+      (ch.personality ? '\nPersonality: ' + ch.personality : '') +
+      (ch.background ? '\nBackground: ' + ch.background : '') +
+      (ch.systemPrompt ? '\n' + ch.systemPrompt : '') + '\n\n';
   }
 
-  // ★ 2. 角色完整人设信息
-  p += '--- CHARACTER PROFILE ---\n';
-  p += 'Name: ' + ch.name + '\n';
-
-  if (ch.identity) {
-    p += 'Identity: ' + ch.identity + '\n';
-    console.log('[Meeting-Prompt] Identity included for', ch.name, '| length:', ch.identity.length);
-  }
-
-  if (ch.age) {
-    p += 'Age: ' + ch.age + '\n';
-    console.log('[Meeting-Prompt] Age included for', ch.name, ':', ch.age);
-  }
-
-  if (ch.personality) {
-    p += 'Personality: ' + ch.personality + '\n';
-    console.log('[Meeting-Prompt] Personality included for', ch.name, '| length:', ch.personality.length);
-  }
-
-  if (ch.background) {
-    p += 'Background: ' + ch.background + '\n';
-    console.log('[Meeting-Prompt] Background included for', ch.name, '| length:', ch.background.length);
-  }
-
-  if (ch.systemPrompt) {
-    p += '\n' + ch.systemPrompt + '\n';
-    console.log('[Meeting-Prompt] systemPrompt included for', ch.name, '| length:', ch.systemPrompt.length);
-  } else if (ch.prompt) {
-    p += '\n' + ch.prompt + '\n';
-    console.log('[Meeting-Prompt] prompt (legacy) included for', ch.name, '| length:', ch.prompt.length);
-  }
-
-  if (ch.notes) {
-    p += '\nNotes: ' + ch.notes + '\n';
-    console.log('[Meeting-Prompt] Notes included for', ch.name, '| length:', ch.notes.length);
-  }
-
-  p += '--- END CHARACTER PROFILE ---\n\n';
-
-  // ★ 3. 关联面具（Mask）信息
-  var mask = null;
-  if (typeof getMaskForChar === 'function') {
-    mask = getMaskForChar(ch.id);
-  } else {
-    // Fallback: 手动查找面具
-    mask = (state.masks || []).find(function(m) {
-      return (m.charIds || []).indexOf(ch.id) >= 0;
-    }) || null;
-  }
-
-  if (mask) {
-    p += '[User Identity / Mask]\n';
-    if (mask.name) {
-      p += 'User Name: ' + mask.name + '\n';
-    }
-    if (mask.persona) {
-      p += mask.persona + '\n';
-    }
-    if (mask.description) {
-      p += mask.description + '\n';
-    }
-    p += '\n';
-    console.log('[Meeting-Prompt] Mask included for', ch.name,
-      '| maskName:', mask.name || '(none)',
-      '| persona length:', (mask.persona || '').length);
-  } else {
-    // 没有面具时使用用户基本信息
-    if (state.userProfile && state.userProfile.name && state.userProfile.name !== 'User') {
-      p += 'User: ' + state.userProfile.name + '\n\n';
-    }
-    console.log('[Meeting-Prompt] No mask found for', ch.name);
-  }
-
-  // ★ 4. 世界书（Worldbook）信息
-  var worldbooks = state.worldbooks || [];
-  var activeBooks = [];
-
-  if (typeof getActiveWorldBooks === 'function') {
-    activeBooks = getActiveWorldBooks(ch, worldbooks);
-    console.log('[Meeting-Prompt] getActiveWorldBooks returned', activeBooks.length, 'books for', ch.name);
-  } else {
-    // Fallback: 手动筛选
-    var charWbIds = ch.worldbookIds || [];
-    activeBooks = worldbooks.filter(function(wb) {
-      return wb.isGlobal || charWbIds.indexOf(wb.id) >= 0;
-    });
-    console.log('[Meeting-Prompt] Manual worldbook filter:', activeBooks.length, 'books for', ch.name);
-  }
-
-  if (activeBooks.length > 0) {
-    p += '[World Setting]\n';
-    activeBooks.forEach(function(wb) {
-      var tag = wb.isGlobal ? '[Global]' : '[Character]';
-      p += '\u00b7 ' + tag + ' ' + (wb.name || 'Unnamed Worldbook');
-      if (wb.content) p += '\uff1a' + wb.content;
-      p += '\n';
-
-      if (wb.entries && Array.isArray(wb.entries) && wb.entries.length > 0) {
-        wb.entries.forEach(function(e) {
-          if (e.keyword || e.content) {
-            p += '  - ' + (e.keyword || '') + (e.content ? ': ' + e.content : '') + '\n';
-          }
-        });
-      }
-
-      console.log('[Meeting-Prompt] Worldbook "' + (wb.name || 'unnamed') + '"',
-        '| global:', !!wb.isGlobal,
-        '| entries:', (wb.entries || []).length,
-        '| content length:', (wb.content || '').length);
-    });
-    p += '\n';
-  } else {
-    console.log('[Meeting-Prompt] No active worldbooks for', ch.name,
-      '| total worldbooks:', worldbooks.length,
-      '| char worldbookIds:', JSON.stringify(ch.worldbookIds || []));
-  }
-
-  // ★ 5. IF 模式专用字段
+  // ★ 3. IF 模式专用字段
   if (session.mode === 'if') {
     if (session.worldview) {
       p += 'WORLDVIEW:\n' + session.worldview + '\n\n';
@@ -155,7 +42,7 @@ function mtgBuildSystemPrompt(session, ch) {
     }
   }
 
-  // ★ 6. 协作写作规则
+  // ★ 4. 协作写作规则
   var cpDesc = {
     first: 'first person (I, me, my)',
     second: 'second person (you, your)',
@@ -176,7 +63,7 @@ function mtgBuildSystemPrompt(session, ch) {
   p += '6. Output only narrative prose. No meta-commentary, no character name prefix.\n';
   p += '---\n';
 
-  // ★ 7. 多角色场景上下文
+  // ★ 5. 多角色场景上下文
   if (session.charIds && session.charIds.length > 1) {
     p += '\n[Group Scene Context]\n';
     p += 'This is a meeting/group scene with multiple characters.\n';
@@ -194,7 +81,7 @@ function mtgBuildSystemPrompt(session, ch) {
     p += 'Interact naturally with the other characters. Do not speak for them.\n\n';
   }
 
-  // ★ 8. 会话内记忆摘要（原有逻辑保留）
+  // ★ 6. 会话内记忆摘要
   if (session.shortTermMemories && session.shortTermMemories.length > 0) {
     p += '\nSTORY SUMMARIES (for context):\n';
     session.shortTermMemories.forEach(function(mem, idx) {
@@ -209,7 +96,7 @@ function mtgBuildSystemPrompt(session, ch) {
     p += '\n';
   }
 
-  // ★ 9. 角色的长期/短期记忆（来自记忆库 state.memories）
+  // ★ 7. 角色的长期/短期记忆
   if (typeof getCharMemoriesByType === 'function') {
     var charLTM = getCharMemoriesByType(ch.id, 'ltm') || [];
     var charSTM = (getCharMemoriesByType(ch.id, 'stm') || []).filter(function(m) { return !m.consolidated; });
@@ -224,27 +111,21 @@ function mtgBuildSystemPrompt(session, ch) {
           p += '- (' + (m.date || '') + ') ' + m.content + '\n';
         });
       }
-
       if (charSTM.length > 0) {
         p += '\u2014 Recent Short-term Memories \u2014\n';
         charSTM.slice(0, 8).forEach(function(m) {
           p += '- (' + (m.date || '') + ') ' + m.content + '\n';
         });
       }
-
       if (charFTM.length > 0) {
         p += '\u2014 Vague / Forgettable Memories \u2014\n';
         charFTM.slice(0, 3).forEach(function(m) {
           p += '- (' + (m.date || '') + ') ' + m.content + '\n';
         });
       }
-
       p += '\n';
-      console.log('[Meeting-Prompt] Character memories included | LTM:', charLTM.length,
-        '| STM:', charSTM.length, '| FTM:', charFTM.length);
     }
   } else {
-    // Fallback: 手动读取 state.memories
     var _allMem = (state.memories || []).filter(function(m) { return m.charId === ch.id; });
     if (_allMem.length > 0) {
       p += '\n[Character Memories for ' + ch.name + ']\n';
@@ -253,22 +134,13 @@ function mtgBuildSystemPrompt(session, ch) {
         p += '- (' + (m.date || '') + ') ' + (m.title ? m.title + ': ' : '') + m.content + '\n';
       });
       p += '\n';
-      console.log('[Meeting-Prompt] Fallback memories included:', _allMem.length);
     }
   }
 
-  // ★ 最终日志
   console.log('[Meeting-Prompt] ======= System Prompt Built =======',
     '\n| Character:', ch.name,
     '\n| Session:', session.name,
     '\n| Mode:', session.mode,
-    '\n| Has personality:', !!ch.personality,
-    '\n| Has background:', !!ch.background,
-    '\n| Has identity:', !!ch.identity,
-    '\n| Has systemPrompt:', !!ch.systemPrompt,
-    '\n| Has mask:', !!mask,
-    '\n| Active worldbooks:', activeBooks.length,
-    '\n| Session memories:', (session.shortTermMemories || []).length,
     '\n| Prompt length:', p.length, 'chars');
 
   return p;
