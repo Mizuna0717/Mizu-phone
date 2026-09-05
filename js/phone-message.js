@@ -292,8 +292,17 @@ console.log('[rollMessageChats] payload check =>',
   '| worldbook:',   worldbookBlk.length>0,
   '| npcCount:',    selectedNpcs.length);
 
+        // ★ 构建统一 system prompt（世界书 + 用户人设；角色人设在 prompt 正文中已逐条注入）
+    var _systemContent = (typeof buildUnifiedContext === 'function')
+      ? buildUnifiedContext({ character: null, worldbooks: state.worldbooks, includeCharacter: false })
+      : '';
+    var _chatMessages = _systemContent
+      ? [{ role: 'system', content: _systemContent }, { role: 'user', content: prompt }]
+      : [{ role: 'user', content: prompt }];
+    console.log('[rollMessageChats] system prompt injected:', _systemContent.length > 0);
+
     try {
-      var rawReply=await sendChat(api,[{role:'user',content:prompt}]);
+      var rawReply=await sendChat(api, _chatMessages);
       var convos=null;
       try{var jm=rawReply.match(/\[[\s\S]*\]/);if(jm)convos=JSON.parse(jm[0]);}catch(pe){console.error('[rollMessageChats] parse error:',pe);}
       if(!convos||!Array.isArray(convos)||convos.length===0){showToast('Generation failed');openPhoneApp('messages');return;}

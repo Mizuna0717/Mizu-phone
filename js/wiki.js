@@ -313,11 +313,17 @@ async function triggerNpcAutoGen() {
 	if (btn) { btn.textContent = 'Generating...'; btn.disabled = true; }
 
 	try {
+				// ★ 构建统一上下文（角色人设 + 用户/面具人设 + 世界书），注入到 generateNPCs 的 systemPrompt 字段
+		var _unifiedCtx = (typeof buildUnifiedContext === 'function')
+			? buildUnifiedContext({ character: char, worldbooks: state.worldbooks })
+			: '';
+		console.log('[triggerNpcAutoGen] unified context injected:', _unifiedCtx.length > 0);
+
 		var context = {
 			name:         char.name || '',
 			personality:  char.personality || '',
 			background:   char.backstory || char.background || char.notes || '',
-			systemPrompt: char.systemPrompt || '',
+			systemPrompt: _unifiedCtx || char.systemPrompt || '',
 			worldbookIds: char.worldbookIds || [],
 			characterId:  wikiSelectedCharId
 		};
@@ -684,18 +690,134 @@ function openScheduleAddModal() {
 	var di  = document.getElementById('sched-add-date');  if (di)  di.value = _fmt(new Date());
 	var tmi = document.getElementById('sched-add-time');  if (tmi) tmi.value = '12:00';
 	var dsc = document.getElementById('sched-add-desc');  if (dsc) dsc.value = '';
+	var aid = document.getElementById('sched-ai-date');   if (aid) aid.value = _fmt(new Date());
 	selectedScheduleChars.clear();
 	if (wikiSelectedCharId) {
 		var c = getWikiCharacters().find(function(c) { return c.id === wikiSelectedCharId; });
 		if (c) selectedScheduleChars.add(c.name);
 	}
 	renderScheduleCharTags();
+	switchSchedModalTab('manual');
 	modal.classList.add('active');
 }
 
 function closeScheduleAddModal() {
 	var m = document.getElementById('schedule-add-modal');
 	if (m) m.classList.remove('active');
+	var status = document.getElementById('sched-ai-status');
+	if (status) status.style.display = 'none';
+	var btn = document.getElementById('sched-ai-confirm-btn');
+	if (btn) { btn.textContent = '生成日程'; btn.disabled = false; }
+}
+
+function switchSchedModalTab(tab) {
+	var tabs = document.querySelectorAll('#schedule-add-modal .sched-modal-tab');
+	tabs.forEach(function(t) { t.classList.remove('active'); });
+	var activeTab = document.getElementById('sched-tab-' + tab);
+	if (activeTab) activeTab.classList.add('active');
+	var panels = document.querySelectorAll('#schedule-add-modal .sched-modal-panel');
+	panels.forEach(function(p) { p.style.display = 'none'; });
+	var activePanel = document.getElementById('sched-panel-' + tab);
+	if (activePanel) activePanel.style.display = '';
+}
+
+async function generateScheduleByAI() {
+	var btn    = document.getElementById('sched-ai-confirm-btn');
+	var status = document.getElementById('sched-ai-status');
+
+	var api = (state.apis || []).find(function(a) { return a.id === state.activeApiId; });
+	if (!api || !api.url || !api.model) {
+		if (typeof showToast === 'function') showToast('请先配置 API');
+		return;
+	}
+
+	var chars = getWikiCharacters();
+	var char  = chars.find(function(c) { return c.id === wikiSelectedCharId; });
+	if (!char) {
+		if (typeof showToast === 'function') showToast('未选择角色');
+		return;
+	}
+
+	var dateEl = document.getElementById('sched-ai-date');
+	var targetDate = (dateEl && dateEl.value) ? dateEl.value : _fmt(new Date());
+
+	if (btn)    { btn.textContent = '生成中...'; btn.disabled = true; }
+	if (status) status.style.display = 'flex';
+
+	try {
+		var systemContent = (typeof buildUnifiedContext === 'function')
+			? buildUnifiedContext({ character: char, worldbooks: state.worldbooks })
+			: '';
+
+		var charName = char.name || '角色';
+		var userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User';
+
+		var userPrompt =
+			'请为角色「' + charName + '」生成 ' + targetDate + ' 这一天的完整日程安排。\n\n' +
+			'要求：\n' +
+			'1. 生成 6 到 20 项日程事项，覆盖从 00:00 到 23:59 的全天时段\n' +
+			'2. 每项日程必须符合角色的性格、职业和生活习惯\n' +
+			'3. 如果角色有工作或职业背景，请包含相关工作内容\n' +
+			'4. 如果角色与「' + userName + '」有社交关系，可以在日程中包含互动安排\n' +
+			'5. 日程内容需与世界观设定保持一致\n\n' +
+			'请严格按照以下 JSON 格式返回，不要输出任何其他内容：\n' +
+			'{"schedule":[{"time":"07:00","title":"事项名称","description":"简要描述"}]}';
+
+		var messages = [];
+		if (systemContent) {
+			messages.push({ role: 'system', content: systemContent });
+		}
+		messages.push({ role: 'user', content: userPrompt });
+
+		console.log('[generateScheduleByAI] unified context injected:', systemContent.length > 0, '| date:', targetDate);
+
+		var raw = await sendChat(api, messages);
+
+		var jsonStr = raw.trim();
+		var fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+		if (fenceMatch) jsonStr = fenceMatch[1].trim();
+		var objMatch = jsonStr.match(/\{[\s\S]*\}/);
+		if (objMatch) jsonStr = objMatch[0];
+
+		var parsed;
+		try {
+			parsed = JSON.parse(jsonStr);
+		} catch (pe) {
+			console.error('[generateScheduleByAI] JSON parse failed:', pe, '\nRaw:', raw);
+			throw new Error('AI 返回格式解析失败，请重试');
+		}
+
+		var items = parsed.schedule;
+		if (!Array.isArray(items) || items.length === 0) throw new Error('未生成任何日程');
+
+		var charNames = [charName];
+		items.forEach(function(item) {
+			var t = (item.time || '').trim();
+			if (!/^\d{2}:\d{2}$/.test(t)) t = '00:00';
+			wikiScheduleData.push({
+				id:          ++wikiScheduleNextId,
+				date:        targetDate,
+				time:        t,
+				title:       String(item.title || '').trim() || '日程事项',
+				characters:  charNames,
+				description: String(item.description || '').trim(),
+				status:      'pending'
+			});
+		});
+
+		if (typeof saveState === 'function') saveState();
+		closeScheduleAddModal();
+		renderScheduleTimeline();
+		if (typeof showToast === 'function') showToast('已生成 ' + items.length + ' 项日程');
+
+	} catch (e) {
+		console.error('[generateScheduleByAI] error:', e);
+		var msg = e.message || '生成失败';
+		if (typeof friendlyError === 'function' && msg.includes('fetch')) msg = friendlyError(e);
+		if (typeof showToast === 'function') showToast(msg);
+		if (btn)    { btn.textContent = '生成日程'; btn.disabled = false; }
+		if (status) status.style.display = 'none';
+	}
 }
 
 function renderScheduleCharTags() {
@@ -809,6 +931,8 @@ window.filterSchedule          = filterSchedule;
 window.toggleScheduleStatus    = toggleScheduleStatus;
 window.openScheduleAddModal    = openScheduleAddModal;
 window.closeScheduleAddModal   = closeScheduleAddModal;
+window.switchSchedModalTab     = switchSchedModalTab;
+window.generateScheduleByAI    = generateScheduleByAI;
 window.saveScheduleEvent       = saveScheduleEvent;
 window.openScheduleDetail      = openScheduleDetail;
 window.closeScheduleDetailModal = closeScheduleDetailModal;

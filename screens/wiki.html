@@ -151,18 +151,47 @@
 		</div>
 	</div>
 
-	<!-- Modal: Add Schedule Event -->
+		<!-- Modal: Add Schedule Event -->
 	<div class="wiki-modal-overlay" id="schedule-add-modal">
 		<div class="wiki-modal-backdrop" onclick="closeScheduleAddModal()"></div>
 		<div class="wiki-modal wiki-modal-center">
-			<div class="wiki-modal-header"><span class="wiki-modal-title">Add Schedule Event</span><button class="wiki-modal-close" onclick="closeScheduleAddModal()"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
-			<div class="wiki-modal-body">
-				<div class="modal-field"><label class="modal-field-label">Event Title</label><input type="text" class="modal-field-input" id="sched-add-title" placeholder="Enter event title..."/></div>
-				<div class="modal-field-row"><div class="modal-field" style="flex:1"><label class="modal-field-label">Date</label><input type="date" class="modal-field-input" id="sched-add-date"/></div><div class="modal-field" style="flex:1"><label class="modal-field-label">Time</label><input type="time" class="modal-field-input" id="sched-add-time"/></div></div>
-				<div class="modal-field"><label class="modal-field-label">Characters</label><div class="modal-tag-select" id="sched-add-chars"></div></div>
-				<div class="modal-field"><label class="modal-field-label">Description</label><textarea class="modal-field-textarea" id="sched-add-desc" rows="3" placeholder="Brief description..."></textarea></div>
+			<div class="wiki-modal-header">
+				<span class="wiki-modal-title">添加日程</span>
+				<button class="wiki-modal-close" onclick="closeScheduleAddModal()"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></button>
 			</div>
-			<div class="wiki-modal-footer"><button class="wiki-modal-btn-outline" onclick="closeScheduleAddModal()">Cancel</button><button class="wiki-modal-btn-outline primary" onclick="saveScheduleEvent()">Save</button></div>
+			<!-- Tab switcher -->
+			<div class="sched-modal-tabs">
+				<button class="sched-modal-tab active" id="sched-tab-manual" onclick="switchSchedModalTab('manual')">手动添加</button>
+				<button class="sched-modal-tab" id="sched-tab-ai" onclick="switchSchedModalTab('ai')">AI 生成</button>
+			</div>
+			<!-- Manual panel -->
+			<div class="sched-modal-panel" id="sched-panel-manual">
+				<div class="wiki-modal-body">
+					<div class="modal-field"><label class="modal-field-label">事项标题</label><input type="text" class="modal-field-input" id="sched-add-title" placeholder="输入事项标题..."/></div>
+					<div class="modal-field-row"><div class="modal-field" style="flex:1"><label class="modal-field-label">日期</label><input type="date" class="modal-field-input" id="sched-add-date"/></div><div class="modal-field" style="flex:1"><label class="modal-field-label">时间</label><input type="time" class="modal-field-input" id="sched-add-time"/></div></div>
+					<div class="modal-field"><label class="modal-field-label">相关角色</label><div class="modal-tag-select" id="sched-add-chars"></div></div>
+					<div class="modal-field"><label class="modal-field-label">描述</label><textarea class="modal-field-textarea" id="sched-add-desc" rows="3" placeholder="简要描述..."></textarea></div>
+				</div>
+				<div class="wiki-modal-footer"><button class="wiki-modal-btn-outline" onclick="closeScheduleAddModal()">取消</button><button class="wiki-modal-btn-outline primary" onclick="saveScheduleEvent()">保存</button></div>
+			</div>
+			<!-- AI panel -->
+			<div class="sched-modal-panel" id="sched-panel-ai" style="display:none">
+				<div class="wiki-modal-body">
+					<div class="sched-ai-hint">
+						<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+						<span>AI 将根据角色人设、世界书设定和用户面具，自动生成一天的日程安排（6–20 项）。</span>
+					</div>
+					<div class="modal-field">
+						<label class="modal-field-label">生成日期</label>
+						<input type="date" class="modal-field-input" id="sched-ai-date"/>
+					</div>
+					<div class="sched-ai-status" id="sched-ai-status" style="display:none">
+						<div class="sched-ai-dots"><span></span><span></span><span></span></div>
+						<span>正在生成日程...</span>
+					</div>
+				</div>
+				<div class="wiki-modal-footer"><button class="wiki-modal-btn-outline" onclick="closeScheduleAddModal()">取消</button><button class="wiki-modal-btn-outline primary" id="sched-ai-confirm-btn" onclick="generateScheduleByAI()">生成日程</button></div>
+			</div>
 		</div>
 	</div>
 
