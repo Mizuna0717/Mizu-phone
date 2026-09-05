@@ -103,7 +103,7 @@ function quoteMsg(msgId) {
   const msg = (state.chats[state.currentCharId] || []).find(m => m.id === msgId);
   if (!msg) return;
   const ch = state.characters.find(c => c.id === state.currentCharId);
-  const name = msg.role === 'user' ? (state.userProfile.name || 'User') : (ch?.name || '');
+  const name = msg.role === 'user' ? (typeof getCurrentUserMaskName === 'function' ? getCurrentUserMaskName() : (state.userProfile.name || 'User')) : (ch?.name || '');
   const text = (msg.content || '').slice(0, 60);
   bubbleState.quoteMsg = { id: msgId, name, text };
   document.getElementById('cqbText').innerHTML = `<span class="cqb-name">${esc(name)}</span> ${esc(text)}`;

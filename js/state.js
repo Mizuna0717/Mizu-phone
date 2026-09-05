@@ -503,6 +503,31 @@ function getOtherAccountsCharacters() {
   return result;
 }
 
+function getCurrentUserMask() {
+  var maskId = state.userProfile && state.userProfile.currentMaskId;
+  if (!maskId) {
+    // 找到绑定了当前角色（如果有）的面具；否则回退到第一个面具
+    if (state.currentCharId) {
+      var byChar = (state.masks || []).find(function(m) {
+        return (m.charIds || []).indexOf(state.currentCharId) >= 0;
+      });
+      if (byChar) return byChar;
+    }
+    return null;
+  }
+  return (state.masks || []).find(function(m) { return m.id === maskId; }) || null;
+}
+
+function getCurrentUserMaskName() {
+  var mask = getCurrentUserMask();
+  return (mask && mask.name) ? mask.name : (state.userProfile.name || 'User');
+}
+
+function getCurrentUserMaskAvatar() {
+  var mask = getCurrentUserMask();
+  return (mask && mask.avatar) ? mask.avatar : (state.userProfile.avatar || null);
+}
+
 ;(function _exportStateGlobals() {
   'use strict';
   window.state         = state;
@@ -530,6 +555,9 @@ function getOtherAccountsCharacters() {
   window._resetStateToDefaults = _resetStateToDefaults;
   window._resetTransientState  = _resetTransientState;
   window._generateAccountId    = _generateAccountId;
+  window.getCurrentUserMask       = getCurrentUserMask;
+  window.getCurrentUserMaskName   = getCurrentUserMaskName;
+  window.getCurrentUserMaskAvatar = getCurrentUserMaskAvatar;
   console.log('[state.js] 全局导出完成',
     '| window.state.characters:', state.characters.length,
     '| window.state.npcs:', state.npcs.length,

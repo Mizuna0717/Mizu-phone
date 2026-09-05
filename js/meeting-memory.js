@@ -15,7 +15,7 @@ async function mtgCallSummarize(session, entries, api) {
     throw new Error('[Meeting-Memory] sendChat is not available');
   }
 
-  var userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : '\u7528\u6237';
+    var userName = (typeof mtgGetUserName === 'function') ? mtgGetUserName() : ((state.userProfile && state.userProfile.name) ? state.userProfile.name : '\u7528\u6237');
   var charNames = (session.characters && session.characters.length)
     ? session.characters.join('\u3001') : '\u89d2\u8272';
 
@@ -83,7 +83,7 @@ async function mtgCallConsolidate(session, stmList, api) {
     throw new Error('[Meeting-Memory] sendChat is not available');
   }
 
-  var userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : '\u7528\u6237';
+    var userName = (typeof mtgGetUserName === 'function') ? mtgGetUserName() : ((state.userProfile && state.userProfile.name) ? state.userProfile.name : '\u7528\u6237');
   var charNames = (session.characters && session.characters.length)
     ? session.characters.join('\u3001') : '\u89d2\u8272';
 

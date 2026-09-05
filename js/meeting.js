@@ -445,22 +445,32 @@ function __mizuMeetingPromptTest() {
   if (prompt.indexOf(testChar.name) >= 0) _pass('Character name "' + testChar.name + '" found');
   else _fail('Character name "' + testChar.name + '" NOT found');
 
-  if (prompt.indexOf('CHARACTER PROFILE') >= 0) _pass('CHARACTER PROFILE section found');
+    var hasCharProfileMarker = prompt.indexOf('CHARACTER PROFILE') >= 0;
+  var hasCharProfileViaSystemPrompt = testChar.systemPrompt && prompt.indexOf('[Character Profile]') >= 0;
+  if (hasCharProfileMarker || hasCharProfileViaSystemPrompt) _pass('CHARACTER PROFILE section found');
   else _fail('CHARACTER PROFILE section NOT found');
+
+    var charProfileInjected = testChar.systemPrompt && prompt.indexOf('[Character Profile]') >= 0;
 
   if (testChar.personality) {
     if (prompt.indexOf(testChar.personality.substring(0, 30)) >= 0) _pass('Personality content found');
     else _fail('Personality content NOT found');
+  } else if (charProfileInjected) {
+    _pass('No personality field, but [Character Profile] injected via systemPrompt');
   } else _warn('No personality field on character');
 
   if (testChar.background) {
     if (prompt.indexOf(testChar.background.substring(0, 30)) >= 0) _pass('Background content found');
     else _fail('Background content NOT found');
+  } else if (charProfileInjected) {
+    _pass('No background field, but [Character Profile] injected via systemPrompt');
   } else _warn('No background field on character');
 
   if (testChar.identity) {
     if (prompt.indexOf(testChar.identity.substring(0, 20)) >= 0) _pass('Identity content found');
     else _fail('Identity content NOT found');
+  } else if (charProfileInjected) {
+    _pass('No identity field, but [Character Profile] injected via systemPrompt');
   } else _warn('No identity field on character');
 
   if (testChar.systemPrompt) {

@@ -91,8 +91,8 @@ function _pmsgResolveFullPersona(npc) {
     return realName || 'Unknown';
   }
 
-  function _pmsgMakeUserDisplayName() {
-    var userName = (state.userProfile && state.userProfile.name) || 'User';
+    function _pmsgMakeUserDisplayName() {
+    var userName = (typeof getCurrentUserMaskName === 'function') ? getCurrentUserMaskName() : ((state.userProfile && state.userProfile.name) || 'User');
     return '\u6211 (' + userName + ')';
   }
 
@@ -109,11 +109,13 @@ function _pmsgResolveFullPersona(npc) {
     var lastMsg = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
     var lastContent = lastMsg ? (lastMsg.content.length > 50 ? lastMsg.content.substring(0, 50) + '...' : lastMsg.content) : '';
     var lastTime = lastMsg ? lastMsg.timestamp : Date.now();
+        var resolvedUserName = (typeof getCurrentUserMaskName === 'function') ? getCurrentUserMaskName() : ((state.userProfile && state.userProfile.name) || 'User');
+    var resolvedUserAvatar = (typeof getCurrentUserMaskAvatar === 'function') ? getCurrentUserMaskAvatar() : ((state.userProfile && state.userProfile.avatar) || null);
     if (!userChat) {
-      state.messageChats.push({ id:'msgchat_user_self', roleId:'user', npcId:'user_self', npcName:(state.userProfile&&state.userProfile.name)||'User', displayName:displayName, isUser:true, messages:userMessages, lastMessage:lastContent, lastTime:lastTime });
+      state.messageChats.push({ id:'msgchat_user_self', roleId:'user', npcId:'user_self', npcName:resolvedUserName, displayName:displayName, avatar:resolvedUserAvatar, isUser:true, messages:userMessages, lastMessage:lastContent, lastTime:lastTime });
     } else {
       userChat.roleId='user'; userChat.isUser=true; userChat.displayName=displayName;
-      userChat.npcName=(state.userProfile&&state.userProfile.name)||'User';
+      userChat.npcName=resolvedUserName; userChat.avatar=resolvedUserAvatar;
       userChat.messages=userMessages; userChat.lastMessage=lastContent; userChat.lastTime=lastTime;
     }
   }
@@ -155,7 +157,7 @@ function _pmsgResolveFullPersona(npc) {
       return (b.lastTime||0)-(a.lastTime||0);
     });
     var h = '';
-    sorted.forEach(function(chat) {
+        sorted.forEach(function(chat) {
       var name=chat.displayName||chat.npcName||'?';
       var initial=chat.isUser?'\u6211':name.charAt(0);
       var timeStr=_pmsgFormatTime(chat.lastTime);
@@ -163,8 +165,11 @@ function _pmsgResolveFullPersona(npc) {
       if(preview.length>30) preview=preview.substring(0,30)+'...';
       var unread=chat._unread||0;
       var avatarCls='papp-avatar'+(chat.isUser?' pmsg-avatar-user':'');
+      var avatarInner=chat.avatar
+        ? '<img src="'+_pmsgEscHtml(chat.avatar)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+        : _pmsgEscHtml(initial);
       h+='<div class="papp-item pmsg-chat-item'+(chat.isUser?' pmsg-user-pinned':'')+'" onclick="openMessageChat(\''+_pmsgEscAttr(chat.id)+'\')">' +
-        '<div class="'+avatarCls+'">'+_pmsgEscHtml(initial)+'</div>' +
+        '<div class="'+avatarCls+'">'+avatarInner+'</div>' +
         '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">'+_pmsgEscHtml(name)+'</span><span class="papp-item-time">'+timeStr+'</span></div>' +
         '<div class="papp-item-sub">'+_pmsgEscHtml(preview)+'</div></div>' +
         (chat.isUser?'<span class="pmsg-pin-icon">\uD83D\uDCCC</span>':(unread>0?'<div class="papp-badge">'+unread+'</div>':'<span class="papp-item-chevron">&gt;</span>')) +
@@ -173,17 +178,20 @@ function _pmsgResolveFullPersona(npc) {
     return h;
   }
 
-  window.openMessageChat = function(chatId) {
+    window.openMessageChat = function(chatId) {
     var chat=_pmsgFindChat(chatId);
     if(!chat){showToast('Chat not found');return;}
     var pageEl=document.getElementById('phoneAppPage');
     if(!pageEl) return;
     var name=chat.displayName||chat.npcName||'?';
     var initial=chat.isUser?'\u6211':name.charAt(0);
+    var headerAvatarInner=chat.avatar
+      ? '<img src="'+_pmsgEscHtml(chat.avatar)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+      : _pmsgEscHtml(initial);
     var h='<div class="pmsg-dark">';
     h+='<div class="pmsg-chat-header">' +
       '<button class="pmsg-back-btn" onclick="backToMessageList()"><svg viewBox="0 0 20 20"><path d="M13 4l-6 6 6 6"/></svg></button>' +
-      '<div class="pmsg-chat-center"><div class="pmsg-chat-avatar">'+_pmsgEscHtml(initial)+'</div><div class="pmsg-chat-name">'+_pmsgEscHtml(name)+'</div></div>' +
+      '<div class="pmsg-chat-center"><div class="pmsg-chat-avatar">'+headerAvatarInner+'</div><div class="pmsg-chat-name">'+_pmsgEscHtml(name)+'</div></div>' +
       '<div class="pmsg-chat-header-right"></div></div>';
         h+='<div class="pmsg-chat-messages" id="pmsgChatMessages">';
     if(chat.messages&&chat.messages.length){

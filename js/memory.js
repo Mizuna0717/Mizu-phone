@@ -330,7 +330,7 @@ function deleteMemory() {
 // ========== SUMMARIZE & CONSOLIDATE ==========
 // ★★★ v2.0 短期记忆提示词 —— 第一人称 · 恋爱感 · 真人记忆 ★★★
 async function callSummarize(ch, msgs, api) {
-  const userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户';
+  const userName = (typeof getCurrentUserMaskName === 'function') ? getCurrentUserMaskName() : ((state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户');
   const charName = ch.name;
 
   const formatted = msgs.map(m => {
@@ -389,7 +389,7 @@ ${formatted}
 
 // ★★★ v2.0 长期记忆提示词 —— 第一人称 · 恋爱感 · 真人记忆 ★★★
 async function callConsolidate(ch, stmList, api) {
-  const userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户';
+  const userName = (typeof getCurrentUserMaskName === 'function') ? getCurrentUserMaskName() : ((state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户');
   const charName = ch.name;
 
   const formatted = stmList.map((m, i) => `[片段 ${i + 1} - ${m.date}]\n${m.content}`).join('\n\n');

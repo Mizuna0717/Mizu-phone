@@ -88,8 +88,16 @@ function mtgGetCharAvatar(charId) {
 }
 
 function mtgGetUserAvatar() {
-  if (typeof state !== 'undefined' && state.userAvatar) return state.userAvatar;
+  if (typeof getCurrentUserMaskAvatar === 'function') return getCurrentUserMaskAvatar();
+  if (typeof state !== 'undefined') {
+    return (state.userProfile && state.userProfile.avatar) || null;
+  }
   return null;
+}
+
+function mtgGetUserName() {
+  if (typeof getCurrentUserMaskName === 'function') return getCurrentUserMaskName();
+  return (typeof state !== 'undefined' && state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User';
 }
 
 /* ══════════════════════════════════

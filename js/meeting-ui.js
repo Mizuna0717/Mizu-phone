@@ -196,6 +196,12 @@ function mtgNewModeChanged() {
   });
 }
 
+function mtgNewSummaryToggled() {
+  var toggle = document.getElementById('mtgNewToggleSummary');
+  var wrap = document.getElementById('mtgNewSummaryIntervalWrap');
+  if (toggle && wrap) wrap.style.display = toggle.classList.contains('active') ? '' : 'none';
+}
+
 function mtgSettingsSummaryToggled() {
   var toggle = document.getElementById('mtgSettingsToggleSummary');
   var wrap = document.getElementById('mtgSettingsSummaryIntervalWrap');
@@ -584,7 +590,7 @@ function _mtgMsgCardHTML(entry) {
   var isSystem = entry.role === 'system';
 
   var cardCls = isSystem ? 'mtg-msg-card mtg-msg-card-system' : 'mtg-msg-card';
-  var sender  = isUser ? T('meetingYou') :
+    var sender  = isUser ? (typeof mtgGetUserName === 'function' ? mtgGetUserName() : T('meetingYou')) :
                 isChar ? (entry.charName || 'Character') :
                 T('meetingSystem');
   var time = mtgFormatTime(entry.timestamp);
