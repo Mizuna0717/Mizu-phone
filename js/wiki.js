@@ -295,6 +295,47 @@ function closeNpcAutoGenModal() {
 	if (modal) modal.classList.remove('active');
 }
 
+/* ── Fanwork detection helpers ── */
+
+var _FANWORK_KEYWORDS = ['出自', '来自', '作品', '原作', '动漫', '漫画', '游戏', '小说', '番剧', 'anime', 'manga', 'game', 'novel', 'series', 'franchise', 'canon', 'fandom'];
+var _FANWORK_TAGS     = ['anime', 'manga', 'game', 'novel', 'fanwork', 'fandom', '同人', '动漫', '漫画', '游戏', '小说'];
+
+function _isFanworkChar(char) {
+	if (!char) return false;
+	if (char.sourceType === 'fanwork') return true;
+	if (char.sourceType === 'original') return false;
+	var tags = char.tags || char.categories || [];
+	if (Array.isArray(tags) && tags.some(function(t) {
+		return _FANWORK_TAGS.indexOf((t || '').toLowerCase().trim()) > -1;
+	})) return true;
+	var blob = [
+		char.name || '', char.background || '', char.backstory || '',
+		char.notes || '', char.personality || '', char.systemPrompt || ''
+	].join(' ').toLowerCase();
+	return _FANWORK_KEYWORDS.some(function(kw) { return blob.indexOf(kw) > -1; });
+}
+
+async function _fetchFanworkLore(char) {
+	var name   = char.name || '';
+	var source = char.source || char.series || char.origin || '';
+	var query  = source
+		? (name + ' ' + source + ' character personality background')
+		: (name + ' anime manga game character profile personality');
+	try {
+		if (typeof searchWeb === 'function') {
+			var results = await searchWeb(query);
+			if (results && results.length > 0) {
+				return results.slice(0, 3).map(function(r) {
+					return (r.title || '') + ': ' + (r.snippet || r.description || '');
+				}).join('\n');
+			}
+		}
+	} catch (e) {
+		console.warn('[triggerNpcAutoGen] web search failed:', e);
+	}
+	return '';
+}
+
 async function triggerNpcAutoGen() {
 	var countEl = document.getElementById('npc-gen-count');
 	var btn     = document.getElementById('npc-gen-confirm-btn');
@@ -313,11 +354,20 @@ async function triggerNpcAutoGen() {
 	if (btn) { btn.textContent = 'Generating...'; btn.disabled = true; }
 
 	try {
-				// ★ 构建统一上下文（角色人设 + 用户/面具人设 + 世界书），注入到 generateNPCs 的 systemPrompt 字段
+		// Build unified context (character persona + user persona + worldbook)
 		var _unifiedCtx = (typeof buildUnifiedContext === 'function')
 			? buildUnifiedContext({ character: char, worldbooks: state.worldbooks })
 			: '';
-		console.log('[triggerNpcAutoGen] unified context injected:', _unifiedCtx.length > 0);
+
+		// Fanwork detection: if character is from an existing work, fetch lore as extra context
+		var _isFanwork = _isFanworkChar(char);
+		if (_isFanwork) {
+			console.log('[triggerNpcAutoGen] fanwork character detected, fetching lore for:', char.name);
+			var _fanworkLore = await _fetchFanworkLore(char);
+			if (_fanworkLore) _unifiedCtx = _unifiedCtx + '\n\n[原作资料]\n' + _fanworkLore;
+			console.log('[triggerNpcAutoGen] lore fetched:', _fanworkLore.length > 0);
+		}
+		console.log('[triggerNpcAutoGen] unified context injected:', _unifiedCtx.length > 0, '| fanwork:', _isFanwork);
 
 		var context = {
 			name:         char.name || '',
@@ -744,7 +794,7 @@ async function generateScheduleByAI() {
 	if (btn)    { btn.textContent = '生成中...'; btn.disabled = true; }
 	if (status) status.style.display = 'flex';
 
-	try {
+				try {
 		var systemContent = (typeof buildUnifiedContext === 'function')
 			? buildUnifiedContext({ character: char, worldbooks: state.worldbooks })
 			: '';
@@ -752,13 +802,43 @@ async function generateScheduleByAI() {
 		var charName = char.name || '角色';
 		var userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User';
 
+		// Pull recent iMessage history for this character from state.chats[charId] (up to 50 msgs)
+		var chatHistoryBlock = '';
+		try {
+			var _iMsgRaw = (state.chats && wikiSelectedCharId) ? (state.chats[wikiSelectedCharId] || []) : [];
+			var _iMsgRelevant = _iMsgRaw.filter(function(m) {
+				return m.role === 'user' || m.role === 'assistant';
+			}).slice(-50);
+			if (_iMsgRelevant.length > 0) {
+				chatHistoryBlock = '[与用户的 iMessage 对话历史]\n' + _iMsgRelevant.map(function(m) {
+					var ts = m.ts || m.timestamp || 0;
+					var dateStr = ts ? (function() {
+						var d = new Date(ts);
+						return d.getFullYear() + '-' +
+							String(d.getMonth()+1).padStart(2,'0') + '-' +
+							String(d.getDate()).padStart(2,'0') + ' ' +
+							String(d.getHours()).padStart(2,'0') + ':' +
+							String(d.getMinutes()).padStart(2,'0');
+					})() : '';
+					var speaker = m.role === 'user' ? userName : charName;
+					var text = (typeof m.content === 'string' ? m.content : '').replace(/<[^>]*>/g, '').trim();
+					if (text.length > 200) text = text.substring(0, 200) + '...';
+					return (dateStr ? dateStr + ' ' : '') + speaker + ': ' + text;
+				}).join('\n');
+			}
+			console.log('[generateScheduleByAI] iMessage history lines:', _iMsgRelevant.length);
+		} catch (histErr) {
+			console.warn('[generateScheduleByAI] iMessage history fetch failed:', histErr);
+		}
+
 		var userPrompt =
+			(chatHistoryBlock ? chatHistoryBlock + '\n\n' : '') +
 			'请为角色「' + charName + '」生成 ' + targetDate + ' 这一天的完整日程安排。\n\n' +
 			'要求：\n' +
 			'1. 生成 6 到 20 项日程事项，覆盖从 00:00 到 23:59 的全天时段\n' +
 			'2. 每项日程必须符合角色的性格、职业和生活习惯\n' +
 			'3. 如果角色有工作或职业背景，请包含相关工作内容\n' +
-			'4. 如果角色与「' + userName + '」有社交关系，可以在日程中包含互动安排\n' +
+			'4. 如果角色与「' + userName + '」有约定或互动安排，请将其纳入日程\n' +
 			'5. 日程内容需与世界观设定保持一致\n\n' +
 			'请严格按照以下 JSON 格式返回，不要输出任何其他内容：\n' +
 			'{"schedule":[{"time":"07:00","title":"事项名称","description":"简要描述"}]}';
@@ -769,7 +849,7 @@ async function generateScheduleByAI() {
 		}
 		messages.push({ role: 'user', content: userPrompt });
 
-		console.log('[generateScheduleByAI] unified context injected:', systemContent.length > 0, '| date:', targetDate);
+		console.log('[generateScheduleByAI] unified context injected:', systemContent.length > 0, '| iMessage history:', chatHistoryBlock.length > 0, '| date:', targetDate);
 
 		var raw = await sendChat(api, messages);
 
@@ -923,6 +1003,8 @@ window.closeNpcActionSheet     = closeNpcActionSheet;
 window.openNpcAutoGenModal     = openNpcAutoGenModal;
 window.closeNpcAutoGenModal    = closeNpcAutoGenModal;
 window.triggerNpcAutoGen       = triggerNpcAutoGen;
+window._isFanworkChar          = _isFanworkChar;
+window._fetchFanworkLore       = _fetchFanworkLore;
 window.openNpcManualModal      = openNpcManualModal;
 window.closeNpcManualModal     = closeNpcManualModal;
 window.saveManualNpc           = saveManualNpc;

@@ -3,10 +3,10 @@
    ========================================================================== */
 
 .wiki-view { display: none; }
-.wiki-view.wiki-view-active { display: block; animation: wikiFadeIn .3s ease forwards; }
+.wiki-view.wiki-view-active { display: flex; flex-direction: column; flex: 1; min-height: 0; animation: wikiFadeIn .3s ease forwards; }
 @keyframes wikiFadeIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes wikiFadeBack { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
-.wiki-view.wiki-view-back { display: block; animation: wikiFadeBack .3s ease forwards; }
+.wiki-view.wiki-view-back { display: flex; flex-direction: column; flex: 1; min-height: 0; animation: wikiFadeBack .3s ease forwards; }
 
 .wiki-search-wrap { margin: 0 16px 16px; position: relative; }
 .wiki-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #8e8e93; }
@@ -43,6 +43,12 @@
 
 .wiki-detail-panel { display: none; }
 .wiki-detail-panel.wiki-panel-visible { display: block; animation: wikiTabFadeIn .3s ease forwards; }
+
+/* Wiki scoped scrollbar — light grey, unobtrusive */
+#screen-wiki .screen-body::-webkit-scrollbar { width: 3px; }
+#screen-wiki .screen-body::-webkit-scrollbar-track { background: transparent; }
+#screen-wiki .screen-body::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 3px; }
+#screen-wiki .screen-body::-webkit-scrollbar-thumb:active { background: #b0b0b5; }
 @keyframes wikiTabFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 .wiki-btn-primary { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; border-radius: 12px; background: #1d1d1f; color: #fff; font-family: inherit; transition: transform .15s; -webkit-tap-highlight-color: transparent; }
