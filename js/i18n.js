@@ -27,6 +27,22 @@ function setLang(l) {
   applyLang();
 }
 
+// ★ Schedule Awareness i18n keys (injected into LANG if available)
+(function _injectScheduleAwareI18n() {
+  if (typeof LANG === 'undefined') return;
+  var keys = {
+    csScheduleAware: { en: 'Schedule Awareness', zh: '日程感知' },
+    csScheduleAwareDesc: { en: 'Auto-adjust replies based on schedule', zh: '根据日程自动调整回复行为' },
+    csScheduleAwareRequireTime: { en: 'Requires Time Awareness', zh: '请先开启时间感知' },
+    csEnableScheduleAware: { en: 'Enable Schedule Awareness', zh: '开启日程感知' }
+  };
+  Object.keys(keys).forEach(function(k) {
+    Object.keys(keys[k]).forEach(function(lang) {
+      if (LANG[lang]) LANG[lang][k] = keys[k][lang];
+    });
+  });
+})();
+
 function renderHelpAccordion() {
   document.getElementById('helpAccordion').innerHTML = [1, 2, 3, 4].map(i =>
     `<div class="accordion-item"><div class="accordion-head" onclick="toggleAcc(this)"><span>${T('helpQ' + i)}</span><span class="chev">⌄</span></div><div class="accordion-body"><div class="accordion-inner">${T('helpA' + i)}</div></div></div>`

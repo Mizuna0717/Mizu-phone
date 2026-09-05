@@ -242,8 +242,9 @@ function buildSystemPrompt(ch, wbs, stickers) {
 
   const charCfg = getCharConfig(ch.id);
 
-  const langMap = {
-    'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'ko': '한국어', 'ja': '日本語', 'en': 'English'
+    const langMap = {
+    'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'ko': '한국어', 'ja': '日本語', 'en': 'English',
+    'yue': '粤语', 'es': 'español', 'fr': 'français'
   };
   const chatLang = charCfg.chatLang || 'zh-CN';
   const langName = langMap[chatLang] || '简体中文';
@@ -442,8 +443,9 @@ function buildGroupSystemPrompt(targetChar, grp, wbs, stickers) {
   p += '\n\n' + buildStickerHint(stickers) + buildMultiMediaHint();
 
   const charCfg = getCharConfig(targetChar.id);
-  const langMap = {
-    'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'ko': '한국어', 'ja': '日本語', 'en': 'English'
+    const langMap = {
+    'zh-CN': '简体中文', 'zh-TW': '繁體中文', 'ko': '한국어', 'ja': '日本語', 'en': 'English',
+    'yue': '粤语', 'es': 'español', 'fr': 'français'
   };
   const chatLang = charCfg.chatLang || 'zh-CN';
   const langName = langMap[chatLang] || '简体中文';

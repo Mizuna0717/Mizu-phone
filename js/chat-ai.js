@@ -507,6 +507,101 @@ function _fcPerformAction(action, callback) {
 
 
 /* ══════════════════════════════════════════
+   Schedule Awareness — busy-mode helpers
+   ══════════════════════════════════════════ */
+
+function _getScheduleForChar(charId) {
+  try {
+    var wikiData = state.wikiData || state.wiki || {};
+    var schedules = wikiData.schedules || [];
+    return schedules.filter(function(s) {
+      if (!s.characters || !Array.isArray(s.characters)) return false;
+      return s.characters.indexOf(charId) > -1 || s.charId === charId;
+    });
+  } catch (e) {
+    return [];
+  }
+}
+
+function _isCurrentlyBusy(schedules) {
+  if (!schedules || !schedules.length) return null;
+  var now = new Date();
+  var todayStr = now.getFullYear() + '-' +
+    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0');
+  var nowMinutes = now.getHours() * 60 + now.getMinutes();
+  for (var i = 0; i < schedules.length; i++) {
+    var s = schedules[i];
+    var sDate = (s.date || '').substring(0, 10);
+    if (sDate && sDate !== todayStr) continue;
+    var timeStr = s.time || s.startTime || '';
+    var endStr  = s.endTime || '';
+    if (!timeStr) continue;
+    var parts = timeStr.split(':');
+    var startMin = parseInt(parts[0] || 0) * 60 + parseInt(parts[1] || 0);
+    var endMin;
+    if (endStr) {
+      var ep = endStr.split(':');
+      endMin = parseInt(ep[0] || 0) * 60 + parseInt(ep[1] || 0);
+    } else {
+      endMin = startMin + 60;
+    }
+    if (nowMinutes >= startMin && nowMinutes < endMin) {
+      return s;
+    }
+  }
+  return null;
+}
+
+function _detectBusyMode(ch) {
+  var blob = [
+    ch.personality || '', ch.systemPrompt || '', ch.background || '',
+    ch.backstory || '', ch.notes || ''
+  ].join(' ').toLowerCase();
+
+  var focusKw = ['工作狂', '职业', '高冷', '冷漠', 'workaholic', 'professional', 'aloof', 'career', '上班', '工作', 'work', 'job', 'office'];
+  var politeKw = ['温柔', '礼貌', '成熟', '体贴', '优雅', 'polite', 'gentle', 'mature', 'graceful', 'kind', 'warm'];
+  var multiKw  = ['活泼', '开朗', '热情', '多任务', 'energetic', 'lively', 'cheerful', 'bubbly', 'enthusiastic', 'multitask'];
+
+  if (focusKw.some(function(k) { return blob.indexOf(k) > -1; })) return 'focus';
+  if (multiKw.some(function(k)  { return blob.indexOf(k) > -1; })) return 'multitask';
+  if (politeKw.some(function(k) { return blob.indexOf(k) > -1; })) return 'polite';
+  return 'polite';
+}
+
+function _buildScheduleAwareBlock(charId, ch) {
+  var schedules = _getScheduleForChar(charId);
+  var busyEvent = _isCurrentlyBusy(schedules);
+  if (!busyEvent) return '';
+
+  var charName = ch.name || '角色';
+  var eventTitle = busyEvent.title || busyEvent.name || '事务';
+  var mode = _detectBusyMode(ch);
+
+  var instruction;
+  if (mode === 'focus') {
+    instruction =
+      '[日程感知 — 专注模式]\n' +
+      charName + ' 当前正在专注处理「' + eventTitle + '」。' +
+      '如果用户发来消息，请生成一条符合' + charName + '人设的简短自动回复，' +
+      '告知用户正在忙，稍后联系。回复不超过 15 个字，语气冷淡简短。';
+  } else if (mode === 'multitask') {
+    instruction =
+      '[日程感知 — 分身模式]\n' +
+      charName + ' 当前有多项事务在身，正在处理「' + eventTitle + '」。' +
+      '如果用户发来消息，请生成一条符合' + charName + '人设的简短回复，' +
+      '语气略带匆忙感。回复不超过 15 个字。';
+  } else {
+    instruction =
+      '[日程感知 — 礼貌模式]\n' +
+      charName + ' 当前正在处理「' + eventTitle + '」。' +
+      '如果用户发来消息，请生成一条符合' + charName + '人设的简短回复，' +
+      '礼貌地表示稍后详谈。回复不超过 20 个字。';
+  }
+  return instruction;
+}
+
+/* ══════════════════════════════════════════
    原有 triggerResponse（含 TP + FC 双重评估）
    ══════════════════════════════════════════ */
 
@@ -551,8 +646,14 @@ async function _triggerSingleResponse(api) {
   ct.appendChild(typ); ct.scrollTop = ct.scrollHeight;
   var _tpRawReply = null;
   try {
-    var sysPrompt = buildSystemPrompt(ch, state.worldbooks, state.stickers);
+        var sysPrompt = buildSystemPrompt(ch, state.worldbooks, state.stickers);
     var charCfg = getCharConfig(state.currentCharId); var contextCount = charCfg.contextCount || 50;
+
+    // ── Schedule Awareness: inject busy-mode instruction if enabled ──
+    if (charCfg.timeAwareness && charCfg.scheduleAware) {
+      var _saBlock = _buildScheduleAwareBlock(state.currentCharId, ch);
+      if (_saBlock) sysPrompt = sysPrompt + '\n\n' + _saBlock;
+    }
     var allChatMsgs = (state.chats[state.currentCharId]||[]).map(function(m) {
       if (m.recalled) return { role: m.role, content: '[Message recalled]' };
       if (m.type === 'voice') return { role: m.role, content: '[Voice]: ' + m.content };
@@ -597,6 +698,10 @@ async function _triggerSingleResponse(api) {
 }
 
 window.triggerResponse = triggerResponse;
+window._buildScheduleAwareBlock = _buildScheduleAwareBlock;
+window._detectBusyMode = _detectBusyMode;
+window._isCurrentlyBusy = _isCurrentlyBusy;
+window._getScheduleForChar = _getScheduleForChar;
 window._parseEmotions = _parseEmotions;
 window._evaluateTopPriority = _evaluateTopPriority;
 window._executeTopPriorityKick = _executeTopPriorityKick;

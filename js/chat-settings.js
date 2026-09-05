@@ -424,13 +424,41 @@ function openChatSettings() {
   document.getElementById('csTopPriorityToggle').classList.toggle('on', !!cfg.topPriority);
 
   // ★ NEW: 引用信息开关（读取 state 级别，默认 true）
-  document.getElementById('csAllowQuoteToggle').classList.toggle('on', state.allowQuote !== false);
+    document.getElementById('csAllowQuoteToggle').classList.toggle('on', state.allowQuote !== false);
+
+  // Schedule Awareness — depends on Time Awareness being on
+  var timeOn = !!cfg.timeAwareness;
+  var schedOn = !!cfg.scheduleAware;
+  var saToggle = document.getElementById('csScheduleAwareToggle');
+  var saRow    = document.getElementById('csScheduleAwareRow');
+  var saHint   = document.getElementById('csScheduleAwareHint');
+  if (saToggle) {
+    saToggle.classList.toggle('on', schedOn && timeOn);
+    saToggle.classList.toggle('cs-toggle-disabled', !timeOn);
+  }
+  if (saRow)  saRow.classList.toggle('cs-row-disabled', !timeOn);
+  if (saHint) saHint.textContent = timeOn ? '' : (typeof T === 'function' ? T('scheduleAwareRequireTime') : '请先开启时间感知');
 
   nav('screen-chat-settings');
   setTimeout(function () {
     updateTopPrioritySettingsUI();
     updateForceControlSettingsUI();
   }, 50);
+}
+
+/* Schedule Awareness toggle */
+function toggleScheduleAware() {
+  if (!state.currentCharId) return;
+  var cfg = getCharConfig(state.currentCharId);
+  if (!cfg.timeAwareness) {
+    showToast(typeof T === 'function' ? T('scheduleAwareRequireTime') : '请先开启时间感知');
+    return;
+  }
+  cfg.scheduleAware = !cfg.scheduleAware;
+  var saToggle = document.getElementById('csScheduleAwareToggle');
+  if (saToggle) saToggle.classList.toggle('on', cfg.scheduleAware);
+  saveCharConfig();
+  showToast(cfg.scheduleAware ? (typeof T === 'function' ? T('scheduleAware') : 'Schedule Awareness') + ' ON' : (typeof T === 'function' ? T('scheduleAware') : 'Schedule Awareness') + ' OFF');
 }
 
 /* ★ NEW: 引用信息开关 — 存储在 state（账号级别） */
@@ -454,8 +482,26 @@ function toggleCsToggle(field, toggleId) {
   if (field === 'autoMoments') {
     cfg.autoMoments ? startAutoMoments(state.currentCharId) : stopAutoMoments(state.currentCharId);
   }
-  if (field === 'translation' || field === 'charRecall') {
+    if (field === 'translation' || field === 'charRecall') {
     if (typeof renderChat === 'function') renderChat();
+  }
+
+  // When Time Awareness is toggled, update Schedule Awareness control state
+  if (field === 'timeAwareness') {
+    var timeOn = !!cfg.timeAwareness;
+    var saToggle = document.getElementById('csScheduleAwareToggle');
+    var saRow    = document.getElementById('csScheduleAwareRow');
+    var saHint   = document.getElementById('csScheduleAwareHint');
+    if (!timeOn && cfg.scheduleAware) {
+      cfg.scheduleAware = false;
+      saveCharConfig();
+    }
+    if (saToggle) {
+      saToggle.classList.toggle('on', !!(cfg.scheduleAware && timeOn));
+      saToggle.classList.toggle('cs-toggle-disabled', !timeOn);
+    }
+    if (saRow)  saRow.classList.toggle('cs-row-disabled', !timeOn);
+    if (saHint) saHint.textContent = timeOn ? '' : (typeof T === 'function' ? T('scheduleAwareRequireTime') : '请先开启时间感知');
   }
 
   if (field === 'forceControl') {
@@ -611,3 +657,6 @@ window._findActiveFcLockedCharId = _findActiveFcLockedCharId;
 
 // ★ NEW: Allow Quote export
 window.toggleAllowQuote = toggleAllowQuote;
+
+// Schedule Awareness export
+window.toggleScheduleAware = toggleScheduleAware;

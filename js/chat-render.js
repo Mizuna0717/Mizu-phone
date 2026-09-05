@@ -262,11 +262,19 @@ function renderChat() {
       return;
     }
 
-    var quoteHtml = '';
+        var quoteHtml = '';
     if (msg.quoteRef) {
       var qm = msgs.find(function (m) { return m.id === msg.quoteRef.id; });
-      quoteHtml = '<div class="msg-quote"><span class="mq-name">' + esc(msg.quoteRef.name) +
-        '</span><br>' + esc((qm ? qm.content : msg.quoteRef.text || '').slice(0, 40)) + '</div>';
+      var qText = qm
+        ? (qm.recalled ? T('quoteDeleted') : (qm.content || '').slice(0, 80))
+        : (msg.quoteRef.text || T('quoteDeleted')).slice(0, 80);
+      var qScrollAttr = qm ? ' onclick="_scrollToMsg(\'' + qm.id + '\')"' : '';
+      quoteHtml =
+        '<div class="msg-quote"' + qScrollAttr + '>' +
+          '<div class="msg-quote-sender">' + esc(msg.quoteRef.name) + '</div>' +
+          '<div class="msg-quote-text">' + esc(qText) + '</div>' +
+        '</div>' +
+        '<div class="msg-quote-divider"></div>';
     }
 
     var editedMark = msg.edited

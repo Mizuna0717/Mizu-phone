@@ -432,6 +432,13 @@ const LANG = {
     moodSad:'Sad',
     moodNostalgic:'Nostalgic',
     moodGrateful:'Grateful',
+    quoteLabel:'Quote',
+    quoteReplyTo:'Replying to',
+    quoteDeleted:'Message recalled',
+    csAllowQuote:'Allow Quote',
+    csAllowQuoteSub:'Character can quote your past messages when replying',
+    csAllowQuoteSection:'Quote Messages',
+    csAllowQuoteSectionSub:'Reply with context from past messages',
     chatSettings:'Chat Settings',
     memorySummary:'MEMORY SUMMARY',
     autoSummarize:'Auto Summarize',
@@ -632,6 +639,11 @@ const LANG = {
     meetingDemoChar:'The character responds...',
     meetingDemoUser:'You continue the story...',
     meetingPerson:'PERSON',
+
+        // ── Schedule Awareness ──
+    scheduleAware:'Schedule Awareness',
+    scheduleAwareDesc:'Auto-adjust replies based on character schedule',
+    scheduleAwareRequireTime:'Enable Time Awareness first',
 
     // ── Together ──
     together:'Together',
@@ -942,6 +954,13 @@ const LANG = {
     moodSad:'難過',
     moodNostalgic:'懷念',
     moodGrateful:'感恩',
+    quoteLabel:'引用',
+    quoteReplyTo:'回复',
+    quoteDeleted:'消息已撤回',
+    csAllowQuote:'允许引用',
+    csAllowQuoteSub:'角色可引用你的历史消息进行回复',
+    csAllowQuoteSection:'引用信息',
+    csAllowQuoteSectionSub:'回复时引用历史消息',
     chatSettings:'聊天設置',
     memorySummary:'記憶總結',
     autoSummarize:'自動總結',
@@ -1142,6 +1161,11 @@ const LANG = {
     meetingDemoChar:'角色回应...',
     meetingDemoUser:'你继续故事...',
     meetingPerson:'人称',
+
+        // ── 日程感知 ──
+    scheduleAware:'日程感知',
+    scheduleAwareDesc:'根据日程自动调整回复行为',
+    scheduleAwareRequireTime:'请先开启时间感知',
 
     // ── Together ──
     together:'一起',

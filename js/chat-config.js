@@ -32,8 +32,13 @@ function getCharConfig(cid) {
   if (cfg.forceControl === undefined) cfg.forceControl = false;
   if (cfg.topPriority === undefined) cfg.topPriority = false;
 
-  // ★★★ 新增：回复语言 ★★★
+
+
+    // ★★★ 新增：回复语言 ★★★
   if (cfg.chatLang === undefined) cfg.chatLang = 'zh-CN';
+
+  // ★★★ 新增：日程感知 ★★★
+  if (cfg.scheduleAware === undefined) cfg.scheduleAware = false;
 
   return cfg;
 }

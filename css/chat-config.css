@@ -43,6 +43,26 @@
 	opacity: .8;
 }
 
+/* Schedule Aware — disabled state when Time Awareness is off */
+#screen-chat-settings .toggle.cs-toggle-disabled {
+	background: #e5e5ea;
+	opacity: .4;
+	pointer-events: none;
+}
+#screen-chat-settings .toggle.cs-toggle-disabled .toggle-knob {
+	transform: translateX(0);
+}
+.cs-row-disabled .cs-row-label,
+.cs-row-disabled .cs-row-sublabel {
+	opacity: .4;
+}
+.cs-schedule-aware-hint {
+	padding: 4px 16px 12px;
+	font-size: 12px;
+	color: #ff9500;
+	line-height: 1.4;
+}
+
 /* --- Number inputs (reply count) --- */
 #screen-chat-settings .cs-num-input {
 	text-align: right;
