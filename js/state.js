@@ -9,9 +9,10 @@ let state = {
   drawerSearch: '', lang: 'en', userProfile: { name: 'User', avatar: null },
   masks: [], memories: [], imsgTab: 'messages', replyPrompt: null, charConfig: {},
   phoneData: {}, bookmarks: [], groups: [], moments: [],messageChats: [], 
-  meetings: [],
+    meetings: [],
   npcs: [],
   allowQuote: true,
+  theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '' },
   systemPromptIM: '',
   systemPromptMeeting: '',
   user: null
@@ -33,7 +34,7 @@ var SAVE_KEYS = [
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
   'groups', 'moments', 'imsgTab','messageChats' ,           
-  'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting'
+  'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting', 'theme'
 ];
 
 var _stateLoaded = false;
@@ -54,8 +55,9 @@ function _getStateDefaults() {
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
-    npcs: [],messageChats: [],  
+        npcs: [],messageChats: [],  
     allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
+    theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '' },
     user: null
   };
 }
@@ -80,8 +82,15 @@ function _validateState() {
    if (!Array.isArray(state.messageChats)) state.messageChats = []; 
   if (!Array.isArray(state.npcs)) state.npcs = [];
   if (state.allowQuote == null) state.allowQuote = true;
-  if (state.systemPromptIM == null) state.systemPromptIM = '';
+    if (state.systemPromptIM == null) state.systemPromptIM = '';
   if (state.systemPromptMeeting == null) state.systemPromptMeeting = '';
+  if (!state.theme || typeof state.theme !== 'object') state.theme = { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '' };
+  if (!state.theme.fontSize) state.theme.fontSize = 'medium';
+  if (state.theme.chatBubble == null) state.theme.chatBubble = '';
+  if (state.theme.chatInterface == null) state.theme.chatInterface = '';
+  if (state.theme.meetingStyle == null) state.theme.meetingStyle = '';
+  if (state.theme.heartPanel == null) state.theme.heartPanel = '';
+  if (state.theme.meetingArchive == null) state.theme.meetingArchive = '';
 
   if (window.__user) {
     state.user = window.__user;

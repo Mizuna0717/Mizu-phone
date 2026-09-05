@@ -65,7 +65,8 @@
       }
     } catch(e) {}
 
-    try { applyLang(); } catch(e) {}
+        try { applyLang(); } catch(e) {}
+    try { _applyAllThemeStyles(); } catch(e) {}
 
     var chatInput = document.getElementById('chatInput');
     if (chatInput) {

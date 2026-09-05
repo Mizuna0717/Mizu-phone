@@ -301,6 +301,7 @@ var scripts = [
     'js/cloud.js',
     'js/auth.js',
     'js/wiki.js',
+    'js/theme.js',
     'js/phone-message.js',
     'js/together.js',
     'js/init.js',
