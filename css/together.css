@@ -16,6 +16,8 @@
   justify-content: space-between;
   padding: 14px 16px 10px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .together-back {
@@ -44,6 +46,483 @@
   font-weight: 600;
   color: #1d1d1f;
   letter-spacing: -.2px;
+}
+
+/* ===== + 按钮 ===== */
+.tg-add-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 6px rgba(0,0,0,.06), 0 0 0 .5px rgba(0,0,0,.05);
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tg-add-btn:active { background: rgba(255,255,255,.8); }
+.tg-add-btn svg {
+  width: 16px; height: 16px;
+  stroke: #3a3a3c; fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* ===== 新增选项遮罩 & 菜单 ===== */
+.tg-overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 100;
+  display: none;
+  pointer-events: none;
+}
+.tg-overlay.active {
+  display: block;
+  pointer-events: auto;
+}
+
+.tg-add-menu {
+  position: absolute;
+  top: 52px;
+  right: 14px;
+  width: 220px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.10), 0 0 0 .5px rgba(0,0,0,.06);
+  z-index: 200;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(.92) translateY(-6px);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.tg-add-menu.active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+.tg-add-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .12s;
+}
+.tg-add-menu-item + .tg-add-menu-item {
+  border-top: .5px solid rgba(0,0,0,.05);
+}
+.tg-add-menu-item:active { background: rgba(0,0,0,.04); }
+.tg-add-menu-icon {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: rgba(0,0,0,.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tg-add-menu-icon svg {
+  width: 17px; height: 17px;
+  stroke: #3a3a3c; fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tg-add-menu-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tg-add-menu-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1d1d1f;
+  line-height: 1.3;
+}
+.tg-add-menu-sub {
+  font-size: 11px;
+  color: #a0a0a5;
+  font-weight: 400;
+}
+
+/* ═══════════════════════════════════════
+   弹窗通用
+   ═══════════════════════════════════════ */
+.tg-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 300;
+  display: none;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.tg-modal-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+.tg-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -46%) scale(.96);
+  width: calc(100% - 48px);
+  max-width: 380px;
+  max-height: 82vh;
+  background: #f5f5f7;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.06);
+  z-index: 400;
+  display: none;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity .22s ease, transform .22s ease;
+  overflow: hidden;
+}
+.tg-modal.active {
+  display: flex;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.tg-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 12px;
+  border-bottom: .5px solid rgba(0,0,0,.06);
+  flex-shrink: 0;
+}
+.tg-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -.2px;
+}
+.tg-modal-close {
+  width: 28px; height: 28px;
+  border: none;
+  background: rgba(0,0,0,.06);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .12s;
+}
+.tg-modal-close:active { background: rgba(0,0,0,.1); }
+.tg-modal-close svg {
+  width: 13px; height: 13px;
+  stroke: #6e6e73; fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.tg-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 20px 4px;
+}
+
+.tg-modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px calc(env(safe-area-inset-bottom, 4px) + 14px);
+  border-top: .5px solid rgba(0,0,0,.06);
+  flex-shrink: 0;
+}
+
+/* ── 表单元素 ── */
+.tg-form-group {
+  margin-bottom: 16px;
+}
+.tg-form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8e8e93;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.tg-form-input {
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.1);
+  background: rgba(255,255,255,.75);
+  padding: 0 12px;
+  font-size: 14px;
+  color: #1d1d1f;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+}
+.tg-form-input:focus {
+  border-color: rgba(0,0,0,.22);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.04);
+}
+.tg-form-input::placeholder { color: #c7c7cc; }
+
+/* ── 文件拖放区 ── */
+.tg-file-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 18px 16px;
+  border: 1.5px dashed rgba(0,0,0,.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,.5);
+  cursor: pointer;
+  text-align: center;
+  transition: background .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tg-file-drop:active {
+  background: rgba(255,255,255,.8);
+  border-color: rgba(0,0,0,.2);
+}
+.tg-file-drop svg {
+  width: 22px; height: 22px;
+  stroke: #b0b0b5; fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tg-file-drop span {
+  font-size: 12px;
+  color: #a0a0a5;
+  font-weight: 400;
+  max-width: 200px;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+/* ── Tab 切换（封面/视频来源） ── */
+.tg-cover-options {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.tg-cover-tab {
+  flex: 1;
+  padding: 7px 0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8e8e93;
+  background: rgba(0,0,0,.04);
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background .12s, color .12s, border-color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tg-cover-tab.active {
+  background: rgba(255,255,255,.82);
+  color: #1d1d1f;
+  border-color: rgba(0,0,0,.09);
+  font-weight: 600;
+}
+
+/* ── 封面 URL 区 ── */
+.tg-cover-url-pane { padding-top: 0; }
+
+/* ── 封面预览 ── */
+.tg-cover-preview-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin-top: 10px;
+}
+.tg-cover-preview-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(0,0,0,.07);
+}
+.tg-cover-clear {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(60,60,67,.6);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tg-cover-clear svg {
+  width: 10px; height: 10px;
+  stroke: #fff; fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+/* ── B站解析结果 ── */
+.tg-parse-btn {
+  margin-top: 8px;
+  width: 100%;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid rgba(0,0,0,.1);
+  background: rgba(255,255,255,.7);
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a3a3c;
+  cursor: pointer;
+  transition: background .12s;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+.tg-parse-btn:active { background: rgba(255,255,255,.95); }
+
+.tg-bili-result {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.65);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.8);
+}
+.tg-bili-thumb {
+  width: 60px;
+  height: 40px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #dcdce1, #d0d0d5);
+  flex-shrink: 0;
+}
+.tg-bili-info { flex: 1; min-width: 0; }
+.tg-bili-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d1d1f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+.tg-bili-meta {
+  font-size: 10px;
+  color: #a0a0a5;
+}
+
+/* ── 上传状态 ── */
+.tg-upload-status {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 8px;
+  line-height: 1.4;
+}
+.tg-status-ok  { background: rgba(52,199,89,.1);  color: #1a7a34; }
+.tg-status-error { background: rgba(255,59,48,.08); color: #c0392b; }
+
+/* ── 底部按钮 ── */
+.tg-btn-ghost {
+  flex: 1;
+  height: 42px;
+  border-radius: 11px;
+  border: 1px solid rgba(0,0,0,.1);
+  background: rgba(255,255,255,.65);
+  font-size: 14px;
+  font-weight: 500;
+  color: #6e6e73;
+  cursor: pointer;
+  transition: background .12s;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.tg-btn-ghost:active { background: rgba(255,255,255,.9); }
+
+.tg-btn-primary {
+  flex: 1.6;
+  height: 42px;
+  border-radius: 11px;
+  border: none;
+  background: #3a3a3c;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity .12s;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.tg-btn-primary:active { opacity: .82; }
+
+/* ── 播放列表实际内容样式 ── */
+.tg-pl-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d1d1f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tg-pl-artist {
+  font-size: 11px;
+  color: #a0a0a5;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 歌词真实文本行 ── */
+.tg-lyric-text {
+  font-size: 13px;
+  color: #6e6e73;
+  line-height: 1.55;
+  font-weight: 400;
+}
+.tg-lyric-line.active .tg-lyric-text {
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+/* ── 视频列表实际标题 ── */
+.tg-vl-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1d1d1f;
+  line-height: 1.4;
+}
+
+/* ── 视频屏内 B站嵌入标签 ── */
+.tg-video-bili-label {
+  font-size: 13px;
+  color: rgba(255,255,255,.8);
+  font-weight: 500;
+  padding: 16px;
+  text-align: center;
 }
 
 /* ===== 内容区 ===== */

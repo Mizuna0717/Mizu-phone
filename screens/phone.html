@@ -1,89 +1,548 @@
-<!-- PHONE -->
-<div class="screen" id="screen-phone">
-    <div class="nav-bar" style="background:#1a1a1e">
-        <button class="nav-btn" onclick="nav('screen-home')">
-            <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#fff" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-        <span class="nav-title" style="color:#fff" id="phoneNavTitle" data-i18n="phone">Phone</span>
-        <div class="nav-group-right" id="phoneNavRight" style="display:none">
-            <button class="nav-btn" onclick="regeneratePhone()" title="Regenerate">
-                <svg viewBox="0 0 20 20">
-                    <path d="M14.5 3.5l1 3.5h-3.5" stroke="#fff" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M5.5 16.5l-1-3.5h3.5" stroke="#fff" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M15 7a7 7 0 01-1 9.5M5 13a7 7 0 011-9.5" stroke="#fff" fill="none" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </button>
-            <button class="nav-btn" onclick="showPhoneCharSelect()">
-                <svg viewBox="0 0 20 20">
-                    <circle cx="10" cy="6" r="3" stroke="#fff" fill="none" stroke-width="1.5"/>
-                    <path d="M4 18c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#fff" fill="none" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </button>
-        </div>
-    </div>
+/* ========== phone.css ========== */
 
-    <!-- Character Select -->
-    <div id="phoneCharSelect" style="flex:1;overflow-y:auto;background:linear-gradient(180deg,#1a1a1e 0%,#2c2c30 100%);padding:20px 16px">
-        <div style="text-align:center;padding:30px 0 28px">
-            <div style="width:72px;height:72px;margin:0 auto 16px;background:rgba(255,255,255,.05);border-radius:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)">
-                <svg viewBox="0 0 32 32" style="width:36px;height:36px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.2">
-                    <rect x="8" y="3" width="16" height="26" rx="3"/>
-                    <path d="M14 6h4"/>
-                    <circle cx="16" cy="25" r="1.5"/>
-                    <path d="M8 8h16M8 23h16"/>
-                </svg>
-            </div>
-            <div style="color:#fff;font-size:18px;font-weight:600;margin-bottom:6px">查看谁的手机？</div>
-            <div style="color:rgba(255,255,255,.4);font-size:13px">AI 会根据角色性格生成独特桌面</div>
-        </div>
-        <div id="phoneCharList"></div>
-    </div>
 
-    <!-- Phone Frame — FIXED: overflow:hidden prevents child from escaping container -->
-    <div id="phoneFrameWrap" style="display:none;flex:1;overflow:hidden">
-        <div class="phone-frame" id="phoneFrame">
-            <div class="phone-statusbar">
-                <div class="phone-statusbar-left">
-                    <svg viewBox="0 0 14 14"><path d="M1 10l3-6h6l3 6"/><path d="M3 10h8"/></svg>
-                    <span>LTE</span>
-                </div>
-                <div class="phone-statusbar-right">
-                    <svg viewBox="0 0 14 14"><path d="M1 4h2v8H1zM5 2h2v10H5zM9 5h2v7H9zM13 7h0"/></svg>
-                    <svg viewBox="0 0 14 14"><rect x="1" y="4" width="10" height="7" rx="1"/><path d="M12 6.5v2"/></svg>
-                    <span>85%</span>
-                </div>
-            </div>
 
-            <div class="phone-time-display">
-                <div class="ptd-time" id="phoneTime">09:41</div>
-                <div class="ptd-date" id="phoneDate">Monday, January 1</div>
-            </div>
 
-            <div style="text-align:center;padding:0 0 20px">
-                <span style="display:inline-block;padding:4px 14px;background:rgba(255,255,255,.06);border-radius:20px;color:rgba(255,255,255,.4);font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;border:1px solid rgba(255,255,255,.06)" id="phoneOwnerName"></span>
-            </div>
+.phone-frame{margin:0 auto;width:100%;max-width:400px;background:linear-gradient(165deg,#1a1a1e 0%,#2c2c30 40%,#1a1a1e 100%);height:100%;box-sizing:border-box;position:relative;overflow-y:auto;padding-bottom:40px}
+.phone-statusbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px 8px;color:rgba(255,255,255,.6);font-size:12px;font-weight:500;flex-shrink:0}
+.phone-statusbar-left{display:flex;align-items:center;gap:4px}
+.phone-statusbar-right{display:flex;align-items:center;gap:6px}
+.phone-statusbar svg{width:14px;height:14px;stroke:rgba(255,255,255,.6);fill:none;stroke-width:1.5}
+.phone-time-display{text-align:center;padding:20px 0 30px;color:#fff}
+.phone-time-display .ptd-time{font-size:64px;font-weight:200;letter-spacing:-2px;line-height:1}
+.phone-time-display .ptd-date{font-size:15px;font-weight:400;color:rgba(255,255,255,.5);margin-top:6px}
 
-            <div class="phone-app-grid" id="phoneAppGrid"></div>
+.phone-app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px 12px;padding:0 24px}
+.phone-app-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.phone-app-item:active .phone-app-icon{transform:scale(.9)}
+.phone-app-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;position:relative;transition:transform .12s ease}
+.phone-app-icon svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.phone-app-name{font-size:11px;color:rgba(255,255,255,.7);font-weight:400;text-align:center;line-height:1.2;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phone-app-badge{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;background:#ff3b30;color:#fff;font-size:10px;font-weight:700;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.phone-app-icon.pi-msg{background:linear-gradient(135deg,#3a3a3c,#48484a)}
+.phone-app-icon.pi-notes{background:linear-gradient(135deg,#4a4a4c,#5a5a5c)}
+.phone-app-icon.pi-photos{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}
+.phone-app-icon.pi-travel{background:linear-gradient(135deg,#48484a,#58585a)}
+.phone-app-icon.pi-wallet{background:linear-gradient(135deg,#2c2c2e,#3c3c3e)}
+.phone-app-icon.pi-music{background:linear-gradient(135deg,#4a4a4c,#3a3a3c)}
+.phone-app-icon.pi-browser{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}
+.phone-app-icon.pi-contacts{background:linear-gradient(135deg,#48484a,#3a3a3c)}
+.phone-app-icon.pi-phone{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}
+.phone-app-icon.pi-shop{background:linear-gradient(135deg,#4a4a4c,#5a5a5c)}
+.phone-app-icon.pi-calendar{background:linear-gradient(135deg,#3c3c3e,#2c2c2e)}
+.phone-app-icon.pi-camera{background:linear-gradient(135deg,#48484a,#58585a)}
+.phone-app-icon.pi-maps{background:linear-gradient(135deg,#3a3a3c,#48484a)}
+.phone-app-icon.pi-weather{background:linear-gradient(135deg,#4a4a4c,#3c3c3e)}
+.phone-app-icon.pi-clock{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}
+.phone-app-icon.pi-settings{background:linear-gradient(135deg,#48484a,#3a3a3c)}
+.phone-app-icon.pi-files{background:linear-gradient(135deg,#3a3a3c,#4a4a4c)}
+.phone-app-icon.pi-health{background:linear-gradient(135deg,#4a4a4c,#3c3c3e)}
+.phone-app-icon.pi-video{background:linear-gradient(135deg,#3c3c3e,#4c4c4e)}
+.phone-app-icon.pi-recorder{background:linear-gradient(135deg,#48484a,#58585a)}
+.phone-folder-icon:active{transform:scale(.92)}
+.phone-folder-preview{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:4px}
+.phone-folder-preview-grid{display:grid;gap:2px;width:100%;height:100%}
+.phone-folder-grid-2{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}
+.phone-folder-grid-3{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.phone-folder-mini{background:rgba(255,255,255,.06);border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.phone-folder-mini svg{width:60%;height:60%;stroke:rgba(255,255,255,.5);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.phone-folder-mini-empty{background:transparent}
+.phone-folder-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:500;align-items:center;justify-content:center;opacity:0;transition:opacity .2s ease}
+.phone-folder-overlay.show{opacity:1}
+.phone-folder-popup{width:calc(100% - 48px);max-width:340px;background:rgba(44,44,46,.92);border-radius:20px;padding:20px;border:1px solid rgba(255,255,255,.08);transform:scale(.85);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.phone-folder-overlay.show .phone-folder-popup{transform:scale(1)}
+.phone-folder-popup-header{display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:16px}
+.phone-folder-popup-title{text-align:center;color:rgba(255,255,255,.5);font-size:14px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.phone-folder-close-btn{position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;transition:background .15s}
+.phone-folder-close-btn:active{background:rgba(255,255,255,.2)}
+.phone-folder-close-btn svg{width:14px;height:14px}
+.phone-folder-popup-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 10px}
+.phone-folder-popup-grid .phone-app-icon{width:50px;height:50px;border-radius:12px}
+.phone-folder-popup-grid .phone-app-icon svg{width:22px;height:22px}
+.phone-folder-popup-grid .phone-app-name{font-size:10px;max-width:56px}
 
-            <div class="phone-dock" id="phoneDock"></div>
 
-            <div class="phone-home-bar"></div>
-        </div>
 
-        <!-- App Page (dynamically populated) -->
-        <div class="phone-app-page" id="phoneAppPage" style="display:none"></div>
-    </div>
 
-    <!-- Folder Overlay -->
-    <div class="phone-folder-overlay" id="phoneFolderOverlay" onclick="closePhoneFolder()">
-        <div class="phone-folder-popup" onclick="event.stopPropagation()">
-            <div class="phone-folder-popup-header">
-                <div class="phone-folder-popup-title" id="phoneFolderTitle">Folder</div>
-                <button class="phone-folder-close-btn" onclick="closePhoneFolder()" aria-label="Close folder">
-                    <svg viewBox="0 0 20 20"><path d="M6 6l8 8M14 6l-8 8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
-                </button>
-            </div>
-            <div class="phone-folder-popup-grid" id="phoneFolderGrid"></div>
-        </div>
-    </div>
-</div>
+
+/* === FIXED: dock pinned to bottom with z-index === */
+.phone-dock{position:sticky;bottom:0;left:0;right:0;z-index:10;display:flex;justify-content:center;gap:18px;padding:12px 24px 20px;background:linear-gradient(transparent,rgba(26,26,30,.98) 30%)}
+.phone-dock .phone-app-icon{width:58px;height:58px;border-radius:15px;backdrop-filter:blur(10px);background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.06);cursor:pointer}
+.phone-dock .phone-app-icon:active{transform:scale(.9)}
+
+
+.phone-home-bar{width:36%;height:4px;border-radius:2px;background:rgba(255,255,255,.3);margin:0 auto}
+@keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+
+/* ===== PHONE APP PAGES — FIXED LAYOUT ===== */
+.phone-app-page{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:400px;
+  margin:0 auto;
+  height:100%;
+  background:#000;
+  overflow:hidden
+}
+.papp-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1c1c1e;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.papp-back{background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;gap:4px;color:#0a84ff;font-size:14px;-webkit-tap-highlight-color:transparent}
+.papp-back svg{flex-shrink:0}
+.papp-title{font-size:17px;font-weight:600;color:#fff;text-align:center;flex:1}
+.papp-header-right{width:32px;flex-shrink:0}
+.papp-body{
+  flex:1;
+  overflow-y:auto;
+  background:#000;
+  min-height:0
+}
+.papp-search{display:flex;align-items:center;gap:8px;margin:12px 16px;padding:10px 12px;background:#1c1c1e;border-radius:12px;color:rgba(255,255,255,.3);font-size:15px}
+.papp-search svg{width:16px;height:16px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.papp-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-avatar{width:44px;height:44px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:rgba(255,255,255,.5);flex-shrink:0}
+.papp-avatar-sm{width:36px;height:36px;font-size:15px}
+.papp-item-content{flex:1;min-width:0}
+.papp-item-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.papp-item-name{font-size:15px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.papp-item-time{font-size:13px;color:rgba(255,255,255,.3);flex-shrink:0}
+.papp-item-sub{font-size:14px;color:rgba(255,255,255,.35);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.papp-item-chevron{color:rgba(255,255,255,.15);font-size:18px;flex-shrink:0;margin-left:4px}
+.papp-badge{min-width:20px;height:20px;border-radius:10px;background:#0a84ff;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 6px;flex-shrink:0}
+.papp-section{padding:24px 16px 6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px}
+.papp-section:first-child{padding-top:12px}
+.papp-segments{display:flex;margin:12px 16px;background:#1c1c1e;border-radius:10px;padding:3px;gap:2px}
+.papp-seg{flex:1;text-align:center;padding:7px 0;font-size:13px;font-weight:500;color:rgba(255,255,255,.4);border-radius:8px;cursor:default}
+.papp-seg-active{background:#3a3a3c;color:#fff}
+.papp-call-icon{width:16px;height:16px;flex-shrink:0}
+.papp-call-icon svg{width:16px;height:16px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.papp-call-in svg{stroke:rgba(255,255,255,.4)}
+.papp-call-out svg{stroke:rgba(255,255,255,.4)}
+.papp-call-missed svg{stroke:#ff453a}
+.papp-call-missed .papp-item-name{color:#ff453a}
+.papp-mail-dot{width:10px;height:10px;border-radius:50%;background:#0a84ff;flex-shrink:0}
+.papp-mail-dot-spacer{width:10px;flex-shrink:0}
+.papp-mail-subject{font-size:14px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.papp-mail-preview{font-size:13px;color:rgba(255,255,255,.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.papp-post{padding:16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-post-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.papp-post-name{font-size:14px;font-weight:600;color:#fff}
+.papp-post-handle{font-size:13px;color:rgba(255,255,255,.3)}
+.papp-post-time{font-size:13px;color:rgba(255,255,255,.25);margin-left:auto}
+.papp-post-text{font-size:15px;color:rgba(255,255,255,.8);line-height:1.45;margin-bottom:10px}
+.papp-post-img{width:100%;height:160px;background:#1c1c1e;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:center}
+.papp-post-img svg{width:32px;height:32px;stroke:rgba(255,255,255,.12);fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.papp-post-actions{display:flex;align-items:center;gap:24px}
+.papp-post-action{display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.3)}
+.papp-post-action svg{width:18px;height:18px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-url-bar{display:flex;align-items:center;gap:8px;margin:12px 16px;padding:10px 14px;background:#1c1c1e;border-radius:12px;font-size:14px;color:rgba(255,255,255,.4)}
+.papp-url-bar svg{width:14px;height:14px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.papp-skeleton{padding:16px}
+.papp-skel-block{background:#1c1c1e;border-radius:8px;margin-bottom:12px}
+.papp-skel-line{height:12px;background:rgba(255,255,255,.04);border-radius:6px;margin-bottom:8px}
+.papp-body-check{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;position:relative;overflow:hidden}
+.papp-check-close{position:absolute;top:16px;left:16px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;-webkit-tap-highlight-color:transparent}
+.papp-check-close svg{width:14px;height:14px}
+.papp-check-center{display:flex;flex-direction:column;align-items:center;gap:24px;z-index:1}
+.papp-check-eye{width:80px;height:80px;animation:checkPulse 3s ease-in-out infinite}
+.papp-check-eye svg{width:80px;height:80px}
+.papp-check-text{font-size:16px;color:rgba(255,255,255,.35);font-weight:400;letter-spacing:.5px;text-align:center}
+.papp-check-time{font-size:12px;color:rgba(255,255,255,.15);font-weight:300;letter-spacing:1px}
+.papp-check-scan{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);animation:checkScan 4s linear infinite;z-index:0}
+@keyframes checkPulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes checkScan{0%{top:0}100%{top:100%}}
+.papp-mycard{display:flex;align-items:center;gap:14px;padding:16px;margin:0 16px 8px;background:#1c1c1e;border-radius:14px}
+.papp-mycard-avatar{width:52px;height:52px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-mycard-avatar svg{width:28px;height:28px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round}
+.papp-mycard-name{font-size:17px;font-weight:600;color:#fff}
+.papp-mycard-label{font-size:13px;color:rgba(255,255,255,.3);margin-top:2px}
+
+/* ===== Batch 2 ===== */
+.papp-diary-mood-bar{display:flex;align-items:center;justify-content:center;gap:6px;padding:0 16px 16px}
+.papp-diary-mood-dot{width:12px;height:12px;border-radius:50%}
+.papp-diary-entry{display:flex;gap:14px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-diary-date{flex-shrink:0;width:40px;text-align:center}
+.papp-diary-day{font-size:22px;font-weight:600;color:rgba(255,255,255,.6);line-height:1}
+.papp-diary-month{font-size:11px;color:rgba(255,255,255,.25);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.papp-diary-content{flex:1;min-width:0}
+.papp-diary-mood-indicator{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.papp-books-card{display:flex;gap:14px;padding:14px 16px;margin:0 16px 8px;background:#1c1c1e;border-radius:14px;align-items:center}
+.papp-books-cover{width:48px;height:64px;border-radius:6px;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,.06)}
+.papp-books-cover-sm{width:36px;height:48px;border-radius:5px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,.06)}
+.papp-books-progress{display:flex;align-items:center;gap:8px;margin-top:8px}
+.papp-books-progress-track{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.papp-books-progress-fill{height:100%;background:rgba(10,132,255,.6);border-radius:2px}
+.papp-books-pct{font-size:11px;color:rgba(255,255,255,.3);flex-shrink:0}
+.papp-draw-toolbar{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:#1c1c1e;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-draw-tool{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:default}
+.papp-draw-tool svg{width:18px;height:18px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-draw-tool-active{background:rgba(255,255,255,.08)}
+.papp-draw-tool-active svg{stroke:rgba(255,255,255,.7)}
+.papp-draw-canvas{flex:1;min-height:300px;background:#0a0a0a;display:flex;align-items:center;justify-content:center}
+.papp-draw-palette{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;background:#1c1c1e;border-top:1px solid rgba(255,255,255,.06)}
+.papp-draw-color{width:24px;height:24px;border-radius:50%;cursor:default;border:2px solid transparent}
+.papp-draw-color-active{border-color:rgba(255,255,255,.5)}
+.papp-draw-size-indicator{width:30px;height:24px;display:flex;align-items:center;justify-content:center;margin-left:6px}
+.papp-draw-size-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3)}
+.papp-recorder-hero{display:flex;flex-direction:column;align-items:center;padding:32px 16px 24px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-recorder-btn{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,69,58,.5);display:flex;align-items:center;justify-content:center;cursor:default}
+.papp-recorder-btn-inner{width:44px;height:44px;border-radius:50%;background:rgba(255,69,58,.6)}
+.papp-recorder-wave{width:100%;max-width:280px;margin-top:20px;opacity:.6}
+.papp-files-loc-icon{width:32px;height:32px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-files-loc-icon svg{width:18px;height:18px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-files-type-icon{width:32px;height:32px;border-radius:6px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-files-type-icon svg{width:18px;height:18px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-trans-lang-row{display:flex;align-items:center;padding:14px 16px;background:#1c1c1e;gap:12px}
+.papp-trans-lang{flex:1;text-align:center;font-size:15px;font-weight:500;color:rgba(255,255,255,.4);cursor:default}
+.papp-trans-lang-active{color:#fff}
+.papp-trans-swap{flex-shrink:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:default}
+.papp-trans-card{padding:16px}
+.papp-trans-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.papp-trans-text{font-size:17px;color:rgba(255,255,255,.7);line-height:1.5}
+.papp-trans-result{color:rgba(10,132,255,.7)}
+.papp-trans-actions{display:flex;gap:16px;margin-top:12px}
+
+/* ===== Batch 3: Media ===== */
+.papp-music-now{display:flex;align-items:center;gap:16px;padding:20px 16px;background:#1c1c1e;margin:12px 16px;border-radius:16px}
+.papp-music-cover{width:72px;height:72px;border-radius:12px;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-music-info{flex:1;min-width:0}
+.papp-music-track{font-size:17px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.papp-music-artist{font-size:14px;color:rgba(255,255,255,.4);margin-top:3px}
+.papp-music-progress{padding:0 16px;margin-top:4px}
+.papp-music-progress-track{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.papp-music-progress-fill{height:100%;background:rgba(255,255,255,.4);border-radius:2px}
+.papp-music-times{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.2);margin-top:6px}
+.papp-music-controls{display:flex;align-items:center;justify-content:center;gap:32px;padding:16px 16px 8px}
+.papp-music-controls svg{width:28px;height:28px;stroke:rgba(255,255,255,.5);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;cursor:default}
+.papp-music-play{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center}
+.papp-music-play svg{width:24px;height:24px;stroke:rgba(255,255,255,.8);fill:rgba(255,255,255,.8)}
+.papp-music-num{width:24px;font-size:13px;color:rgba(255,255,255,.2);text-align:center;flex-shrink:0}
+.papp-video-scroll{display:flex;gap:12px;padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.papp-video-scroll::-webkit-scrollbar{display:none}
+.papp-video-card{flex-shrink:0;width:200px}
+.papp-video-thumb{width:200px;height:112px;background:#1c1c1e;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.papp-video-thumb svg{width:28px;height:28px;stroke:rgba(255,255,255,.15);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-video-dur{position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.6);padding:2px 6px;border-radius:4px}
+.papp-video-title{font-size:13px;color:rgba(255,255,255,.7);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.papp-video-list-thumb{width:48px;height:32px;border-radius:6px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-video-list-thumb svg{width:16px;height:16px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:0 2px}
+.papp-photo-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.papp-photo-tall{grid-row:span 2}
+.papp-camera-viewfinder{flex:1;min-height:320px;background:#0a0a0a;position:relative;display:flex;align-items:center;justify-content:center}
+.papp-camera-corners{position:absolute;inset:24px}
+.papp-camera-corner{position:absolute;width:24px;height:24px;border-color:rgba(255,255,255,.25);border-style:solid;border-width:0}
+.papp-cc-tl{top:0;left:0;border-top-width:2px;border-left-width:2px;border-top-left-radius:4px}
+.papp-cc-tr{top:0;right:0;border-top-width:2px;border-right-width:2px;border-top-right-radius:4px}
+.papp-cc-bl{bottom:0;left:0;border-bottom-width:2px;border-left-width:2px;border-bottom-left-radius:4px}
+.papp-cc-br{bottom:0;right:0;border-bottom-width:2px;border-right-width:2px;border-bottom-right-radius:4px}
+.papp-camera-crosshair{position:absolute;width:20px;height:20px}
+.papp-camera-cross-h,.papp-camera-cross-v{position:absolute;background:rgba(255,214,10,.5)}
+.papp-camera-cross-h{width:20px;height:1px;top:50%;left:0;transform:translateY(-50%)}
+.papp-camera-cross-v{width:1px;height:20px;left:50%;top:0;transform:translateX(-50%)}
+.papp-camera-grid{position:absolute;inset:24px}
+.papp-camera-grid-h,.papp-camera-grid-v{position:absolute;background:rgba(255,255,255,.06)}
+.papp-camera-grid-h{left:0;right:0;height:1px}
+.papp-camera-grid-v{top:0;bottom:0;width:1px}
+.papp-camera-modes{display:flex;align-items:center;justify-content:center;gap:4px;padding:12px 8px;background:#0a0a0a;overflow-x:auto;scrollbar-width:none}
+.papp-camera-modes::-webkit-scrollbar{display:none}
+.papp-camera-mode{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);padding:6px 10px;white-space:nowrap;cursor:default;letter-spacing:.3px}
+.papp-camera-mode-active{color:rgba(255,214,10,.9)}
+.papp-camera-bottom{display:flex;align-items:center;justify-content:space-around;padding:20px 32px;background:#0a0a0a}
+.papp-camera-preview{width:40px;height:40px;border-radius:8px;background:#1c1c1e;border:2px solid rgba(255,255,255,.1)}
+.papp-camera-shutter{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;cursor:default}
+.papp-camera-shutter-inner{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.85)}
+.papp-camera-flip{width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:default}
+.papp-game-featured{margin:12px 16px;border-radius:16px;background:#1c1c1e;padding:24px 20px;position:relative;overflow:hidden}
+.papp-game-featured-bg{position:absolute;right:16px;top:50%;transform:translateY(-50%);opacity:.4}
+.papp-game-featured-info{position:relative;z-index:1}
+.papp-game-cats{display:flex;gap:8px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.papp-game-cats::-webkit-scrollbar{display:none}
+.papp-game-cat{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;color:rgba(255,255,255,.4);background:#1c1c1e;white-space:nowrap;cursor:default;flex-shrink:0}
+.papp-game-cat-active{background:rgba(255,255,255,.1);color:#fff}
+.papp-game-icon{width:36px;height:36px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-game-icon svg{width:18px;height:18px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-pod-mini{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#1c1c1e;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-pod-mini-cover{width:36px;height:36px;border-radius:8px;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-pod-cover{width:44px;height:44px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(255,255,255,.06)}
+.papp-pod-cover svg{width:20px;height:20px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.5;stroke-linecap:round}
+
+/* ===== Batch 4: Life Tools ===== */
+.papp-cal-month-header{display:flex;align-items:center;justify-content:center;gap:20px;padding:16px 16px 12px}
+.papp-cal-month-title{font-size:18px;font-weight:600;color:#fff;min-width:160px;text-align:center}
+.papp-cal-nav-arrow{width:20px;height:20px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;cursor:default}
+.papp-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 12px 8px}
+.papp-cal-day-label{text-align:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.25);padding:8px 0;text-transform:uppercase;letter-spacing:.3px}
+.papp-cal-cell{text-align:center;padding:8px 0;font-size:14px;color:rgba(255,255,255,.6);position:relative;cursor:default;display:flex;flex-direction:column;align-items:center;gap:3px}
+.papp-cal-cell span{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.papp-cal-cell-empty{visibility:hidden}
+.papp-cal-today span{background:rgba(10,132,255,.6);color:#fff;font-weight:600}
+.papp-cal-dot{width:4px;height:4px;border-radius:50%;background:rgba(10,132,255,.5)}
+.papp-cal-today .papp-cal-dot{background:rgba(255,255,255,.6)}
+.papp-cal-divider{height:1px;background:rgba(255,255,255,.06);margin:4px 16px 0}
+.papp-cal-schedule-header{padding:16px 16px 8px;font-size:15px;font-weight:600;color:rgba(255,255,255,.6)}
+.papp-cal-event{display:flex;gap:10px;padding:10px 16px;align-items:stretch}
+.papp-cal-event-time{flex-shrink:0;width:44px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:2px}
+.papp-cal-event-start{font-size:13px;color:rgba(255,255,255,.5);font-weight:500}
+.papp-cal-event-end{font-size:11px;color:rgba(255,255,255,.2)}
+.papp-cal-event-bar{width:3px;border-radius:2px;flex-shrink:0}
+.papp-cal-event-info{flex:1;min-width:0;padding:4px 0}
+.papp-cal-event-title{font-size:14px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.papp-cal-event-loc{font-size:12px;color:rgba(255,255,255,.3);margin-top:3px}
+.papp-cal-upcoming-time{flex-shrink:0;width:44px;font-size:13px;color:rgba(255,255,255,.35);font-weight:500;text-align:right}
+.papp-clock-face-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 16px 8px}
+.papp-clock-face{width:200px;height:200px;position:relative}
+.papp-clock-face svg{width:100%;height:100%}
+.papp-clock-digital{font-size:28px;font-weight:300;color:rgba(255,255,255,.5);letter-spacing:2px;margin-top:12px}
+.papp-clock-tz{flex-shrink:0;width:40px;height:28px;border-radius:6px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.3px}
+.papp-clock-city-time{font-size:22px;font-weight:300;color:rgba(255,255,255,.6);letter-spacing:1px;flex-shrink:0}
+.papp-clock-alarm-time{font-size:32px;font-weight:200;color:rgba(255,255,255,.6);letter-spacing:1px;line-height:1}
+.papp-clock-toggle{width:42px;height:26px;border-radius:13px;background:rgba(255,255,255,.1);position:relative;flex-shrink:0;cursor:default;transition:background .2s}
+.papp-clock-toggle-on{background:rgba(48,209,88,.45)}
+.papp-clock-toggle-knob{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.8);position:absolute;top:2px;left:2px;transition:left .2s}
+.papp-clock-toggle-on .papp-clock-toggle-knob{left:18px}
+.papp-weather-current{text-align:center;padding:28px 16px 24px;background:linear-gradient(180deg,rgba(10,132,255,.08) 0%,transparent 100%)}
+.papp-weather-city{font-size:22px;font-weight:500;color:#fff}
+.papp-weather-temp{font-size:72px;font-weight:200;color:#fff;line-height:1;margin-top:4px;letter-spacing:-4px}
+.papp-weather-temp::after{content:'\00B0';font-size:36px;font-weight:300;vertical-align:super;letter-spacing:0}
+.papp-weather-desc{font-size:16px;color:rgba(255,255,255,.5);margin-top:4px}
+.papp-weather-hilo{font-size:14px;color:rgba(255,255,255,.35);margin-top:6px;letter-spacing:.5px}
+.papp-weather-card{margin:8px 16px;background:#1c1c1e;border-radius:14px;padding:14px 0;overflow:hidden}
+.papp-weather-card-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.5px;padding:0 14px 10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-weather-hourly{display:flex;gap:4px;padding:12px 10px 4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.papp-weather-hourly::-webkit-scrollbar{display:none}
+.papp-weather-hour{flex-shrink:0;width:52px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.papp-weather-hour-t{font-size:12px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-weather-hour-icon{width:24px;height:24px}
+.papp-weather-hour-icon svg{width:24px;height:24px;stroke:rgba(255,255,255,.35);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.papp-weather-hour-temp{font-size:15px;color:rgba(255,255,255,.7);font-weight:500}
+.papp-weather-hour-temp::after{content:'\00B0';font-size:10px;vertical-align:super}
+.papp-weather-daily{display:flex;align-items:center;gap:8px;padding:10px 14px}
+.papp-weather-daily-day{width:48px;font-size:14px;color:rgba(255,255,255,.6);font-weight:500;flex-shrink:0}
+.papp-weather-daily-icon{width:24px;height:24px;flex-shrink:0}
+.papp-weather-daily-icon svg{width:24px;height:24px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.papp-weather-daily-lo{width:24px;font-size:14px;color:rgba(255,255,255,.3);text-align:right;flex-shrink:0}
+.papp-weather-daily-lo::after,.papp-weather-daily-hi::after{content:'\00B0';font-size:9px;vertical-align:super}
+.papp-weather-daily-hi{width:24px;font-size:14px;color:rgba(255,255,255,.7);flex-shrink:0}
+.papp-weather-daily-bar{flex:1;height:4px;position:relative}
+.papp-weather-daily-bar-track{width:100%;height:100%;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;position:relative}
+.papp-weather-daily-bar-fill{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,rgba(10,132,255,.4),rgba(255,159,10,.4));border-radius:2px}
+.papp-weather-details{display:grid;grid-template-columns:1fr 1fr;gap:1px;padding:8px 0 0}
+.papp-weather-detail-item{padding:10px 14px}
+.papp-weather-detail-label{font-size:11px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+.papp-weather-detail-val{font-size:18px;color:rgba(255,255,255,.6);font-weight:400;margin-top:4px}
+.papp-maps-view{width:100%;height:240px;background:#0a0a0c;position:relative;overflow:hidden}
+.papp-maps-compass{position:absolute;top:12px;right:12px;width:32px;height:32px;background:rgba(28,28,30,.85);border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
+.papp-maps-compass svg{width:18px;height:18px}
+.papp-maps-locate{position:absolute;bottom:12px;right:12px;width:32px;height:32px;background:rgba(28,28,30,.85);border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
+.papp-maps-locate svg{width:18px;height:18px;stroke:rgba(10,132,255,.6);fill:none;stroke-width:1.5;stroke-linecap:round}
+.papp-maps-actions{display:flex;justify-content:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-maps-action-item{display:flex;flex-direction:column;align-items:center;gap:6px;width:60px}
+.papp-maps-action-icon{width:40px;height:40px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center}
+.papp-maps-action-icon svg{width:20px;height:20px;stroke:rgba(255,255,255,.35);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-maps-action-label{font-size:11px;color:rgba(255,255,255,.4);font-weight:500}
+.papp-maps-place-icon{width:32px;height:32px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-maps-place-icon svg{width:18px;height:18px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-compass-wrap{display:flex;flex-direction:column;align-items:center;padding:32px 16px 20px}
+.papp-compass-ring{width:260px;height:260px;position:relative}
+.papp-compass-ring svg{width:100%;height:100%}
+.papp-compass-readout{display:flex;flex-direction:column;align-items:center;margin-top:20px}
+.papp-compass-degree{font-size:48px;font-weight:200;color:#fff;letter-spacing:-1px;line-height:1}
+.papp-compass-degree::after{content:'\00B0';font-size:22px;font-weight:300;vertical-align:super}
+.papp-compass-dir{font-size:16px;color:rgba(255,255,255,.35);margin-top:6px;font-weight:400;letter-spacing:.5px}
+.papp-compass-coords{margin:0 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-compass-coord-row{display:flex;align-items:center;gap:12px}
+.papp-compass-coord-item{flex:1;text-align:center}
+.papp-compass-coord-label{font-size:11px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.papp-compass-coord-val{font-size:16px;color:rgba(255,255,255,.6);margin-top:4px;font-weight:400;letter-spacing:.3px}
+.papp-compass-coord-divider{width:1px;height:32px;background:rgba(255,255,255,.06);flex-shrink:0}
+.papp-calc-display{padding:32px 20px 20px;text-align:right}
+.papp-calc-expr{font-size:18px;color:rgba(255,255,255,.3);font-weight:300;margin-bottom:8px;letter-spacing:.5px;min-height:22px}
+.papp-calc-result{font-size:56px;font-weight:200;color:#fff;letter-spacing:-1px;line-height:1}
+.papp-calc-history{padding:0 20px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-calc-history-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.papp-calc-hist-expr{font-size:14px;color:rgba(255,255,255,.2)}
+.papp-calc-hist-res{font-size:14px;color:rgba(255,255,255,.35)}
+.papp-calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 16px 20px}
+.papp-calc-btn{height:52px;border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:400;color:#fff;background:#2c2c2e;cursor:default;user-select:none}
+.papp-calc-func{background:#3a3a3c;color:rgba(255,255,255,.8);font-size:16px;font-weight:500}
+.papp-calc-op{background:rgba(10,132,255,.35);color:rgba(255,255,255,.9)}
+.papp-calc-eq{background:rgba(10,132,255,.5)}
+.papp-calc-zero{grid-column:span 2;justify-content:flex-start;padding-left:24px}
+.papp-remind-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px}
+.papp-remind-sum-card{background:#1c1c1e;border-radius:14px;padding:14px 16px}
+.papp-remind-sum-count{font-size:28px;font-weight:700;line-height:1}
+.papp-remind-sum-label{font-size:13px;color:rgba(255,255,255,.3);margin-top:4px;font-weight:500}
+.papp-remind-list-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.papp-remind-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-remind-done{opacity:.45}
+.papp-remind-text{font-size:15px;color:#fff;font-weight:400;line-height:1.35}
+.papp-remind-done .papp-remind-text{text-decoration:line-through;color:rgba(255,255,255,.5)}
+.papp-remind-meta{font-size:12px;color:rgba(255,255,255,.25);margin-top:4px}
+
+/* ===== Batch 5: Info & Health ===== */
+.papp-news-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
+.papp-news-featured-img{height:140px;background:#141416;display:flex;align-items:center;justify-content:center}
+.papp-news-featured-img svg{width:40px;height:40px}
+.papp-news-featured-info{padding:14px 16px}
+.papp-news-source{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.3px}
+.papp-news-headline{font-size:16px;font-weight:600;color:#fff;line-height:1.35;margin-top:6px}
+.papp-news-meta{font-size:12px;color:rgba(255,255,255,.25);margin-top:8px}
+.papp-news-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-news-item-content{flex:1;min-width:0}
+.papp-news-item-source{font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.3px}
+.papp-news-item-title{font-size:14px;font-weight:500;color:rgba(255,255,255,.8);line-height:1.35;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.papp-news-item-meta{font-size:12px;color:rgba(255,255,255,.2);margin-top:6px}
+.papp-news-item-thumb{width:56px;height:56px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-news-item-thumb svg{width:20px;height:20px;stroke:rgba(255,255,255,.12);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.papp-stocks-summary{padding:24px 16px 12px;text-align:center}
+.papp-stocks-portfolio-label{font-size:13px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-stocks-portfolio-val{font-size:36px;font-weight:300;color:#fff;margin-top:4px;letter-spacing:-1px}
+.papp-stocks-portfolio-change{font-size:14px;margin-top:6px;font-weight:500}
+.papp-stocks-up{color:rgba(48,209,88,.8)}
+.papp-stocks-down{color:rgba(255,69,58,.7)}
+.papp-stocks-chart{padding:0 16px;margin:8px 0}
+.papp-stocks-range{display:flex;justify-content:center;gap:4px;padding:8px 16px 12px}
+.papp-stocks-range-btn{padding:5px 12px;border-radius:14px;font-size:12px;font-weight:500;color:rgba(255,255,255,.3);cursor:default}
+.papp-stocks-range-active{background:rgba(255,255,255,.08);color:#fff}
+.papp-stocks-price{font-size:15px;color:#fff;font-weight:500;flex-shrink:0}
+.papp-stocks-change{font-size:12px;font-weight:500;flex-shrink:0}
+.papp-code-editor{background:#0a0a0c;border-bottom:1px solid rgba(255,255,255,.06)}
+.papp-code-tabs{display:flex;padding:0;border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto;scrollbar-width:none}
+.papp-code-tabs::-webkit-scrollbar{display:none}
+.papp-code-tab{padding:10px 16px;font-size:12px;color:rgba(255,255,255,.3);font-weight:500;white-space:nowrap;border-bottom:2px solid transparent;cursor:default}
+.papp-code-tab-active{color:rgba(255,255,255,.7);border-bottom-color:rgba(10,132,255,.5)}
+.papp-code-content{padding:12px 0;font-family:monospace;font-size:12px;line-height:1.7;overflow-x:auto}
+.papp-code-line{display:flex;padding:0 12px}
+.papp-code-num{width:28px;text-align:right;color:rgba(255,255,255,.15);font-size:11px;flex-shrink:0;padding-right:12px;user-select:none}
+.papp-code-text{color:rgba(255,255,255,.6);white-space:pre}
+.papp-ck{color:rgba(175,130,255,.7)}
+.papp-cv{color:rgba(10,132,255,.7)}
+.papp-cf{color:rgba(255,214,10,.6)}
+.papp-cs{color:rgba(48,209,88,.6)}
+.papp-cn{color:rgba(255,159,10,.6)}
+.papp-code-terminal{background:#111113;border-top:1px solid rgba(255,255,255,.06)}
+.papp-code-term-header{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.papp-code-term-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.1)}
+.papp-code-term-title{font-size:11px;color:rgba(255,255,255,.25);margin-left:8px;font-weight:500}
+.papp-code-term-body{padding:10px 12px;font-family:monospace;font-size:11px;line-height:1.8}
+.papp-code-term-line{color:rgba(255,255,255,.4)}
+.papp-code-term-prompt{color:rgba(48,209,88,.5);margin-right:8px}
+.papp-code-term-output{color:rgba(255,255,255,.3)}
+.papp-code-term-success{color:rgba(48,209,88,.6)}
+.papp-code-term-cursor{display:inline-block;width:7px;height:13px;background:rgba(255,255,255,.4);animation:blink 1s infinite}
+.papp-code-proj-icon{width:32px;height:32px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-code-proj-icon svg{width:16px;height:16px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-health-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px}
+.papp-health-card{background:#1c1c1e;border-radius:14px;padding:14px 16px}
+.papp-health-card-icon{width:24px;height:24px;margin-bottom:8px}
+.papp-health-card-icon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-health-card-label{font-size:12px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-health-card-val{font-size:24px;font-weight:600;margin-top:4px;line-height:1}
+.papp-health-card-unit{font-size:12px;color:rgba(255,255,255,.25);margin-top:2px}
+.papp-health-rings{display:flex;align-items:center;gap:24px;padding:20px 16px;margin:0 16px;background:#1c1c1e;border-radius:14px}
+.papp-health-rings-legend{flex:1}
+.papp-health-ring-label{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.5);padding:4px 0}
+.papp-health-ring-label span{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.papp-fit-today{margin:12px 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-fit-today-header{font-size:15px;font-weight:600;color:#fff;margin-bottom:14px}
+.papp-fit-stats{display:flex;align-items:center;justify-content:space-around}
+.papp-fit-stat{text-align:center}
+.papp-fit-stat-val{font-size:26px;font-weight:600;color:#fff;line-height:1}
+.papp-fit-stat-label{font-size:12px;color:rgba(255,255,255,.3);margin-top:4px;font-weight:500}
+.papp-fit-stat-divider{width:1px;height:36px;background:rgba(255,255,255,.06)}
+.papp-fit-chart{margin:8px 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-fit-chart-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:14px}
+.papp-fit-bars{display:flex;align-items:flex-end;justify-content:space-between;height:80px;gap:6px}
+.papp-fit-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.papp-fit-bar-track{flex:1;width:100%;max-width:24px;background:rgba(255,255,255,.04);border-radius:4px;position:relative;overflow:hidden;display:flex;align-items:flex-end}
+.papp-fit-bar-fill{width:100%;background:rgba(48,209,88,.4);border-radius:4px;transition:height .3s}
+.papp-fit-bar-day{font-size:10px;color:rgba(255,255,255,.25);font-weight:500;flex-shrink:0}
+.papp-fit-icon{width:36px;height:36px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-fit-icon svg{width:18px;height:18px;stroke:rgba(48,209,88,.5);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-med-hero{display:flex;flex-direction:column;align-items:center;padding:28px 16px 20px}
+.papp-med-circle{position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center}
+.papp-med-circle svg{position:absolute;top:0;left:0}
+.papp-med-timer{position:relative;text-align:center}
+.papp-med-time{font-size:36px;font-weight:200;color:#fff;letter-spacing:1px}
+.papp-med-label{font-size:12px;color:rgba(255,255,255,.25);margin-top:4px}
+.papp-med-start{margin-top:20px;padding:10px 28px;background:rgba(175,130,255,.2);color:rgba(175,130,255,.8);font-size:14px;font-weight:500;border-radius:20px;cursor:default;letter-spacing:.3px}
+.papp-med-durations{display:flex;justify-content:center;gap:6px;padding:0 16px 16px;flex-wrap:wrap}
+.papp-med-dur{padding:6px 14px;border-radius:16px;font-size:12px;font-weight:500;color:rgba(255,255,255,.3);background:#1c1c1e;cursor:default}
+.papp-med-dur-active{background:rgba(175,130,255,.15);color:rgba(175,130,255,.8)}
+.papp-med-streak{display:flex;align-items:center;justify-content:space-between;margin:0 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-med-streak-info{display:flex;align-items:baseline;gap:8px}
+.papp-med-streak-val{font-size:28px;font-weight:700;color:rgba(175,130,255,.7);line-height:1}
+.papp-med-streak-label{font-size:13px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-med-streak-dots{display:flex;gap:5px}
+.papp-med-streak-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.papp-med-dot-filled{background:rgba(175,130,255,.4);border-color:rgba(175,130,255,.3)}
+.papp-med-session-icon{width:36px;height:36px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-med-session-icon svg{width:18px;height:18px;stroke:rgba(175,130,255,.4);fill:none;stroke-width:1.5;stroke-linecap:round}
+.papp-med-month-stats{display:flex;justify-content:space-around;margin:0 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-med-month-stat{text-align:center}
+.papp-med-month-stat-val{font-size:22px;font-weight:600;color:rgba(175,130,255,.7);line-height:1}
+.papp-med-month-stat-label{font-size:11px;color:rgba(255,255,255,.25);margin-top:4px;font-weight:500}
+
+/* ===== Batch 6: System & Life ===== */
+.papp-settings-profile{display:flex;align-items:center;gap:14px;padding:16px;margin:12px 16px 0;background:#1c1c1e;border-radius:14px}
+.papp-settings-avatar{width:52px;height:52px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-settings-avatar svg{width:26px;height:26px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round}
+.papp-settings-profile-info{flex:1;min-width:0}
+.papp-settings-profile-name{font-size:17px;font-weight:600;color:#fff}
+.papp-settings-profile-sub{font-size:13px;color:rgba(255,255,255,.3);margin-top:2px}
+.papp-settings-group{margin:12px 16px;background:#1c1c1e;border-radius:14px;overflow:hidden}
+.papp-settings-group .papp-item{margin:0;border-radius:0;padding:12px 16px}
+.papp-settings-group .papp-item:last-child{border-bottom:none}
+.papp-settings-last{border-bottom:none!important}
+.papp-settings-icon{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-settings-icon svg{width:16px;height:16px;stroke:rgba(255,255,255,.4);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.papp-wallet-balance{text-align:center;padding:24px 16px 16px}
+.papp-wallet-balance-label{font-size:13px;color:rgba(255,255,255,.3);font-weight:500}
+.papp-wallet-balance-val{font-size:36px;font-weight:300;color:#fff;margin-top:4px;letter-spacing:-1px}
+.papp-wallet-cards{padding:0 16px;display:flex;flex-direction:column;gap:10px}
+.papp-wallet-card{border-radius:14px;padding:16px;border:1px solid;position:relative;overflow:hidden}
+.papp-wallet-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.papp-wallet-card-name{font-size:13px;font-weight:600;color:rgba(255,255,255,.5)}
+.papp-wallet-card-chip{width:22px;height:22px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.5;stroke-linecap:round}
+.papp-wallet-card-num{font-size:15px;color:rgba(255,255,255,.4);letter-spacing:2px;font-weight:400}
+.papp-wallet-actions{display:flex;justify-content:center;gap:16px;padding:16px}
+.papp-wallet-action{display:flex;flex-direction:column;align-items:center;gap:6px}
+.papp-wallet-action-icon{width:44px;height:44px;border-radius:50%;background:#1c1c1e;display:flex;align-items:center;justify-content:center}
+.papp-wallet-action-icon svg{width:20px;height:20px;stroke:rgba(255,255,255,.4);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.papp-wallet-action-label{font-size:11px;color:rgba(255,255,255,.35);font-weight:500}
+.papp-wallet-amount{font-size:14px;font-weight:500;color:rgba(255,255,255,.6);flex-shrink:0}
+.papp-wallet-income{color:rgba(48,209,88,.7)}
+.papp-shop-cats{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none}
+.papp-shop-cats::-webkit-scrollbar{display:none}
+.papp-shop-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
+.papp-shop-featured-img{height:100px;background:#141416;display:flex;align-items:center;justify-content:center}
+.papp-shop-featured-img svg{width:36px;height:36px;stroke:rgba(255,255,255,.08);fill:none;stroke-width:1.2}
+.papp-shop-featured-info{padding:14px 16px}
+.papp-shop-thumb{width:40px;height:40px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-shop-thumb svg{width:18px;height:18px;stroke:rgba(255,255,255,.2);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.papp-recipe-featured{margin:0 16px 12px;background:#1c1c1e;border-radius:14px;overflow:hidden}
+.papp-recipe-featured-img{height:100px;background:#141416;display:flex;align-items:center;justify-content:center}
+.papp-recipe-featured-info{padding:14px 16px}
+.papp-recipe-featured-title{font-size:16px;font-weight:600;color:#fff}
+.papp-recipe-featured-meta{font-size:13px;color:rgba(255,255,255,.35);margin-top:4px}
+.papp-recipe-icon{width:36px;height:36px;border-radius:10px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-recipe-icon svg{width:18px;height:18px;stroke:rgba(255,159,10,.4);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.papp-travel-upcoming{margin:12px 16px;background:#1c1c1e;border-radius:14px;padding:16px}
+.papp-travel-upcoming-header{font-size:13px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+.papp-travel-route{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}
+.papp-travel-city{text-align:center}
+.papp-travel-code{font-size:24px;font-weight:600;color:#fff;letter-spacing:1px}
+.papp-travel-city-name{font-size:12px;color:rgba(255,255,255,.3);margin-top:2px}
+.papp-travel-line{display:flex;align-items:center}
+.papp-travel-details{display:flex;justify-content:space-between}
+.papp-travel-detail{text-align:center;flex:1}
+.papp-travel-detail-label{font-size:11px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.3px;font-weight:500}
+.papp-travel-detail-val{font-size:13px;color:rgba(255,255,255,.6);margin-top:3px;font-weight:500}
+.papp-travel-pass{margin:8px 16px;background:#1c1c1e;border-radius:14px;padding:14px 16px}
+.papp-travel-pass-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.papp-travel-pass-row:last-of-type{border-bottom:none}
+.papp-travel-pass-label{font-size:13px;color:rgba(255,255,255,.3)}
+.papp-travel-pass-val{font-size:13px;color:rgba(255,255,255,.7);font-weight:500}
+.papp-travel-pass-barcode{margin-top:12px;padding-top:12px;border-top:1px dashed rgba(255,255,255,.06)}
+.papp-travel-past-icon{width:32px;height:32px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.papp-travel-past-icon svg{width:16px;height:16px;stroke:rgba(255,255,255,.3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}

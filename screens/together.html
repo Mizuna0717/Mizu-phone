@@ -7,7 +7,188 @@
         <svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
       </button>
       <div class="together-title" id="togetherHeaderTitle">Together</div>
-      <div style="width:32px"></div>
+            <button class="tg-add-btn" id="togetherAddBtn" onclick="openTogetherAddMenu()">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+
+    <!-- ── 新增选项菜单 ── -->
+    <div class="tg-overlay" id="togetherAddOverlay" onclick="closeTogetherAddMenu()"></div>
+    <div class="tg-add-menu" id="togetherAddMenu">
+      <button class="tg-add-menu-item" onclick="openTogetherModal('song')">
+        <div class="tg-add-menu-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <div class="tg-add-menu-text">
+          <span class="tg-add-menu-title" data-i18n="together.addSong">新增歌曲</span>
+          <span class="tg-add-menu-sub" data-i18n="together.addSongSub">一起听</span>
+        </div>
+      </button>
+      <button class="tg-add-menu-item" onclick="openTogetherModal('video')">
+        <div class="tg-add-menu-icon">
+          <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>
+        </div>
+        <div class="tg-add-menu-text">
+          <span class="tg-add-menu-title" data-i18n="together.addVideo">新增视频</span>
+          <span class="tg-add-menu-sub" data-i18n="together.addVideoSub">一起看</span>
+        </div>
+      </button>
+      <button class="tg-add-menu-item" onclick="openTogetherModal('novel')">
+        <div class="tg-add-menu-icon">
+          <svg viewBox="0 0 24 24"><path d="M2 4h7a3 3 0 013 3v13s-1.5-2-5-2H2V4z"/><path d="M22 4h-7a3 3 0 00-3 3v13s1.5-2 5-2h5V4z"/></svg>
+        </div>
+        <div class="tg-add-menu-text">
+          <span class="tg-add-menu-title" data-i18n="together.addNovel">新增小说</span>
+          <span class="tg-add-menu-sub" data-i18n="together.addNovelSub">一起读</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!--            弹窗：新增歌曲                -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="tg-modal-overlay" id="modalOverlaySong" onclick="closeTogetherModal('song')"></div>
+    <div class="tg-modal" id="modalSong">
+      <div class="tg-modal-header">
+        <span class="tg-modal-title" data-i18n="together.addSong">新增歌曲</span>
+        <button class="tg-modal-close" onclick="closeTogetherModal('song')">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="tg-modal-body">
+        <!-- 歌曲名称 -->
+        <div class="tg-form-group">
+          <label class="tg-form-label" data-i18n="together.songTitle">歌曲名称</label>
+          <input class="tg-form-input" id="songTitleInput" type="text" data-i18n-placeholder="together.songTitlePh" placeholder="请输入歌曲名称">
+        </div>
+        <!-- 歌手名称 -->
+        <div class="tg-form-group">
+          <label class="tg-form-label" data-i18n="together.artistName">歌手名称</label>
+          <input class="tg-form-input" id="artistNameInput" type="text" data-i18n-placeholder="together.artistNamePh" placeholder="请输入歌手名称">
+        </div>
+        <!-- 封面图片 -->
+        <div class="tg-form-group">
+          <label class="tg-form-label" data-i18n="together.coverImage">封面图片</label>
+          <div class="tg-cover-options">
+            <div class="tg-cover-tab active" id="coverTabLocal" onclick="switchCoverTab('local')" data-i18n="together.coverLocal">本地上传</div>
+            <div class="tg-cover-tab" id="coverTabUrl" onclick="switchCoverTab('url')" data-i18n="together.coverUrl">图片 URL</div>
+          </div>
+          <div id="coverLocalPane" class="tg-file-drop" onclick="document.getElementById('coverFileInput').click()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span id="coverLocalLabel" data-i18n="together.tapSelectImage">点击选择图片</span>
+            <input type="file" id="coverFileInput" accept="image/*" style="display:none" onchange="handleCoverFile(this)">
+          </div>
+          <div id="coverUrlPane" class="tg-cover-url-pane" style="display:none">
+            <input class="tg-form-input" id="coverUrlInput" type="url" data-i18n-placeholder="together.coverUrlPh" placeholder="https://example.com/cover.jpg">
+          </div>
+          <div id="coverPreviewWrap" class="tg-cover-preview-wrap" style="display:none">
+            <img id="coverPreviewImg" class="tg-cover-preview-img" src="" alt="">
+            <button class="tg-cover-clear" onclick="clearCoverPreview()">
+              <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+        <!-- 歌词文件 -->
+        <div class="tg-form-group">
+          <label class="tg-form-label" data-i18n="together.lyricsFile">歌词文件</label>
+          <div class="tg-file-drop" onclick="document.getElementById('lyricsFileInput').click()">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span id="lyricsFileLabel" data-i18n="together.lyricsFilePh">txt / doc / docx</span>
+            <input type="file" id="lyricsFileInput" accept=".txt,.doc,.docx" style="display:none" onchange="handleLyricsFile(this)">
+          </div>
+        </div>
+        <!-- 音频文件 -->
+        <div class="tg-form-group">
+          <label class="tg-form-label" data-i18n="together.audioFile">音频文件</label>
+          <div class="tg-file-drop" onclick="document.getElementById('audioFileInput').click()">
+            <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            <span id="audioFileLabel" data-i18n="together.audioFilePh">mp3</span>
+            <input type="file" id="audioFileInput" accept=".mp3,audio/mpeg" style="display:none" onchange="handleAudioFile(this)">
+          </div>
+        </div>
+        <!-- 进度提示 -->
+        <div class="tg-upload-status" id="songUploadStatus" style="display:none"></div>
+      </div>
+      <div class="tg-modal-footer">
+        <button class="tg-btn-ghost" onclick="closeTogetherModal('song')" data-i18n="together.cancel">取消</button>
+        <button class="tg-btn-primary" onclick="submitSong()" data-i18n="together.confirm">确认添加</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!--            弹窗：新增视频                -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="tg-modal-overlay" id="modalOverlayVideo" onclick="closeTogetherModal('video')"></div>
+    <div class="tg-modal" id="modalVideo">
+      <div class="tg-modal-header">
+        <span class="tg-modal-title" data-i18n="together.addVideo">新增视频</span>
+        <button class="tg-modal-close" onclick="closeTogetherModal('video')">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="tg-modal-body">
+        <!-- 来源选择 -->
+        <div class="tg-form-group">
+          <label class="tg-form-label" data-i18n="together.videoSource">视频来源</label>
+          <div class="tg-cover-options">
+            <div class="tg-cover-tab active" id="videoTabBili" onclick="switchVideoTab('bili')" data-i18n="together.videoBili">B 站链接</div>
+            <div class="tg-cover-tab" id="videoTabLocal" onclick="switchVideoTab('local')" data-i18n="together.videoLocal">本地上传</div>
+          </div>
+          <!-- B站链接 -->
+          <div id="videoBiliPane">
+            <input class="tg-form-input" id="biliUrlInput" type="url" data-i18n-placeholder="together.biliUrlPh" placeholder="https://www.bilibili.com/video/BV..." style="margin-top:10px">
+            <button class="tg-parse-btn" onclick="parseBiliUrl()" id="biliParseBtn" data-i18n="together.parseBili">解析</button>
+            <div class="tg-bili-result" id="biliResult" style="display:none">
+              <div class="tg-bili-thumb" id="biliThumb"></div>
+              <div class="tg-bili-info">
+                <div class="tg-bili-title" id="biliTitle"></div>
+                <div class="tg-bili-meta" id="biliMeta"></div>
+              </div>
+            </div>
+          </div>
+          <!-- 本地视频 -->
+          <div id="videoLocalPane" style="display:none">
+            <div class="tg-file-drop" style="margin-top:10px" onclick="document.getElementById('videoFileInput').click()">
+              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>
+              <span id="videoFileLabel" data-i18n="together.videoFilePh">mp4 / mov / avi</span>
+              <input type="file" id="videoFileInput" accept="video/*" style="display:none" onchange="handleVideoFile(this)">
+            </div>
+          </div>
+        </div>
+        <div class="tg-upload-status" id="videoUploadStatus" style="display:none"></div>
+      </div>
+      <div class="tg-modal-footer">
+        <button class="tg-btn-ghost" onclick="closeTogetherModal('video')" data-i18n="together.cancel">取消</button>
+        <button class="tg-btn-primary" onclick="submitVideo()" data-i18n="together.confirm">确认添加</button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!--            弹窗：新增小说                -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="tg-modal-overlay" id="modalOverlayNovel" onclick="closeTogetherModal('novel')"></div>
+    <div class="tg-modal" id="modalNovel">
+      <div class="tg-modal-header">
+        <span class="tg-modal-title" data-i18n="together.addNovel">新增小说</span>
+        <button class="tg-modal-close" onclick="closeTogetherModal('novel')">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="tg-modal-body">
+        <div class="tg-form-group">
+          <label class="tg-form-label" data-i18n="together.novelFile">小说文件</label>
+          <div class="tg-file-drop" onclick="document.getElementById('novelFileInput').click()">
+            <svg viewBox="0 0 24 24"><path d="M2 4h7a3 3 0 013 3v13s-1.5-2-5-2H2V4z"/><path d="M22 4h-7a3 3 0 00-3 3v13s1.5-2 5-2h5V4z"/></svg>
+            <span id="novelFileLabel" data-i18n="together.novelFilePh">txt / pdf / doc / docx</span>
+            <input type="file" id="novelFileInput" accept=".txt,.pdf,.doc,.docx" style="display:none" onchange="handleNovelFile(this)">
+          </div>
+        </div>
+        <div class="tg-upload-status" id="novelUploadStatus" style="display:none"></div>
+      </div>
+      <div class="tg-modal-footer">
+        <button class="tg-btn-ghost" onclick="closeTogetherModal('novel')" data-i18n="together.cancel">取消</button>
+        <button class="tg-btn-primary" onclick="submitNovel()" data-i18n="together.confirm">确认添加</button>
+      </div>
     </div>
 
     <!-- 内容区（三个子页面） -->
