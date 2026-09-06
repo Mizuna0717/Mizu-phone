@@ -723,17 +723,14 @@
 
 /* ===== Page 1 Bottom: weather left + icons right ===== */
 .home-p1-bottom {
-  display: flex;
-  flex-direction: row;
-  gap: 14px;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 /* ===== Weather Widget (square card, page-1 left column) ===== */
 .weather-widget {
-  flex: 0 0 auto;
-  width: 130px;
-  min-height: 130px;
+  aspect-ratio: 1;
   border-radius: 22px;
   background: linear-gradient(160deg, rgba(255,255,255,.82), rgba(245,245,248,.60));
   backdrop-filter: blur(24px);
@@ -851,10 +848,10 @@
 
 /* ===== Page 1 icon grid: 2x2 on the right ===== */
 .home-icon-grid {
-  flex: 1;
+  aspect-ratio: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px 10px;
+  gap: 10px;
   align-content: center;
   justify-items: center;
 }
