@@ -12,7 +12,7 @@ let state = {
     meetings: [],
   npcs: [],
   allowQuote: true,
-    theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
+    theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium',homeIcons: {}, desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
           systemPromptIM: '',
   systemPromptMeeting: '',
   user: null
@@ -101,8 +101,8 @@ function _validateState() {
   if (!state.theme.general.iconNames) state.theme.general.iconNames = {};
   if (!state.theme.general.iconSettings) state.theme.general.iconSettings = {};
   if (!state.theme.general.chatBackground) state.theme.general.chatBackground = { type: 'url', value: '' };
-
-  if (window.__user) {
+  if (!state.theme.general.homeIcons) state.theme.general.homeIcons = {};
+   if (window.__user) {
     state.user = window.__user;
   }
 

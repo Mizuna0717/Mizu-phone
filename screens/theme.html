@@ -182,23 +182,18 @@
 			</div>
 		</div>
 
-				<!-- 4. Desktop Icons -->
-		<div class="te-section-label">Desktop Icons</div>
-		<div class="te-editor-card" id="iconSettingsCard">
-			<div class="te-editor-label">Customize each icon individually — name and image</div>
-			<div id="iconSettingsList"></div>
-		</div>
+		<!-- 4. Desktop Icons -->
+<div class="te-section-label">Desktop Icons</div>
+<div class="te-editor-card" id="iconSettingsCard">
+    <div class="te-editor-label">Customize each icon individually — name and image</div>
+    <div id="iconSettingsList"></div>   <!-- 这个容器必须有 -->
+    <div class="te-actions" style="padding:0;margin-top:12px">
+        <button class="te-btn te-btn-primary" onclick="applyHomeIcons()">Apply</button>
+        <button class="te-btn te-btn-ghost" onclick="resetAllHomeIcons()">Reset All</button>
+    </div>
+</div>
 
-				<!-- 4. Icon Names -->
-		<div class="te-section-label">Icon Names</div>
-		<div class="te-editor-card" id="iconNamesCard">
-			<div class="te-editor-label">Edit the display name for each desktop icon</div>
-			<div id="iconNamesList"></div>
-			<div class="te-actions" style="padding:0;margin-top:12px">
-				<button class="te-btn te-btn-primary" onclick="applyIconNames()">Apply Icon Names</button>
-				<button class="te-btn te-btn-ghost" onclick="resetIconNames()">Reset</button>
-			</div>
-		</div>
+				
 
 		<!-- 5. Chat Background -->
 		<div class="te-section-label">Chat Background</div>

@@ -1360,15 +1360,17 @@ function initGeneralEditor() {
 	_setGeneralThumbAndUrl('desktopBackground', g.desktopBackground);
 	_setGeneralThumbAndUrl('desktopIcon', g.desktopIcon);
 	_setGeneralThumbAndUrl('chatBackground', g.chatBackground);
-	_renderIconNamesList(g.iconNames || {});
+	_migrateIconNamesToHomeIcons();
+    _renderIconSettingsList();
 }
 
 function _getGeneralState() {
 	var defaults = {
-		desktopBackground: { type: 'url', value: '' },
-		desktopIcon:       { type: 'url', value: '' },
-		iconNames:         {},
-		chatBackground:    { type: 'url', value: '' }
+     desktopBackground: { type: 'url', value: '' },
+     desktopIcon:       { type: 'url', value: '' },
+     iconNames:         {},
+     homeIcons:         {},
+     chatBackground:    { type: 'url', value: '' }
 	};
 	try {
 		var raw = localStorage.getItem('theme-general');
@@ -1510,7 +1512,7 @@ function _applyChatBackground(value) {
 }
 
 // ============================================================
-//  General Module — Icon Names
+//  General Module — Home Icons (name + image per icon)
 // ============================================================
 
 function _getDesktopIconDefs() {
@@ -1521,6 +1523,8 @@ function _getDesktopIconDefs() {
 	wraps.forEach(function(el) {
 		var labelEl = el.querySelector('.app-label');
 		if (!labelEl) return;
+		// Skip blank placeholder icons
+		if (labelEl.classList.contains('blank-label')) return;
 		if (!labelEl.dataset.defaultLabel) {
 			labelEl.dataset.defaultLabel = labelEl.textContent.trim();
 		}
@@ -1531,57 +1535,15 @@ function _getDesktopIconDefs() {
 				+ '__' + onclick.replace(/[^a-z0-9]/gi, '').toLowerCase().slice(0, 18);
 			el.dataset.iconKey = key;
 		}
+		// Store original SVG for reset
+		var iconEl = el.querySelector('.app-icon');
+		if (iconEl && !iconEl.dataset.originalSvg) {
+			var svgEl = iconEl.querySelector('svg');
+			if (svgEl) iconEl.dataset.originalSvg = svgEl.outerHTML;
+		}
 		defs.push({ key: key, defaultLabel: labelEl.dataset.defaultLabel, el: el });
 	});
 	return defs;
-}
-
-function _renderIconNamesList(iconNames) {
-	var container = document.getElementById('iconNamesList');
-	if (!container) return;
-	var defs = _getDesktopIconDefs();
-	if (!defs.length) {
-		container.innerHTML = '<div class="te-editor-label" style="color:#c7c7cc">No desktop icons found — navigate to the Home screen first, then re-open this editor.</div>';
-		return;
-	}
-	container.innerHTML = defs.map(function(def) {
-		var cur = (iconNames[def.key] !== undefined) ? iconNames[def.key] : def.defaultLabel;
-		return '<div class="te-icon-name-row">'
-			+ '<span class="te-icon-name-key">' + _escHtml(def.defaultLabel) + '</span>'
-			+ '<input class="te-icon-name-input" type="text" data-icon-key="' + _escHtml(def.key) + '" value="' + _escHtml(cur) + '" placeholder="' + _escHtml(def.defaultLabel) + '">'
-			+ '</div>';
-	}).join('');
-}
-
-function applyIconNames() {
-	var container = document.getElementById('iconNamesList');
-	if (!container) return;
-	var g = _getGeneralState();
-	if (!g.iconNames) g.iconNames = {};
-	container.querySelectorAll('.te-icon-name-input').forEach(function(inp) {
-		g.iconNames[inp.dataset.iconKey] = inp.value.trim();
-	});
-	_saveGeneralState(g);
-	_applyIconNamesToDOM(g.iconNames);
-	showThemeFeedback('Applied');
-}
-
-function resetIconNames() {
-	var g = _getGeneralState();
-	g.iconNames = {};
-	_saveGeneralState(g);
-	_applyIconNamesToDOM({});
-	_renderIconNamesList({});
-	showThemeFeedback('Reset');
-}
-
-function _applyIconNamesToDOM(iconNames) {
-	_getDesktopIconDefs().forEach(function(def) {
-		var labelEl = def.el.querySelector('.app-label');
-		if (!labelEl) return;
-		var newName = iconNames[def.key];
-		labelEl.textContent = (newName !== undefined && newName !== '') ? newName : def.defaultLabel;
-	});
 }
 
 function _escHtml(str) {
@@ -1590,6 +1552,221 @@ function _escHtml(str) {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;');
+}
+
+function _keyToSafeId(key) {
+	return key.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+function _migrateIconNamesToHomeIcons() {
+	var g = _getGeneralState();
+	if (g.iconNames && Object.keys(g.iconNames).length && (!g.homeIcons || !Object.keys(g.homeIcons).length)) {
+		g.homeIcons = {};
+		Object.keys(g.iconNames).forEach(function(key) {
+			if (g.iconNames[key]) {
+				g.homeIcons[key] = {
+					name: g.iconNames[key],
+					icon: { type: 'default', value: '' }
+				};
+			}
+		});
+		_saveGeneralState(g);
+	}
+}
+
+function _renderIconSettingsList() {
+	var container = document.getElementById('iconSettingsList');
+	if (!container) return;
+	var defs = _getDesktopIconDefs();
+	if (!defs.length) {
+		container.innerHTML = '<div class="te-editor-label" style="color:#c7c7cc">No desktop icons found — navigate to the Home screen first, then re-open this editor.</div>';
+		return;
+	}
+	var g = _getGeneralState();
+	var homeIcons = g.homeIcons || {};
+
+	container.innerHTML = defs.map(function(def) {
+		var config = homeIcons[def.key] || {};
+		var curName = (config.name !== undefined && config.name !== '') ? config.name : def.defaultLabel;
+		var iconConfig = config.icon || { type: 'default', value: '' };
+		var hasCustomIcon = iconConfig.type !== 'default' && iconConfig.value;
+		var previewStyle = '';
+		if (hasCustomIcon) {
+			previewStyle = 'background-image:url(&quot;' + _escHtml(iconConfig.value) + '&quot;);';
+		}
+		// Get SVG for preview
+		var svgHtml = '';
+		if (!hasCustomIcon) {
+			var iconEl = def.el.querySelector('.app-icon');
+			if (iconEl) {
+				var svgEl = iconEl.querySelector('svg');
+				if (svgEl) svgHtml = svgEl.outerHTML;
+			}
+		}
+		var urlValue = (iconConfig.type === 'url') ? (iconConfig.value || '') : '';
+		var safeId = _keyToSafeId(def.key);
+
+		return '<div class="te-icon-setting-item">'
+			+ '<div class="te-icon-setting-header">'
+			+ '<div class="te-icon-setting-preview" id="iconPrev_' + safeId + '" style="' + previewStyle + '">'
+			+ (hasCustomIcon ? '' : svgHtml)
+			+ '</div>'
+			+ '<div class="te-icon-setting-info">'
+			+ '<span class="te-icon-setting-default">' + _escHtml(def.defaultLabel) + '</span>'
+			+ '<input class="te-icon-setting-name" type="text" data-icon-key="' + _escHtml(def.key) + '" value="' + _escHtml(curName) + '" placeholder="' + _escHtml(def.defaultLabel) + '">'
+			+ '</div>'
+			+ '<button class="te-btn te-btn-ghost te-btn-sm te-icon-reset-btn" onclick="resetSingleHomeIcon(' + JSON.stringify(def.key).replace(/"/g, '&quot;') + ')">Reset</button>'
+			+ '</div>'
+			+ '<div class="te-icon-setting-image-row">'
+			+ '<label class="te-upload-btn te-upload-btn-icon">'
+			+ '<input type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" onchange="onHomeIconFileUpload(' + JSON.stringify(def.key).replace(/"/g, '&quot;') + ', this)">'
+			+ 'Upload'
+			+ '</label>'
+			+ '<input type="url" class="te-url-input te-url-input-icon" id="iconUrl_' + safeId + '" data-icon-key="' + _escHtml(def.key) + '" value="' + _escHtml(urlValue) + '" placeholder="Image URL..." oninput="onHomeIconUrlInput(' + JSON.stringify(def.key).replace(/"/g, '&quot;') + ', this.value)">'
+			+ '</div>'
+			+ '</div>';
+	}).join('');
+}
+
+function onHomeIconFileUpload(key, inputEl) {
+	var file = inputEl.files && inputEl.files[0];
+	if (!file) return;
+	var reader = new FileReader();
+	reader.onload = function(e) {
+		var dataUrl = e.target.result;
+		var g = _getGeneralState();
+		if (!g.homeIcons) g.homeIcons = {};
+		if (!g.homeIcons[key]) g.homeIcons[key] = {};
+		g.homeIcons[key].icon = { type: 'local', value: dataUrl };
+		_saveGeneralState(g);
+		_updateIconPreview(key, dataUrl);
+		// Clear url input
+		var safeId = _keyToSafeId(key);
+		var urlEl = document.getElementById('iconUrl_' + safeId);
+		if (urlEl) urlEl.value = '';
+	};
+	reader.readAsDataURL(file);
+}
+
+function onHomeIconUrlInput(key, value) {
+	var trimmed = value.trim();
+	var g = _getGeneralState();
+	if (!g.homeIcons) g.homeIcons = {};
+	if (!g.homeIcons[key]) g.homeIcons[key] = {};
+	g.homeIcons[key].icon = { type: 'url', value: trimmed };
+	_saveGeneralState(g);
+	_updateIconPreview(key, trimmed);
+}
+
+function _updateIconPreview(key, imageUrl) {
+	var safeId = _keyToSafeId(key);
+	var preview = document.getElementById('iconPrev_' + safeId);
+	if (!preview) return;
+	if (imageUrl) {
+		preview.style.backgroundImage = 'url("' + imageUrl + '")';
+		preview.innerHTML = '';
+	} else {
+		preview.style.backgroundImage = '';
+		// Restore original SVG
+		var defs = _getDesktopIconDefs();
+		for (var i = 0; i < defs.length; i++) {
+			if (defs[i].key === key) {
+				var iconEl = defs[i].el.querySelector('.app-icon');
+				if (iconEl && iconEl.dataset.originalSvg) {
+					preview.innerHTML = iconEl.dataset.originalSvg;
+				}
+				break;
+			}
+		}
+	}
+}
+
+function applyHomeIcons() {
+	var container = document.getElementById('iconSettingsList');
+	if (!container) return;
+	var g = _getGeneralState();
+	if (!g.homeIcons) g.homeIcons = {};
+
+	// Read names from inputs
+	container.querySelectorAll('.te-icon-setting-name').forEach(function(inp) {
+		var key = inp.dataset.iconKey;
+		if (!g.homeIcons[key]) g.homeIcons[key] = {};
+		g.homeIcons[key].name = inp.value.trim();
+	});
+
+	// Also sync iconNames for backward compat
+	if (!g.iconNames) g.iconNames = {};
+	Object.keys(g.homeIcons).forEach(function(key) {
+		if (g.homeIcons[key].name) {
+			g.iconNames[key] = g.homeIcons[key].name;
+		}
+	});
+
+	_saveGeneralState(g);
+	_applyHomeIconsToDOM(g.homeIcons);
+	showThemeFeedback('Applied');
+}
+
+function resetSingleHomeIcon(key) {
+	var g = _getGeneralState();
+	if (!g.homeIcons) g.homeIcons = {};
+	delete g.homeIcons[key];
+	if (g.iconNames) delete g.iconNames[key];
+	_saveGeneralState(g);
+	_applyHomeIconsToDOM(g.homeIcons);
+	_renderIconSettingsList();
+	showThemeFeedback('Reset');
+}
+
+function resetAllHomeIcons() {
+	var g = _getGeneralState();
+	g.homeIcons = {};
+	g.iconNames = {};
+	_saveGeneralState(g);
+	_applyHomeIconsToDOM({});
+	_renderIconSettingsList();
+	showThemeFeedback('Reset All');
+}
+
+function _applyHomeIconsToDOM(homeIcons) {
+	var defs = _getDesktopIconDefs();
+	defs.forEach(function(def) {
+		var labelEl = def.el.querySelector('.app-label');
+		var iconEl = def.el.querySelector('.app-icon');
+		var config = homeIcons[def.key];
+
+		// Apply name
+		if (labelEl) {
+			if (config && config.name !== undefined && config.name !== '') {
+				labelEl.textContent = config.name;
+			} else {
+				labelEl.textContent = def.defaultLabel;
+			}
+		}
+
+		// Apply icon image
+		if (iconEl) {
+			var existingOverlay = iconEl.querySelector('.home-icon-custom-img');
+			if (config && config.icon && config.icon.type !== 'default' && config.icon.value) {
+				// Hide original SVG
+				var svgEl = iconEl.querySelector('svg');
+				if (svgEl) svgEl.style.display = 'none';
+				// Show custom image
+				if (!existingOverlay) {
+					existingOverlay = document.createElement('img');
+					existingOverlay.className = 'home-icon-custom-img';
+					iconEl.appendChild(existingOverlay);
+				}
+				existingOverlay.src = config.icon.value;
+				existingOverlay.style.display = 'block';
+			} else {
+				// Restore original SVG
+				var svgEl = iconEl.querySelector('svg');
+				if (svgEl) svgEl.style.display = '';
+				if (existingOverlay) existingOverlay.style.display = 'none';
+			}
+		}
+	});
 }
 
 // ============================================================
@@ -1607,7 +1784,17 @@ function restoreGeneralSettings() {
 	if (g.chatBackground && g.chatBackground.value) {
 		_applyGeneralSetting('chatBackground', g.chatBackground.value);
 	}
-	if (g.iconNames && Object.keys(g.iconNames).length) {
-		setTimeout(function() { _applyIconNamesToDOM(g.iconNames); }, 150);
+	// Apply home icons (per-icon name + image)
+	if (g.homeIcons && Object.keys(g.homeIcons).length) {
+		setTimeout(function() { _applyHomeIconsToDOM(g.homeIcons); }, 150);
+	} else if (g.iconNames && Object.keys(g.iconNames).length) {
+		// Legacy migration: convert old iconNames to homeIcons
+		setTimeout(function() {
+			_migrateIconNamesToHomeIcons();
+			var migrated = _getGeneralState();
+			if (migrated.homeIcons && Object.keys(migrated.homeIcons).length) {
+				_applyHomeIconsToDOM(migrated.homeIcons);
+			}
+		}, 150);
 	}
 }
