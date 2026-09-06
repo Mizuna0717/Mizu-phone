@@ -1595,14 +1595,25 @@ function _renderIconSettingsList() {
 			previewStyle = 'background-image:url(&quot;' + _escHtml(iconConfig.value) + '&quot;);';
 		}
 		// Get SVG for preview
-		var svgHtml = '';
-		if (!hasCustomIcon) {
-			var iconEl = def.el.querySelector('.app-icon');
-			if (iconEl) {
-				var svgEl = iconEl.querySelector('svg');
-				if (svgEl) svgHtml = svgEl.outerHTML;
+		// Get SVG for preview — clone with proper attributes for visibility
+var svgHtml = '';
+if (!hasCustomIcon) {
+	var iconEl = def.el.querySelector('.app-icon');
+	if (iconEl) {
+		var svgEl = iconEl.querySelector('svg');
+		if (svgEl) {
+			var clonedSvg = svgEl.cloneNode(true);
+			// Ensure the SVG has a viewBox so it scales properly
+			if (!clonedSvg.getAttribute('viewBox')) {
+				clonedSvg.setAttribute('viewBox', '0 0 32 32');
 			}
+			// Remove any width/height that could conflict
+			clonedSvg.removeAttribute('width');
+			clonedSvg.removeAttribute('height');
+			svgHtml = clonedSvg.outerHTML;
 		}
+	}
+}
 		var urlValue = (iconConfig.type === 'url') ? (iconConfig.value || '') : '';
 		var safeId = _keyToSafeId(def.key);
 
@@ -1667,13 +1678,26 @@ function _updateIconPreview(key, imageUrl) {
 		preview.innerHTML = '';
 	} else {
 		preview.style.backgroundImage = '';
-		// Restore original SVG
+		// Restore original SVG from the Home page
 		var defs = _getDesktopIconDefs();
 		for (var i = 0; i < defs.length; i++) {
 			if (defs[i].key === key) {
 				var iconEl = defs[i].el.querySelector('.app-icon');
-				if (iconEl && iconEl.dataset.originalSvg) {
-					preview.innerHTML = iconEl.dataset.originalSvg;
+				if (iconEl) {
+					var svgEl = iconEl.querySelector('svg');
+					if (svgEl) {
+						var clonedSvg = svgEl.cloneNode(true);
+						if (!clonedSvg.getAttribute('viewBox')) {
+							clonedSvg.setAttribute('viewBox', '0 0 32 32');
+						}
+						clonedSvg.removeAttribute('width');
+						clonedSvg.removeAttribute('height');
+						// Make sure display is not none (in case it was hidden by custom icon)
+						clonedSvg.style.display = '';
+						preview.innerHTML = clonedSvg.outerHTML;
+					} else if (iconEl.dataset.originalSvg) {
+						preview.innerHTML = iconEl.dataset.originalSvg;
+					}
 				}
 				break;
 			}

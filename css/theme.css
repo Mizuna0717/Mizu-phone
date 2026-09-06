@@ -1238,16 +1238,26 @@
 	width: 22px;
 	height: 22px;
 	flex-shrink: 0;
+	stroke: #3a3a3c;
+	fill: none;
+	stroke-width: 1.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.te-icon-setting-preview svg circle[fill],
+.te-icon-setting-preview svg [fill]:not([fill="none"]) {
+	fill: #3a3a3c;
 }
 
 .te-icon-setting-info {
-	flex: 1;
-	min-width: 0;
+	flex: 1 1 0;
+	min-width: 120px;
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	overflow: hidden;
 }
-
 .te-icon-setting-default {
 	font-size: 11px;
 	color: #86868b;
@@ -1256,6 +1266,7 @@
 
 .te-icon-setting-name {
 	width: 100%;
+	min-width: 120px;
 	padding: 5px 9px;
 	font-size: 13px;
 	color: #1d1d1f;
@@ -1273,10 +1284,14 @@
 }
 
 .te-icon-reset-btn {
-	padding: 4px 8px !important;
+	padding: 4px 10px !important;
 	font-size: 11px !important;
 	white-space: nowrap;
 	flex-shrink: 0;
+	width: auto !important;
+	min-width: fit-content;
+	max-width: 70px;
+	flex: 0 0 auto !important;
 }
 
 .te-icon-setting-image-row {
@@ -1284,17 +1299,20 @@
 	align-items: center;
 	gap: 8px;
 	margin-left: 50px;
+	flex-wrap: nowrap;
 }
 
 .te-upload-btn-icon {
 	padding: 4px 10px;
 	font-size: 12px;
 	flex-shrink: 0;
+	width: auto;
+	min-width: fit-content;
 }
 
 .te-url-input-icon {
 	flex: 1;
-	min-width: 0;
+	min-width: 80px;
 	padding: 4px 8px;
 	font-size: 12px;
 }
