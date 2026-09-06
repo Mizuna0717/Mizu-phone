@@ -524,10 +524,15 @@
             _saveMeta(meta);
             _updateStatus(true, meta.lastUpload, meta.lastDownload, meta.dataSize);
 
-            if (typeof window._reloadAllUI === 'function') {
+                        if (typeof window._reloadAllUI === 'function') {
               window._reloadAllUI();
             } else if (typeof window.reloadUI === 'function') {
               window.reloadUI(false);
+            }
+
+            // Re-apply theme settings that were restored from cloud
+            if (typeof window._restoreThemeFromState === 'function') {
+              window._restoreThemeFromState();
             }
 
             console.log('[Cloud] ✅ Download OK | chars:', cloudChars, '| chats:', cloudChats);

@@ -53,6 +53,16 @@ function initFontSizeEditor() {
 	if (sel) sel.value = saved;
 }
 
+
+
+
+
+
+
+
+
+
+
 function applyFontSize(value) {
 	const size = FONT_SIZE_MAP[value] || '15px';
 	document.documentElement.style.setProperty('--global-font-size', size);
@@ -61,7 +71,10 @@ function applyFontSize(value) {
 	if (window.state) {
 		if (!window.state.theme) window.state.theme = {};
 		window.state.theme.fontSize = value;
+		if (!window.state.theme.general) window.state.theme.general = {};
+		window.state.theme.general.fontSize = value;
 	}
+	if (typeof saveState === 'function') saveState();
 	showThemeFeedback('Applied');
 }
 
@@ -322,6 +335,23 @@ function _onCSSChange() {
 //  Bubble Editor — Apply
 // ============================================================
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function applyBubbleParams() {
 	var params = readParamControls();
 	saveBubbleState(params);
@@ -338,6 +368,11 @@ function applyBubbleParams() {
 	}
 	styleEl.textContent = finalCSS;
 	localStorage.setItem('theme-css-bubble', finalCSS);
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.chatBubble = finalCSS;
+	}
+	if (typeof saveState === 'function') saveState();
 	showThemeFeedback('Applied');
 }
 
@@ -571,6 +606,24 @@ function loadChatInterfaceSourceCSS() {
 	});
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function applyChatInterfaceCSS() {
 	var textarea = document.getElementById('te-css-chat');
 	if (!textarea) return;
@@ -588,6 +641,7 @@ function applyChatInterfaceCSS() {
 	}
 	styleEl.textContent = css;
 	renderChatInterfaceAfter(css);
+	if (typeof saveState === 'function') saveState();
 	showThemeFeedback('Applied');
 }
 
@@ -706,6 +760,24 @@ function renderHeartPanelAfter(css) {
 	styleEl.textContent = scopeCSS(css || '', '#hp-mock-after');
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function applyHeartPanelCSS() {
 	var textarea = document.getElementById('te-css-heart');
 	if (!textarea) return;
@@ -723,6 +795,7 @@ function applyHeartPanelCSS() {
 	}
 	styleEl.textContent = css;
 	renderHeartPanelAfter(css);
+	if (typeof saveState === 'function') saveState();
 	showThemeFeedback('Applied');
 }
 
@@ -764,11 +837,31 @@ function loadThemeCSS(type) {
 	if (saved) textarea.value = saved;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 function applyThemeCSS(type) {
 	var textarea = document.getElementById('te-css-' + type);
 	if (!textarea) return;
 	var css = textarea.value;
 	localStorage.setItem('theme-css-' + type, css);
+	// Mirror into state.theme for cloud sync
+	var themeKeyMap = { call: 'callScreen', topbar: 'chatTopBar', input: 'chatInput', cards: 'chatCards' };
+	var stateKey = themeKeyMap[type] || type;
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme[stateKey] = css;
+	}
 	var styleEl = document.getElementById('custom-theme-' + type);
 	if (!styleEl) {
 		styleEl = document.createElement('style');
@@ -776,6 +869,7 @@ function applyThemeCSS(type) {
 		document.head.appendChild(styleEl);
 	}
 	styleEl.textContent = css;
+	if (typeof saveState === 'function') saveState();
 	showThemeFeedback('Applied');
 }
 
@@ -963,6 +1057,24 @@ function renderMeetingStyleAfter(css) {
 	styleEl.textContent = scopeCSS(css || '', '#ms-mock-after');
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function applyMeetingStyleCSS() {
 	var textarea = document.getElementById('te-css-meeting');
 	if (!textarea) return;
@@ -980,6 +1092,7 @@ function applyMeetingStyleCSS() {
 	}
 	styleEl.textContent = css;
 	renderMeetingStyleAfter(css);
+	if (typeof saveState === 'function') saveState();
 	showThemeFeedback('Applied');
 }
 
@@ -1217,6 +1330,24 @@ function renderMeetingArchiveAfter(css) {
 	styleEl.textContent = scopeCSS(css || '', '#archive-mock-after');
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function applyMeetingArchiveCSS() {
 	var textarea = document.getElementById('te-css-archive');
 	if (!textarea) return;
@@ -1234,6 +1365,7 @@ function applyMeetingArchiveCSS() {
 	}
 	styleEl.textContent = css;
 	renderMeetingArchiveAfter(css);
+	if (typeof saveState === 'function') saveState();
 	showThemeFeedback('Applied');
 }
 

@@ -3,7 +3,22 @@
 
 let homePageIndex = 0;
 
+function initHome() {
+  initHomeSwipe();
+  initWeatherWidget();
+  updateGreeting();
+  updateCalendar();
+  renderHomeProfile();
+  renderCalEvent();
+  const u = state.userProfile;
+  if (u.musicSong) { const el = document.getElementById('musicSong'); if (el) el.textContent = u.musicSong; }
+  if (u.musicArtist) { const el = document.getElementById('musicArtist'); if (el) el.textContent = u.musicArtist; }
+  if (u.musicCover) { const img = document.getElementById('musicCoverImg'); if (img) { img.src = u.musicCover; img.style.display = 'block'; } }
+  if (u.calEvent) renderCalEvent();
+}
+
 function initHomeSwipe() {
+  initWeatherWidget();
   const pages = document.getElementById('homePages');
   if (!pages) return;
   let startX = 0, startY = 0, diffX = 0, moving = false;
@@ -130,6 +145,93 @@ function editMusicInfo(type) {
     saveState();
     document.getElementById(key === 'musicSong' ? 'musicSong' : 'musicArtist').textContent = v || (type === 'song' ? 'Song Title' : 'Artist');
   }
+}
+
+// ========== WEATHER WIDGET ==========
+let _weatherLongPressTimer = null;
+
+function initWeatherWidget() {
+  const el = document.getElementById('weatherWidget');
+  if (!el) return;
+  el.addEventListener('click', () => fetchWeather());
+  el.addEventListener('touchstart', () => {
+    _weatherLongPressTimer = setTimeout(() => {
+      _weatherLongPressTimer = null;
+      weatherSetCity();
+    }, 600);
+  }, { passive: true });
+  el.addEventListener('touchend', () => {
+    if (_weatherLongPressTimer) { clearTimeout(_weatherLongPressTimer); _weatherLongPressTimer = null; }
+  });
+  el.addEventListener('touchmove', () => {
+    if (_weatherLongPressTimer) { clearTimeout(_weatherLongPressTimer); _weatherLongPressTimer = null; }
+  }, { passive: true });
+  renderWeather();
+  fetchWeather();
+}
+
+function renderWeather() {
+  const w = (state.home && state.home.weather) ? state.home.weather : {};
+  const tempEl = document.getElementById('weatherTemp');
+  const condEl = document.getElementById('weatherCond');
+  const humEl  = document.getElementById('weatherHum');
+  const cityEl = document.getElementById('weatherCity');
+  const timeEl = document.getElementById('weatherTime');
+  if (tempEl) tempEl.textContent = (w.temperature && w.temperature !== '--') ? w.temperature + '\u00b0C' : '--\u00b0C';
+  if (condEl) condEl.textContent = w.condition || '--';
+  if (humEl)  humEl.textContent  = (w.humidity && w.humidity !== '--') ? w.humidity + '%' : '--%';
+  if (cityEl) cityEl.textContent = w.city || '--';
+  if (timeEl) timeEl.textContent = w.updatedAt || '';
+}
+
+function fetchWeather() {
+  const w = (state.home && state.home.weather) ? state.home.weather : {};
+  const city = w.city || 'auto';
+  const url = `https://wttr.in/${encodeURIComponent(city)}?format=j1`;
+  const indicator = document.getElementById('weatherIndicator');
+  if (indicator) indicator.classList.add('loading');
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      const cur = data.current_condition && data.current_condition[0];
+      if (!cur) throw new Error('no data');
+      const condArr = cur.weatherDesc;
+      const condRaw = (condArr && condArr[0] && condArr[0].value) || '--';
+      const condMap = {
+        'Sunny': '\u6674', 'Clear': '\u6674', 'Partly cloudy': '\u591a\u4e91',
+        'Cloudy': '\u9634', 'Overcast': '\u9634', 'Mist': '\u8584\u96fe',
+        'Fog': '\u96fe', 'Light rain': '\u5c0f\u96e8', 'Moderate rain': '\u4e2d\u96e8',
+        'Heavy rain': '\u5927\u96e8', 'Light snow': '\u5c0f\u96ea', 'Moderate snow': '\u4e2d\u96ea',
+        'Heavy snow': '\u5927\u96ea', 'Blizzard': '\u66b4\u96ea', 'Thundery outbreaks possible': '\u96f7\u9635\u96e8',
+        'Patchy rain possible': '\u9635\u96e8', 'Drizzle': '\u6bdb\u6bdb\u96e8'
+      };
+      const cond = condMap[condRaw] || condRaw;
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const updatedAt = `${now.getMonth()+1}/${now.getDate()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      if (!state.home) state.home = {};
+      if (!state.home.weather) state.home.weather = {};
+      state.home.weather.temperature = cur.temp_C || '--';
+      state.home.weather.condition   = cond;
+      state.home.weather.humidity    = cur.humidity || '--';
+      state.home.weather.updatedAt   = updatedAt;
+      saveState();
+      renderWeather();
+    })
+    .catch(() => renderWeather())
+    .finally(() => { if (indicator) indicator.classList.remove('loading'); });
+}
+
+function weatherSetCity() {
+  const cur = (state.home && state.home.weather && state.home.weather.city) || '';
+  const v = prompt('City name (leave blank for auto-detect):', cur);
+  if (v === null) return;
+  if (!state.home) state.home = {};
+  if (!state.home.weather) state.home.weather = {};
+  state.home.weather.city = v.trim();
+  saveState();
+  renderWeather();
+  fetchWeather();
 }
 
 // ========== CALENDAR WIDGET ==========

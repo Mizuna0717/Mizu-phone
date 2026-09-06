@@ -1,4 +1,4 @@
-﻿// ========== 02-state.js ==========
+// ========== 02-state.js ==========
 let accountStore = { accounts: [], currentAccountId: null };
 
 let state = {
@@ -11,8 +11,6 @@ let state = {
   phoneData: {}, bookmarks: [], groups: [], moments: [],messageChats: [], 
     meetings: [],
   npcs: [],
-  wikiSchedule: [],
-  together: { songs: [], videos: [], novels: [] },
   allowQuote: true,
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium',homeIcons: {}, desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
           systemPromptIM: '',
@@ -33,13 +31,6 @@ let tmp = {
 
 var SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
-  'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
-  'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
-  'groups', 'moments', 'imsgTab','messageChats' ,           
-  'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting', 'theme',
-  'wikiSchedule', 'together'
-];
-
 var _stateLoaded = false;
 var _forceNextSave = false;
 var _saveGeneration = 0;
@@ -58,18 +49,15 @@ function _getStateDefaults() {
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
-    npcs: [], messageChats: [],
-    wikiSchedule: [],
-    together: { songs: [], videos: [], novels: [] },
+        npcs: [],messageChats: [],  
     allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
-    theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
-    user: null
+        theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
+                user: null
   };
 }
 
 function _validateState() {
   if (!Array.isArray(state.characters)) state.characters = [];
-  if (!state.chats || typeof state.chats !== 'object' || Array.isArray(state.chats)) state.chats = {};
   if (!state.unread || typeof state.unread !== 'object') state.unread = {};
   if (!state.phoneData || typeof state.phoneData !== 'object') state.phoneData = {};
   if (!state.userProfile || typeof state.userProfile !== 'object') state.userProfile = { name: 'User', avatar: null };
@@ -84,15 +72,10 @@ function _validateState() {
   if (!Array.isArray(state.stickers)) state.stickers = [];
   if (!Array.isArray(state.apis)) state.apis = [];
   if (!Array.isArray(state.meetings)) state.meetings = [];
-  if (!Array.isArray(state.messageChats)) state.messageChats = [];
+   if (!Array.isArray(state.messageChats)) state.messageChats = []; 
   if (!Array.isArray(state.npcs)) state.npcs = [];
-  if (!Array.isArray(state.wikiSchedule)) state.wikiSchedule = [];
-  if (!state.together || typeof state.together !== 'object') state.together = { songs: [], videos: [], novels: [] };
-  if (!Array.isArray(state.together.songs))  state.together.songs  = [];
-  if (!Array.isArray(state.together.videos)) state.together.videos = [];
-  if (!Array.isArray(state.together.novels)) state.together.novels = [];
   if (state.allowQuote == null) state.allowQuote = true;
-  if (state.systemPromptIM == null) state.systemPromptIM = '';
+    if (state.systemPromptIM == null) state.systemPromptIM = '';
   if (state.systemPromptMeeting == null) state.systemPromptMeeting = '';
   if (!state.theme || typeof state.theme !== 'object') state.theme = { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '' };
   if (!state.theme.fontSize) state.theme.fontSize = 'medium';
@@ -112,7 +95,7 @@ function _validateState() {
   if (!state.theme.general.iconSettings) state.theme.general.iconSettings = {};
   if (!state.theme.general.chatBackground) state.theme.general.chatBackground = { type: 'url', value: '' };
   if (!state.theme.general.homeIcons) state.theme.general.homeIcons = {};
-  if (window.__user) {
+   if (window.__user) {
     state.user = window.__user;
   }
 
@@ -202,7 +185,7 @@ function _saveAccountData(accountId) {
             var oldDataScore = oldChars + oldChats + oldMasks;
 
             if (oldDataScore > 0) {
-              console.error('[save] 防空覆写！阻止空数据覆盖有效数据。',
+              console.error('[save] 防空覆写！阻止空数据覆盖有效数据�?,
                 '| 现有: chars=' + oldChars + ' chats=' + oldChats + ' masks=' + oldMasks,
                 '| 试图写入: chars=' + newChars + ' chats=' + newChats + ' masks=' + newMasks);
               try {
@@ -216,7 +199,7 @@ function _saveAccountData(accountId) {
     }
 
     if (json.length > 4.5 * 1024 * 1024) {
-      console.warn('[save] 数据量过大 (' + usedKB + 'KB)，可能超出 localStorage 5MB 限制');
+      console.warn('[save] 数据量过�?(' + usedKB + 'KB)，可能超�?localStorage 5MB 限制');
     }
 
     localStorage.setItem('ai_app_account_' + accountId, json);
@@ -238,7 +221,7 @@ function _saveAccountData(accountId) {
   } catch (e) {
     console.error('[save] FAILED for', accountId, e);
     if (e.name === 'QuotaExceededError' || e.code === 22) {
-      console.error('[save] localStorage 已满！');
+      console.error('[save] localStorage 已满�?);
       try {
         localStorage.removeItem('aiphone8');
         for (var i = localStorage.length - 1; i >= 0; i--) {
@@ -246,9 +229,9 @@ function _saveAccountData(accountId) {
           if (key && key.indexOf('_backup') > -1) localStorage.removeItem(key);
         }
         localStorage.setItem('ai_app_account_' + accountId, json);
-        console.log('[save] 清理后重试成功');
+        console.log('[save] 清理后重试成�?);
       } catch(e2) {
-        console.error('[save] 清理后仍然失败', e2);
+        console.error('[save] 清理后仍然失�?, e2);
       }
     }
   }
@@ -258,10 +241,10 @@ function _loadAccountData(accountId) {
   try {
     var raw = localStorage.getItem('ai_app_account_' + accountId);
     if (!raw) {
-      console.warn('[load] 无数据:', accountId);
+      console.warn('[load] 无数�?', accountId);
       var backupRaw = localStorage.getItem('ai_app_backup_' + accountId);
       if (backupRaw) {
-        console.log('[load] 从备份恢复:', accountId);
+        console.log('[load] 从备份恢�?', accountId);
         try {
           var backupData = JSON.parse(backupRaw);
           if (backupData && typeof backupData === 'object') {
@@ -416,7 +399,7 @@ function switchAccount(id) {
   for (var i = 0; i < accountStore.accounts.length; i++) {
     if (accountStore.accounts[i].id === id) { target = accountStore.accounts[i]; break; }
   }
-  if (!target) { console.error('[switch] 目标账号不存在:', id); return false; }
+  if (!target) { console.error('[switch] 目标账号不存�?', id); return false; }
   if (id === accountStore.currentAccountId) return true;
   var oldId = accountStore.currentAccountId;
   console.log('[switch] 保存当前账号:', oldId);
@@ -426,7 +409,7 @@ function switchAccount(id) {
   var data = _loadAccountData(id);
   if (data) {
     _applyDataToState(data);
-    console.log('[switch] 已加载账号:', id, '| chars:', state.characters.length);
+    console.log('[switch] 已加载账�?', id, '| chars:', state.characters.length);
   }
   _resetTransientState();
   _validateState();
@@ -458,7 +441,7 @@ function saveState(force) {
 
 function loadState() {
   _stateLoaded = false;
-  console.log('[loadState] 开始加载...');
+  console.log('[loadState] 开始加�?..');
   _loadAccountMeta();
   console.log('[loadState] meta | accounts:', accountStore.accounts.length,
     '| currentId:', accountStore.currentAccountId);
@@ -535,6 +518,7 @@ function getOtherAccountsCharacters() {
 function getCurrentUserMask() {
   var maskId = state.userProfile && state.userProfile.currentMaskId;
   if (!maskId) {
+    // 找到绑定了当前角色（如果有）的面具；否则回退到第一个面�?
     if (state.currentCharId) {
       var byChar = (state.masks || []).find(function(m) {
         return (m.charIds || []).indexOf(state.currentCharId) >= 0;

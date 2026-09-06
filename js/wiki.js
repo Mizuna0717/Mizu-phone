@@ -49,11 +49,21 @@ function getNpcsForChar(charId) {
 
 /* ── Schedule Data ── */
 
-var wikiScheduleData = [];
 var currentScheduleFilter = 'all';
-var wikiScheduleNextId = 100;
 var selectedScheduleChars = new Set();
 var _fmt = function(d) { return d.toISOString().split('T')[0]; };
+
+function _getScheduleData() {
+	if (!window.state) return [];
+	if (!Array.isArray(state.wikiSchedule)) state.wikiSchedule = [];
+	return state.wikiSchedule;
+}
+
+function _getNextScheduleId() {
+	var data = _getScheduleData();
+	if (!data.length) return 1;
+	return Math.max.apply(null, data.map(function(d) { return d.id || 0; })) + 1;
+}
 
 /* =====================================================================
    View Navigation
@@ -654,7 +664,7 @@ function wikiNavAddAction() {
 function renderScheduleTimeline() {
 	var container = document.getElementById('schedule-timeline');
 	if (!container) return;
-	var data = wikiScheduleData.slice();
+	var data = _getScheduleData().slice();
 
 	if (wikiSelectedCharId) {
 		var chars = getWikiCharacters();
@@ -727,9 +737,10 @@ function filterSchedule(filterType) {
 }
 
 function toggleScheduleStatus(id) {
-	var item = wikiScheduleData.find(function(d) { return d.id === id; });
+	var item = _getScheduleData().find(function(d) { return d.id === id; });
 	if (!item) return;
 	item.status = item.status === 'completed' ? 'pending' : 'completed';
+	if (typeof saveState === 'function') saveState();
 	renderScheduleTimeline();
 }
 
@@ -870,12 +881,13 @@ async function generateScheduleByAI() {
 		var items = parsed.schedule;
 		if (!Array.isArray(items) || items.length === 0) throw new Error('未生成任何日程');
 
-		var charNames = [charName];
+				var charNames = [charName];
+		var schedArr = _getScheduleData();
 		items.forEach(function(item) {
 			var t = (item.time || '').trim();
 			if (!/^\d{2}:\d{2}$/.test(t)) t = '00:00';
-			wikiScheduleData.push({
-				id:          ++wikiScheduleNextId,
+			schedArr.push({
+				id:          _getNextScheduleId(),
 				date:        targetDate,
 				time:        t,
 				title:       String(item.title || '').trim() || '日程事项',
@@ -922,8 +934,8 @@ function saveScheduleEvent() {
 	var dateEl = document.getElementById('sched-add-date');
 	var timeEl = document.getElementById('sched-add-time');
 	var descEl = document.getElementById('sched-add-desc');
-	wikiScheduleData.push({
-		id:          ++wikiScheduleNextId,
+	_getScheduleData().push({
+		id:          _getNextScheduleId(),
 		date:        dateEl ? dateEl.value : _fmt(new Date()),
 		time:        timeEl ? timeEl.value : '12:00',
 		title:       title,
@@ -931,12 +943,13 @@ function saveScheduleEvent() {
 		description: descEl ? descEl.value.trim() : '',
 		status:      'pending'
 	});
+	if (typeof saveState === 'function') saveState();
 	closeScheduleAddModal();
 	renderScheduleTimeline();
 }
 
 function openScheduleDetail(id) {
-	var item = wikiScheduleData.find(function(d) { return d.id === id; });
+	var item = _getScheduleData().find(function(d) { return d.id === id; });
 	if (!item) return;
 	var body   = document.getElementById('schedule-detail-body');
 	var footer = document.getElementById('schedule-detail-footer');
@@ -964,7 +977,8 @@ function closeScheduleDetailModal() {
 }
 
 function deleteScheduleEvent(id) {
-	wikiScheduleData = wikiScheduleData.filter(function(d) { return d.id !== id; });
+	state.wikiSchedule = _getScheduleData().filter(function(d) { return d.id !== id; });
+	if (typeof saveState === 'function') saveState();
 	closeScheduleDetailModal();
 }
 
