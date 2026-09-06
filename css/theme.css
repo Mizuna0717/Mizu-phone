@@ -144,6 +144,14 @@
 	margin: 0 20px;
 }
 
+.chat-interface-preview.chat-interface-preview-single {
+	display: block;
+}
+
+.chat-interface-preview.chat-interface-preview-single .ci-mock {
+	height: 420px;
+}
+
 .ci-preview-col {
 	flex: 1;
 	min-width: 0;
@@ -370,6 +378,14 @@
 	margin: 0 20px;
 }
 
+.heart-panel-preview.heart-panel-preview-single {
+	display: block;
+}
+
+.heart-panel-preview.heart-panel-preview-single .hp-mock {
+	min-height: 320px;
+}
+
 .hp-preview-col {
 	flex: 1;
 	min-width: 0;
@@ -428,6 +444,14 @@
 	display: flex;
 	gap: 12px;
 	margin: 0 20px;
+}
+
+.archive-preview-wrap.archive-preview-single {
+	display: block;
+}
+
+.archive-preview-wrap.archive-preview-single .archive-mock {
+	max-height: 420px;
 }
 
 .archive-preview-col {
@@ -622,19 +646,24 @@
 }
 
 .te-btn-primary {
-	background: #007aff;
+	background: #000000;
 	color: #ffffff;
 	flex: 1;
 	min-width: 100px;
 }
 
 .te-btn-primary:hover {
-	background: #0051d5;
+	background: #333333;
 }
 
 .te-btn-primary:active {
-	background: #004bb8;
+	background: #1a1a1a;
 	transform: scale(0.98);
+}
+
+.te-btn-primary:disabled {
+	background: #999999;
+	cursor: not-allowed;
 }
 
 .te-btn-secondary {
@@ -802,6 +831,14 @@
 	margin: 0 20px;
 }
 
+.bubble-preview-wrap.bubble-preview-single {
+	display: block;
+}
+
+.bubble-preview-wrap.bubble-preview-single .bubble-preview {
+	min-height: 160px;
+}
+
 .bubble-preview-col {
 	flex: 1;
 	min-width: 0;
@@ -879,6 +916,14 @@
 	display: flex;
 	gap: 12px;
 	margin: 0 20px;
+}
+
+.meeting-style-preview.meeting-style-preview-single {
+	display: block;
+}
+
+.meeting-style-preview.meeting-style-preview-single .ms-mock {
+	height: 380px;
 }
 
 .ms-preview-col {

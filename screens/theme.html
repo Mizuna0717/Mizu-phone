@@ -19,8 +19,8 @@
 					</svg>
 				</div>
 				<div class="theme-card-body">
-					<div class="theme-card-name">Font Size</div>
-					<div class="theme-card-desc">Set global font size</div>
+					<div class="theme-card-name">General</div>
+						<div class="theme-card-desc">Set global font size</div>
 				</div>
 				<div class="theme-card-arrow">
 					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
@@ -138,13 +138,13 @@
 	</div>
 </div>
 
-<!-- THEME EDITOR: Font Size -->
+<!-- THEME EDITOR: General -->
 <div class="screen" id="screen-theme-fontsize">
 	<div class="nav-bar">
 		<button class="nav-btn" onclick="closeThemeEditor()">
 			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
 		</button>
-		<span class="nav-title">Font Size</span>
+		<span class="nav-title">General</span>
 	</div>
 	<div class="screen-body">
 		<div class="te-section-label">Font Size</div>
@@ -173,41 +173,21 @@
 	</div>
 	<div class="screen-body">
 
-		<!-- Preview: Before / After -->
+				<!-- Preview -->
 		<div class="te-section-label">Preview</div>
-		<div class="bubble-preview-wrap">
-			<div class="bubble-preview-col">
-				<div class="bubble-preview-heading">Before</div>
-				<div class="bubble-preview before" id="bubble-preview-before">
-					<div class="bp-row bp-row-received">
-						<div class="bp-avatar" id="bp-avatar-before-1"></div>
-						<div class="bp-bubble bp-bubble-received" id="bp-bubble-before-in">Hey, how are you?</div>
-					</div>
-					<div class="bp-row bp-row-sent">
-						<div class="bp-bubble bp-bubble-sent" id="bp-bubble-before-out">I'm good, thanks!</div>
-						<div class="bp-avatar" id="bp-avatar-before-2"></div>
-					</div>
-					<div class="bp-row bp-row-received">
-						<div class="bp-avatar" id="bp-avatar-before-3"></div>
-						<div class="bp-bubble bp-bubble-received">Want to catch up?</div>
-					</div>
+		<div class="bubble-preview-wrap bubble-preview-single">
+			<div class="bubble-preview after" id="bubble-preview-after">
+				<div class="bp-row bp-row-received">
+					<div class="bp-avatar" id="bp-avatar-after-1"></div>
+					<div class="bp-bubble bp-bubble-received" id="bp-bubble-after-in">Hey, how are you?</div>
 				</div>
-			</div>
-			<div class="bubble-preview-col">
-				<div class="bubble-preview-heading">After</div>
-				<div class="bubble-preview after" id="bubble-preview-after">
-					<div class="bp-row bp-row-received">
-						<div class="bp-avatar" id="bp-avatar-after-1"></div>
-						<div class="bp-bubble bp-bubble-received" id="bp-bubble-after-in">Hey, how are you?</div>
-					</div>
-					<div class="bp-row bp-row-sent">
-						<div class="bp-bubble bp-bubble-sent" id="bp-bubble-after-out">I'm good, thanks!</div>
-						<div class="bp-avatar" id="bp-avatar-after-2"></div>
-					</div>
-					<div class="bp-row bp-row-received">
-						<div class="bp-avatar" id="bp-avatar-after-3"></div>
-						<div class="bp-bubble bp-bubble-received">Want to catch up?</div>
-					</div>
+				<div class="bp-row bp-row-sent">
+					<div class="bp-bubble bp-bubble-sent" id="bp-bubble-after-out">I'm good, thanks!</div>
+					<div class="bp-avatar" id="bp-avatar-after-2"></div>
+				</div>
+				<div class="bp-row bp-row-received">
+					<div class="bp-avatar" id="bp-avatar-after-3"></div>
+					<div class="bp-bubble bp-bubble-received">Want to catch up?</div>
 				</div>
 			</div>
 		</div>
@@ -297,16 +277,9 @@
 		<span class="nav-title">Chat Interface</span>
 	</div>
 		<div class="screen-body">
-		<div class="te-section-label">Preview</div>
-		<div class="chat-interface-preview">
-						<div class="ci-preview-col">
-				<div class="ci-preview-heading">Before</div>
-				<div class="ci-mock before" id="ci-mock-before"></div>
-			</div>
-			<div class="ci-preview-col">
-				<div class="ci-preview-heading">After</div>
-				<div class="ci-mock after" id="ci-mock-after"></div>
-			</div>
+				<div class="te-section-label">Preview</div>
+		<div class="chat-interface-preview chat-interface-preview-single">
+			<div class="ci-mock after" id="ci-mock-after"></div>
 		</div>
 		<div class="te-section-label">CSS Editor</div>
 		<div class="te-editor-card">
@@ -340,16 +313,9 @@
 		<span class="nav-title">Meeting Style</span>
 	</div>
 	<div class="screen-body">
-		<div class="te-section-label">Preview</div>
-		<div class="meeting-style-preview">
-			<div class="ms-preview-col">
-				<div class="ms-preview-heading">Before</div>
-				<div class="ms-mock before" id="ms-mock-before"></div>
-			</div>
-			<div class="ms-preview-col">
-				<div class="ms-preview-heading">After</div>
-				<div class="ms-mock after" id="ms-mock-after"></div>
-			</div>
+				<div class="te-section-label">Preview</div>
+		<div class="meeting-style-preview meeting-style-preview-single">
+			<div class="ms-mock after" id="ms-mock-after"></div>
 		</div>
 		<div class="te-section-label">CSS Editor</div>
 		<div class="te-editor-card">
@@ -383,88 +349,43 @@
 		<span class="nav-title">Heart Panel</span>
 	</div>
 	<div class="screen-body">
-		<div class="te-section-label">Preview</div>
-		<div class="heart-panel-preview">
-			<div class="hp-preview-col">
-				<div class="hp-preview-heading">Before</div>
-				<div class="hp-mock before" id="hp-mock-before">
-					<div class="heart-voice-card show">
-						<div class="hv-header">
-							<span class="hv-title">心声</span>
-							<button class="hv-close" onclick="return false">
-								<svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
-							</button>
-						</div>
-						<div class="hv-avatar-section">
-							<div class="hv-avatar"></div>
-							<div class="hv-char-name">Aria</div>
-						</div>
-						<div class="hv-content">
-							<div class="hv-section">
-								<div class="hv-section-label">
-									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.2 2 3 4.2 3 7c0 1.8.9 3.3 2.3 4.2L5 13h6l-.3-1.8C12.1 10.3 13 8.8 13 7c0-2.8-2.2-5-5-5z"/></svg>
-									<span>内心想法</span>
-								</div>
-								<p class="hv-section-text hv-thought">心里有些期待，又有些不安……</p>
-							</div>
-							<div class="hv-divider"></div>
-							<div class="hv-section">
-								<div class="hv-section-label">
-									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 1"/></svg>
-									<span>当前动作</span>
-								</div>
-								<p class="hv-section-text">静静地看着你，嘴角微微上扬</p>
-							</div>
-							<div class="hv-divider"></div>
-							<div class="hv-section">
-								<div class="hv-section-label">
-									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 14s-5-3.5-5-7a5 5 0 0110 0c0 3.5-5 7-5 7z"/></svg>
-									<span>想要做的事</span>
-								</div>
-								<p class="hv-section-text">想要靠近一点，牵住你的手</p>
-							</div>
-						</div>
+				<div class="te-section-label">Preview</div>
+		<div class="heart-panel-preview heart-panel-preview-single">
+			<div class="hp-mock after" id="hp-mock-after">
+				<div class="heart-voice-card show">
+					<div class="hv-header">
+						<span class="hv-title">心声</span>
+						<button class="hv-close" onclick="return false">
+							<svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+						</button>
 					</div>
-				</div>
-			</div>
-			<div class="hp-preview-col">
-				<div class="hp-preview-heading">After</div>
-				<div class="hp-mock after" id="hp-mock-after">
-					<div class="heart-voice-card show">
-						<div class="hv-header">
-							<span class="hv-title">心声</span>
-							<button class="hv-close" onclick="return false">
-								<svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
-							</button>
+					<div class="hv-avatar-section">
+						<div class="hv-avatar"></div>
+						<div class="hv-char-name">Aria</div>
+					</div>
+					<div class="hv-content">
+						<div class="hv-section">
+							<div class="hv-section-label">
+								<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.2 2 3 4.2 3 7c0 1.8.9 3.3 2.3 4.2L5 13h6l-.3-1.8C12.1 10.3 13 8.8 13 7c0-2.8-2.2-5-5-5z"/></svg>
+								<span>内心想法</span>
+							</div>
+							<p class="hv-section-text hv-thought">心里有些期待，又有些不安……</p>
 						</div>
-						<div class="hv-avatar-section">
-							<div class="hv-avatar"></div>
-							<div class="hv-char-name">Aria</div>
+						<div class="hv-divider"></div>
+						<div class="hv-section">
+							<div class="hv-section-label">
+								<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 1"/></svg>
+								<span>当前动作</span>
+							</div>
+							<p class="hv-section-text">静静地看着你，嘴角微微上扬</p>
 						</div>
-						<div class="hv-content">
-							<div class="hv-section">
-								<div class="hv-section-label">
-									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.2 2 3 4.2 3 7c0 1.8.9 3.3 2.3 4.2L5 13h6l-.3-1.8C12.1 10.3 13 8.8 13 7c0-2.8-2.2-5-5-5z"/></svg>
-									<span>内心想法</span>
-								</div>
-								<p class="hv-section-text hv-thought">心里有些期待，又有些不安……</p>
+						<div class="hv-divider"></div>
+						<div class="hv-section">
+							<div class="hv-section-label">
+								<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 14s-5-3.5-5-7a5 5 0 0110 0c0 3.5-5 7-5 7z"/></svg>
+								<span>想要做的事</span>
 							</div>
-							<div class="hv-divider"></div>
-							<div class="hv-section">
-								<div class="hv-section-label">
-									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 1"/></svg>
-									<span>当前动作</span>
-								</div>
-								<p class="hv-section-text">静静地看着你，嘴角微微上扬</p>
-							</div>
-							<div class="hv-divider"></div>
-							<div class="hv-section">
-								<div class="hv-section-label">
-									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 14s-5-3.5-5-7a5 5 0 0110 0c0 3.5-5 7-5 7z"/></svg>
-									<span>想要做的事</span>
-								</div>
-								<p class="hv-section-text">想要靠近一点，牵住你的手</p>
-							</div>
+							<p class="hv-section-text">想要靠近一点，牵住你的手</p>
 						</div>
 					</div>
 				</div>
@@ -502,16 +423,9 @@
 		<span class="nav-title">Meeting Archive</span>
 	</div>
 	<div class="screen-body">
-		<div class="te-section-label">Preview</div>
-		<div class="archive-preview-wrap">
-			<div class="archive-preview-col">
-				<div class="archive-preview-heading">Before</div>
-				<div class="archive-mock" id="archive-mock-before"></div>
-			</div>
-			<div class="archive-preview-col">
-				<div class="archive-preview-heading">After</div>
-				<div class="archive-mock" id="archive-mock-after"></div>
-			</div>
+				<div class="te-section-label">Preview</div>
+		<div class="archive-preview-wrap archive-preview-single">
+			<div class="archive-mock" id="archive-mock-after"></div>
 		</div>
 		<div class="te-section-label">CSS Editor</div>
 		<div class="te-editor-card">
