@@ -1,359 +1,929 @@
-// ========== theme.js ==========
-// 主题定制系统
+// ============================================================
+//  Theme Editor — Navigation
+// ============================================================
 
-var _themeActiveModule = 'fontSize';
+function openThemeEditor(type) {
+	document.getElementById('screen-theme').classList.remove('active');
+	const editorScreen = document.getElementById(`screen-theme-${type}`);
+	if (editorScreen) {
+		editorScreen.classList.add('active');
+				if (type === 'bubble') {
+					initBubbleEditor();
+				} else if (type === 'fontsize') {
+					initFontSizeEditor();
+				} else if (type === 'chat') {
+					initChatInterfaceEditor();
+				} else if (type === 'meeting') {
+					initMeetingStyleEditor();
+				} else {
+					loadThemeCSS(type);
+				}
+	}
+}
 
-var _themeOriginalCSS = {
-  chatBubble: [
-    '/* 气泡背景色 */',
-    '.msg-row.sent .msg-bubble {',
-    '  background: #a0a0a0;',
-    '  color: #ffffff;',
-    '}',
-    '.msg-row.received .msg-bubble {',
-    '  background: #e9e9ea;',
-    '  color: #000000;',
-    '}',
-    '/* 气泡圆角 */',
-    '.msg-bubble {',
-    '  border-radius: 20px;',
-    '  padding: 8px 14px;',
-    '}',
-    '/* 气泡阴影 */',
-    '/* .msg-bubble { box-shadow: 0 1px 4px rgba(0,0,0,.08); } */'
-  ].join('\n'),
+function closeThemeEditor() {
+	const editors = ['fontsize', 'bubble', 'chat', 'meeting', 'heart', 'archive', 'call'];
+	editors.forEach(type => {
+		const screen = document.getElementById(`screen-theme-${type}`);
+		if (screen) screen.classList.remove('active');
+	});
+	document.getElementById('screen-theme').classList.add('active');
+}
 
-  chatInterface: [
-    '/* 聊天顶部栏 */',
-    '.chat-header {',
-    '  background: rgba(255,255,255,.5);',
-    '}',
-    '/* 输入栏 */',
-    '.chat-input-bar {',
-    '  background: transparent;',
-    '}',
-    '.chat-input-wrap {',
-    '  background: rgba(255,255,255,.35);',
-    '  border-radius: 18px;',
-    '}',
-    '/* 发送按钮 */',
-    '.chat-send-btn {',
-    '  background: #c7c7cc;',
-    '}',
-    '/* 功能按钮 */',
-    '.chat-btn {',
-    '  background: rgba(255,255,255,.35);',
-    '  border-radius: 50%;',
-    '}',
-    '/* 头像 */',
-    '.ch-avatar {',
-    '  width: 58px;',
-    '  height: 58px;',
-    '  border-radius: 50%;',
-    '}'
-  ].join('\n'),
+// ============================================================
+//  Font Size Module
+// ============================================================
 
-  meetingStyle: [
-    '/* Meeting 顶部栏 */',
-    '.meeting-header {',
-    '  background: #f9f9fb;',
-    '  border-bottom: 1px solid #ececec;',
-    '}',
-    '/* Meeting 输入栏 */',
-    '.meeting-input-bar {',
-    '  background: #fff;',
-    '  border-top: 1px solid #f2f2f7;',
-    '}',
-    '/* Meeting 卡片 */',
-    '.meeting-card {',
-    '  background: #fff;',
-    '  border-radius: 12px;',
-    '  border: 1px solid #ececec;',
-    '}',
-    '/* Meeting 发送按钮 */',
-    '.meeting-send-btn {',
-    '  background: #1d1d1f;',
-    '  border-radius: 50%;',
-    '}'
-  ].join('\n'),
-
-  heartPanel: [
-    '/* 心声面板容器 */',
-    '.hv-panel {',
-    '  background: #f9f9fb;',
-    '}',
-    '/* 心声面板条目 */',
-    '.hv-item {',
-    '  background: #fff;',
-    '  border-radius: 12px;',
-    '  border: 1px solid #ececec;',
-    '}',
-    '/* 心声面板标题 */',
-    '.hv-title {',
-    '  font-size: 15px;',
-    '  font-weight: 600;',
-    '  color: #1d1d1f;',
-    '}'
-  ].join('\n'),
-
-  meetingArchive: [
-    '/* 存档卡片容器 */',
-    '.meeting-session-card {',
-    '  background: #fff;',
-    '  border-radius: 14px;',
-    '  border: 1px solid #ececec;',
-    '}',
-    '/* 存档卡片标题 */',
-    '.meeting-session-name {',
-    '  font-size: 16px;',
-    '  font-weight: 600;',
-    '  color: #1d1d1f;',
-    '}',
-    '/* 存档卡片描述 */',
-    '.meeting-session-meta {',
-    '  font-size: 12px;',
-    '  color: #8e8e93;',
-    '}'
-  ].join('\n')
+const FONT_SIZE_MAP = {
+	small:  '13px',
+	medium: '15px',
+	large:  '17px',
+	xlarge: '20px',
 };
 
-var _fontSizeMap = {
-  small:  '12px',
-  medium: '14px',
-  large:  '16px',
-  xlarge: '18px'
+function initFontSizeEditor() {
+	const saved = (window.state && window.state.theme && window.state.theme.fontSize)
+		|| localStorage.getItem('theme-font-size') || 'medium';
+	const sel = document.getElementById('fs-select');
+	if (sel) sel.value = saved;
+}
+
+function applyFontSize(value) {
+	const size = FONT_SIZE_MAP[value] || '15px';
+	document.documentElement.style.setProperty('--global-font-size', size);
+	document.documentElement.style.fontSize = size;
+	localStorage.setItem('theme-font-size', value);
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.fontSize = value;
+	}
+	showThemeFeedback('Applied');
+}
+
+// ============================================================
+//  Bubble Style Module — Defaults
+// ============================================================
+
+const BUBBLE_DEFAULTS = {
+	fontSize:      '14px',
+	fontColor:     '#000000',
+	bgUser:        '#A0A0A0',
+	bgChar:        '#E9E9EA',
+	avatarMode:    'last',
+	avatarRadius:  50,
+	bubbleRadius:  20,
+	customCSS:     '',
 };
 
-function initThemeScreen() {
-  _renderThemeTabs();
-  _renderThemeModule(_themeActiveModule);
-  _applyAllThemeStyles();
+// ============================================================
+//  Bubble Editor — Init
+// ============================================================
+
+function initBubbleEditor() {
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		if (!window.state.theme.bubble) window.state.theme.bubble = Object.assign({}, BUBBLE_DEFAULTS);
+	}
+	const saved = loadBubbleState();
+	setParamControls(saved);
+	syncCSSFromParams(saved);
+	renderAfterPreview(saved);
+	attachBubbleListeners();
 }
 
-function _renderThemeTabs() {
-  var tabs = document.getElementById('themeModuleTabs');
-  if (!tabs) return;
-  var modules = [
-    { id: 'fontSize',      label: '字号' },
-    { id: 'chatBubble',    label: '气泡样式' },
-    { id: 'chatInterface', label: '聊天界面' },
-    { id: 'meetingStyle',  label: 'Meeting' },
-    { id: 'heartPanel',    label: '心声面板' },
-    { id: 'meetingArchive',label: '存档页面' }
-  ];
-  tabs.innerHTML = modules.map(function(m) {
-    return '<div class="theme-tab' + (m.id === _themeActiveModule ? ' active' : '') + '" onclick="switchThemeModule(\'' + m.id + '\')">' + m.label + '</div>';
-  }).join('');
+function loadBubbleState() {
+	const raw = localStorage.getItem('theme-bubble-params');
+	const params = raw ? Object.assign({}, BUBBLE_DEFAULTS, JSON.parse(raw)) : Object.assign({}, BUBBLE_DEFAULTS);
+	if (window.state && window.state.theme) window.state.theme.bubble = Object.assign({}, params);
+	return params;
 }
 
-function switchThemeModule(moduleId) {
-  _themeActiveModule = moduleId;
-  document.querySelectorAll('.theme-tab').forEach(function(t) {
-    t.classList.toggle('active', t.textContent === _getTabLabel(moduleId));
-  });
-  _renderThemeTabs();
-  var panels = document.querySelectorAll('.theme-module');
-  panels.forEach(function(p) { p.classList.remove('active'); });
-  var target = document.getElementById('themeModule-' + moduleId);
-  if (target) target.classList.add('active');
+function saveBubbleState(params) {
+	localStorage.setItem('theme-bubble-params', JSON.stringify(params));
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.bubble = Object.assign({}, params);
+	}
 }
 
-function _getTabLabel(id) {
-  var map = { fontSize: '字号', chatBubble: '气泡样式', chatInterface: '聊天界面', meetingStyle: 'Meeting', heartPanel: '心声面板', meetingArchive: '存档页面' };
-  return map[id] || id;
+// ============================================================
+//  Bubble Editor — Control <-> Params
+// ============================================================
+
+function readParamControls() {
+	return {
+		fontSize:     document.getElementById('bp-font-size') ? document.getElementById('bp-font-size').value : BUBBLE_DEFAULTS.fontSize,
+		fontColor:    document.getElementById('bp-font-color') ? document.getElementById('bp-font-color').value : BUBBLE_DEFAULTS.fontColor,
+		bgUser:       document.getElementById('bp-bg-user') ? document.getElementById('bp-bg-user').value : BUBBLE_DEFAULTS.bgUser,
+		bgChar:       document.getElementById('bp-bg-char') ? document.getElementById('bp-bg-char').value : BUBBLE_DEFAULTS.bgChar,
+		avatarMode:   document.getElementById('bp-avatar-mode') ? document.getElementById('bp-avatar-mode').value : BUBBLE_DEFAULTS.avatarMode,
+		avatarRadius: parseInt(document.getElementById('bp-avatar-radius') ? document.getElementById('bp-avatar-radius').value : BUBBLE_DEFAULTS.avatarRadius, 10),
+		bubbleRadius: parseInt(document.getElementById('bp-bubble-radius') ? document.getElementById('bp-bubble-radius').value : BUBBLE_DEFAULTS.bubbleRadius, 10),
+		customCSS:    document.getElementById('te-css-bubble') ? document.getElementById('te-css-bubble').value : '',
+	};
 }
 
-function _renderThemeModule(moduleId) {
-  var panels = document.querySelectorAll('.theme-module');
-  panels.forEach(function(p) { p.classList.remove('active'); });
-  var target = document.getElementById('themeModule-' + moduleId);
-  if (target) target.classList.add('active');
+function setParamControls(params) {
+	_setVal('bp-font-size',     params.fontSize);
+	_setVal('bp-font-color',    params.fontColor);
+	_setVal('bp-bg-user',       params.bgUser);
+	_setVal('bp-bg-char',       params.bgChar);
+	_setVal('bp-avatar-mode',   params.avatarMode);
+	_setVal('bp-avatar-radius', params.avatarRadius);
+	_setVal('bp-bubble-radius', params.bubbleRadius);
+	_setVal('te-css-bubble',    params.customCSS);
+	updateSliderLabel('bp-avatar-radius', params.avatarRadius + '%');
+	updateSliderLabel('bp-bubble-radius', params.bubbleRadius + 'px');
 }
 
-function selectFontSize(size) {
-  document.querySelectorAll('.theme-font-option').forEach(function(el) {
-    el.classList.toggle('active', el.dataset.size === size);
-  });
-  var preview = document.getElementById('themeFontPreviewText');
-  if (preview) {
-    var px = _fontSizeMap[size] || '14px';
-    preview.style.fontSize = px;
-  }
-  state.theme.fontSize = size;
-  saveState();
-  _applyFontSize();
+function _setVal(id, value) {
+	const el = document.getElementById(id);
+	if (el && value !== undefined && value !== null) el.value = value;
 }
 
-function _applyFontSize() {
-  var size = (state.theme && state.theme.fontSize) || 'medium';
-  var px = _fontSizeMap[size] || '14px';
-  var el = document.getElementById('theme-fontsize-style');
-  if (!el) {
-    el = document.createElement('style');
-    el.id = 'theme-fontsize-style';
-    document.head.appendChild(el);
-  }
-  el.textContent = '.msg-bubble { font-size: ' + px + ' !important; } .chat-input-wrap textarea { font-size: ' + px + ' !important; }';
+function updateSliderLabel(sliderId, text) {
+	const valEl = document.getElementById(sliderId + '-val');
+	if (valEl) valEl.textContent = text;
 }
 
-function themeEditorInput(moduleId) {
-  var ta = document.getElementById('themeEditor-' + moduleId);
-  if (!ta) return;
-  _validateCSS(ta);
-  _applyPreviewStyle(moduleId, ta.value);
+// ============================================================
+//  Bubble Editor — CSS Generation
+// ============================================================
+
+function generateBubbleCSS(params) {
+	const r  = params.bubbleRadius;
+	const ar = params.avatarRadius;
+	const avatarVis = params.avatarMode === 'always'
+		? '.msg-avatar { visibility: visible !important; }'
+		: '.msg-row.group-first .msg-avatar, .msg-row.group-middle .msg-avatar { visibility: hidden; }\n.msg-row.group-last .msg-avatar, .msg-row.group-solo .msg-avatar { visibility: visible; }';
+
+	return [
+		'/* === Bubble Style — auto-generated === */',
+		'.msg-bubble {',
+		'  font-size: ' + params.fontSize + ';',
+		'  color: ' + params.fontColor + ';',
+		'  border-radius: ' + r + 'px;',
+		'}',
+		'.msg-row.sent .msg-bubble {',
+		'  background: ' + params.bgUser + ';',
+		'  border-radius: ' + r + 'px;',
+		'}',
+		'.msg-row.received .msg-bubble {',
+		'  background: ' + params.bgChar + ';',
+		'  border-radius: ' + r + 'px;',
+		'}',
+		'.msg-row.sent .msg-bubble, .msg-row.received .msg-bubble,',
+		'.msg-row.sent.group-first .msg-bubble, .msg-row.sent.group-middle .msg-bubble,',
+		'.msg-row.sent.group-last .msg-bubble, .msg-row.sent.group-solo .msg-bubble,',
+		'.msg-row.received.group-first .msg-bubble, .msg-row.received.group-middle .msg-bubble,',
+		'.msg-row.received.group-last .msg-bubble, .msg-row.received.group-solo .msg-bubble {',
+		'  border-radius: ' + r + 'px;',
+		'}',
+		'.msg-avatar { border-radius: ' + ar + '%; }',
+		avatarVis,
+	].join('\n');
 }
 
-function _validateCSS(textarea) {
-  var val = textarea.value.trim();
-  var errEl = textarea.parentElement && textarea.parentElement.querySelector('.theme-editor-error');
-  if (!val) {
-    textarea.classList.remove('has-error');
-    if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
-    return true;
-  }
-  var hasError = false;
-  var openBraces = (val.match(/\{/g) || []).length;
-  var closeBraces = (val.match(/\}/g) || []).length;
-  if (openBraces !== closeBraces) {
-    hasError = true;
-    textarea.classList.add('has-error');
-    if (errEl) { errEl.classList.add('show'); errEl.textContent = '括号不匹配，请检查 { } 是否成对'; }
-  } else {
-    textarea.classList.remove('has-error');
-    if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
-  }
-  return !hasError;
+function syncCSSFromParams(params) {
+	const css = generateBubbleCSS(params);
+	const textarea = document.getElementById('te-css-bubble');
+	if (textarea) textarea.value = params.customCSS || css;
 }
 
-function _applyPreviewStyle(moduleId, css) {
-  var previewId = 'themePreviewStyle-' + moduleId;
-  var el = document.getElementById(previewId);
-  if (!el) {
-    el = document.createElement('style');
-    el.id = previewId;
-    document.head.appendChild(el);
-  }
-  var scoped = _scopeCSS(css, '#themePreview-' + moduleId);
-  el.textContent = scoped;
+// ============================================================
+//  Bubble Editor — CSS -> Params sync
+// ============================================================
+
+function parseCSSToParams(css) {
+	const params = Object.assign({}, BUBBLE_DEFAULTS);
+	function extract(re) { var m = css.match(re); return m ? m[1].trim() : null; }
+
+	var fs = extract(/font-size:\s*([^;]+);/);
+	if (fs) params.fontSize = fs;
+
+	var fc = extract(/\.msg-bubble\s*\{[^}]*?\bcolor:\s*(#[0-9a-fA-F]{6})/);
+	if (fc) params.fontColor = fc;
+
+	var bgUser = extract(/\.msg-row\.sent\s+\.msg-bubble\s*\{[^}]*?background:\s*(#[0-9a-fA-F]{3,8})/);
+	if (bgUser) params.bgUser = bgUser;
+
+	var bgChar = extract(/\.msg-row\.received\s+\.msg-bubble\s*\{[^}]*?background:\s*(#[0-9a-fA-F]{3,8})/);
+	if (bgChar) params.bgChar = bgChar;
+
+	var br = extract(/\.msg-bubble\s*\{[^}]*?border-radius:\s*(\d+)px/);
+	if (br) params.bubbleRadius = parseInt(br, 10);
+
+	var ar = extract(/\.msg-avatar\s*\{\s*border-radius:\s*(\d+)%/);
+	if (ar) params.avatarRadius = parseInt(ar, 10);
+
+	params.customCSS = css;
+	return params;
 }
 
-function _scopeCSS(css, scope) {
-  if (!css || !css.trim()) return '';
-  return css.replace(/([^{},\s][^{},]*)\s*\{/g, function(match, selector) {
-    var parts = selector.split(',').map(function(s) {
-      s = s.trim();
-      if (!s) return '';
-      return scope + ' ' + s;
-    });
-    return parts.join(', ') + ' {';
-  });
+// ============================================================
+//  Bubble Editor — Preview Rendering
+// ============================================================
+
+function renderAfterPreview(params) {
+	const after = document.getElementById('bubble-preview-after');
+	if (!after) return;
+
+	const inBubbles  = after.querySelectorAll('.bp-bubble-received');
+	const outBubbles = after.querySelectorAll('.bp-bubble-sent');
+	const avatars    = after.querySelectorAll('.bp-avatar');
+
+	inBubbles.forEach(function(b) {
+		b.style.fontSize     = params.fontSize;
+		b.style.color        = params.fontColor;
+		b.style.background   = params.bgChar;
+		b.style.borderRadius = params.bubbleRadius + 'px';
+	});
+	outBubbles.forEach(function(b) {
+		b.style.fontSize     = params.fontSize;
+		b.style.color        = '#ffffff';
+		b.style.background   = params.bgUser;
+		b.style.borderRadius = params.bubbleRadius + 'px';
+	});
+	avatars.forEach(function(av, i) {
+		av.style.borderRadius = params.avatarRadius + '%';
+		if (params.avatarMode === 'last') {
+			av.style.visibility = (i === avatars.length - 1) ? 'visible' : 'hidden';
+		} else {
+			av.style.visibility = 'visible';
+		}
+	});
+
+	var scopedStyle = document.getElementById('bubble-preview-after-style');
+	if (!scopedStyle) {
+		scopedStyle = document.createElement('style');
+		scopedStyle.id = 'bubble-preview-after-style';
+		document.head.appendChild(scopedStyle);
+	}
+	const custom = params.customCSS || '';
+	const scoped = custom.replace(/(^|\})\s*([^{@\s][^{]*)\{/g, function(match, brace, sel) {
+		var prefixed = sel.split(',').map(function(s) { return '#bubble-preview-after ' + s.trim(); }).join(', ');
+		return brace + ' ' + prefixed + ' {';
+	});
+	scopedStyle.textContent = scoped;
 }
 
-function copyThemeSourceCSS(moduleId) {
-  var original = _themeOriginalCSS[moduleId] || '';
-  if (!original) return;
-  var ta = document.getElementById('themeEditor-' + moduleId);
-  if (ta && !ta.value.trim()) {
-    ta.value = original;
-    _applyPreviewStyle(moduleId, original);
-  }
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(original).then(function() {
-      showToast('已复制源代码');
-    }).catch(function() {
-      _fallbackCopy(original);
-    });
-  } else {
-    _fallbackCopy(original);
-  }
+// ============================================================
+//  Bubble Editor — Event Listeners
+// ============================================================
+
+function attachBubbleListeners() {
+	var paramIds = ['bp-font-size', 'bp-font-color', 'bp-bg-user', 'bp-bg-char', 'bp-avatar-mode', 'bp-avatar-radius', 'bp-bubble-radius'];
+	paramIds.forEach(function(id) {
+		var el = document.getElementById(id);
+		if (!el) return;
+		el.removeEventListener('input',  _onParamChange);
+		el.removeEventListener('change', _onParamChange);
+		el.addEventListener('input',  _onParamChange);
+		el.addEventListener('change', _onParamChange);
+	});
+	var cssTA = document.getElementById('te-css-bubble');
+	if (cssTA) {
+		cssTA.removeEventListener('input', _onCSSChange);
+		cssTA.addEventListener('input', _onCSSChange);
+	}
 }
 
-function _fallbackCopy(text) {
-  var tmp = document.createElement('textarea');
-  tmp.value = text;
-  tmp.style.position = 'fixed';
-  tmp.style.opacity = '0';
-  document.body.appendChild(tmp);
-  tmp.select();
-  try { document.execCommand('copy'); showToast('已复制源代码'); } catch(e) {}
-  document.body.removeChild(tmp);
+function _onParamChange() {
+	var params = readParamControls();
+	updateSliderLabel('bp-avatar-radius', params.avatarRadius + '%');
+	updateSliderLabel('bp-bubble-radius', params.bubbleRadius + 'px');
+	var css = generateBubbleCSS(params);
+	var cssTA = document.getElementById('te-css-bubble');
+	if (cssTA) {
+		if (!cssTA.value || cssTA.value.indexOf('/* === Bubble Style') === 0) {
+			cssTA.value = css;
+			params.customCSS = css;
+		} else {
+			params.customCSS = cssTA.value;
+		}
+	}
+	renderAfterPreview(params);
 }
 
-function applyThemeCSS(moduleId) {
-  var ta = document.getElementById('themeEditor-' + moduleId);
-  if (!ta) return;
-  if (!_validateCSS(ta)) return;
-  state.theme[moduleId] = ta.value;
-  saveState();
-  _injectGlobalStyle(moduleId, ta.value);
-  showToast('已应用');
+function _onCSSChange() {
+	var cssTA = document.getElementById('te-css-bubble');
+	if (!cssTA) return;
+	var params = parseCSSToParams(cssTA.value);
+	setParamControls(params);
+	renderAfterPreview(params);
 }
 
-function resetThemeCSS(moduleId) {
-  var ta = document.getElementById('themeEditor-' + moduleId);
-  if (ta) {
-    ta.value = '';
-    ta.classList.remove('has-error');
-    var errEl = ta.parentElement && ta.parentElement.querySelector('.theme-editor-error');
-    if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
-    _applyPreviewStyle(moduleId, '');
-  }
-  state.theme[moduleId] = '';
-  saveState();
-  _injectGlobalStyle(moduleId, '');
-  showToast('已重置');
+// ============================================================
+//  Bubble Editor — Apply
+// ============================================================
+
+function applyBubbleParams() {
+	var params = readParamControls();
+	saveBubbleState(params);
+
+	var generated = generateBubbleCSS(params);
+	var custom = params.customCSS || '';
+	var finalCSS = (custom.indexOf('/* === Bubble Style') === 0) ? custom : generated + '\n' + custom;
+
+	var styleEl = document.getElementById('custom-theme-bubble');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-theme-bubble';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = finalCSS;
+	localStorage.setItem('theme-css-bubble', finalCSS);
+	showThemeFeedback('Applied');
 }
 
-function _injectGlobalStyle(moduleId, css) {
-  var id = 'theme-global-' + moduleId;
-  var el = document.getElementById(id);
-  if (!el) {
-    el = document.createElement('style');
-    el.id = id;
-    document.head.appendChild(el);
-  }
-  el.textContent = css || '';
+// ============================================================
+//  Bubble Editor — Copy Source Code
+// ============================================================
+
+function copyBubbleSourceCSS() {
+	Promise.all([
+		fetch('css/chat.css').then(function(r) { return r.text(); }),
+		fetch('css/bubble-menu.css').then(function(r) { return r.text(); }),
+	]).then(function(results) {
+		var chatCSS   = results[0];
+		var bubbleCSS = results[1];
+
+		var bubbleSelectors = ['.msg-bubble', '.msg-row', '.msg-avatar', '.bubble-action-bar', '.bubble-menu'];
+
+		function extract(src) {
+			var blocks = [];
+			var re = /([^{}]+)\{([^{}]*)\}/g;
+			var m;
+			while ((m = re.exec(src)) !== null) {
+				var sel = m[1].trim();
+				var relevant = bubbleSelectors.some(function(s) { return sel.indexOf(s) !== -1; });
+				if (relevant) blocks.push(sel + ' {\n' + m[2].trim() + '\n}');
+			}
+			return blocks.join('\n\n');
+		}
+
+		var extracted = [
+			'/* === From css/chat.css === */',
+			extract(chatCSS),
+			'',
+			'/* === From css/bubble-menu.css === */',
+			extract(bubbleCSS),
+		].join('\n');
+
+		return navigator.clipboard.writeText(extracted);
+	}).then(function() {
+		showThemeFeedback('Copied!');
+	}).catch(function(err) {
+		console.error('copyBubbleSourceCSS error:', err);
+		showThemeFeedback('Copy failed');
+	});
 }
 
-function _applyAllThemeStyles() {
-  if (!state.theme) return;
-  _applyFontSize();
-  var modules = ['chatBubble', 'chatInterface', 'meetingStyle', 'heartPanel', 'meetingArchive'];
-  modules.forEach(function(m) {
-    if (state.theme[m]) {
-      _injectGlobalStyle(m, state.theme[m]);
-    }
-  });
+// ============================================================
+//  Bubble Editor — Reset
+// ============================================================
+
+function resetBubbleParams() {
+	var params = Object.assign({}, BUBBLE_DEFAULTS);
+	saveBubbleState(params);
+	setParamControls(params);
+	syncCSSFromParams(params);
+	renderAfterPreview(params);
+	var styleEl = document.getElementById('custom-theme-bubble');
+	if (styleEl) styleEl.textContent = '';
+	localStorage.removeItem('theme-css-bubble');
+	showThemeFeedback('Reset');
 }
 
-function onThemeScreenOpen() {
-  initThemeScreen();
-  var modules = ['chatBubble', 'chatInterface', 'meetingStyle', 'heartPanel', 'meetingArchive'];
-  modules.forEach(function(m) {
-    var ta = document.getElementById('themeEditor-' + m);
-    if (ta && state.theme && state.theme[m]) {
-      ta.value = state.theme[m];
-    }
-  });
-  var currentSize = (state.theme && state.theme.fontSize) || 'medium';
-  document.querySelectorAll('.theme-font-option').forEach(function(el) {
-    el.classList.toggle('active', el.dataset.size === currentSize);
-  });
-  var preview = document.getElementById('themeFontPreviewText');
-  if (preview) {
-    preview.style.fontSize = _fontSizeMap[currentSize] || '14px';
-  }
-  switchThemeModule('fontSize');
+// ============================================================
+//  Chat Interface Module
+// ============================================================
+//  Builds a realistic chat-interface mock (header + messages +
+//  input bar) reusing the real chat class names so the preview
+//  reflects the actual styling. Users edit CSS which is applied
+//  live (scoped) to the "After" preview and globally to the app.
+// ============================================================
+
+const CHAT_INTERFACE_CSS_FILES = ['css/chat.css', 'css/chat-extras.css', 'css/call.css'];
+
+// Selector fragments that identify chat-interface-related rules
+const CHAT_INTERFACE_SELECTORS = [
+	'#screen-chat', '.chat-header', '.ch-back', '.ch-center', '.ch-avatar', '.ch-name', '.ch-notes', '.ch-edit',
+	'.chat-messages', '.msg-time', '.msg-row', '.msg-avatar', '.msg-bubble',
+	'.voice-row', '.voice-wave', '.voice-text',
+	'.sticker-msg', '.image-msg', '.sim-image', '.transfer-msg', '.transfer-card', '.transfer-actions', '.transfer-status', '.tc-',
+	'.call-msg', '.call-card', '.call-icon-wrap', '.call-type-icon', '.call-info', '.call-label', '.call-status', '.call-actions', '.call-accept-btn', '.call-decline-btn',
+	'.msg-quote', '.msg-translation', '.msg-system-center', '.moment-bubble', '.recalled',
+	'.chat-input-bar', '.chat-btn', '.respond-btn', '.chat-input-wrap', '.chat-send-btn',
+	'.chat-quote-bar', '.cqb-', '.plus-menu', '.sticker-panel', '.sticker-grid', '.sticker-item',
+	'.typing-indicator', '#typingInd'
+];
+
+function buildChatMockHTML() {
+	return '' +
+		'<div class="chat-header">' +
+			'<button class="ch-back"><svg viewBox="0 0 22 22"><path d="M14 4l-8 7 8 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+			'<div class="ch-center">' +
+				'<div class="ch-avatar"></div>' +
+				'<span class="ch-name">Alex</span>' +
+			'</div>' +
+			'<button class="ch-edit"><svg viewBox="0 0 22 22"><circle cx="11" cy="5" r="1.5" fill="#1d1d1f" stroke="none"/><circle cx="11" cy="11" r="1.5" fill="#1d1d1f" stroke="none"/><circle cx="11" cy="17" r="1.5" fill="#1d1d1f" stroke="none"/></svg></button>' +
+		'</div>' +
+		'<div class="chat-messages">' +
+			'<div class="msg-time">Today 10:24</div>' +
+			'<div class="msg-row received group-solo"><div class="msg-avatar"></div>' +
+				'<div class="msg-bubble">Hey, how are you?</div></div>' +
+			'<div class="msg-row sent group-solo"><div class="msg-avatar"></div>' +
+				'<div class="msg-bubble"><div class="msg-quote"><div class="msg-quote-sender">Alex</div>' +
+				'<div class="msg-quote-text">Hey, how are you?</div></div><div class="msg-quote-divider"></div>' +
+				'I\'m good, thanks!</div></div>' +
+			'<div class="msg-row received group-solo"><div class="msg-avatar"></div>' +
+				'<div class="msg-bubble voice"><div class="voice-row">' +
+				'<svg viewBox="0 0 20 20"><polygon points="4,2 18,10 4,18" fill="currentColor" stroke="none"/></svg>' +
+				'<div class="voice-wave"><span style="height:8px"></span><span style="height:14px"></span><span style="height:10px"></span><span style="height:16px"></span><span style="height:7px"></span></div>' +
+				'</div></div></div>' +
+			'<div class="msg-row sent group-solo"><div class="msg-avatar"></div>' +
+				'<div class="msg-bubble transfer-msg"><div class="transfer-card">' +
+				'<div class="tc-label">Transfer</div><div class="tc-amount">\u00A5188</div>' +
+				'<div class="tc-note">For dinner</div><div class="transfer-status pending">Pending</div>' +
+				'</div></div></div>' +
+			'<div class="msg-row received group-solo"><div class="msg-avatar"></div>' +
+				'<div class="msg-bubble call-msg"><div class="call-card"><div class="call-icon-wrap">' +
+				'<svg viewBox="0 0 20 20" class="call-type-icon"><path d="M6.6 3H5A2 2 0 003 5c0 7.2 5.8 13 13 13a2 2 0 002-2v-1.6a1.5 1.5 0 00-1-1.4l-2.7-.8a1.5 1.5 0 00-1.5.4l-1 1A9.4 9.4 0 017.4 9l1-1a1.5 1.5 0 00.4-1.5l-.8-2.7A1.5 1.5 0 006.6 3z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>' +
+				'</div><div class="call-info"><div class="call-label">Voice Call</div>' +
+				'<div class="call-actions"><button class="call-accept-btn">Accept</button>' +
+				'<button class="call-decline-btn">Decline</button></div></div></div></div></div>' +
+			'<div class="msg-system-center">You recalled a message</div>' +
+		'</div>' +
+				'<div class="chat-input-bar chat-input-area chat-bottom-bar">' +
+			'<button class="chat-btn"><svg viewBox="0 0 22 22"><path d="M11 4v14M4 11h14" stroke-width="2" stroke-linecap="round"/></svg></button>' +
+			'<button class="chat-btn respond-btn"><svg viewBox="0 0 22 22"><path d="M4 18V8a2 2 0 012-2h6l4 4v8a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M12 6v4h4"/><path d="M8 13h6M8 16h4"/></svg></button>' +
+			'<div class="chat-input-wrap"><textarea rows="1" placeholder="iMessage"></textarea></div>' +
+			'<button class="chat-send-btn"><svg viewBox="0 0 20 20"><path d="M3.5 10L16 3.5 12.5 17l-3-5.5z" stroke-linejoin="round"/><path d="M16 3.5L9.5 11.5" stroke-linecap="round"/></svg></button>' +
+		'</div>';
 }
 
-;(function() {
-  window.initThemeScreen        = initThemeScreen;
-  window.switchThemeModule      = switchThemeModule;
-  window.selectFontSize         = selectFontSize;
-  window.themeEditorInput       = themeEditorInput;
-  window.copyThemeSourceCSS     = copyThemeSourceCSS;
-  window.applyThemeCSS          = applyThemeCSS;
-  window.resetThemeCSS          = resetThemeCSS;
-  window.onThemeScreenOpen      = onThemeScreenOpen;
-  window._applyAllThemeStyles   = _applyAllThemeStyles;
-})();
+function initChatInterfaceEditor() {
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+	}
+
+	// Render the mock structure into both preview panes
+	var mock = buildChatMockHTML();
+	var beforeEl = document.getElementById('ci-mock-before');
+	var afterEl = document.getElementById('ci-mock-after');
+	if (beforeEl) beforeEl.innerHTML = mock;
+	if (afterEl) afterEl.innerHTML = mock;
+
+	var textarea = document.getElementById('te-css-chat');
+	if (!textarea) return;
+
+	var saved = (window.state && window.state.theme && window.state.theme.chatInterface)
+		|| localStorage.getItem('theme-css-chat');
+
+	if (saved) {
+		textarea.value = saved;
+		if (window.state) window.state.theme.chatInterface = saved;
+		renderChatInterfaceAfter(saved);
+	} else {
+		// Populate with real CSS extracted from the source files
+		loadChatInterfaceSourceCSS().then(function(css) {
+			if (!textarea.value) {
+				textarea.value = css;
+				if (window.state) window.state.theme.chatInterface = css;
+			}
+			renderChatInterfaceAfter(textarea.value);
+		}).catch(function() {
+			renderChatInterfaceAfter(textarea.value);
+		});
+	}
+
+	textarea.removeEventListener('input', _onChatInterfaceCSSChange);
+	textarea.addEventListener('input', _onChatInterfaceCSSChange);
+}
+
+function _onChatInterfaceCSSChange() {
+	var textarea = document.getElementById('te-css-chat');
+	if (!textarea) return;
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.chatInterface = textarea.value;
+	}
+	renderChatInterfaceAfter(textarea.value);
+}
+
+// Scope user CSS to the #ci-mock-after container and inject it
+function renderChatInterfaceAfter(css) {
+	var styleEl = document.getElementById('ci-after-style');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'ci-after-style';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = scopeCSS(css || '', '#ci-mock-after');
+}
+
+// Prefix every selector in a CSS string with a scope selector.
+// Leaves @-rules (media/keyframes) blocks intact where possible.
+function scopeCSS(css, scope) {
+	if (!css) return '';
+	return css.replace(/(^|\})\s*([^{}@]+)\{/g, function(match, brace, selectors) {
+		var scoped = selectors.split(',').map(function(sel) {
+			sel = sel.trim();
+			if (!sel) return sel;
+			return scope + ' ' + sel;
+		}).join(', ');
+		return brace + ' ' + scoped + ' {';
+	});
+}
+
+// Extract chat-interface-relevant rule blocks from the source CSS files
+function extractChatInterfaceCSS(src, fileLabel) {
+	var blocks = [];
+	var re = /([^{}]+)\{([^{}]*)\}/g;
+	var m;
+	while ((m = re.exec(src)) !== null) {
+		var sel = m[1].trim();
+		if (!sel || sel.charAt(0) === '@') continue;
+		var relevant = CHAT_INTERFACE_SELECTORS.some(function(s) { return sel.indexOf(s) !== -1; });
+		if (relevant) blocks.push(sel + ' {\n' + m[2].trim() + '\n}');
+	}
+	if (!blocks.length) return '';
+	return '/* === From ' + fileLabel + ' === */\n' + blocks.join('\n\n');
+}
+
+function loadChatInterfaceSourceCSS() {
+	return Promise.all(CHAT_INTERFACE_CSS_FILES.map(function(f) {
+		return fetch(f).then(function(r) { return r.text(); }).catch(function() { return ''; });
+	})).then(function(contents) {
+		var parts = [];
+		contents.forEach(function(txt, i) {
+			if (!txt) return;
+			var extracted = extractChatInterfaceCSS(txt, CHAT_INTERFACE_CSS_FILES[i]);
+			if (extracted) parts.push(extracted);
+		});
+		return parts.join('\n\n');
+	});
+}
+
+function applyChatInterfaceCSS() {
+	var textarea = document.getElementById('te-css-chat');
+	if (!textarea) return;
+	var css = textarea.value;
+	localStorage.setItem('theme-css-chat', css);
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.chatInterface = css;
+	}
+	var styleEl = document.getElementById('custom-theme-chat');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-theme-chat';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = css;
+	renderChatInterfaceAfter(css);
+	showThemeFeedback('Applied');
+}
+
+function copyChatInterfaceSource() {
+	loadChatInterfaceSourceCSS().then(function(css) {
+		return navigator.clipboard.writeText(css);
+	}).then(function() {
+		showThemeFeedback('Copied!');
+	}).catch(function(err) {
+		console.error('copyChatInterfaceSource error:', err);
+		showThemeFeedback('Copy failed');
+	});
+}
+
+function resetChatInterfaceCSS() {
+	var textarea = document.getElementById('te-css-chat');
+	localStorage.removeItem('theme-css-chat');
+	var styleEl = document.getElementById('custom-theme-chat');
+	if (styleEl) styleEl.remove();
+	if (window.state && window.state.theme) window.state.theme.chatInterface = '';
+	// Reload real source CSS defaults back into the editor
+	loadChatInterfaceSourceCSS().then(function(css) {
+		if (textarea) {
+			textarea.value = css;
+			if (window.state) window.state.theme.chatInterface = css;
+		}
+		renderChatInterfaceAfter(textarea ? textarea.value : '');
+	});
+	showThemeFeedback('Reset');
+}
+
+// ============================================================
+//  Generic CSS Management (other editors)
+// ============================================================
+
+function loadThemeCSS(type) {
+	var textarea = document.getElementById('te-css-' + type);
+	if (!textarea) return;
+	var saved = localStorage.getItem('theme-css-' + type);
+	if (saved) textarea.value = saved;
+}
+
+function applyThemeCSS(type) {
+	var textarea = document.getElementById('te-css-' + type);
+	if (!textarea) return;
+	var css = textarea.value;
+	localStorage.setItem('theme-css-' + type, css);
+	var styleEl = document.getElementById('custom-theme-' + type);
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-theme-' + type;
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = css;
+	showThemeFeedback('Applied');
+}
+
+function copyThemeSource(type) {
+	var textarea = document.getElementById('te-css-' + type);
+	if (!textarea) return;
+	navigator.clipboard.writeText(textarea.value).then(function() {
+		showThemeFeedback('Copied');
+	}).catch(function(err) {
+		console.error('Copy failed:', err);
+	});
+}
+
+function resetThemeCSS(type) {
+	var textarea = document.getElementById('te-css-' + type);
+	if (!textarea) return;
+	localStorage.removeItem('theme-css-' + type);
+	textarea.value = '';
+	var styleEl = document.getElementById('custom-theme-' + type);
+	if (styleEl) styleEl.remove();
+	showThemeFeedback('Reset');
+}
+
+// ============================================================
+//  Feedback
+// ============================================================
+
+function showThemeFeedback(message) {
+	console.log('Theme: ' + message);
+	var navTitle = document.querySelector('.screen.active .nav-title');
+	if (navTitle) {
+		var original = navTitle.textContent;
+		navTitle.textContent = message;
+		setTimeout(function() { navTitle.textContent = original; }, 800);
+	}
+}
+
+// ============================================================
+//  Meeting Style Module
+// ============================================================
+
+const MEETING_STYLE_CSS_FILES = ['css/meeting.css'];
+
+// Selector fragments that identify meeting-main-interface rules.
+// Covers the chat scroll area, message cards, top nav, and bottom bar.
+const MEETING_STYLE_SELECTORS = [
+	'.mtg-chat-scroll', '.mtg-chat-content', '.mtg-chat-bar', '.mtg-chat-bar-row',
+	'.mtg-chat-input', '.mtg-chat-send', '.mtg-edit-banner',
+	'.mtg-msg-card', '.mtg-msg-header', '.mtg-msg-avatar', '.mtg-msg-avatar-placeholder',
+	'.mtg-msg-meta', '.mtg-msg-sender', '.mtg-msg-time', '.mtg-msg-body',
+	'.mtg-msg-actions', '.mtg-msg-action-btn', '.mtg-msg-card-system',
+	'.mtg-summary-card', '.mtg-summary-header', '.mtg-summary-text',
+	'.mtg-typing-indicator', '.mtg-chat-empty',
+	'.mtg-write-nav-center', '.mtg-write-nav-name', '.mtg-write-nav-char',
+];
+
+function buildMeetingMockHTML() {
+	return (
+		'<div class="ms-mock-topbar">' +
+			'<div class="ms-mock-topbar-left">' +
+				'<div class="ms-mock-avatar"></div>' +
+				'<div class="ms-mock-name-col">' +
+					'<div class="ms-mock-name"></div>' +
+					'<div class="ms-mock-sub"></div>' +
+				'</div>' +
+			'</div>' +
+			'<div class="ms-mock-topbar-btns">' +
+				'<div class="ms-mock-icon-btn"></div>' +
+				'<div class="ms-mock-icon-btn"></div>' +
+			'</div>' +
+		'</div>' +
+		'<div class="ms-mock-messages">' +
+			'<div class="ms-mock-card meeting-card">' +
+				'<div class="ms-mock-card-header">' +
+					'<div class="ms-mock-card-avatar meeting-header"></div>' +
+					'<div class="ms-mock-card-meta">' +
+						'<div class="ms-mock-card-sender"></div>' +
+						'<div class="ms-mock-card-time"></div>' +
+					'</div>' +
+				'</div>' +
+				'<div class="ms-mock-card-body"><div class="ms-mock-line" style="width:88%"></div><div class="ms-mock-line" style="width:72%"></div></div>' +
+			'</div>' +
+			'<div class="ms-mock-card meeting-card">' +
+				'<div class="ms-mock-card-header">' +
+					'<div class="ms-mock-card-avatar meeting-header"></div>' +
+					'<div class="ms-mock-card-meta">' +
+						'<div class="ms-mock-card-sender"></div>' +
+						'<div class="ms-mock-card-time" style="width:28px"></div>' +
+					'</div>' +
+				'</div>' +
+				'<div class="ms-mock-card-body"><div class="ms-mock-line" style="width:60%"></div></div>' +
+			'</div>' +
+			'<div class="ms-mock-card meeting-card">' +
+				'<div class="ms-mock-card-header">' +
+					'<div class="ms-mock-card-avatar meeting-header"></div>' +
+					'<div class="ms-mock-card-meta">' +
+						'<div class="ms-mock-card-sender" style="width:50px"></div>' +
+						'<div class="ms-mock-card-time" style="width:24px"></div>' +
+					'</div>' +
+				'</div>' +
+				'<div class="ms-mock-card-body"><div class="ms-mock-line" style="width:94%"></div><div class="ms-mock-line" style="width:80%"></div><div class="ms-mock-line" style="width:55%"></div></div>' +
+			'</div>' +
+		'</div>' +
+		'<div class="ms-mock-bottombar meeting-input-area">' +
+			'<div class="ms-mock-input"></div>' +
+			'<div class="ms-mock-send"></div>' +
+		'</div>'
+	);
+}
+
+function extractMeetingStyleCSS(src) {
+	var blocks = [];
+	var re = /([^{}]+)\{([^{}]*)\}/g;
+	var m;
+	while ((m = re.exec(src)) !== null) {
+		var sel = m[1].trim();
+		if (!sel || sel.charAt(0) === '@') continue;
+		var relevant = MEETING_STYLE_SELECTORS.some(function(s) { return sel.indexOf(s) !== -1; });
+		if (relevant) blocks.push(sel + ' {\n' + m[2].trim() + '\n}');
+	}
+	return blocks.length ? '/* === From css/meeting.css === */\n' + blocks.join('\n\n') : '';
+}
+
+function loadMeetingStyleSourceCSS() {
+	return fetch('css/meeting.css')
+		.then(function(r) { return r.text(); })
+		.then(function(txt) { return extractMeetingStyleCSS(txt); })
+		.catch(function() { return ''; });
+}
+
+function initMeetingStyleEditor() {
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+	}
+
+	var mock = buildMeetingMockHTML();
+	var beforeEl = document.getElementById('ms-mock-before');
+	var afterEl  = document.getElementById('ms-mock-after');
+	if (beforeEl) beforeEl.innerHTML = mock;
+	if (afterEl)  afterEl.innerHTML  = mock;
+
+	var textarea = document.getElementById('te-css-meeting');
+	if (!textarea) return;
+
+	var saved = (window.state && window.state.theme && window.state.theme.meetingStyle)
+		|| localStorage.getItem('theme-css-meeting');
+
+	if (saved) {
+		textarea.value = saved;
+		if (window.state) window.state.theme.meetingStyle = saved;
+		renderMeetingStyleAfter(saved);
+	} else {
+		loadMeetingStyleSourceCSS().then(function(css) {
+			if (!textarea.value) {
+				textarea.value = css;
+				if (window.state) window.state.theme.meetingStyle = css;
+			}
+			renderMeetingStyleAfter(textarea.value);
+		}).catch(function() {
+			renderMeetingStyleAfter('');
+		});
+	}
+
+	textarea.removeEventListener('input', _onMeetingStyleCSSChange);
+	textarea.addEventListener('input', _onMeetingStyleCSSChange);
+}
+
+function _onMeetingStyleCSSChange() {
+	var textarea = document.getElementById('te-css-meeting');
+	if (!textarea) return;
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.meetingStyle = textarea.value;
+	}
+	renderMeetingStyleAfter(textarea.value);
+}
+
+function renderMeetingStyleAfter(css) {
+	var styleEl = document.getElementById('ms-after-style');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'ms-after-style';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = scopeCSS(css || '', '#ms-mock-after');
+}
+
+function applyMeetingStyleCSS() {
+	var textarea = document.getElementById('te-css-meeting');
+	if (!textarea) return;
+	var css = textarea.value;
+	localStorage.setItem('theme-css-meeting', css);
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.meetingStyle = css;
+	}
+	var styleEl = document.getElementById('custom-theme-meeting');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-theme-meeting';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = css;
+	renderMeetingStyleAfter(css);
+	showThemeFeedback('Applied');
+}
+
+function copyMeetingSourceCSS() {
+	loadMeetingStyleSourceCSS().then(function(css) {
+		return navigator.clipboard.writeText(css);
+	}).then(function() {
+		showThemeFeedback('Copied!');
+	}).catch(function(err) {
+		console.error('copyMeetingSourceCSS error:', err);
+		showThemeFeedback('Copy failed');
+	});
+}
+
+function resetMeetingStyleCSS() {
+	var textarea = document.getElementById('te-css-meeting');
+	localStorage.removeItem('theme-css-meeting');
+	var styleEl = document.getElementById('custom-theme-meeting');
+	if (styleEl) styleEl.remove();
+	if (window.state && window.state.theme) window.state.theme.meetingStyle = '';
+	loadMeetingStyleSourceCSS().then(function(css) {
+		if (textarea) {
+			textarea.value = css;
+			if (window.state) window.state.theme.meetingStyle = css;
+		}
+		renderMeetingStyleAfter(textarea ? textarea.value : '');
+	});
+	showThemeFeedback('Reset');
+}
+
+// ============================================================
+//  Init on load
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+	// Restore font size
+	var savedFontSize = localStorage.getItem('theme-font-size');
+	if (savedFontSize && FONT_SIZE_MAP[savedFontSize]) {
+		document.documentElement.style.setProperty('--global-font-size', FONT_SIZE_MAP[savedFontSize]);
+		document.documentElement.style.fontSize = FONT_SIZE_MAP[savedFontSize];
+		if (window.state) {
+			if (!window.state.theme) window.state.theme = {};
+			window.state.theme.fontSize = savedFontSize;
+		}
+	}
+
+	// Restore generic CSS for other editors
+	var types = ['chat', 'meeting', 'heart', 'archive', 'call'];
+	types.forEach(function(type) {
+		var saved = localStorage.getItem('theme-css-' + type);
+		if (saved) {
+			var styleEl = document.getElementById('custom-theme-' + type);
+			if (!styleEl) {
+				styleEl = document.createElement('style');
+				styleEl.id = 'custom-theme-' + type;
+				document.head.appendChild(styleEl);
+			}
+			styleEl.textContent = saved;
+		}
+	});
+
+		// Mirror the chat-interface CSS into state.theme.chatInterface
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.chatInterface = localStorage.getItem('theme-css-chat') || '';
+	}
+
+	// Restore bubble CSS
+	var savedBubbleCSS = localStorage.getItem('theme-css-bubble');
+	if (savedBubbleCSS) {
+		var styleEl = document.getElementById('custom-theme-bubble');
+		if (!styleEl) {
+			styleEl = document.createElement('style');
+			styleEl.id = 'custom-theme-bubble';
+			document.head.appendChild(styleEl);
+		}
+		styleEl.textContent = savedBubbleCSS;
+	}
+
+	// Restore bubble params into state
+	var savedParams = localStorage.getItem('theme-bubble-params');
+	if (savedParams && window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.bubble = Object.assign({}, BUBBLE_DEFAULTS, JSON.parse(savedParams));
+	}
+});

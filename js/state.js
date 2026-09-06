@@ -12,8 +12,8 @@ let state = {
     meetings: [],
   npcs: [],
   allowQuote: true,
-  theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '' },
-  systemPromptIM: '',
+    theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '' },
+    systemPromptIM: '',
   systemPromptMeeting: '',
   user: null
 };
@@ -57,7 +57,7 @@ function _getStateDefaults() {
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
         npcs: [],messageChats: [],  
     allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
-    theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '' },
+        theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '' },
     user: null
   };
 }
@@ -91,6 +91,10 @@ function _validateState() {
   if (state.theme.meetingStyle == null) state.theme.meetingStyle = '';
   if (state.theme.heartPanel == null) state.theme.heartPanel = '';
   if (state.theme.meetingArchive == null) state.theme.meetingArchive = '';
+  if (state.theme.chatTopBar == null) state.theme.chatTopBar = '';
+  if (state.theme.chatInput == null) state.theme.chatInput = '';
+  if (state.theme.chatCards == null) state.theme.chatCards = '';
+  if (state.theme.callScreen == null) state.theme.callScreen = '';
 
   if (window.__user) {
     state.user = window.__user;

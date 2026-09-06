@@ -1,313 +1,531 @@
-<!-- THEME -->
+<!-- THEME MAIN -->
 <div class="screen" id="screen-theme">
-  <div class="nav-bar">
-    <button class="nav-btn" onclick="nav('screen-home')">
-      <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
-    <span class="nav-title">主题定制</span>
-  </div>
-  <div class="large-title">主题定制</div>
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-home')">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Theme</span>
+	</div>
+	<div class="large-title">Theme</div>
+	<div class="screen-body">
+		<div class="theme-card-list">
 
-  <!-- Module Tabs -->
-  <div class="theme-tabs" id="themeModuleTabs"></div>
+			<!-- 0. Font Size -->
+			<div class="theme-card" onclick="openThemeEditor('fontsize')">
+				<div class="theme-card-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<text x="3" y="18" font-size="14" font-weight="700" stroke="none" fill="currentColor">A</text>
+						<text x="13" y="20" font-size="10" stroke="none" fill="currentColor">A</text>
+					</svg>
+				</div>
+				<div class="theme-card-body">
+					<div class="theme-card-name">Font Size</div>
+					<div class="theme-card-desc">Set global font size</div>
+				</div>
+				<div class="theme-card-arrow">
+					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+				</div>
+			</div>
 
-  <!-- Module: Font Size -->
-  <div class="theme-module active" id="themeModule-fontSize">
-    <div class="screen-body">
-      <div class="theme-font-options">
-        <div class="theme-font-option" data-size="small" onclick="selectFontSize('small')">
-          <span class="tfo-sample" style="font-size:12px">A</span>
-          <span class="tfo-label">小</span>
-          <span class="tfo-label" style="font-size:10px;color:#c7c7cc">12px</span>
-        </div>
-        <div class="theme-font-option active" data-size="medium" onclick="selectFontSize('medium')">
-          <span class="tfo-sample" style="font-size:14px">A</span>
-          <span class="tfo-label">中</span>
-          <span class="tfo-label" style="font-size:10px;color:#c7c7cc">14px</span>
-        </div>
-        <div class="theme-font-option" data-size="large" onclick="selectFontSize('large')">
-          <span class="tfo-sample" style="font-size:16px">A</span>
-          <span class="tfo-label">大</span>
-          <span class="tfo-label" style="font-size:10px;color:#c7c7cc">16px</span>
-        </div>
-        <div class="theme-font-option" data-size="xlarge" onclick="selectFontSize('xlarge')">
-          <span class="tfo-sample" style="font-size:18px">A</span>
-          <span class="tfo-label">特大</span>
-          <span class="tfo-label" style="font-size:10px;color:#c7c7cc">18px</span>
-        </div>
-      </div>
+			<!-- 1. Bubble Style -->
+			<div class="theme-card" onclick="openThemeEditor('bubble')">
+				<div class="theme-card-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+						<path d="M8 10h8M8 13h5"/>
+					</svg>
+				</div>
+				<div class="theme-card-body">
+					<div class="theme-card-name">Bubble Style</div>
+					<div class="theme-card-desc">Customize chat bubble appearance</div>
+				</div>
+				<div class="theme-card-arrow">
+					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+				</div>
+			</div>
 
-      <div class="theme-font-preview">
-        <div class="theme-font-preview-label">预览</div>
-        <div class="theme-font-preview-bubbles" id="themeFontPreviewText">
-          <div class="tfpb-row received">
-            <div class="tfpb-bubble">你好，最近怎么样？</div>
-          </div>
-          <div class="tfpb-row sent">
-            <div class="tfpb-bubble">还不错，你呢</div>
-          </div>
-          <div class="tfpb-row received">
-            <div class="tfpb-bubble">今天天气真好，要不要出去走走</div>
-          </div>
-        </div>
-      </div>
+			<!-- 2. Chat Interface -->
+			<div class="theme-card" onclick="openThemeEditor('chat')">
+				<div class="theme-card-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<rect x="3" y="3" width="18" height="18" rx="3"/>
+						<path d="M3 9h18M9 9v12"/>
+					</svg>
+				</div>
+				<div class="theme-card-body">
+					<div class="theme-card-name">Chat Interface</div>
+					<div class="theme-card-desc">Customize chat interface layout</div>
+				</div>
+				<div class="theme-card-arrow">
+					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+				</div>
+			</div>
 
-      <div style="height:30px"></div>
-    </div>
-  </div>
+			<!-- 3. Meeting Style -->
+			<div class="theme-card" onclick="openThemeEditor('meeting')">
+				<div class="theme-card-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="12" cy="7" r="3"/>
+						<path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+						<circle cx="4.5" cy="11" r="2"/>
+						<path d="M1 19c0-2.2 1.6-4 3.5-4"/>
+						<circle cx="19.5" cy="11" r="2"/>
+						<path d="M23 19c0-2.2-1.6-4-3.5-4"/>
+					</svg>
+				</div>
+				<div class="theme-card-body">
+					<div class="theme-card-name">Meeting Style</div>
+					<div class="theme-card-desc">Customize meeting interface</div>
+				</div>
+				<div class="theme-card-arrow">
+					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+				</div>
+			</div>
 
-  <!-- Module: Chat Bubble -->
-  <div class="theme-module" id="themeModule-chatBubble">
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <div style="padding:0 16px 8px;flex-shrink:0">
-        <div class="theme-preview-label">预览</div>
-        <div class="theme-preview-frame" id="themePreview-chatBubble">
-          <div class="tpf-chat">
-            <div class="tpf-row received"><div class="tpf-bubble">你好呀</div></div>
-            <div class="tpf-row sent"><div class="tpf-bubble">嗨！</div></div>
-            <div class="tpf-row received"><div class="tpf-bubble">今天过得怎么样</div></div>
-            <div class="tpf-row sent"><div class="tpf-bubble">还不错，谢谢关心</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="theme-editor-wrap">
-        <div class="theme-editor-header">
-          <span class="theme-editor-label">自定义 CSS</span>
-          <div class="theme-editor-actions">
-            <button class="theme-editor-btn" onclick="copyThemeSourceCSS('chatBubble')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/></svg>
-              复制源码
-            </button>
-            <button class="theme-editor-btn" onclick="resetThemeCSS('chatBubble')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a5 5 0 1 0 1.5-3.5L3 6"/><path d="M3 3v3h3"/></svg>
-              重置
-            </button>
-          </div>
-        </div>
-        <textarea class="theme-editor-textarea" id="themeEditor-chatBubble" placeholder="/* 在此输入 CSS 代码 */" oninput="themeEditorInput('chatBubble')"></textarea>
-        <div class="theme-editor-error"></div>
-      </div>
-      <div class="theme-apply-row">
-        <button class="theme-editor-btn apply-btn" style="width:100%;justify-content:center;padding:12px" onclick="applyThemeCSS('chatBubble')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>
-          应用
-        </button>
-      </div>
-    </div>
-  </div>
+			<!-- 4. Heart Panel -->
+			<div class="theme-card" onclick="openThemeEditor('heart')">
+				<div class="theme-card-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/>
+						<path d="M12 8v5M9.5 11h5"/>
+					</svg>
+				</div>
+				<div class="theme-card-body">
+					<div class="theme-card-name">Heart Panel</div>
+					<div class="theme-card-desc">Customize heart panel</div>
+				</div>
+				<div class="theme-card-arrow">
+					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+				</div>
+			</div>
 
-  <!-- Module: Chat Interface -->
-  <div class="theme-module" id="themeModule-chatInterface">
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <div style="padding:0 16px 8px;flex-shrink:0">
-        <div class="theme-preview-label">预览</div>
-        <div class="theme-preview-frame" id="themePreview-chatInterface">
-          <div class="tpf-interface">
-            <div class="tpf-header">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#aeaeb2" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
-              <div class="tpf-avatar">
-                <svg viewBox="0 0 16 16" fill="none" stroke="#aeaeb2" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="6" r="3"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/></svg>
-              </div>
-              <div class="tpf-name">角色名称</div>
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#aeaeb2" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="1"/><circle cx="12" cy="8" r="1"/><circle cx="4" cy="8" r="1"/></svg>
-            </div>
-            <div class="tpf-msgs">
-              <div class="tpf-row received"><div class="tpf-bubble" style="font-size:12px">你好呀</div></div>
-              <div class="tpf-row sent"><div class="tpf-bubble" style="font-size:12px">嗨！</div></div>
-            </div>
-            <div class="tpf-input-row">
-              <svg viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="#aeaeb2" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
-              <div class="tpf-input-pill"></div>
-              <div class="tpf-send-dot">
-                <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M6 2l4 4-4 4"/></svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="theme-editor-wrap">
-        <div class="theme-editor-header">
-          <span class="theme-editor-label">自定义 CSS</span>
-          <div class="theme-editor-actions">
-            <button class="theme-editor-btn" onclick="copyThemeSourceCSS('chatInterface')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/></svg>
-              复制源码
-            </button>
-            <button class="theme-editor-btn" onclick="resetThemeCSS('chatInterface')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a5 5 0 1 0 1.5-3.5L3 6"/><path d="M3 3v3h3"/></svg>
-              重置
-            </button>
-          </div>
-        </div>
-        <textarea class="theme-editor-textarea" id="themeEditor-chatInterface" placeholder="/* 在此输入 CSS 代码 */" oninput="themeEditorInput('chatInterface')"></textarea>
-        <div class="theme-editor-error"></div>
-      </div>
-      <div class="theme-apply-row">
-        <button class="theme-editor-btn apply-btn" style="width:100%;justify-content:center;padding:12px" onclick="applyThemeCSS('chatInterface')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>
-          应用
-        </button>
-      </div>
-    </div>
-  </div>
+			<!-- 5. Meeting Archive -->
+			<div class="theme-card" onclick="openThemeEditor('archive')">
+				<div class="theme-card-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<rect x="3" y="5" width="18" height="5" rx="1.5"/>
+						<path d="M5 10v9a2 2 0 002 2h10a2 2 0 002-2v-9"/>
+						<path d="M9 15h6"/>
+					</svg>
+				</div>
+				<div class="theme-card-body">
+					<div class="theme-card-name">Meeting Archive</div>
+					<div class="theme-card-desc">Customize meeting archive cards</div>
+				</div>
+				<div class="theme-card-arrow">
+					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+				</div>
+			</div>
 
-  <!-- Module: Meeting Style -->
-  <div class="theme-module" id="themeModule-meetingStyle">
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <div style="padding:0 16px 8px;flex-shrink:0">
-        <div class="theme-preview-label">预览</div>
-        <div class="theme-preview-frame" id="themePreview-meetingStyle">
-          <div class="tpf-meeting">
-            <div class="tpf-meeting-header">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#aeaeb2" stroke-width="2" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
-              <div class="tpf-meeting-title">存档名称</div>
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#aeaeb2" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="1"/><circle cx="12" cy="8" r="1"/><circle cx="4" cy="8" r="1"/></svg>
-            </div>
-            <div style="padding:8px">
-              <div style="background:#fff;border-radius:10px;border:1px solid #ececec;padding:8px 10px;margin-bottom:6px">
-                <div style="font-size:11px;color:#8e8e93;margin-bottom:3px">系统</div>
-                <div style="font-size:12px;color:#1d1d1f;line-height:1.4">故事从这里开始...</div>
-              </div>
-              <div style="background:#f2f2f7;border-radius:10px;border:1px solid #ececec;padding:8px 10px">
-                <div style="font-size:11px;color:#8e8e93;margin-bottom:3px">你</div>
-                <div style="font-size:12px;color:#1d1d1f;line-height:1.4">我走进了那扇门...</div>
-              </div>
-            </div>
-            <div class="tpf-meeting-input-row">
-              <div class="tpf-input-pill"></div>
-              <div class="tpf-send-dot">
-                <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M6 2l4 4-4 4"/></svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="theme-editor-wrap">
-        <div class="theme-editor-header">
-          <span class="theme-editor-label">自定义 CSS</span>
-          <div class="theme-editor-actions">
-            <button class="theme-editor-btn" onclick="copyThemeSourceCSS('meetingStyle')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/></svg>
-              复制源码
-            </button>
-            <button class="theme-editor-btn" onclick="resetThemeCSS('meetingStyle')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a5 5 0 1 0 1.5-3.5L3 6"/><path d="M3 3v3h3"/></svg>
-              重置
-            </button>
-          </div>
-        </div>
-        <textarea class="theme-editor-textarea" id="themeEditor-meetingStyle" placeholder="/* 在此输入 CSS 代码 */" oninput="themeEditorInput('meetingStyle')"></textarea>
-        <div class="theme-editor-error"></div>
-      </div>
-      <div class="theme-apply-row">
-        <button class="theme-editor-btn apply-btn" style="width:100%;justify-content:center;padding:12px" onclick="applyThemeCSS('meetingStyle')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>
-          应用
-        </button>
-      </div>
-    </div>
-  </div>
+			<!-- 6. Call Interface -->
+			<div class="theme-card" onclick="openThemeEditor('call')">
+				<div class="theme-card-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.1-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 2 .7 2.9a2 2 0 01-.4 2.1L8 9.9a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.9.6 2.9.7a2 2 0 011.8 2z"/>
+					</svg>
+				</div>
+				<div class="theme-card-body">
+					<div class="theme-card-name">Call Interface</div>
+					<div class="theme-card-desc">Customize call interface</div>
+				</div>
+				<div class="theme-card-arrow">
+					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
+				</div>
+			</div>
 
-  <!-- Module: Heart Panel -->
-  <div class="theme-module" id="themeModule-heartPanel">
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <div style="padding:0 16px 8px;flex-shrink:0">
-        <div class="theme-preview-label">预览</div>
-        <div class="theme-preview-frame" id="themePreview-heartPanel">
-          <div class="tpf-heart">
-            <div class="tpf-heart-header">心声</div>
-            <div class="tpf-heart-item">
-              <div class="tpf-heart-dot"></div>
-              <div class="tpf-heart-text">今天心情不错</div>
-              <div class="tpf-heart-val">+12</div>
-            </div>
-            <div class="tpf-heart-item">
-              <div class="tpf-heart-dot" style="background:#aeaeb2"></div>
-              <div class="tpf-heart-text">有点想你了</div>
-              <div class="tpf-heart-val">+8</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="theme-editor-wrap">
-        <div class="theme-editor-header">
-          <span class="theme-editor-label">自定义 CSS</span>
-          <div class="theme-editor-actions">
-            <button class="theme-editor-btn" onclick="copyThemeSourceCSS('heartPanel')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/></svg>
-              复制源码
-            </button>
-            <button class="theme-editor-btn" onclick="resetThemeCSS('heartPanel')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a5 5 0 1 0 1.5-3.5L3 6"/><path d="M3 3v3h3"/></svg>
-              重置
-            </button>
-          </div>
-        </div>
-        <textarea class="theme-editor-textarea" id="themeEditor-heartPanel" placeholder="/* 在此输入 CSS 代码 */" oninput="themeEditorInput('heartPanel')"></textarea>
-        <div class="theme-editor-error"></div>
-      </div>
-      <div class="theme-apply-row">
-        <button class="theme-editor-btn apply-btn" style="width:100%;justify-content:center;padding:12px" onclick="applyThemeCSS('heartPanel')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>
-          应用
-        </button>
-      </div>
-    </div>
-  </div>
+		</div>
+		<div style="height: 32px"></div>
+	</div>
+</div>
 
-  <!-- Module: Meeting Archive -->
-  <div class="theme-module" id="themeModule-meetingArchive">
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <div style="padding:0 16px 8px;flex-shrink:0">
-        <div class="theme-preview-label">预览</div>
-        <div class="theme-preview-frame" id="themePreview-meetingArchive">
-          <div class="tpf-archive">
-            <div class="tpf-archive-card">
-              <div class="tpf-archive-icon">
-                <svg viewBox="0 0 16 16" fill="none" stroke="#aeaeb2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/><path d="M1 4h14"/><path d="M6 2h4"/></svg>
-              </div>
-              <div class="tpf-archive-info">
-                <div class="tpf-archive-title">冬日咖啡馆</div>
-                <div class="tpf-archive-sub">12 轮 · 3 条记忆</div>
-              </div>
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#c7c7cc" stroke-width="2" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
-            </div>
-            <div class="tpf-archive-card">
-              <div class="tpf-archive-icon">
-                <svg viewBox="0 0 16 16" fill="none" stroke="#aeaeb2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/><path d="M1 4h14"/><path d="M6 2h4"/></svg>
-              </div>
-              <div class="tpf-archive-info">
-                <div class="tpf-archive-title">雨夜书店</div>
-                <div class="tpf-archive-sub">8 轮 · 1 条记忆</div>
-              </div>
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#c7c7cc" stroke-width="2" stroke-linecap="round"><path d="M6 4l4 4-4 4"/></svg>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="theme-editor-wrap">
-        <div class="theme-editor-header">
-          <span class="theme-editor-label">自定义 CSS</span>
-          <div class="theme-editor-actions">
-            <button class="theme-editor-btn" onclick="copyThemeSourceCSS('meetingArchive')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/></svg>
-              复制源码
-            </button>
-            <button class="theme-editor-btn" onclick="resetThemeCSS('meetingArchive')">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a5 5 0 1 0 1.5-3.5L3 6"/><path d="M3 3v3h3"/></svg>
-              重置
-            </button>
-          </div>
-        </div>
-        <textarea class="theme-editor-textarea" id="themeEditor-meetingArchive" placeholder="/* 在此输入 CSS 代码 */" oninput="themeEditorInput('meetingArchive')"></textarea>
-        <div class="theme-editor-error"></div>
-      </div>
-      <div class="theme-apply-row">
-        <button class="theme-editor-btn apply-btn" style="width:100%;justify-content:center;padding:12px" onclick="applyThemeCSS('meetingArchive')">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>
-          应用
-        </button>
-      </div>
-    </div>
-  </div>
+<!-- THEME EDITOR: Font Size -->
+<div class="screen" id="screen-theme-fontsize">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="closeThemeEditor()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Font Size</span>
+	</div>
+	<div class="screen-body">
+		<div class="te-section-label">Font Size</div>
+		<div class="te-editor-card">
+			<div class="te-param-row">
+				<label class="te-param-label" for="fs-select">Font Size</label>
+				<select class="te-select" id="fs-select" onchange="applyFontSize(this.value)">
+					<option value="small">Small</option>
+					<option value="medium" selected>Medium</option>
+					<option value="large">Large</option>
+					<option value="xlarge">Extra Large</option>
+				</select>
+			</div>
+		</div>
+		<div style="height: 32px"></div>
+	</div>
+</div>
+
+<!-- THEME EDITOR: Bubble Style -->
+<div class="screen" id="screen-theme-bubble">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="closeThemeEditor()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Bubble Style</span>
+	</div>
+	<div class="screen-body">
+
+		<!-- Preview: Before / After -->
+		<div class="te-section-label">Preview</div>
+		<div class="bubble-preview-wrap">
+			<div class="bubble-preview-col">
+				<div class="bubble-preview-heading">Before</div>
+				<div class="bubble-preview before" id="bubble-preview-before">
+					<div class="bp-row bp-row-received">
+						<div class="bp-avatar" id="bp-avatar-before-1"></div>
+						<div class="bp-bubble bp-bubble-received" id="bp-bubble-before-in">Hey, how are you?</div>
+					</div>
+					<div class="bp-row bp-row-sent">
+						<div class="bp-bubble bp-bubble-sent" id="bp-bubble-before-out">I'm good, thanks!</div>
+						<div class="bp-avatar" id="bp-avatar-before-2"></div>
+					</div>
+					<div class="bp-row bp-row-received">
+						<div class="bp-avatar" id="bp-avatar-before-3"></div>
+						<div class="bp-bubble bp-bubble-received">Want to catch up?</div>
+					</div>
+				</div>
+			</div>
+			<div class="bubble-preview-col">
+				<div class="bubble-preview-heading">After</div>
+				<div class="bubble-preview after" id="bubble-preview-after">
+					<div class="bp-row bp-row-received">
+						<div class="bp-avatar" id="bp-avatar-after-1"></div>
+						<div class="bp-bubble bp-bubble-received" id="bp-bubble-after-in">Hey, how are you?</div>
+					</div>
+					<div class="bp-row bp-row-sent">
+						<div class="bp-bubble bp-bubble-sent" id="bp-bubble-after-out">I'm good, thanks!</div>
+						<div class="bp-avatar" id="bp-avatar-after-2"></div>
+					</div>
+					<div class="bp-row bp-row-received">
+						<div class="bp-avatar" id="bp-avatar-after-3"></div>
+						<div class="bp-bubble bp-bubble-received">Want to catch up?</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Parameters -->
+		<div class="te-section-label">Parameters</div>
+		<div class="te-editor-card">
+
+			<div class="te-param-row">
+				<label class="te-param-label" for="bp-font-size">Bubble Font Size</label>
+				<select class="te-select" id="bp-font-size">
+					<option value="12px">12px</option>
+					<option value="14px" selected>14px</option>
+					<option value="16px">16px</option>
+					<option value="18px">18px</option>
+				</select>
+			</div>
+
+			<div class="te-param-row">
+				<label class="te-param-label" for="bp-font-color">Bubble Font Color</label>
+				<input type="color" class="te-color" id="bp-font-color" value="#000000">
+			</div>
+
+			<div class="te-param-row">
+				<label class="te-param-label" for="bp-bg-user">User Bubble Background</label>
+				<input type="color" class="te-color" id="bp-bg-user" value="#A0A0A0">
+			</div>
+
+			<div class="te-param-row">
+				<label class="te-param-label" for="bp-bg-char">Character Bubble Background</label>
+				<input type="color" class="te-color" id="bp-bg-char" value="#E9E9EA">
+			</div>
+
+			<div class="te-param-row">
+				<label class="te-param-label" for="bp-avatar-mode">Avatar Display</label>
+				<select class="te-select" id="bp-avatar-mode">
+					<option value="always">Show on every message</option>
+					<option value="last" selected>Show on last in group</option>
+				</select>
+			</div>
+
+			<div class="te-param-row">
+				<label class="te-param-label" for="bp-avatar-radius">Avatar Corner Radius <span class="te-slider-val" id="bp-avatar-radius-val">50%</span></label>
+				<input type="range" class="te-slider" id="bp-avatar-radius" min="0" max="50" value="50">
+			</div>
+
+			<div class="te-param-row">
+				<label class="te-param-label" for="bp-bubble-radius">Bubble Corner Radius <span class="te-slider-val" id="bp-bubble-radius-val">20px</span></label>
+				<input type="range" class="te-slider" id="bp-bubble-radius" min="0" max="30" value="20">
+			</div>
+
+		</div>
+
+		<!-- Custom CSS -->
+		<div class="te-section-label">Custom CSS</div>
+		<div class="te-editor-card">
+			<div class="te-editor-label">Custom CSS</div>
+			<textarea class="te-textarea bubble-css-input" id="te-css-bubble" placeholder="/* CSS is auto-generated from parameters above.
+   You can also write custom overrides here. */"></textarea>
+		</div>
+
+		<!-- Actions -->
+		<div class="te-actions">
+			<button class="te-btn te-btn-primary" onclick="applyBubbleParams()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
+				Apply
+			</button>
+			<button class="te-btn te-btn-secondary bubble-copy-btn" onclick="copyBubbleSourceCSS()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 5V3.5A1.5 1.5 0 003.5 2H2a1.5 1.5 0 00-1.5 1.5V11A1.5 1.5 0 002 12.5h1.5"/></svg>
+				Copy Source Code
+			</button>
+			<button class="te-btn te-btn-ghost" onclick="resetBubbleParams()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 106-6 6 6 0 00-4.2 1.7L2 6"/><path d="M2 2v4h4"/></svg>
+				Reset
+			</button>
+		</div>
+		<div style="height: 32px"></div>
+	</div>
+</div>
+
+<!-- THEME EDITOR: Chat Interface -->
+<div class="screen" id="screen-theme-chat">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="closeThemeEditor()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Chat Interface</span>
+	</div>
+		<div class="screen-body">
+		<div class="te-section-label">Preview</div>
+		<div class="chat-interface-preview">
+						<div class="ci-preview-col">
+				<div class="ci-preview-heading">Before</div>
+				<div class="ci-mock before" id="ci-mock-before"></div>
+			</div>
+			<div class="ci-preview-col">
+				<div class="ci-preview-heading">After</div>
+				<div class="ci-mock after" id="ci-mock-after"></div>
+			</div>
+		</div>
+		<div class="te-section-label">CSS Editor</div>
+		<div class="te-editor-card">
+			<div class="te-editor-label">Custom CSS</div>
+			<textarea class="te-textarea chat-interface-css-input" id="te-css-chat" placeholder="/* Write your custom CSS for the chat interface */"></textarea>
+		</div>
+		<div class="te-actions">
+			<button class="te-btn te-btn-primary" onclick="applyChatInterfaceCSS()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
+				Apply
+			</button>
+			<button class="te-btn te-btn-secondary chat-interface-copy-btn" onclick="copyChatInterfaceSource()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 5V3.5A1.5 1.5 0 003.5 2H2a1.5 1.5 0 00-1.5 1.5V11A1.5 1.5 0 002 12.5h1.5"/></svg>
+				Copy Source Code
+			</button>
+			<button class="te-btn te-btn-ghost" onclick="resetChatInterfaceCSS()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 106-6 6 6 0 00-4.2 1.7L2 6"/><path d="M2 2v4h4"/></svg>
+				Reset
+			</button>
+		</div>
+		<div style="height: 32px"></div>
+	</div>
+</div>
+
+<!-- THEME EDITOR: Meeting Style -->
+<div class="screen" id="screen-theme-meeting">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="closeThemeEditor()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Meeting Style</span>
+	</div>
+	<div class="screen-body">
+		<div class="te-section-label">Preview</div>
+		<div class="meeting-style-preview">
+			<div class="ms-preview-col">
+				<div class="ms-preview-heading">Before</div>
+				<div class="ms-mock before" id="ms-mock-before"></div>
+			</div>
+			<div class="ms-preview-col">
+				<div class="ms-preview-heading">After</div>
+				<div class="ms-mock after" id="ms-mock-after"></div>
+			</div>
+		</div>
+		<div class="te-section-label">CSS Editor</div>
+		<div class="te-editor-card">
+			<div class="te-editor-label">Custom CSS</div>
+			<textarea class="te-textarea meeting-style-css-input" id="te-css-meeting" placeholder="/* Write your custom CSS for the meeting interface */"></textarea>
+		</div>
+		<div class="te-actions">
+			<button class="te-btn te-btn-primary" onclick="applyMeetingStyleCSS()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
+				Apply
+			</button>
+			<button class="te-btn te-btn-secondary meeting-style-copy-btn" onclick="copyMeetingSourceCSS()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 5V3.5A1.5 1.5 0 003.5 2H2a1.5 1.5 0 00-1.5 1.5V11A1.5 1.5 0 002 12.5h1.5"/></svg>
+				Copy Source Code
+			</button>
+			<button class="te-btn te-btn-ghost" onclick="resetMeetingStyleCSS()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 106-6 6 6 0 00-4.2 1.7L2 6"/><path d="M2 2v4h4"/></svg>
+				Reset
+			</button>
+		</div>
+		<div style="height: 32px"></div>
+	</div>
+</div>
+
+<!-- THEME EDITOR: Heart Panel -->
+<div class="screen" id="screen-theme-heart">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="closeThemeEditor()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Heart Panel</span>
+	</div>
+	<div class="screen-body">
+		<div class="te-section-label">Preview</div>
+		<div class="te-preview te-preview-heart">
+			<div class="te-prev-heart-panel">
+				<div class="te-prev-heart-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+						<path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/>
+					</svg>
+				</div>
+				<div class="te-prev-heart-bar">
+					<div class="te-prev-heart-fill"></div>
+				</div>
+				<div class="te-prev-heart-label"></div>
+			</div>
+		</div>
+		<div class="te-section-label">CSS Editor</div>
+		<div class="te-editor-card">
+			<div class="te-editor-label">Custom CSS</div>
+			<textarea class="te-textarea" id="te-css-heart" placeholder="/* Write your custom CSS for the heart panel */
+.heart-panel { }
+.heart-bar { }
+.heart-icon { }"></textarea>
+		</div>
+		<div class="te-actions">
+			<button class="te-btn te-btn-primary" onclick="applyThemeCSS('heart')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
+				Apply
+			</button>
+			<button class="te-btn te-btn-secondary" onclick="copyThemeSource('heart')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 5V3.5A1.5 1.5 0 003.5 2H2a1.5 1.5 0 00-1.5 1.5V11A1.5 1.5 0 002 12.5h1.5"/></svg>
+				Copy Source
+			</button>
+			<button class="te-btn te-btn-ghost" onclick="resetThemeCSS('heart')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 106-6 6 6 0 00-4.2 1.7L2 6"/><path d="M2 2v4h4"/></svg>
+				Reset
+			</button>
+		</div>
+		<div style="height: 32px"></div>
+	</div>
+</div>
+
+<!-- THEME EDITOR: Meeting Archive -->
+<div class="screen" id="screen-theme-archive">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="closeThemeEditor()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Meeting Archive</span>
+	</div>
+	<div class="screen-body">
+		<div class="te-section-label">Preview</div>
+		<div class="te-preview te-preview-archive">
+			<div class="te-prev-archive-card">
+				<div class="te-prev-archive-thumb"></div>
+				<div class="te-prev-archive-info">
+					<div class="te-prev-archive-title"></div>
+					<div class="te-prev-archive-meta"></div>
+					<div class="te-prev-archive-tag"></div>
+				</div>
+			</div>
+			<div class="te-prev-archive-card">
+				<div class="te-prev-archive-thumb" style="background:#e9e9ef"></div>
+				<div class="te-prev-archive-info">
+					<div class="te-prev-archive-title" style="width:55%"></div>
+					<div class="te-prev-archive-meta" style="width:35%"></div>
+					<div class="te-prev-archive-tag" style="width:28%"></div>
+				</div>
+			</div>
+		</div>
+		<div class="te-section-label">CSS Editor</div>
+		<div class="te-editor-card">
+			<div class="te-editor-label">Custom CSS</div>
+			<textarea class="te-textarea" id="te-css-archive" placeholder="/* Write your custom CSS for meeting archive cards */
+.archive-card { }
+.archive-thumb { }
+.archive-title { }"></textarea>
+		</div>
+		<div class="te-actions">
+			<button class="te-btn te-btn-primary" onclick="applyThemeCSS('archive')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
+				Apply
+			</button>
+			<button class="te-btn te-btn-secondary" onclick="copyThemeSource('archive')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 5V3.5A1.5 1.5 0 003.5 2H2a1.5 1.5 0 00-1.5 1.5V11A1.5 1.5 0 002 12.5h1.5"/></svg>
+				Copy Source
+			</button>
+			<button class="te-btn te-btn-ghost" onclick="resetThemeCSS('archive')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 106-6 6 6 0 00-4.2 1.7L2 6"/><path d="M2 2v4h4"/></svg>
+				Reset
+			</button>
+		</div>
+		<div style="height: 32px"></div>
+	</div>
+</div>
+
+<!-- THEME EDITOR: Call Interface -->
+<div class="screen" id="screen-theme-call">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="closeThemeEditor()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Call Interface</span>
+	</div>
+	<div class="screen-body">
+		<div class="te-section-label">Preview</div>
+		<div class="te-preview te-preview-call">
+			<div class="te-prev-call-avatar"></div>
+			<div class="te-prev-call-name"></div>
+			<div class="te-prev-call-status"></div>
+			<div class="te-prev-call-actions">
+				<div class="te-prev-call-btn te-prev-call-end">
+					<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+						<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.1-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 2 .7 2.9a2 2 0 01-.4 2.1L8 9.9a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.9.6 2.9.7a2 2 0 011.8 2z"/>
+					</svg>
+				</div>
+				<div class="te-prev-call-btn te-prev-call-accept">
+					<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+						<path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.1-8.7A2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 2 .7 2.9a2 2 0 01-.4 2.1L8 9.9a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.9.6 2.9.7a2 2 0 011.8 2z"/>
+					</svg>
+				</div>
+			</div>
+		</div>
+		<div class="te-section-label">CSS Editor</div>
+		<div class="te-editor-card">
+			<div class="te-editor-label">Custom CSS</div>
+			<textarea class="te-textarea" id="te-css-call" placeholder="/* Write your custom CSS for the call interface */
+.call-screen { }
+.call-avatar { }
+.call-actions { }"></textarea>
+		</div>
+		<div class="te-actions">
+			<button class="te-btn te-btn-primary" onclick="applyThemeCSS('call')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
+				Apply
+			</button>
+			<button class="te-btn te-btn-secondary" onclick="copyThemeSource('call')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 5V3.5A1.5 1.5 0 003.5 2H2a1.5 1.5 0 00-1.5 1.5V11A1.5 1.5 0 002 12.5h1.5"/></svg>
+				Copy Source
+			</button>
+			<button class="te-btn te-btn-ghost" onclick="resetThemeCSS('call')">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 106-6 6 6 0 00-4.2 1.7L2 6"/><path d="M2 2v4h4"/></svg>
+				Reset
+			</button>
+		</div>
+		<div style="height: 32px"></div>
+	</div>
 </div>
