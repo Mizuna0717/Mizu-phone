@@ -384,37 +384,107 @@
 	</div>
 	<div class="screen-body">
 		<div class="te-section-label">Preview</div>
-		<div class="te-preview te-preview-heart">
-			<div class="te-prev-heart-panel">
-				<div class="te-prev-heart-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-						<path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/>
-					</svg>
+		<div class="heart-panel-preview">
+			<div class="hp-preview-col">
+				<div class="hp-preview-heading">Before</div>
+				<div class="hp-mock before" id="hp-mock-before">
+					<div class="heart-voice-card show">
+						<div class="hv-header">
+							<span class="hv-title">心声</span>
+							<button class="hv-close" onclick="return false">
+								<svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+							</button>
+						</div>
+						<div class="hv-avatar-section">
+							<div class="hv-avatar"></div>
+							<div class="hv-char-name">Aria</div>
+						</div>
+						<div class="hv-content">
+							<div class="hv-section">
+								<div class="hv-section-label">
+									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.2 2 3 4.2 3 7c0 1.8.9 3.3 2.3 4.2L5 13h6l-.3-1.8C12.1 10.3 13 8.8 13 7c0-2.8-2.2-5-5-5z"/></svg>
+									<span>内心想法</span>
+								</div>
+								<p class="hv-section-text hv-thought">心里有些期待，又有些不安……</p>
+							</div>
+							<div class="hv-divider"></div>
+							<div class="hv-section">
+								<div class="hv-section-label">
+									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 1"/></svg>
+									<span>当前动作</span>
+								</div>
+								<p class="hv-section-text">静静地看着你，嘴角微微上扬</p>
+							</div>
+							<div class="hv-divider"></div>
+							<div class="hv-section">
+								<div class="hv-section-label">
+									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 14s-5-3.5-5-7a5 5 0 0110 0c0 3.5-5 7-5 7z"/></svg>
+									<span>想要做的事</span>
+								</div>
+								<p class="hv-section-text">想要靠近一点，牵住你的手</p>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div class="te-prev-heart-bar">
-					<div class="te-prev-heart-fill"></div>
+			</div>
+			<div class="hp-preview-col">
+				<div class="hp-preview-heading">After</div>
+				<div class="hp-mock after" id="hp-mock-after">
+					<div class="heart-voice-card show">
+						<div class="hv-header">
+							<span class="hv-title">心声</span>
+							<button class="hv-close" onclick="return false">
+								<svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="#3a3a3c" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+							</button>
+						</div>
+						<div class="hv-avatar-section">
+							<div class="hv-avatar"></div>
+							<div class="hv-char-name">Aria</div>
+						</div>
+						<div class="hv-content">
+							<div class="hv-section">
+								<div class="hv-section-label">
+									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.2 2 3 4.2 3 7c0 1.8.9 3.3 2.3 4.2L5 13h6l-.3-1.8C12.1 10.3 13 8.8 13 7c0-2.8-2.2-5-5-5z"/></svg>
+									<span>内心想法</span>
+								</div>
+								<p class="hv-section-text hv-thought">心里有些期待，又有些不安……</p>
+							</div>
+							<div class="hv-divider"></div>
+							<div class="hv-section">
+								<div class="hv-section-label">
+									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 1"/></svg>
+									<span>当前动作</span>
+								</div>
+								<p class="hv-section-text">静静地看着你，嘴角微微上扬</p>
+							</div>
+							<div class="hv-divider"></div>
+							<div class="hv-section">
+								<div class="hv-section-label">
+									<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 14s-5-3.5-5-7a5 5 0 0110 0c0 3.5-5 7-5 7z"/></svg>
+									<span>想要做的事</span>
+								</div>
+								<p class="hv-section-text">想要靠近一点，牵住你的手</p>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div class="te-prev-heart-label"></div>
 			</div>
 		</div>
 		<div class="te-section-label">CSS Editor</div>
 		<div class="te-editor-card">
 			<div class="te-editor-label">Custom CSS</div>
-			<textarea class="te-textarea" id="te-css-heart" placeholder="/* Write your custom CSS for the heart panel */
-.heart-panel { }
-.heart-bar { }
-.heart-icon { }"></textarea>
+			<textarea class="te-textarea heart-panel-css-input" id="te-css-heart" placeholder="/* Write your custom CSS for the heart panel */"></textarea>
 		</div>
 		<div class="te-actions">
-			<button class="te-btn te-btn-primary" onclick="applyThemeCSS('heart')">
+			<button class="te-btn te-btn-primary" onclick="applyHeartPanelCSS()">
 				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
 				Apply
 			</button>
-			<button class="te-btn te-btn-secondary" onclick="copyThemeSource('heart')">
+			<button class="te-btn te-btn-secondary heart-panel-copy-btn" onclick="copyHeartPanelSourceCSS()">
 				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 5V3.5A1.5 1.5 0 003.5 2H2a1.5 1.5 0 00-1.5 1.5V11A1.5 1.5 0 002 12.5h1.5"/></svg>
-				Copy Source
+				Copy Source Code
 			</button>
-			<button class="te-btn te-btn-ghost" onclick="resetThemeCSS('heart')">
+			<button class="te-btn te-btn-ghost" onclick="resetHeartPanelCSS()">
 				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 106-6 6 6 0 00-4.2 1.7L2 6"/><path d="M2 2v4h4"/></svg>
 				Reset
 			</button>
@@ -433,42 +503,34 @@
 	</div>
 	<div class="screen-body">
 		<div class="te-section-label">Preview</div>
-		<div class="te-preview te-preview-archive">
-			<div class="te-prev-archive-card">
-				<div class="te-prev-archive-thumb"></div>
-				<div class="te-prev-archive-info">
-					<div class="te-prev-archive-title"></div>
-					<div class="te-prev-archive-meta"></div>
-					<div class="te-prev-archive-tag"></div>
-				</div>
+		<div class="archive-preview-wrap">
+			<div class="archive-preview-col">
+				<div class="archive-preview-heading">Before</div>
+				<div class="archive-mock" id="archive-mock-before"></div>
 			</div>
-			<div class="te-prev-archive-card">
-				<div class="te-prev-archive-thumb" style="background:#e9e9ef"></div>
-				<div class="te-prev-archive-info">
-					<div class="te-prev-archive-title" style="width:55%"></div>
-					<div class="te-prev-archive-meta" style="width:35%"></div>
-					<div class="te-prev-archive-tag" style="width:28%"></div>
-				</div>
+			<div class="archive-preview-col">
+				<div class="archive-preview-heading">After</div>
+				<div class="archive-mock" id="archive-mock-after"></div>
 			</div>
 		</div>
 		<div class="te-section-label">CSS Editor</div>
 		<div class="te-editor-card">
 			<div class="te-editor-label">Custom CSS</div>
 			<textarea class="te-textarea" id="te-css-archive" placeholder="/* Write your custom CSS for meeting archive cards */
-.archive-card { }
-.archive-thumb { }
-.archive-title { }"></textarea>
+.mtg-archive-card { }
+.mtg-archive-card-name { }
+.mtg-archive-info-row { }"></textarea>
 		</div>
 		<div class="te-actions">
-			<button class="te-btn te-btn-primary" onclick="applyThemeCSS('archive')">
+			<button class="te-btn te-btn-primary" onclick="applyMeetingArchiveCSS()">
 				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
 				Apply
 			</button>
-			<button class="te-btn te-btn-secondary" onclick="copyThemeSource('archive')">
+			<button class="te-btn te-btn-secondary archive-copy-btn" onclick="copyMeetingArchiveSourceCSS()">
 				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M5 5V3.5A1.5 1.5 0 003.5 2H2a1.5 1.5 0 00-1.5 1.5V11A1.5 1.5 0 002 12.5h1.5"/></svg>
-				Copy Source
+				Copy Source Code
 			</button>
-			<button class="te-btn te-btn-ghost" onclick="resetThemeCSS('archive')">
+			<button class="te-btn te-btn-ghost" onclick="resetMeetingArchiveCSS()">
 				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8a6 6 0 106-6 6 6 0 00-4.2 1.7L2 6"/><path d="M2 2v4h4"/></svg>
 				Reset
 			</button>

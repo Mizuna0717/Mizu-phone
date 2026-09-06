@@ -13,8 +13,12 @@ function openThemeEditor(type) {
 					initFontSizeEditor();
 				} else if (type === 'chat') {
 					initChatInterfaceEditor();
-				} else if (type === 'meeting') {
+								} else if (type === 'meeting') {
 					initMeetingStyleEditor();
+								} else if (type === 'heart') {
+					initHeartPanelEditor();
+				} else if (type === 'archive') {
+					initMeetingArchiveEditor();
 				} else {
 					loadThemeCSS(type);
 				}
@@ -615,6 +619,140 @@ function resetChatInterfaceCSS() {
 }
 
 // ============================================================
+//  Heart Panel Module
+// ============================================================
+//  Uses real class names from .heart-voice-card so the preview
+//  reflects the actual panel styling.
+// ============================================================
+
+const HEART_PANEL_CSS_FILE = 'css/chat-extras.css';
+
+const HEART_PANEL_SELECTORS = [
+	'.heart-voice-card', '.hv-header', '.hv-title', '.hv-close',
+	'.hv-avatar-section', '.hv-avatar', '.hv-char-name',
+	'.hv-content', '.hv-section', '.hv-section-label', '.hv-section-text',
+	'.hv-thought', '.hv-divider', '.center-modal-overlay',
+];
+
+function extractHeartPanelCSS(src) {
+	var blocks = [];
+	var re = /([^{}]+)\{([^{}]*)\}/g;
+	var m;
+	while ((m = re.exec(src)) !== null) {
+		var sel = m[1].trim();
+		if (!sel || sel.charAt(0) === '@') continue;
+		var relevant = HEART_PANEL_SELECTORS.some(function(s) { return sel.indexOf(s) !== -1; });
+		if (relevant) blocks.push(sel + ' {\n' + m[2].trim() + '\n}');
+	}
+	return blocks.length ? '/* === From css/chat-extras.css === */\n' + blocks.join('\n\n') : '';
+}
+
+function loadHeartPanelSourceCSS() {
+	return fetch(HEART_PANEL_CSS_FILE)
+		.then(function(r) { return r.text(); })
+		.then(function(txt) { return extractHeartPanelCSS(txt); })
+		.catch(function() { return ''; });
+}
+
+function initHeartPanelEditor() {
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+	}
+
+	var textarea = document.getElementById('te-css-heart');
+	if (!textarea) return;
+
+	var saved = (window.state && window.state.theme && window.state.theme.heartPanel)
+		|| localStorage.getItem('theme-css-heart');
+
+	if (saved) {
+		textarea.value = saved;
+		if (window.state) window.state.theme.heartPanel = saved;
+		renderHeartPanelAfter(saved);
+	} else {
+		loadHeartPanelSourceCSS().then(function(css) {
+			if (!textarea.value) {
+				textarea.value = css;
+				if (window.state) window.state.theme.heartPanel = css;
+			}
+			renderHeartPanelAfter(textarea.value);
+		}).catch(function() {
+			renderHeartPanelAfter('');
+		});
+	}
+
+	textarea.removeEventListener('input', _onHeartPanelCSSChange);
+	textarea.addEventListener('input', _onHeartPanelCSSChange);
+}
+
+function _onHeartPanelCSSChange() {
+	var textarea = document.getElementById('te-css-heart');
+	if (!textarea) return;
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.heartPanel = textarea.value;
+	}
+	renderHeartPanelAfter(textarea.value);
+}
+
+function renderHeartPanelAfter(css) {
+	var styleEl = document.getElementById('hp-after-style');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'hp-after-style';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = scopeCSS(css || '', '#hp-mock-after');
+}
+
+function applyHeartPanelCSS() {
+	var textarea = document.getElementById('te-css-heart');
+	if (!textarea) return;
+	var css = textarea.value;
+	localStorage.setItem('theme-css-heart', css);
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.heartPanel = css;
+	}
+	var styleEl = document.getElementById('custom-theme-heart');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-theme-heart';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = css;
+	renderHeartPanelAfter(css);
+	showThemeFeedback('Applied');
+}
+
+function copyHeartPanelSourceCSS() {
+	loadHeartPanelSourceCSS().then(function(css) {
+		return navigator.clipboard.writeText(css);
+	}).then(function() {
+		showThemeFeedback('Copied!');
+	}).catch(function(err) {
+		console.error('copyHeartPanelSourceCSS error:', err);
+		showThemeFeedback('Copy failed');
+	});
+}
+
+function resetHeartPanelCSS() {
+	var textarea = document.getElementById('te-css-heart');
+	localStorage.removeItem('theme-css-heart');
+	var styleEl = document.getElementById('custom-theme-heart');
+	if (styleEl) styleEl.remove();
+	if (window.state && window.state.theme) window.state.theme.heartPanel = '';
+	loadHeartPanelSourceCSS().then(function(css) {
+		if (textarea) {
+			textarea.value = css;
+			if (window.state) window.state.theme.heartPanel = css;
+		}
+		renderHeartPanelAfter(textarea ? textarea.value : '');
+	});
+	showThemeFeedback('Reset');
+}
+
+// ============================================================
 //  Generic CSS Management (other editors)
 // ============================================================
 
@@ -872,6 +1010,262 @@ function resetMeetingStyleCSS() {
 }
 
 // ============================================================
+//  Meeting Archive Module
+// ============================================================
+//  Renders real .mtg-archive-card mock cards in Before/After
+//  panes. The textarea is pre-filled with archive-related rules
+//  extracted live from css/meeting.css.
+// ============================================================
+
+const MEETING_ARCHIVE_CSS_FILE = 'css/meeting.css';
+
+const MEETING_ARCHIVE_SELECTORS = [
+	'.mtg-archive-card',
+	'.mtg-archive-card-body',
+	'.mtg-archive-card-name',
+	'.mtg-archive-card-info',
+	'.mtg-archive-info-row',
+	'.mtg-archive-actions',
+	'.mtg-archive-action-btn',
+	'.mtg-manage-card',
+	'.mtg-manage-card-name',
+	'.mtg-manage-card-info',
+	'.mtg-manage-info-row',
+	'.mtg-status-dot',
+	'.mtg-empty-state',
+];
+
+function buildArchiveMockHTML() {
+	return (
+		'<div class="mtg-archive-card">' +
+			'<div class="mtg-archive-card-body">' +
+				'<div class="mtg-archive-card-name">Evening Conversation</div>' +
+				'<div class="mtg-archive-card-info">' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 1"/></svg>' +
+						'<span>2025-06-10 · 12 rounds</span>' +
+					'</div>' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><circle cx="6" cy="5" r="2"/><path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="12" cy="5" r="1.5"/><path d="M11 13c0-1.7 1-3 2-3"/></svg>' +
+						'<span>Aria, Luna</span>' +
+					'</div>' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><path d="M5 4V2.5A.5.5 0 015.5 2h5a.5.5 0 01.5.5V4"/></svg>' +
+						'<span>A quiet evening chat about dreams…</span>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+			'<div class="mtg-archive-actions">' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M2 8s2-4 6-4 6 4 6 4-2 4-6 4-6-4-6-4z"/><circle cx="8" cy="8" r="2"/></svg>' +
+					'<span>View</span>' +
+				'</button>' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M2 10V13h3l7-7-3-3-7 7z"/><path d="M11 4l1-1 1 1-1 1-1-1z"/></svg>' +
+					'<span>Edit</span>' +
+				'</button>' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M3 4h10M5 4V3h6v1M6 7v5M10 7v5M4 4l.5 9h7l.5-9"/></svg>' +
+					'<span>Delete</span>' +
+				'</button>' +
+			'</div>' +
+		'</div>' +
+		'<div class="mtg-archive-card">' +
+			'<div class="mtg-archive-card-body">' +
+				'<div class="mtg-archive-card-name">Weekend Getaway</div>' +
+				'<div class="mtg-archive-card-info">' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 1"/></svg>' +
+						'<span>2025-06-08 · 8 rounds</span>' +
+					'</div>' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><circle cx="6" cy="5" r="2"/><path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="12" cy="5" r="1.5"/><path d="M11 13c0-1.7 1-3 2-3"/></svg>' +
+						'<span>Aria</span>' +
+					'</div>' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><path d="M5 4V2.5A.5.5 0 015.5 2h5a.5.5 0 01.5.5V4"/></svg>' +
+						'<span>Planning a trip together…</span>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+			'<div class="mtg-archive-actions">' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M2 8s2-4 6-4 6 4 6 4-2 4-6 4-6-4-6-4z"/><circle cx="8" cy="8" r="2"/></svg>' +
+					'<span>View</span>' +
+				'</button>' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M2 10V13h3l7-7-3-3-7 7z"/><path d="M11 4l1-1 1 1-1 1-1-1z"/></svg>' +
+					'<span>Edit</span>' +
+				'</button>' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M3 4h10M5 4V3h6v1M6 7v5M10 7v5M4 4l.5 9h7l.5-9"/></svg>' +
+					'<span>Delete</span>' +
+				'</button>' +
+			'</div>' +
+		'</div>' +
+		'<div class="mtg-archive-card">' +
+			'<div class="mtg-archive-card-body">' +
+				'<div class="mtg-archive-card-name">Late Night Thoughts</div>' +
+				'<div class="mtg-archive-card-info">' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><path d="M8 5v3l2 1"/></svg>' +
+						'<span>2025-06-05 · 20 rounds</span>' +
+					'</div>' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><circle cx="6" cy="5" r="2"/><path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="12" cy="5" r="1.5"/><path d="M11 13c0-1.7 1-3 2-3"/></svg>' +
+						'<span>Luna</span>' +
+					'</div>' +
+					'<div class="mtg-archive-info-row">' +
+						'<svg viewBox="0 0 16 16"><path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><path d="M5 4V2.5A.5.5 0 015.5 2h5a.5.5 0 01.5.5V4"/></svg>' +
+						'<span>Sharing thoughts under the stars…</span>' +
+					'</div>' +
+				'</div>' +
+			'</div>' +
+			'<div class="mtg-archive-actions">' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M2 8s2-4 6-4 6 4 6 4-2 4-6 4-6-4-6-4z"/><circle cx="8" cy="8" r="2"/></svg>' +
+					'<span>View</span>' +
+				'</button>' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M2 10V13h3l7-7-3-3-7 7z"/><path d="M11 4l1-1 1 1-1 1-1-1z"/></svg>' +
+					'<span>Edit</span>' +
+				'</button>' +
+				'<button class="mtg-archive-action-btn">' +
+					'<svg viewBox="0 0 16 16"><path d="M3 4h10M5 4V3h6v1M6 7v5M10 7v5M4 4l.5 9h7l.5-9"/></svg>' +
+					'<span>Delete</span>' +
+				'</button>' +
+			'</div>' +
+		'</div>'
+	);
+}
+
+function extractMeetingArchiveCSS(src) {
+	var blocks = [];
+	var re = /([^{}]+)\{([^{}]*)\}/g;
+	var m;
+	while ((m = re.exec(src)) !== null) {
+		var sel = m[1].trim();
+		if (!sel || sel.charAt(0) === '@') continue;
+		var relevant = MEETING_ARCHIVE_SELECTORS.some(function(s) { return sel.indexOf(s) !== -1; });
+		if (relevant) blocks.push(sel + ' {\n' + m[2].trim() + '\n}');
+	}
+	return blocks.length ? '/* === From css/meeting.css === */\n' + blocks.join('\n\n') : '';
+}
+
+function loadMeetingArchiveSourceCSS() {
+	return fetch(MEETING_ARCHIVE_CSS_FILE)
+		.then(function(r) { return r.text(); })
+		.then(function(txt) { return extractMeetingArchiveCSS(txt); })
+		.catch(function() { return ''; });
+}
+
+function initMeetingArchiveEditor() {
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+	}
+
+	var mock = buildArchiveMockHTML();
+	var beforeEl = document.getElementById('archive-mock-before');
+	var afterEl  = document.getElementById('archive-mock-after');
+	if (beforeEl) beforeEl.innerHTML = mock;
+	if (afterEl)  afterEl.innerHTML  = mock;
+
+	var textarea = document.getElementById('te-css-archive');
+	if (!textarea) return;
+
+	var saved = (window.state && window.state.theme && window.state.theme.meetingArchive)
+		|| localStorage.getItem('theme-css-archive');
+
+	if (saved) {
+		textarea.value = saved;
+		if (window.state) window.state.theme.meetingArchive = saved;
+		renderMeetingArchiveAfter(saved);
+	} else {
+		loadMeetingArchiveSourceCSS().then(function(css) {
+			if (!textarea.value) {
+				textarea.value = css;
+				if (window.state) window.state.theme.meetingArchive = css;
+			}
+			renderMeetingArchiveAfter(textarea.value);
+		}).catch(function() {
+			renderMeetingArchiveAfter('');
+		});
+	}
+
+	textarea.removeEventListener('input', _onMeetingArchiveCSSChange);
+	textarea.addEventListener('input', _onMeetingArchiveCSSChange);
+}
+
+function _onMeetingArchiveCSSChange() {
+	var textarea = document.getElementById('te-css-archive');
+	if (!textarea) return;
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.meetingArchive = textarea.value;
+	}
+	renderMeetingArchiveAfter(textarea.value);
+}
+
+function renderMeetingArchiveAfter(css) {
+	var styleEl = document.getElementById('archive-after-style');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'archive-after-style';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = scopeCSS(css || '', '#archive-mock-after');
+}
+
+function applyMeetingArchiveCSS() {
+	var textarea = document.getElementById('te-css-archive');
+	if (!textarea) return;
+	var css = textarea.value;
+	localStorage.setItem('theme-css-archive', css);
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.meetingArchive = css;
+	}
+	var styleEl = document.getElementById('custom-theme-archive');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-theme-archive';
+		document.head.appendChild(styleEl);
+	}
+	styleEl.textContent = css;
+	renderMeetingArchiveAfter(css);
+	showThemeFeedback('Applied');
+}
+
+function copyMeetingArchiveSourceCSS() {
+	loadMeetingArchiveSourceCSS().then(function(css) {
+		return navigator.clipboard.writeText(css);
+	}).then(function() {
+		showThemeFeedback('Copied!');
+	}).catch(function(err) {
+		console.error('copyMeetingArchiveSourceCSS error:', err);
+		showThemeFeedback('Copy failed');
+	});
+}
+
+function resetMeetingArchiveCSS() {
+	var textarea = document.getElementById('te-css-archive');
+	localStorage.removeItem('theme-css-archive');
+	var styleEl = document.getElementById('custom-theme-archive');
+	if (styleEl) styleEl.remove();
+	var afterStyle = document.getElementById('archive-after-style');
+	if (afterStyle) afterStyle.textContent = '';
+	if (window.state && window.state.theme) window.state.theme.meetingArchive = '';
+	loadMeetingArchiveSourceCSS().then(function(css) {
+		if (textarea) {
+			textarea.value = css;
+			if (window.state) window.state.theme.meetingArchive = css;
+		}
+		renderMeetingArchiveAfter(textarea ? textarea.value : '');
+	});
+	showThemeFeedback('Reset');
+}
+
+// ============================================================
 //  Init on load
 // ============================================================
 
@@ -887,8 +1281,15 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 
-	// Restore generic CSS for other editors
-	var types = ['chat', 'meeting', 'heart', 'archive', 'call'];
+		// Restore heart panel CSS into state
+	var savedHeartCSS = localStorage.getItem('theme-css-heart');
+	if (savedHeartCSS && window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.heartPanel = savedHeartCSS;
+	}
+
+		// Restore generic CSS for other editors
+	var types = ['chat', 'meeting', 'call'];
 	types.forEach(function(type) {
 		var saved = localStorage.getItem('theme-css-' + type);
 		if (saved) {
@@ -901,6 +1302,22 @@ document.addEventListener('DOMContentLoaded', function() {
 			styleEl.textContent = saved;
 		}
 	});
+
+	// Restore Meeting Archive CSS
+	var savedArchiveCSS = localStorage.getItem('theme-css-archive');
+	if (savedArchiveCSS) {
+		var archiveStyleEl = document.getElementById('custom-theme-archive');
+		if (!archiveStyleEl) {
+			archiveStyleEl = document.createElement('style');
+			archiveStyleEl.id = 'custom-theme-archive';
+			document.head.appendChild(archiveStyleEl);
+		}
+		archiveStyleEl.textContent = savedArchiveCSS;
+		if (window.state) {
+			if (!window.state.theme) window.state.theme = {};
+			window.state.theme.meetingArchive = savedArchiveCSS;
+		}
+	}
 
 		// Mirror the chat-interface CSS into state.theme.chatInterface
 	if (window.state) {
