@@ -1374,17 +1374,34 @@ function _getGeneralState() {
 	};
 	try {
 		var raw = localStorage.getItem('theme-general');
-		if (raw) return Object.assign({}, defaults, JSON.parse(raw));
-	} catch(e) {}
+		if (raw) {
+			var parsed = JSON.parse(raw);
+			var result = Object.assign({}, defaults, parsed);
+			// Ensure nested objects are proper
+			if (!result.desktopBackground || typeof result.desktopBackground !== 'object') result.desktopBackground = defaults.desktopBackground;
+			if (!result.chatBackground || typeof result.chatBackground !== 'object') result.chatBackground = defaults.chatBackground;
+			if (!result.desktopIcon || typeof result.desktopIcon !== 'object') result.desktopIcon = defaults.desktopIcon;
+			return result;
+		}
+	} catch(e) { console.warn('[General] Failed to parse theme-general:', e); }
 	return defaults;
 }
 
 function _saveGeneralState(g) {
-	localStorage.setItem('theme-general', JSON.stringify(g));
+	try {
+		localStorage.setItem('theme-general', JSON.stringify(g));
+	} catch(e) {
+		console.warn('[General] Failed to save to localStorage (may be quota exceeded for large images):', e);
+	}
 	if (window.state) {
 		if (!window.state.theme) window.state.theme = {};
 		window.state.theme.general = Object.assign({}, g);
+		if (g.desktopBackground) window.state.theme.general.desktopBackground = Object.assign({}, g.desktopBackground);
+		if (g.chatBackground) window.state.theme.general.chatBackground = Object.assign({}, g.chatBackground);
+		if (g.desktopIcon) window.state.theme.general.desktopIcon = Object.assign({}, g.desktopIcon);
 	}
+	console.log('[General] State saved | desktopBg:', !!(g.desktopBackground && g.desktopBackground.value),
+		'| chatBg:', !!(g.chatBackground && g.chatBackground.value));
 }
 
 function _setGeneralThumbAndUrl(setting, data) {
@@ -1402,10 +1419,12 @@ function _setGeneralThumbAndUrl(setting, data) {
 
 function onGeneralFileUpload(setting, inputEl) {
 	var file = inputEl.files && inputEl.files[0];
-	if (!file) return;
+	if (!file) { console.warn('[General] No file selected for', setting); return; }
+	console.log('[General] Uploading file for', setting, '| name:', file.name, '| size:', file.size);
 	var reader = new FileReader();
 	reader.onload = function(e) {
 		var dataUrl = e.target.result;
+		console.log('[General] File read complete for', setting, '| dataUrl length:', dataUrl.length);
 		var g = _getGeneralState();
 		g[setting] = { type: 'local', value: dataUrl };
 		_saveGeneralState(g);
@@ -1414,12 +1433,17 @@ function onGeneralFileUpload(setting, inputEl) {
 		var urlEl = document.getElementById(urlMap[setting]);
 		if (urlEl) urlEl.value = '';
 		_applyGeneralSetting(setting, dataUrl);
+		console.log('[General] Applied', setting, '| value set:', !!dataUrl);
+	};
+	reader.onerror = function(e) {
+		console.error('[General] FileReader error for', setting, e);
 	};
 	reader.readAsDataURL(file);
 }
 
 function onGeneralUrlInput(setting, value) {
 	var trimmed = value.trim();
+	console.log('[General] URL input for', setting, '| value:', trimmed.substring(0, 80));
 	var g = _getGeneralState();
 	g[setting] = { type: 'url', value: trimmed };
 	_saveGeneralState(g);
@@ -1428,6 +1452,7 @@ function onGeneralUrlInput(setting, value) {
 }
 
 function clearGeneralSetting(setting) {
+	console.log('[General] Clearing setting:', setting);
 	var g = _getGeneralState();
 	g[setting] = { type: 'url', value: '' };
 	_saveGeneralState(g);
@@ -1439,28 +1464,45 @@ function clearGeneralSetting(setting) {
 	var uEl = document.getElementById(urlMap[setting]);
 	if (fEl) fEl.value = '';
 	if (uEl) uEl.value = '';
+	showThemeFeedback('Cleared');
 }
 
 function _applyGeneralSetting(setting, value) {
+	console.log('[General] Applying setting:', setting, '| has value:', !!value);
 	if (setting === 'desktopBackground') {
-		var hs = document.getElementById('screen-home');
-		if (hs) {
-			if (value) {
-				hs.style.backgroundImage    = 'url("' + value + '")';
-				hs.style.backgroundSize     = 'cover';
-				hs.style.backgroundPosition = 'center';
-			} else {
-				hs.style.backgroundImage    = '';
-				hs.style.backgroundSize     = '';
-				hs.style.backgroundPosition = '';
-			}
-		}
-		var inner = document.querySelector('#screen-home > div');
-		if (inner) inner.style.background = value ? 'transparent' : '';
+		_applyDesktopBackground(value);
 	} else if (setting === 'desktopIcon') {
 		_applyDesktopIconStyle(value);
 	} else if (setting === 'chatBackground') {
 		_applyChatBackground(value);
+	}
+}
+
+function _applyDesktopBackground(value) {
+	// Use a <style> tag approach for reliability (avoids specificity issues)
+	var styleEl = document.getElementById('custom-desktop-bg-style');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-desktop-bg-style';
+		document.head.appendChild(styleEl);
+	}
+	if (value) {
+		styleEl.textContent = [
+			'div#screen-home {',
+			'  background: url("' + value + '") center / cover no-repeat !important;',
+			'}',
+			'#screen-home .home-pages,',
+			'#screen-home .home-page {',
+			'  background: transparent !important;',
+			'}',
+			'#screen-home .home-dock {',
+			'  background: transparent !important;',
+			'}'
+		].join('\n');
+		console.log('[General] Desktop background style injected');
+	} else {
+		styleEl.textContent = '';
+		console.log('[General] Desktop background style cleared');
 	}
 }
 
@@ -1499,15 +1541,23 @@ function _applyChatBackground(value) {
 	}
 	if (value) {
 		styleEl.textContent = [
+			'div#screen-chat {',
+			'  background: url("' + value + '") center / cover no-repeat !important;',
+			'}',
 			'#screen-chat .chat-messages {',
-			'  background-image: url("' + value + '") !important;',
-			'  background-size: cover !important;',
-			'  background-position: center !important;',
-			'  background-attachment: local !important;',
+			'  background: transparent !important;',
+			'}',
+			'#screen-chat .chat-header::before {',
+			'  background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 50%, transparent 100%) !important;',
+			'}',
+			'#screen-chat .chat-input-bar::before {',
+			'  background: linear-gradient(to top, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 50%, transparent 100%) !important;',
 			'}'
 		].join('\n');
+		console.log('[General] Chat background style injected');
 	} else {
 		styleEl.textContent = '';
+		console.log('[General] Chat background style cleared');
 	}
 }
 
@@ -1799,6 +1849,29 @@ function _applyHomeIconsToDOM(homeIcons) {
 
 function restoreGeneralSettings() {
 	var g = _getGeneralState();
+
+	// Also check state.theme.general as a fallback source
+	if (window.state && window.state.theme && window.state.theme.general) {
+		var stateG = window.state.theme.general;
+		if ((!g.desktopBackground || !g.desktopBackground.value) && stateG.desktopBackground && stateG.desktopBackground.value) {
+			g.desktopBackground = stateG.desktopBackground;
+		}
+		if ((!g.chatBackground || !g.chatBackground.value) && stateG.chatBackground && stateG.chatBackground.value) {
+			g.chatBackground = stateG.chatBackground;
+		}
+		if ((!g.desktopIcon || !g.desktopIcon.value) && stateG.desktopIcon && stateG.desktopIcon.value) {
+			g.desktopIcon = stateG.desktopIcon;
+		}
+		if ((!g.homeIcons || !Object.keys(g.homeIcons).length) && stateG.homeIcons && Object.keys(stateG.homeIcons).length) {
+			g.homeIcons = stateG.homeIcons;
+		}
+	}
+
+	console.log('[General] Restoring settings:',
+		'desktopBg:', !!(g.desktopBackground && g.desktopBackground.value),
+		'chatBg:', !!(g.chatBackground && g.chatBackground.value),
+		'icon:', !!(g.desktopIcon && g.desktopIcon.value));
+
 	if (g.desktopBackground && g.desktopBackground.value) {
 		_applyGeneralSetting('desktopBackground', g.desktopBackground.value);
 	}
@@ -1808,11 +1881,9 @@ function restoreGeneralSettings() {
 	if (g.chatBackground && g.chatBackground.value) {
 		_applyGeneralSetting('chatBackground', g.chatBackground.value);
 	}
-	// Apply home icons (per-icon name + image)
 	if (g.homeIcons && Object.keys(g.homeIcons).length) {
 		setTimeout(function() { _applyHomeIconsToDOM(g.homeIcons); }, 150);
 	} else if (g.iconNames && Object.keys(g.iconNames).length) {
-		// Legacy migration: convert old iconNames to homeIcons
 		setTimeout(function() {
 			_migrateIconNamesToHomeIcons();
 			var migrated = _getGeneralState();
