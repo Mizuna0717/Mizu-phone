@@ -12,8 +12,8 @@ let state = {
     meetings: [],
   npcs: [],
   allowQuote: true,
-    theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '' },
-    systemPromptIM: '',
+    theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
+          systemPromptIM: '',
   systemPromptMeeting: '',
   user: null
 };
@@ -57,8 +57,8 @@ function _getStateDefaults() {
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
         npcs: [],messageChats: [],  
     allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
-        theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '' },
-    user: null
+        theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
+                user: null
   };
 }
 
@@ -95,6 +95,12 @@ function _validateState() {
   if (state.theme.chatInput == null) state.theme.chatInput = '';
   if (state.theme.chatCards == null) state.theme.chatCards = '';
   if (state.theme.callScreen == null) state.theme.callScreen = '';
+  if (!state.theme.general || typeof state.theme.general !== 'object') state.theme.general = { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, chatBackground: { type: 'url', value: '' } };
+  if (!state.theme.general.desktopBackground) state.theme.general.desktopBackground = { type: 'url', value: '' };
+  if (!state.theme.general.desktopIcon) state.theme.general.desktopIcon = { type: 'url', value: '' };
+  if (!state.theme.general.iconNames) state.theme.general.iconNames = {};
+  if (!state.theme.general.iconSettings) state.theme.general.iconSettings = {};
+  if (!state.theme.general.chatBackground) state.theme.general.chatBackground = { type: 'url', value: '' };
 
   if (window.__user) {
     state.user = window.__user;

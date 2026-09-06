@@ -147,6 +147,8 @@
 		<span class="nav-title">General</span>
 	</div>
 	<div class="screen-body">
+
+		<!-- 1. Font Size -->
 		<div class="te-section-label">Font Size</div>
 		<div class="te-editor-card">
 			<div class="te-param-row">
@@ -159,6 +161,65 @@
 				</select>
 			</div>
 		</div>
+
+		<!-- 2. Desktop Background -->
+		<div class="te-section-label">Desktop Background</div>
+		<div class="te-editor-card">
+			<div class="te-general-preview-row">
+				<div class="te-general-thumb" id="desktopBgThumb"></div>
+				<button class="te-btn te-btn-ghost te-btn-sm" onclick="clearGeneralSetting('desktopBackground')">Clear</button>
+			</div>
+			<div class="te-param-row">
+				<label class="te-param-label">Local Upload</label>
+				<label class="te-upload-btn">
+					<input type="file" id="desktopBgFile" accept="image/jpeg,image/png,image/webp" onchange="onGeneralFileUpload('desktopBackground', this)">
+					Choose Image
+				</label>
+			</div>
+			<div class="te-param-row">
+				<label class="te-param-label">Image URL</label>
+				<input type="url" class="te-url-input" id="desktopBgUrl" placeholder="https://..." oninput="onGeneralUrlInput('desktopBackground', this.value)">
+			</div>
+		</div>
+
+				<!-- 4. Desktop Icons -->
+		<div class="te-section-label">Desktop Icons</div>
+		<div class="te-editor-card" id="iconSettingsCard">
+			<div class="te-editor-label">Customize each icon individually — name and image</div>
+			<div id="iconSettingsList"></div>
+		</div>
+
+				<!-- 4. Icon Names -->
+		<div class="te-section-label">Icon Names</div>
+		<div class="te-editor-card" id="iconNamesCard">
+			<div class="te-editor-label">Edit the display name for each desktop icon</div>
+			<div id="iconNamesList"></div>
+			<div class="te-actions" style="padding:0;margin-top:12px">
+				<button class="te-btn te-btn-primary" onclick="applyIconNames()">Apply Icon Names</button>
+				<button class="te-btn te-btn-ghost" onclick="resetIconNames()">Reset</button>
+			</div>
+		</div>
+
+		<!-- 5. Chat Background -->
+		<div class="te-section-label">Chat Background</div>
+		<div class="te-editor-card">
+			<div class="te-general-preview-row">
+				<div class="te-general-thumb" id="chatBgThumb"></div>
+				<button class="te-btn te-btn-ghost te-btn-sm" onclick="clearGeneralSetting('chatBackground')">Clear</button>
+			</div>
+			<div class="te-param-row">
+				<label class="te-param-label">Local Upload</label>
+				<label class="te-upload-btn">
+					<input type="file" id="chatBgFile" accept="image/jpeg,image/png,image/webp" onchange="onGeneralFileUpload('chatBackground', this)">
+					Choose Image
+				</label>
+			</div>
+			<div class="te-param-row">
+				<label class="te-param-label">Image URL</label>
+				<input type="url" class="te-url-input" id="chatBgUrl" placeholder="https://..." oninput="onGeneralUrlInput('chatBackground', this.value)">
+			</div>
+		</div>
+
 		<div style="height: 32px"></div>
 	</div>
 </div>

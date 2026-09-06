@@ -1,4 +1,4 @@
-// ========== 01-config.js ==========
+﻿// ========== 01-config.js ==========
 // 默認回覆提示詞 & 語言包
 
 const DEFAULT_REPLY_PROMPT = `
@@ -739,7 +739,18 @@ const LANG = {
     'together.enterBiliUrl':'Please enter Bilibili URL',
     'together.parseBiliFirst':'Please parse Bilibili link first',
     'together.selectVideoFile':'Please select a video file',
-    'together.selectNovelFile':'Please select a novel file'
+    'together.selectNovelFile':'Please select a novel file',
+    themeGeneralDesktopBg:'Desktop Background',
+    themeGeneralDesktopIcon:'Desktop Icon',
+    themeGeneralIconNames:'Icon Names',
+    themeGeneralChatBg:'Chat Background',
+    themeGeneralLocalUpload:'Local Upload',
+    themeGeneralImageUrl:'Image URL',
+    themeGeneralChooseImage:'Choose Image',
+    themeGeneralClear:'Clear',
+    themeGeneralApplyIconNames:'Apply Icon Names',
+    themeGeneralReset:'Reset',
+    themeGeneralNoIcons:'No desktop icons found — navigate to the Home screen first.'
   },
   zh: {
     settings:'設置',
@@ -1351,6 +1362,17 @@ const LANG = {
     'together.enterBiliUrl':'请输入 B 站链接',
     'together.parseBiliFirst':'请先解析 B 站链接',
     'together.selectVideoFile':'请选择视频文件',
-    'together.selectNovelFile':'请选择小说文件'
+    'together.selectNovelFile':'请选择小说文件',
+    themeGeneralDesktopBg:'桌面背景',
+    themeGeneralDesktopIcon:'桌面图标样式',
+    themeGeneralIconNames:'图标名称',
+    themeGeneralChatBg:'聊天背景',
+    themeGeneralLocalUpload:'本地上传',
+    themeGeneralImageUrl:'图片 URL',
+    themeGeneralChooseImage:'选择图片',
+    themeGeneralClear:'清除',
+    themeGeneralApplyIconNames:'应用图标名称',
+    themeGeneralReset:'重置',
+    themeGeneralNoIcons:'未找到桌面图标，请先访问主页。'
   }
 };

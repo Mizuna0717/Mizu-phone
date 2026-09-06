@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  Theme Editor — Navigation
 // ============================================================
 
@@ -11,6 +11,7 @@ function openThemeEditor(type) {
 					initBubbleEditor();
 				} else if (type === 'fontsize') {
 					initFontSizeEditor();
+					initGeneralEditor();
 				} else if (type === 'chat') {
 					initChatInterfaceEditor();
 								} else if (type === 'meeting') {
@@ -1337,10 +1338,276 @@ document.addEventListener('DOMContentLoaded', function() {
 		styleEl.textContent = savedBubbleCSS;
 	}
 
-	// Restore bubble params into state
+		// Restore bubble params into state
 	var savedParams = localStorage.getItem('theme-bubble-params');
 	if (savedParams && window.state) {
 		if (!window.state.theme) window.state.theme = {};
 		window.state.theme.bubble = Object.assign({}, BUBBLE_DEFAULTS, JSON.parse(savedParams));
 	}
-});
+
+	// Restore General settings
+	restoreGeneralSettings();
+});// ============================================================
+//  General Module — init
+// ============================================================
+
+function initGeneralEditor() {
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		if (!window.state.theme.general) window.state.theme.general = {};
+	}
+	var g = _getGeneralState();
+	_setGeneralThumbAndUrl('desktopBackground', g.desktopBackground);
+	_setGeneralThumbAndUrl('desktopIcon', g.desktopIcon);
+	_setGeneralThumbAndUrl('chatBackground', g.chatBackground);
+	_renderIconNamesList(g.iconNames || {});
+}
+
+function _getGeneralState() {
+	var defaults = {
+		desktopBackground: { type: 'url', value: '' },
+		desktopIcon:       { type: 'url', value: '' },
+		iconNames:         {},
+		chatBackground:    { type: 'url', value: '' }
+	};
+	try {
+		var raw = localStorage.getItem('theme-general');
+		if (raw) return Object.assign({}, defaults, JSON.parse(raw));
+	} catch(e) {}
+	return defaults;
+}
+
+function _saveGeneralState(g) {
+	localStorage.setItem('theme-general', JSON.stringify(g));
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.general = Object.assign({}, g);
+	}
+}
+
+function _setGeneralThumbAndUrl(setting, data) {
+	var thumbMap = { desktopBackground: 'desktopBgThumb', desktopIcon: 'desktopIconThumb', chatBackground: 'chatBgThumb' };
+	var urlMap   = { desktopBackground: 'desktopBgUrl',   desktopIcon: 'desktopIconUrl',   chatBackground: 'chatBgUrl' };
+	var thumb = document.getElementById(thumbMap[setting]);
+	var urlEl = document.getElementById(urlMap[setting]);
+	var val = (data && data.value) ? data.value : '';
+	if (thumb) {
+		thumb.style.backgroundImage = val ? 'url("' + val + '")' : '';
+		thumb.classList.toggle('te-general-thumb--empty', !val);
+	}
+	if (urlEl && (!data || data.type !== 'local')) urlEl.value = val;
+}
+
+function onGeneralFileUpload(setting, inputEl) {
+	var file = inputEl.files && inputEl.files[0];
+	if (!file) return;
+	var reader = new FileReader();
+	reader.onload = function(e) {
+		var dataUrl = e.target.result;
+		var g = _getGeneralState();
+		g[setting] = { type: 'local', value: dataUrl };
+		_saveGeneralState(g);
+		_setGeneralThumbAndUrl(setting, g[setting]);
+		var urlMap = { desktopBackground: 'desktopBgUrl', desktopIcon: 'desktopIconUrl', chatBackground: 'chatBgUrl' };
+		var urlEl = document.getElementById(urlMap[setting]);
+		if (urlEl) urlEl.value = '';
+		_applyGeneralSetting(setting, dataUrl);
+	};
+	reader.readAsDataURL(file);
+}
+
+function onGeneralUrlInput(setting, value) {
+	var trimmed = value.trim();
+	var g = _getGeneralState();
+	g[setting] = { type: 'url', value: trimmed };
+	_saveGeneralState(g);
+	_setGeneralThumbAndUrl(setting, g[setting]);
+	_applyGeneralSetting(setting, trimmed);
+}
+
+function clearGeneralSetting(setting) {
+	var g = _getGeneralState();
+	g[setting] = { type: 'url', value: '' };
+	_saveGeneralState(g);
+	_setGeneralThumbAndUrl(setting, g[setting]);
+	_applyGeneralSetting(setting, '');
+	var fileMap = { desktopBackground: 'desktopBgFile', desktopIcon: 'desktopIconFile', chatBackground: 'chatBgFile' };
+	var urlMap  = { desktopBackground: 'desktopBgUrl',  desktopIcon: 'desktopIconUrl',  chatBackground: 'chatBgUrl' };
+	var fEl = document.getElementById(fileMap[setting]);
+	var uEl = document.getElementById(urlMap[setting]);
+	if (fEl) fEl.value = '';
+	if (uEl) uEl.value = '';
+}
+
+function _applyGeneralSetting(setting, value) {
+	if (setting === 'desktopBackground') {
+		var hs = document.getElementById('screen-home');
+		if (hs) {
+			if (value) {
+				hs.style.backgroundImage    = 'url("' + value + '")';
+				hs.style.backgroundSize     = 'cover';
+				hs.style.backgroundPosition = 'center';
+			} else {
+				hs.style.backgroundImage    = '';
+				hs.style.backgroundSize     = '';
+				hs.style.backgroundPosition = '';
+			}
+		}
+		var inner = document.querySelector('#screen-home > div');
+		if (inner) inner.style.background = value ? 'transparent' : '';
+	} else if (setting === 'desktopIcon') {
+		_applyDesktopIconStyle(value);
+	} else if (setting === 'chatBackground') {
+		_applyChatBackground(value);
+	}
+}
+
+function _applyDesktopIconStyle(value) {
+	var styleEl = document.getElementById('custom-desktop-icon-style');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-desktop-icon-style';
+		document.head.appendChild(styleEl);
+	}
+	if (value) {
+		styleEl.textContent = [
+			'#screen-home .app-icon svg { display: none !important; }',
+			'#screen-home .app-icon::after {',
+			'  content: "";',
+			'  display: block;',
+			'  width: 68%;',
+			'  height: 68%;',
+			'  background-image: url("' + value + '");',
+			'  background-size: contain;',
+			'  background-repeat: no-repeat;',
+			'  background-position: center;',
+			'}'
+		].join('\n');
+	} else {
+		styleEl.textContent = '';
+	}
+}
+
+function _applyChatBackground(value) {
+	var styleEl = document.getElementById('custom-chat-bg-style');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'custom-chat-bg-style';
+		document.head.appendChild(styleEl);
+	}
+	if (value) {
+		styleEl.textContent = [
+			'#screen-chat .chat-messages {',
+			'  background-image: url("' + value + '") !important;',
+			'  background-size: cover !important;',
+			'  background-position: center !important;',
+			'  background-attachment: local !important;',
+			'}'
+		].join('\n');
+	} else {
+		styleEl.textContent = '';
+	}
+}
+
+// ============================================================
+//  General Module — Icon Names
+// ============================================================
+
+function _getDesktopIconDefs() {
+	var defs = [];
+	var wraps = document.querySelectorAll(
+		'#screen-home .home-page .app-icon-wrap, #screen-home .home-dock .app-icon-wrap'
+	);
+	wraps.forEach(function(el) {
+		var labelEl = el.querySelector('.app-label');
+		if (!labelEl) return;
+		if (!labelEl.dataset.defaultLabel) {
+			labelEl.dataset.defaultLabel = labelEl.textContent.trim();
+		}
+		var key = el.dataset.iconKey;
+		if (!key) {
+			var onclick = el.getAttribute('onclick') || '';
+			key = labelEl.dataset.defaultLabel.replace(/\s+/g, '_').toLowerCase()
+				+ '__' + onclick.replace(/[^a-z0-9]/gi, '').toLowerCase().slice(0, 18);
+			el.dataset.iconKey = key;
+		}
+		defs.push({ key: key, defaultLabel: labelEl.dataset.defaultLabel, el: el });
+	});
+	return defs;
+}
+
+function _renderIconNamesList(iconNames) {
+	var container = document.getElementById('iconNamesList');
+	if (!container) return;
+	var defs = _getDesktopIconDefs();
+	if (!defs.length) {
+		container.innerHTML = '<div class="te-editor-label" style="color:#c7c7cc">No desktop icons found — navigate to the Home screen first, then re-open this editor.</div>';
+		return;
+	}
+	container.innerHTML = defs.map(function(def) {
+		var cur = (iconNames[def.key] !== undefined) ? iconNames[def.key] : def.defaultLabel;
+		return '<div class="te-icon-name-row">'
+			+ '<span class="te-icon-name-key">' + _escHtml(def.defaultLabel) + '</span>'
+			+ '<input class="te-icon-name-input" type="text" data-icon-key="' + _escHtml(def.key) + '" value="' + _escHtml(cur) + '" placeholder="' + _escHtml(def.defaultLabel) + '">'
+			+ '</div>';
+	}).join('');
+}
+
+function applyIconNames() {
+	var container = document.getElementById('iconNamesList');
+	if (!container) return;
+	var g = _getGeneralState();
+	if (!g.iconNames) g.iconNames = {};
+	container.querySelectorAll('.te-icon-name-input').forEach(function(inp) {
+		g.iconNames[inp.dataset.iconKey] = inp.value.trim();
+	});
+	_saveGeneralState(g);
+	_applyIconNamesToDOM(g.iconNames);
+	showThemeFeedback('Applied');
+}
+
+function resetIconNames() {
+	var g = _getGeneralState();
+	g.iconNames = {};
+	_saveGeneralState(g);
+	_applyIconNamesToDOM({});
+	_renderIconNamesList({});
+	showThemeFeedback('Reset');
+}
+
+function _applyIconNamesToDOM(iconNames) {
+	_getDesktopIconDefs().forEach(function(def) {
+		var labelEl = def.el.querySelector('.app-label');
+		if (!labelEl) return;
+		var newName = iconNames[def.key];
+		labelEl.textContent = (newName !== undefined && newName !== '') ? newName : def.defaultLabel;
+	});
+}
+
+function _escHtml(str) {
+	return String(str)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+}
+
+// ============================================================
+//  General Module — restore on page load
+// ============================================================
+
+function restoreGeneralSettings() {
+	var g = _getGeneralState();
+	if (g.desktopBackground && g.desktopBackground.value) {
+		_applyGeneralSetting('desktopBackground', g.desktopBackground.value);
+	}
+	if (g.desktopIcon && g.desktopIcon.value) {
+		_applyGeneralSetting('desktopIcon', g.desktopIcon.value);
+	}
+	if (g.chatBackground && g.chatBackground.value) {
+		_applyGeneralSetting('chatBackground', g.chatBackground.value);
+	}
+	if (g.iconNames && Object.keys(g.iconNames).length) {
+		setTimeout(function() { _applyIconNamesToDOM(g.iconNames); }, 150);
+	}
+}
