@@ -182,13 +182,12 @@
 			</div>
 		</div>
 
-		<!-- 4. Desktop Icons -->
+				<!-- 4. Desktop Icons -->
 <div class="te-section-label">Desktop Icons</div>
 <div class="te-editor-card" id="iconSettingsCard">
     <div class="te-editor-label">Customize each icon individually — name and image</div>
-    <div id="iconSettingsList"></div>   <!-- 这个容器必须有 -->
+    <div id="iconSettingsList"></div>
     <div class="te-actions" style="padding:0;margin-top:12px">
-        <button class="te-btn te-btn-primary" onclick="applyHomeIcons()">Apply</button>
         <button class="te-btn te-btn-ghost" onclick="resetAllHomeIcons()">Reset All</button>
     </div>
 </div>
@@ -213,6 +212,15 @@
 				<label class="te-param-label">Image URL</label>
 				<input type="url" class="te-url-input" id="chatBgUrl" placeholder="https://..." oninput="onGeneralUrlInput('chatBackground', this.value)">
 			</div>
+		</div>
+
+				<!-- Apply All -->
+		<div class="te-section-label">Apply Changes</div>
+		<div class="te-general-apply-wrap">
+			<button class="te-btn te-btn-primary te-general-apply-btn" onclick="applyAllGeneralSettings()">
+				<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8l4 4 8-8"/></svg>
+				Apply All
+			</button>
 		</div>
 
 		<div style="height: 32px"></div>

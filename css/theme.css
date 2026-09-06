@@ -1316,3 +1316,26 @@
 	padding: 4px 8px;
 	font-size: 12px;
 }
+
+/* ============================================================
+   General Editor — unified Apply All button
+   ============================================================ */
+
+.te-general-apply-wrap {
+	margin: 0 20px;
+}
+
+.te-general-apply-btn {
+	width: 100%;
+	padding: 14px 20px;
+	font-size: 15px;
+	font-weight: 600;
+	border-radius: 12px;
+	justify-content: center;
+	gap: 8px;
+}
+
+.te-general-apply-btn svg {
+	width: 18px;
+	height: 18px;
+}

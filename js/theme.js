@@ -1432,8 +1432,7 @@ function onGeneralFileUpload(setting, inputEl) {
 		var urlMap = { desktopBackground: 'desktopBgUrl', desktopIcon: 'desktopIconUrl', chatBackground: 'chatBgUrl' };
 		var urlEl = document.getElementById(urlMap[setting]);
 		if (urlEl) urlEl.value = '';
-		_applyGeneralSetting(setting, dataUrl);
-		console.log('[General] Applied', setting, '| value set:', !!dataUrl);
+		console.log('[General] Staged', setting, '| click Apply All to apply');
 	};
 	reader.onerror = function(e) {
 		console.error('[General] FileReader error for', setting, e);
@@ -1448,13 +1447,12 @@ function onGeneralUrlInput(setting, value) {
 	g[setting] = { type: 'url', value: trimmed };
 	_saveGeneralState(g);
 	_setGeneralThumbAndUrl(setting, g[setting]);
-	_applyGeneralSetting(setting, trimmed);
 }
 
 function clearGeneralSetting(setting) {
 	console.log('[General] Clearing setting:', setting);
 	var g = _getGeneralState();
-	g[setting] = { type: 'url', value: '' };
+	g[setting] = { type: 'default', value: '' };
 	_saveGeneralState(g);
 	_setGeneralThumbAndUrl(setting, g[setting]);
 	_applyGeneralSetting(setting, '');
@@ -1559,6 +1557,48 @@ function _applyChatBackground(value) {
 		styleEl.textContent = '';
 		console.log('[General] Chat background style cleared');
 	}
+}
+
+// ============================================================
+//  General Module — Apply All
+// ============================================================
+
+function applyAllGeneralSettings() {
+	// 1. Collect icon names from inputs
+	var container = document.getElementById('iconSettingsList');
+	var g = _getGeneralState();
+	if (!g.homeIcons) g.homeIcons = {};
+	if (container) {
+		container.querySelectorAll('.te-icon-setting-name').forEach(function(inp) {
+			var key = inp.dataset.iconKey;
+			if (!g.homeIcons[key]) g.homeIcons[key] = {};
+			g.homeIcons[key].name = inp.value.trim();
+		});
+		if (!g.iconNames) g.iconNames = {};
+		Object.keys(g.homeIcons).forEach(function(key) {
+			if (g.homeIcons[key].name) g.iconNames[key] = g.homeIcons[key].name;
+		});
+	}
+
+	// 2. Apply desktop background
+	var dbg = g.desktopBackground;
+	_applyGeneralSetting('desktopBackground', (dbg && dbg.value) ? dbg.value : '');
+
+	// 3. Apply desktop icon style
+	var di = g.desktopIcon;
+	_applyGeneralSetting('desktopIcon', (di && di.value) ? di.value : '');
+
+	// 4. Apply chat background
+	var cbg = g.chatBackground;
+	_applyGeneralSetting('chatBackground', (cbg && cbg.value) ? cbg.value : '');
+
+	// 5. Apply home icon names + images
+	_applyHomeIconsToDOM(g.homeIcons);
+
+	// 6. Persist everything
+	_saveGeneralState(g);
+
+	showThemeFeedback('Applied');
 }
 
 // ============================================================
