@@ -721,6 +721,173 @@
   letter-spacing: .2px;
 }
 
+/* ===== Page 1 Bottom: weather left + icons right ===== */
+.home-p1-bottom {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* ===== Weather Widget (square card, page-1 left column) ===== */
+.weather-widget {
+  flex: 0 0 auto;
+  width: 130px;
+  min-height: 130px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(255,255,255,.82), rgba(245,245,248,.60));
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow: 0 2px 16px rgba(0,0,0,.06), 0 0.5px 0 rgba(255,255,255,.7) inset;
+  padding: 12px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform .15s;
+}
+
+.weather-widget:active {
+  transform: scale(.97);
+}
+
+.ww-top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.ww-indicator {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.ww-indicator svg {
+  width: 18px;
+  height: 18px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.ww-indicator.loading svg {
+  animation: ww-spin 1s linear infinite;
+}
+
+@keyframes ww-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ww-city {
+  font-size: 9px;
+  color: #a0a0a5;
+  font-weight: 500;
+  letter-spacing: .3px;
+  text-align: right;
+  flex: 1;
+  margin-left: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ww-temp {
+  font-size: 28px;
+  font-weight: 200;
+  color: #1d1d1f;
+  line-height: 1;
+  letter-spacing: -1px;
+  margin: 2px 0 0;
+}
+
+.ww-cond {
+  font-size: 11px;
+  color: #6e6e73;
+  font-weight: 400;
+  margin-top: 2px;
+  letter-spacing: .1px;
+}
+
+.ww-divider {
+  width: 100%;
+  height: 0.5px;
+  background: rgba(0,0,0,.07);
+  margin: 6px 0;
+}
+
+.ww-hum-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ww-hum-row svg {
+  width: 11px;
+  height: 11px;
+  stroke: #a0a0a5;
+  fill: none;
+  stroke-width: 1.4;
+  flex-shrink: 0;
+}
+
+.ww-hum-row span {
+  font-size: 11px;
+  color: #6e6e73;
+  font-weight: 400;
+}
+
+.ww-time {
+  font-size: 9px;
+  color: #c0c0c5;
+  margin-top: 4px;
+  letter-spacing: .2px;
+}
+
+/* ===== Page 1 icon grid: 2x2 on the right ===== */
+.home-icon-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 10px;
+  align-content: center;
+  justify-items: center;
+}
+
+.home-icon-grid .app-icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 17px;
+  background: linear-gradient(145deg, rgba(255,255,255,.85), rgba(255,255,255,.55));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0.5px 0 rgba(255,255,255,.9) inset;
+  transition: transform .15s;
+}
+
+.home-icon-grid .app-icon:active {
+  transform: scale(.92);
+}
+
+.home-icon-grid .app-icon svg {
+  width: 27px;
+  height: 27px;
+  stroke: #4a4a4e;
+  stroke-width: 1.4;
+}
+
+.home-icon-grid .app-label {
+  font-size: 10px;
+  color: #48484a;
+  font-weight: 500;
+  letter-spacing: .2px;
+}
+
 /* ===== 空白圖標 ===== */
 .blank-icon {
   background: linear-gradient(145deg, rgba(255, 255, 255, .4), rgba(255, 255, 255, .2)) !important;

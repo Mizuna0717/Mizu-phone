@@ -13,6 +13,7 @@ let state = {
   npcs: [],
   wikiSchedule: [],
   together: { songs: [], videos: [], novels: [] },
+  home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' } },
   allowQuote: true,
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium',homeIcons: {}, desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
           systemPromptIM: '',
@@ -37,7 +38,7 @@ var SAVE_KEYS = [
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
   'groups', 'moments', 'imsgTab','messageChats' ,           
   'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting', 'theme',
-  'wikiSchedule', 'together'
+  'wikiSchedule', 'together', 'home'
 ];
 
 var _stateLoaded = false;
@@ -61,6 +62,7 @@ function _getStateDefaults() {
     npcs: [], messageChats: [],
     wikiSchedule: [],
     together: { songs: [], videos: [], novels: [] },
+    home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' } },
     allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
     user: null
@@ -112,6 +114,8 @@ function _validateState() {
   if (!state.theme.general.iconSettings) state.theme.general.iconSettings = {};
   if (!state.theme.general.chatBackground) state.theme.general.chatBackground = { type: 'url', value: '' };
   if (!state.theme.general.homeIcons) state.theme.general.homeIcons = {};
+  if (!state.home || typeof state.home !== 'object') state.home = {};
+  if (!state.home.weather || typeof state.home.weather !== 'object') state.home.weather = { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' };
   if (window.__user) {
     state.user = window.__user;
   }
