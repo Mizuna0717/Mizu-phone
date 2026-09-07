@@ -12,8 +12,8 @@ let state = {
     meetings: [],
   npcs: [],
   wikiSchedule: [],
-  together: { songs: [], videos: [], novels: [] },
-  home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' } },
+    together: { songs: [], videos: [], novels: [] },
+  home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'if-kioyao.com', topRightText: 'Dorkioyao', avatar: { type: 'url', value: '' }, titleText: 'Dorkioyao', description: ['time, record life, record everything.', 'Happy, healthy, and peaceful.'], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] } },
   allowQuote: true,
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium',homeIcons: {}, desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
           systemPromptIM: '',
@@ -62,7 +62,7 @@ function _getStateDefaults() {
     npcs: [], messageChats: [],
     wikiSchedule: [],
     together: { songs: [], videos: [], novels: [] },
-    home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' } },
+    home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'if-kioyao.com', topRightText: 'Dorkioyao', avatar: { type: 'url', value: '' }, titleText: 'Dorkioyao', description: ['time, record life, record everything.', 'Happy, healthy, and peaceful.'], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] } },
     allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
     user: null
@@ -116,6 +116,10 @@ function _validateState() {
   if (!state.theme.general.homeIcons) state.theme.general.homeIcons = {};
   if (!state.home || typeof state.home !== 'object') state.home = {};
   if (!state.home.weather || typeof state.home.weather !== 'object') state.home.weather = { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' };
+  if (!state.home.widget || typeof state.home.widget !== 'object') state.home.widget = { topLeftText: 'if-kioyao.com', topRightText: 'Dorkioyao', avatar: { type: 'url', value: '' }, titleText: 'Dorkioyao', description: ['time, record life, record everything.', 'Happy, healthy, and peaceful.'], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] };
+  if (!state.home.widget.avatar) state.home.widget.avatar = { type: 'url', value: '' };
+  if (!Array.isArray(state.home.widget.images) || state.home.widget.images.length < 3) state.home.widget.images = [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }];
+  if (!Array.isArray(state.home.widget.description)) state.home.widget.description = ['time, record life, record everything.', 'Happy, healthy, and peaceful.'];
   if (window.__user) {
     state.user = window.__user;
   }

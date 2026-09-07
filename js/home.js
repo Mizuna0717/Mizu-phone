@@ -10,6 +10,7 @@ function initHome() {
   updateCalendar();
   renderHomeProfile();
   renderCalEvent();
+  renderBlogWidget();
   const u = state.userProfile;
   if (u.musicSong) { const el = document.getElementById('musicSong'); if (el) el.textContent = u.musicSong; }
   if (u.musicArtist) { const el = document.getElementById('musicArtist'); if (el) el.textContent = u.musicArtist; }
@@ -73,14 +74,162 @@ function setHomeAvatar(inp) {
   }
 }
 
+// ========== BLOG WIDGET ==========
+function _getBlogWidget() {
+  if (!state.home) state.home = {};
+  if (!state.home.widget) {
+    state.home.widget = {
+      topLeftText: 'if-kioyao.com', topRightText: 'Dorkioyao',
+      avatar: { type: 'url', value: '' },
+      titleText: 'Dorkioyao',
+      description: ['time, record life, record everything.', 'Happy, healthy, and peaceful.'],
+      images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }]
+    };
+  }
+  return state.home.widget;
+}
+
+function renderBlogWidget() {
+  const w = _getBlogWidget();
+  const topCenter = document.getElementById('bwTopCenterText');
+  if (topCenter) topCenter.textContent = w.topLeftText || 'if-kioyao.com';
+  const title = document.getElementById('bwTitle');
+  if (title) title.textContent = w.titleText || 'Dorkioyao';
+  const desc0 = document.getElementById('bwDesc0');
+  if (desc0) desc0.textContent = (w.description && w.description[0]) || 'time, record life, record everything.';
+  const desc1 = document.getElementById('bwDesc1');
+  if (desc1) desc1.textContent = (w.description && w.description[1]) || 'Happy, healthy, and peaceful.';
+  const avatarImg = document.getElementById('bwAvatarImg');
+  const avatarPh  = document.getElementById('bwAvatarPh');
+  const avatarVal = w.avatar && w.avatar.value;
+  if (avatarVal) {
+    avatarImg.src = avatarVal; avatarImg.style.display = 'block';
+    if (avatarPh) avatarPh.style.display = 'none';
+  } else {
+    avatarImg.style.display = 'none';
+    if (avatarPh) avatarPh.style.display = 'block';
+  }
+  [0, 1, 2].forEach(i => {
+    const img = document.getElementById('bwImg' + i);
+    const ph  = document.getElementById('bwImgPh' + i);
+    const val = w.images && w.images[i] && w.images[i].value;
+    if (val) {
+      img.src = val; img.style.display = 'block';
+      if (ph) ph.style.display = 'none';
+    } else {
+      img.style.display = 'none';
+      if (ph) ph.style.display = 'flex';
+    }
+  });
+}
+
+function _showBlogMediaPicker(onLocalFile, onUrlInput) {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;background:rgba(0,0,0,.4);';
+  modal.innerHTML = `
+    <div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,0px)+20px);">
+      <div style="font-size:13px;color:#8e8e93;text-align:center;margin-bottom:16px;">Choose source</div>
+      <button id="_bmpFile" style="display:block;width:100%;padding:14px;background:#f2f2f7;border:none;border-radius:12px;font-size:15px;margin-bottom:10px;cursor:pointer;">Upload from device</button>
+      <button id="_bmpUrl" style="display:block;width:100%;padding:14px;background:#f2f2f7;border:none;border-radius:12px;font-size:15px;margin-bottom:10px;cursor:pointer;">Enter URL</button>
+      <button id="_bmpCancel" style="display:block;width:100%;padding:14px;background:transparent;border:none;font-size:15px;color:#8e8e93;cursor:pointer;">Cancel</button>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector('#_bmpFile').onclick = () => { document.body.removeChild(modal); onLocalFile(); };
+  modal.querySelector('#_bmpUrl').onclick  = () => {
+    document.body.removeChild(modal);
+    const v = prompt('Image URL:');
+    if (v && v.trim()) onUrlInput(v.trim());
+  };
+  modal.querySelector('#_bmpCancel').onclick = () => document.body.removeChild(modal);
+  modal.onclick = e => { if (e.target === modal) document.body.removeChild(modal); };
+}
+
+function editBlogAvatar() {
+  _showBlogMediaPicker(
+    () => document.getElementById('bwAvatarInput').click(),
+    url => {
+      const w = _getBlogWidget();
+      w.avatar = { type: 'url', value: url };
+      saveState(); renderBlogWidget();
+    }
+  );
+}
+
+function setBlogAvatarFile(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const w = _getBlogWidget();
+    w.avatar = { type: 'local', value: e.target.result };
+    saveState(); renderBlogWidget();
+  };
+  r.readAsDataURL(inp.files[0]);
+}
+
+function editBlogImage(index) {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'image/*';
+  _showBlogMediaPicker(
+    () => {
+      fileInput.onchange = () => {
+        if (!fileInput.files || !fileInput.files[0]) return;
+        const r = new FileReader();
+        r.onload = e => {
+          const w = _getBlogWidget();
+          w.images[index] = { type: 'local', value: e.target.result };
+          saveState(); renderBlogWidget();
+        };
+        r.readAsDataURL(fileInput.files[0]);
+      };
+      fileInput.click();
+    },
+    url => {
+      const w = _getBlogWidget();
+      w.images[index] = { type: 'url', value: url };
+      saveState(); renderBlogWidget();
+    }
+  );
+}
+
+function editBlogTopCenter() {
+  const w = _getBlogWidget();
+  const v = prompt('URL text:', w.topLeftText || 'if-kioyao.com');
+  if (v !== null) { w.topLeftText = v; saveState(); renderBlogWidget(); }
+}
+
+function editBlogTopLeft() {
+  editBlogTopCenter();
+}
+
+function editBlogTitle() {
+  const w = _getBlogWidget();
+  const v = prompt('Title:', w.titleText || 'Dorkioyao');
+  if (v !== null) { w.titleText = v; saveState(); renderBlogWidget(); }
+}
+
+function editBlogDesc(index) {
+  const w = _getBlogWidget();
+  const cur = (w.description && w.description[index]) || '';
+  const v = prompt('Description line ' + (index + 1) + ':', cur);
+  if (v !== null) {
+    if (!w.description) w.description = ['', ''];
+    w.description[index] = v;
+    saveState(); renderBlogWidget();
+  }
+}
+
 function renderHomeProfile() {
   const u = state.userProfile;
   const img = document.getElementById('homeAvatarImg'), ph = document.getElementById('homeAvatarPh');
-  if (u.avatar) { img.src = u.avatar; img.style.display = 'block'; ph.style.display = 'none'; }
-  else { img.style.display = 'none'; ph.style.display = 'block'; }
-  document.getElementById('homeUserName').textContent = u.name || 'User';
-  document.getElementById('homeUserBio').textContent = u.bio || 'Tap to add signature';
-  if (u.banner) { const bi = document.getElementById('homeBannerImg'); bi.src = u.banner; bi.style.display = 'block'; }
+  if (img && ph) {
+    if (u.avatar) { img.src = u.avatar; img.style.display = 'block'; ph.style.display = 'none'; }
+    else { img.style.display = 'none'; ph.style.display = 'block'; }
+  }
+  const nameEl = document.getElementById('homeUserName');
+  if (nameEl) nameEl.textContent = u.name || 'User';
+  const bioEl = document.getElementById('homeUserBio');
+  if (bioEl) bioEl.textContent = u.bio || 'Tap to add signature';
+  if (u.banner) { const bi = document.getElementById('homeBannerImg'); if (bi) { bi.src = u.banner; bi.style.display = 'block'; } }
 }
 
 function startEditHomeName() {
