@@ -54,22 +54,39 @@
 					</div>
 				</div>
 				<div class="home-p1-bottom">
-					<!-- Weather Widget (left) -->
+					<!-- Weather Widget (new style) -->
 					<div class="weather-widget" id="weatherWidget">
-						<div class="ww-top">
-							<div class="ww-indicator" id="weatherIndicator">
-								<svg viewBox="0 0 18 18"><path d="M9 2v2M9 14v2M2 9H4M14 9h2M4.1 4.1l1.4 1.4M12.5 12.5l1.4 1.4M4.1 13.9l1.4-1.4M12.5 5.5l1.4-1.4"/><circle cx="9" cy="9" r="3"/></svg>
+						<div class="nww-header">
+							<div class="nww-date-block">
+								<div class="nww-weekday" id="nwwWeekday">Mon</div>
+								<div class="nww-day" id="nwwDay">1</div>
 							</div>
-							<div class="ww-city" id="weatherCity">--</div>
+							<div class="nww-record-block">
+								<div class="nww-record1" id="nwwRecord1" onclick="editWeatherRecord(0)">Record time, record life,</div>
+								<div class="nww-record2" id="nwwRecord2" onclick="editWeatherRecord(1)">record everything.</div>
+							</div>
 						</div>
-						<div class="ww-temp" id="weatherTemp">--°C</div>
-						<div class="ww-cond" id="weatherCond">--</div>
-						<div class="ww-divider"></div>
-						<div class="ww-hum-row">
-							<svg viewBox="0 0 14 14"><path d="M7 2C7 2 3 6.5 3 9a4 4 0 008 0C11 6.5 7 2 7 2z"/></svg>
-							<span id="weatherHum">--%</span>
+						<div class="nww-oval">
+							<div class="nww-oval-img" id="nwwImgWrap" onclick="editWeatherImage()">
+								<img id="nwwImg" style="display:none">
+								<div class="nww-img-ph" id="nwwImgPh">
+									<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+								</div>
+							</div>
+							<div class="nww-oval-info">
+								<div class="nww-cond-icon" id="weatherIndicator">
+									<svg viewBox="0 0 24 24"><path d="M3 12a5 5 0 0 1 9.5-2A4 4 0 1 1 17 18H6a4 4 0 0 1-3-6z"/><path d="M18 6l1-2M21 9l2-1M19.5 12l2 .5"/></svg>
+								</div>
+								<div class="nww-temp" id="weatherTemp">--°C</div>
+							</div>
 						</div>
-						<div class="ww-time" id="weatherTime"></div>
+						<div style="display:none">
+							<span id="weatherCity"></span>
+							<span id="weatherCond"></span>
+							<span id="weatherHum"></span>
+							<span id="weatherTime"></span>
+						</div>
+						<input type="file" id="nwwImgInput" accept="image/*" onchange="setWeatherWidgetImageFile(this)" style="display:none">
 					</div>
 					<!-- 4 App Icons -->
 					<div class="home-icon-grid">

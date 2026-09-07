@@ -11,6 +11,7 @@ function initHome() {
   renderHomeProfile();
   renderCalEvent();
   renderBlogWidget();
+  renderWeatherWidget();
   const u = state.userProfile;
   if (u.musicSong) { const el = document.getElementById('musicSong'); if (el) el.textContent = u.musicSong; }
   if (u.musicArtist) { const el = document.getElementById('musicArtist'); if (el) el.textContent = u.musicArtist; }
@@ -296,7 +297,88 @@ function editMusicInfo(type) {
   }
 }
 
-// ========== WEATHER WIDGET ==========
+// ========== WEATHER WIDGET (NEW) ==========
+function _getWeatherWidget() {
+  if (!state.home) state.home = {};
+  if (!state.home.weatherWidget) {
+    state.home.weatherWidget = {
+      recordText: ['Record time, record life,', 'record everything.'],
+      image: { type: 'url', value: '' }
+    };
+  }
+  return state.home.weatherWidget;
+}
+
+function renderWeatherWidget() {
+  const ww = _getWeatherWidget();
+  const now = new Date();
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayEl = document.getElementById('nwwDay');
+  const wdEl  = document.getElementById('nwwWeekday');
+  if (dayEl) dayEl.textContent = now.getDate();
+  if (wdEl)  wdEl.textContent  = days[now.getDay()];
+  const r1 = document.getElementById('nwwRecord1');
+  const r2 = document.getElementById('nwwRecord2');
+  if (r1) r1.textContent = (ww.recordText && ww.recordText[0]) || 'Record time, record life,';
+  if (r2) r2.textContent = (ww.recordText && ww.recordText[1]) || 'record everything.';
+  const img = document.getElementById('nwwImg');
+  const ph  = document.getElementById('nwwImgPh');
+  const val = ww.image && ww.image.value;
+  if (img && ph) {
+    if (val) { img.src = val; img.style.display = 'block'; ph.style.display = 'none'; }
+    else { img.style.display = 'none'; ph.style.display = 'flex'; }
+  }
+}
+
+function editWeatherRecord(index) {
+  const ww = _getWeatherWidget();
+  const cur = (ww.recordText && ww.recordText[index]) || '';
+  const v = prompt('Edit text:', cur);
+  if (v !== null) {
+    if (!ww.recordText) ww.recordText = ['', ''];
+    ww.recordText[index] = v;
+    saveState();
+    renderWeatherWidget();
+  }
+}
+
+function editWeatherImage() {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'image/*';
+  _showBlogMediaPicker(
+    () => {
+      fileInput.onchange = () => {
+        if (!fileInput.files || !fileInput.files[0]) return;
+        const r = new FileReader();
+        r.onload = e => {
+          const ww = _getWeatherWidget();
+          ww.image = { type: 'local', value: e.target.result };
+          saveState(); renderWeatherWidget();
+        };
+        r.readAsDataURL(fileInput.files[0]);
+      };
+      fileInput.click();
+    },
+    url => {
+      const ww = _getWeatherWidget();
+      ww.image = { type: 'url', value: url };
+      saveState(); renderWeatherWidget();
+    }
+  );
+}
+
+function setWeatherWidgetImageFile(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const ww = _getWeatherWidget();
+    ww.image = { type: 'local', value: e.target.result };
+    saveState(); renderWeatherWidget();
+  };
+  r.readAsDataURL(inp.files[0]);
+}
+
+// ========== WEATHER WIDGET (DATA FETCH) ==========
 let _weatherLongPressTimer = null;
 
 function initWeatherWidget() {

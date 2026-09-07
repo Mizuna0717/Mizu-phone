@@ -957,7 +957,7 @@
   gap: 12px;
 }
 
-/* ===== Weather Widget (square card, page-1 left column) ===== */
+/* ===== Weather Widget (new style) ===== */
 .weather-widget {
   aspect-ratio: 1;
   border-radius: 22px;
@@ -965,10 +965,10 @@
   backdrop-filter: blur(24px);
   border: 1px solid rgba(255,255,255,.65);
   box-shadow: 0 2px 16px rgba(0,0,0,.06), 0 0.5px 0 rgba(255,255,255,.7) inset;
-  padding: 12px 12px 10px;
+  padding: 14px 12px 10px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  overflow: hidden;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
@@ -978,6 +978,131 @@
 .weather-widget:active {
   transform: scale(.97);
 }
+
+.nww-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.nww-date-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.nww-weekday {
+  font-size: 10px;
+  color: rgba(110,110,115,.7);
+  font-weight: 500;
+  letter-spacing: .3px;
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+.nww-day {
+  font-size: 32px;
+  font-weight: 200;
+  color: #2c2c2e;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.nww-record-block {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.nww-record1,
+.nww-record2 {
+  font-size: 10px;
+  color: #8e8e93;
+  font-weight: 400;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.nww-record1:active,
+.nww-record2:active { opacity: .6; }
+
+.nww-oval {
+  flex: 1;
+  min-height: 0;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,.75);
+  background: rgba(255,255,255,.4);
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.nww-oval-img {
+  width: 60%;
+  height: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.nww-oval-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.nww-img-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(200,200,205,.2);
+}
+
+.nww-img-ph svg {
+  width: 18px;
+  height: 18px;
+  stroke: #c7c7cc;
+  fill: none;
+  stroke-width: 1.3;
+}
+
+.nww-oval-img:active { opacity: .8; }
+
+.nww-oval-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 4px;
+}
+
+.nww-cond-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: #8e8e93;
+  fill: none;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.nww-temp {
+  font-size: 12px;
+  font-weight: 500;
+  color: #3a3a3c;
+  letter-spacing: -.2px;
+}
+
+.ww-top, .ww-indicator, .ww-city, .ww-cond,
+.ww-divider, .ww-hum-row, .ww-time { display: none; }
 
 .ww-top {
   display: flex;
