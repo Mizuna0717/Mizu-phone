@@ -102,7 +102,7 @@
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px 20px;
+  padding: 26px 16px 20px;
   transition: transform .35s cubic-bezier(.32, .72, 0, 1);
 }
 
@@ -110,8 +110,9 @@
   display: flex;
   justify-content: center;
   gap: 7px;
-  padding: 6px 0 4px;
+  padding: 2px 0 8px;
   flex-shrink: 0;
+  margin-bottom: -6px;
 }
 
 .home-dot {
@@ -128,29 +129,17 @@
   border-radius: 3px;
 }
 
-/* ===== Dock（支持 3 個圖標 + 毛玻璃背景） ===== */
+/* ===== Dock（支持 3 個圖標） ===== */
 .home-dock {
   display: flex;
   justify-content: center;
   gap: 20px;
-  padding: 12px 20px calc(env(safe-area-inset-bottom, 4px) + 12px);
-  background: rgba(255, 255, 255, .75);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border-top: 0.5px solid rgba(255, 255, 255, .8);
+  padding: 0 20px calc(env(safe-area-inset-bottom, 4px) + 8px);
+  background: transparent;
+  backdrop-filter: none;
+  border-top: none;
   flex-shrink: 0;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, .04);
   position: relative;
-}
-
-.home-dock::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
 }
 
 .home-dock .app-icon-wrap {
@@ -161,10 +150,10 @@
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, .9);
+  background: linear-gradient(145deg, rgba(255,255,255,.85), rgba(255,255,255,.55));
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, .6);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, .08), 0 0.5px 0 rgba(255, 255, 255, .8) inset;
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0.5px 0 rgba(255,255,255,.9) inset;
 }
 
 .home-dock .app-label {
