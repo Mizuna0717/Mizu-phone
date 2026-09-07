@@ -125,24 +125,94 @@ function renderBlogWidget() {
 }
 
 function _showBlogMediaPicker(onLocalFile, onUrlInput) {
-  const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;background:rgba(0,0,0,.4);';
-  modal.innerHTML = `
-    <div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,0px)+20px);">
-      <div style="font-size:13px;color:#8e8e93;text-align:center;margin-bottom:16px;">Choose source</div>
-      <button id="_bmpFile" style="display:block;width:100%;padding:14px;background:#f2f2f7;border:none;border-radius:12px;font-size:15px;margin-bottom:10px;cursor:pointer;">Upload from device</button>
-      <button id="_bmpUrl" style="display:block;width:100%;padding:14px;background:#f2f2f7;border:none;border-radius:12px;font-size:15px;margin-bottom:10px;cursor:pointer;">Enter URL</button>
-      <button id="_bmpCancel" style="display:block;width:100%;padding:14px;background:transparent;border:none;font-size:15px;color:#8e8e93;cursor:pointer;">Cancel</button>
+  const overlay = document.createElement('div');
+  overlay.className = 'modern-modal-overlay';
+  overlay.innerHTML = `
+    <div class="modern-modal">
+      <div class="modern-modal-header">
+        <div class="modern-modal-title">Choose Image Source</div>
+        <div class="modern-modal-subtitle">Select how you want to add an image</div>
+      </div>
+      <div class="modern-modal-body">
+                <div class="modern-modal-option" id="_mmpFile">
+          <div class="modern-modal-option-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          </div>
+          <div class="modern-modal-option-text">
+            <div class="modern-modal-option-title">Upload from Device</div>
+            <div class="modern-modal-option-desc">Choose a photo from your gallery</div>
+          </div>
+        </div>
+        <div class="modern-modal-option" id="_mmpUrl">
+          <div class="modern-modal-option-icon">
+            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          </div>
+          <div class="modern-modal-option-text">
+            <div class="modern-modal-option-title">Enter Image URL</div>
+            <div class="modern-modal-option-desc">Paste a link from the web</div>
+          </div>
+        </div>
+      </div>
+      <div class="modern-modal-buttons">
+        <button class="modern-modal-btn modern-modal-btn-secondary" id="_mmpCancel">Cancel</button>
+      </div>
     </div>`;
-  document.body.appendChild(modal);
-  modal.querySelector('#_bmpFile').onclick = () => { document.body.removeChild(modal); onLocalFile(); };
-  modal.querySelector('#_bmpUrl').onclick  = () => {
-    document.body.removeChild(modal);
-    const v = prompt('Image URL:');
-    if (v && v.trim()) onUrlInput(v.trim());
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.classList.add('show'), 10);
+  
+  const closeModal = () => {
+    overlay.classList.remove('show');
+    setTimeout(() => document.body.removeChild(overlay), 250);
   };
-  modal.querySelector('#_bmpCancel').onclick = () => document.body.removeChild(modal);
-  modal.onclick = e => { if (e.target === modal) document.body.removeChild(modal); };
+  
+  overlay.querySelector('#_mmpFile').onclick = () => { closeModal(); onLocalFile(); };
+  overlay.querySelector('#_mmpUrl').onclick = () => {
+    closeModal();
+    setTimeout(() => _showTextInputModal('Enter Image URL', 'Paste the image URL here', '', url => {
+      if (url && url.trim()) onUrlInput(url.trim());
+    }), 300);
+  };
+  overlay.querySelector('#_mmpCancel').onclick = closeModal;
+  overlay.onclick = e => { if (e.target === overlay) closeModal(); };
+}
+
+function _showTextInputModal(title, placeholder, defaultValue, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modern-modal-overlay';
+  overlay.innerHTML = `
+    <div class="modern-modal">
+      <div class="modern-modal-header">
+        <div class="modern-modal-title">${title}</div>
+      </div>
+      <div class="modern-modal-body">
+        <input type="text" class="modern-modal-input" id="_timInput" placeholder="${placeholder}" value="${defaultValue}">
+      </div>
+      <div class="modern-modal-buttons">
+        <button class="modern-modal-btn modern-modal-btn-primary" id="_timConfirm">Confirm</button>
+        <button class="modern-modal-btn modern-modal-btn-secondary" id="_timCancel">Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.classList.add('show'), 10);
+  
+  const input = overlay.querySelector('#_timInput');
+  setTimeout(() => input.focus(), 300);
+  
+  const closeModal = () => {
+    overlay.classList.remove('show');
+    setTimeout(() => document.body.removeChild(overlay), 250);
+  };
+  
+  const confirm = () => {
+    const val = input.value;
+    closeModal();
+    onConfirm(val);
+  };
+  
+  overlay.querySelector('#_timConfirm').onclick = confirm;
+  overlay.querySelector('#_timCancel').onclick = closeModal;
+  overlay.onclick = e => { if (e.target === overlay) closeModal(); };
+  input.onkeydown = e => { if (e.key === 'Enter') confirm(); };
 }
 
 function editBlogAvatar() {
@@ -194,8 +264,9 @@ function editBlogImage(index) {
 
 function editBlogTopCenter() {
   const w = _getBlogWidget();
-  const v = prompt('URL text:', w.topLeftText || 'if-kioyao.com');
-  if (v !== null) { w.topLeftText = v; saveState(); renderBlogWidget(); }
+  _showTextInputModal('Edit URL Text', 'Enter the URL or domain name', w.topLeftText || 'if-kioyao.com', v => {
+    if (v !== null && v !== undefined) { w.topLeftText = v; saveState(); renderBlogWidget(); }
+  });
 }
 
 function editBlogTopLeft() {
@@ -204,19 +275,21 @@ function editBlogTopLeft() {
 
 function editBlogTitle() {
   const w = _getBlogWidget();
-  const v = prompt('Title:', w.titleText || 'Dorkioyao');
-  if (v !== null) { w.titleText = v; saveState(); renderBlogWidget(); }
+  _showTextInputModal('Edit Title', 'Enter your name or title', w.titleText || 'Dorkioyao', v => {
+    if (v !== null && v !== undefined) { w.titleText = v; saveState(); renderBlogWidget(); }
+  });
 }
 
 function editBlogDesc(index) {
   const w = _getBlogWidget();
   const cur = (w.description && w.description[index]) || '';
-  const v = prompt('Description line ' + (index + 1) + ':', cur);
-  if (v !== null) {
-    if (!w.description) w.description = ['', ''];
-    w.description[index] = v;
-    saveState(); renderBlogWidget();
-  }
+  _showTextInputModal('Edit Description Line ' + (index + 1), 'Enter description text', cur, v => {
+    if (v !== null && v !== undefined) {
+      if (!w.description) w.description = ['', ''];
+      w.description[index] = v;
+      saveState(); renderBlogWidget();
+    }
+  });
 }
 
 function renderHomeProfile() {
@@ -241,8 +314,9 @@ function startEditHomeName() {
 }
 
 function startEditHomeBio() {
-  const v = prompt('Signature:', (state.userProfile.bio || ''));
-  if (v !== null) { state.userProfile.bio = v; saveState(); renderHomeProfile(); }
+  _showTextInputModal('Edit Signature', 'Enter your signature or bio', state.userProfile.bio || '', v => {
+    if (v !== null && v !== undefined) { state.userProfile.bio = v; saveState(); renderHomeProfile(); }
+  });
 }
 
 // ========== GREETING WIDGET ==========
@@ -289,12 +363,15 @@ function setMusicCover(inp) {
 function editMusicInfo(type) {
   const key = type === 'song' ? 'musicSong' : 'musicArtist';
   const cur = state.userProfile[key] || '';
-  const v = prompt(type === 'song' ? 'Song name:' : 'Artist:', cur);
-  if (v !== null) {
-    state.userProfile[key] = v;
-    saveState();
-    document.getElementById(key === 'musicSong' ? 'musicSong' : 'musicArtist').textContent = v || (type === 'song' ? 'Song Title' : 'Artist');
-  }
+  const title = type === 'song' ? 'Edit Song Name' : 'Edit Artist Name';
+  const placeholder = type === 'song' ? 'Enter song name' : 'Enter artist name';
+  _showTextInputModal(title, placeholder, cur, v => {
+    if (v !== null && v !== undefined) {
+      state.userProfile[key] = v;
+      saveState();
+      document.getElementById(key === 'musicSong' ? 'musicSong' : 'musicArtist').textContent = v || (type === 'song' ? 'Song Title' : 'Artist');
+    }
+  });
 }
 
 // ========== WEATHER WIDGET (NEW) ==========
@@ -333,13 +410,14 @@ function renderWeatherWidget() {
 function editWeatherRecord(index) {
   const ww = _getWeatherWidget();
   const cur = (ww.recordText && ww.recordText[index]) || '';
-  const v = prompt('Edit text:', cur);
-  if (v !== null) {
-    if (!ww.recordText) ww.recordText = ['', ''];
-    ww.recordText[index] = v;
-    saveState();
-    renderWeatherWidget();
-  }
+  _showTextInputModal('Edit Record Text', 'Enter description text', cur, v => {
+    if (v !== null && v !== undefined) {
+      if (!ww.recordText) ww.recordText = ['', ''];
+      ww.recordText[index] = v;
+      saveState();
+      renderWeatherWidget();
+    }
+  });
 }
 
 function editWeatherImage() {
@@ -455,14 +533,15 @@ function fetchWeather() {
 
 function weatherSetCity() {
   const cur = (state.home && state.home.weather && state.home.weather.city) || '';
-  const v = prompt('City name (leave blank for auto-detect):', cur);
-  if (v === null) return;
-  if (!state.home) state.home = {};
-  if (!state.home.weather) state.home.weather = {};
-  state.home.weather.city = v.trim();
-  saveState();
-  renderWeather();
-  fetchWeather();
+  _showTextInputModal('Set Weather Location', 'Enter city name or leave blank for auto-detect', cur, v => {
+    if (v === null || v === undefined) return;
+    if (!state.home) state.home = {};
+    if (!state.home.weather) state.home.weather = {};
+    state.home.weather.city = v.trim();
+    saveState();
+    renderWeather();
+    fetchWeather();
+  });
 }
 
 // ========== CALENDAR WIDGET ==========
@@ -476,16 +555,23 @@ function updateCalendar() {
 }
 
 function editCalEvent() {
-  const v = prompt('Event name:', state.userProfile.calEvent || '');
-  if (v !== null) {
-    state.userProfile.calEvent = v;
-    if (v) {
-      const d = prompt('Days until event:', '0');
-      state.userProfile.calDays = parseInt(d) || 0;
+  _showTextInputModal('Edit Event Name', 'Enter event name', state.userProfile.calEvent || '', v => {
+    if (v !== null && v !== undefined) {
+      state.userProfile.calEvent = v;
+      if (v) {
+        setTimeout(() => {
+          _showTextInputModal('Days Until Event', 'Enter number of days', '0', d => {
+            state.userProfile.calDays = parseInt(d) || 0;
+            saveState();
+            renderCalEvent();
+          });
+        }, 300);
+      } else {
+        saveState();
+        renderCalEvent();
+      }
     }
-    saveState();
-    renderCalEvent();
-  }
+  });
 }
 
 function renderCalEvent() {
