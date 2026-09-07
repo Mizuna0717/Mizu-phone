@@ -11,24 +11,21 @@ function initHome() {
   renderHomeProfile();
   renderCalEvent();
   
-  const w = _getBlogWidget();
-  if (!w.images[0].value && !w.images[1].value && !w.images[2].value) {
-    w.images[0] = { type: 'url', value: 'images/blog-1.jpg' };
-    w.images[1] = { type: 'url', value: 'images/blog-2.jpg' };
-    w.images[2] = { type: 'url', value: 'images/blog-3.jpg' };
-    saveState();
-  }
+    const w = _getBlogWidget();
+  const _defaultImgs = ['images/blog-1.jpg', 'images/blog-2.jpg', 'images/blog-3.jpg'];
+  let _imgChanged = false;
+  [0,1,2].forEach(i => {
+    if (!w.images[i].value) {
+      w.images[i] = { type: 'url', value: _defaultImgs[i] };
+      _imgChanged = true;
+    }
+  });
+  if (_imgChanged) saveState(true);
   
   renderBlogWidget();
   renderWeatherWidget();
   
-  const homeScreen = document.getElementById('screen-home');
-  if (homeScreen && !homeScreen.style.backgroundImage) {
-    homeScreen.style.backgroundImage = 'url("images/home wallpaper.png")';
-    homeScreen.style.backgroundSize = 'cover';
-    homeScreen.style.backgroundPosition = 'center';
-    homeScreen.style.backgroundRepeat = 'no-repeat';
-  }
+      
   
   const u = state.userProfile;
   if (u.musicSong) { const el = document.getElementById('musicSong'); if (el) el.textContent = u.musicSong; }

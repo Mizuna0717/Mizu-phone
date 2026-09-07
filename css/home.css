@@ -2,10 +2,11 @@
 /* 首頁背景、首頁圖標網格、滑動頁、小組件 */
 
 #screen-home {
-  background: linear-gradient(180deg, #f0f0f5 0%, #e4e4e9 50%, #dcdce1 100%);
+  background-image: url('../images/home wallpaper.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  background-color: #e4e4e9;
 }
 
 /* ===== 傳統首頁圖標（備用） ===== */
