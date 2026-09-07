@@ -95,10 +95,10 @@ function _getBlogWidget() {
   if (!state.home) state.home = {};
   if (!state.home.widget) {
     state.home.widget = {
-      topLeftText: 'if-kioyao.com', topRightText: 'Dorkioyao',
+      topLeftText: 'Mizu phone.com', topRightText: 'Mizu',
       avatar: { type: 'url', value: '' },
-      titleText: 'Dorkioyao',
-      description: ['time, record life, record everything.', 'Happy, healthy, and peaceful.'],
+      titleText: 'Mizu',
+      description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ '],
       images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }]
     };
   }
@@ -108,13 +108,13 @@ function _getBlogWidget() {
 function renderBlogWidget() {
   const w = _getBlogWidget();
   const topCenter = document.getElementById('bwTopCenterText');
-  if (topCenter) topCenter.textContent = w.topLeftText || 'if-kioyao.com';
+  if (topCenter) topCenter.textContent = w.topLeftText || 'Mizu phone.com';
   const title = document.getElementById('bwTitle');
-  if (title) title.textContent = w.titleText || 'Dorkioyao';
+  if (title) title.textContent = w.titleText || 'Mizu';
   const desc0 = document.getElementById('bwDesc0');
-  if (desc0) desc0.textContent = (w.description && w.description[0]) || 'time, record life, record everything.';
+  if (desc0) desc0.textContent = (w.description && w.description[0]) || '🤍ineedu…^';
   const desc1 = document.getElementById('bwDesc1');
-  if (desc1) desc1.textContent = (w.description && w.description[1]) || 'Happy, healthy, and peaceful.';
+  if (desc1) desc1.textContent = (w.description && w.description[1]) || '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ , healthy, and peaceful.';
   const avatarImg = document.getElementById('bwAvatarImg');
   const avatarPh  = document.getElementById('bwAvatarPh');
   const avatarVal = w.avatar && w.avatar.value;
@@ -279,7 +279,7 @@ function editBlogImage(index) {
 
 function editBlogTopCenter() {
   const w = _getBlogWidget();
-  _showTextInputModal('Edit URL Text', 'Enter the URL or domain name', w.topLeftText || 'if-kioyao.com', v => {
+  _showTextInputModal('Edit URL Text', 'Enter the URL or domain name', w.topLeftText || 'Mizu phone.com', v => {
     if (v !== null && v !== undefined) { w.topLeftText = v; saveState(); renderBlogWidget(); }
   });
 }
@@ -290,7 +290,7 @@ function editBlogTopLeft() {
 
 function editBlogTitle() {
   const w = _getBlogWidget();
-  _showTextInputModal('Edit Title', 'Enter your name or title', w.titleText || 'Dorkioyao', v => {
+  _showTextInputModal('Edit Title', 'Enter your name or title', w.titleText || 'Mizu', v => {
     if (v !== null && v !== undefined) { w.titleText = v; saveState(); renderBlogWidget(); }
   });
 }
