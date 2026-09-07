@@ -1,4 +1,4 @@
-// ========== 15-home.js ==========
+﻿// ========== 15-home.js ==========
 // 依賴：02-state.js, 03-utils.js
 
 let homePageIndex = 0;
@@ -10,9 +10,12 @@ function initHome() {
   renderHomeProfile();
   renderCalEvent();
 
+  // Only set default images if no image has been saved yet
   renderBlogWidget();
   renderWeatherWidget();
-
+  
+      
+  
   const u = state.userProfile;
   if (u.musicSong) { const el = document.getElementById('musicSong'); if (el) el.textContent = u.musicSong; }
   if (u.musicArtist) { const el = document.getElementById('musicArtist'); if (el) el.textContent = u.musicArtist; }
@@ -96,15 +99,6 @@ function _getBlogWidget() {
     }
   });
   if (_imgChanged) saveState(true);
-  const defaultImgs = ['images/blog-1.jpg', 'images/blog-2.jpg', 'images/blog-3.jpg'];
-  let changed = false;
-  [0, 1, 2].forEach(i => {
-    if (!state.home.widget.images[i] || !state.home.widget.images[i].value) {
-      state.home.widget.images[i] = { type: 'url', value: defaultImgs[i] };
-      changed = true;
-    }
-  });
-  if (changed) saveState(true);
   return state.home.widget;
 }
 
@@ -601,3 +595,4 @@ function renderCalEvent() {
   if (ev) { el.textContent = ev; cd.textContent = state.userProfile.calDays || 0; cd.style.display = 'block'; }
   else { el.textContent = 'Tap to set event'; cd.style.display = 'none'; }
 }
+

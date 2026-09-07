@@ -48,11 +48,14 @@
     // ═══════════════════════════════════════════════
     //  2. 首页初始化（全部 try-catch）
     // ═══════════════════════════════════════════════
-    try { initHomeSwipe(); }   catch(e) {}
+        try { initHomeSwipe(); }   catch(e) {}
     try { updateGreeting(); }  catch(e) {}
     try { updateCalendar(); }  catch(e) {}
     try { renderHomeProfile(); } catch(e) {}
     try { renderCalEvent(); }  catch(e) {}
+    try { renderBlogWidget(); }    catch(e) { console.warn('[init] renderBlogWidget failed:', e); }
+    try { renderWeatherWidget(); } catch(e) { console.warn('[init] renderWeatherWidget failed:', e); }
+    try { initWeatherWidget(); }   catch(e) { console.warn('[init] initWeatherWidget failed:', e); }
 
     try {
       if (state.userProfile.musicSong)
