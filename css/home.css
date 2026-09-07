@@ -3,6 +3,9 @@
 
 #screen-home {
   background: linear-gradient(180deg, #f0f0f5 0%, #e4e4e9 50%, #dcdce1 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* ===== 傳統首頁圖標（備用） ===== */
