@@ -20,12 +20,13 @@
 						<div class="bw-avatar" id="bwAvatarWrap" onclick="editBlogAvatar()">
 							<img id="bwAvatarImg" style="display:none">
 							<svg id="bwAvatarPh" viewBox="0 0 32 32"><circle cx="16" cy="13" r="6"/><path d="M5 28c0-6 5-10 11-10s11 4 11 10"/></svg>
+							<div style="position:absolute;top:-2px;right:-2px;width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:10px;color:#8e8e93;font-weight:600;letter-spacing:-.5px">...</div>
 							<input type="file" id="bwAvatarInput" accept="image/*" onchange="setBlogAvatarFile(this)" style="display:none">
 						</div>
 						<div class="bw-info">
 							<div class="bw-title" id="bwTitle" onclick="editBlogTitle()">Dorkioyao</div>
 							<div class="bw-desc">
-								<span id="bwDesc0" onclick="editBlogDesc(0)">time, record life, record everything.</span>
+								<span id="bwDesc0" onclick="editBlogDesc(0)">"Some small displays" Record time, record life, record everything. </span>
 								<span id="bwDesc1" onclick="editBlogDesc(1)">Happy, healthy, and peaceful.</span>
 							</div>
 						</div>
@@ -48,12 +49,11 @@
 						<span class="bw-nav-arrow">&lt;</span>
 						<div class="bw-reload-btn">
 							<span>Reload</span>
-							<svg viewBox="0 0 16 16"><path d="M13 8A5 5 0 1 1 8 3" stroke-linecap="round"/><path d="M8 1v4l2.5-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							<svg viewBox="0 0 14 14"><path d="M9 2l2 2-2 2M11 4A5 5 0 1 0 7 13" stroke-linecap="round"/></svg>
 						</div>
 						<span class="bw-nav-arrow">&gt;</span>
 					</div>
-				</div>
-				<div class="home-p1-bottom">
+				</div><div class="home-p1-bottom">
 					<!-- Weather Widget (new style) -->
 					<div class="weather-widget" id="weatherWidget">
 						<div class="nww-header">
@@ -206,3 +206,4 @@
 		</div>
 	</div>
 </div>
+
