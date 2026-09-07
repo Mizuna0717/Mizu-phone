@@ -110,9 +110,8 @@
   display: flex;
   justify-content: center;
   gap: 7px;
-  padding: 2px 0 8px;
+  padding: 6px 0 4px;
   flex-shrink: 0;
-  margin-bottom: -21px;
 }
 
 .home-dot {
@@ -970,7 +969,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 /* ===== Weather Widget (new style — matches image) ===== */
