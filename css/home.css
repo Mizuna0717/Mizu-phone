@@ -138,16 +138,31 @@
   justify-content: center;
   gap: 20px;
   padding: 0 20px calc(env(safe-area-inset-bottom, 4px) + 18px);
-  background: transparent;
-  backdrop-filter: none;
-  border-top: none;
   flex-shrink: 0;
   position: relative;
   margin-top: -10px;
 }
 
+.home-dock::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 30px;
+  right: 30px;
+  bottom: calc(env(safe-area-inset-bottom, 4px) + 10px);
+  background: rgba(220, 220, 225, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  z-index: 0;
+}
+
 .home-dock .app-icon-wrap {
   gap: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .home-dock .app-icon {
@@ -161,9 +176,7 @@
 }
 
 .home-dock .app-label {
-  font-size: 9px;
-  color: #3a3a3c;
-  font-weight: 500;
+  display: none;
 }
 
 /* ===== Blog Widget (Safari-style) ===== */
