@@ -621,19 +621,20 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(circle, rgba(180, 180, 188, 0.58) 2px, transparent 2px),
-    radial-gradient(circle, rgba(180, 180, 188, 0.58) 2px, transparent 2px),
-    radial-gradient(circle, rgba(180, 180, 188, 0.58) 2px, transparent 2px);
-  background-size: 16px 2px, 16px 2px, 16px 2px;
-  background-position: 0px 4px, 8px 16px, 0px 28px;
-  background-repeat: repeat-x, repeat-x, repeat-x;
+  background-image: radial-gradient(circle, rgba(180,180,188,.58) 2px, transparent 2px);
+  background-size: 16px 10px;
+  background-position: 0px 4px;
 }
 
 /* 删掉原来的 ::after（大圆点 + 旧样式） */
 .gw-dots-header::after {
-  content: none;
-  display: none;
+  content: '';
+  display: block;
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(180,180,188,.4) 2px, transparent 2px);
+  background-size: 16px 20px;
+  background-position: 8px 9px;
 }
 
 /* Content wrapper */
