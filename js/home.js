@@ -342,7 +342,10 @@ function _getGreetingWidget() {
   if (!state.home) state.home = {};
   if (!state.home.greetingWidget) {
     state.home.greetingWidget = {
-      cardText: ['유치한 놈 ㅋㅋ、', '🤍🖤ineedu...^']
+      bubbles: ['o•ᴗ•o', 'ᴗ ∧ ᴗ'],
+      names: ['Janice', 'James'],
+      tags: ['infp | Aries', 'entp | Capricorn'],
+      avatars: ['', '']
     };
   }
   return state.home.greetingWidget;
@@ -350,38 +353,88 @@ function _getGreetingWidget() {
 
 function updateGreeting() {
   const gw = _getGreetingWidget();
-  const now = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  const yy = String(now.getFullYear()).slice(2);
-  const mm = pad(now.getMonth() + 1);
-  const dd = pad(now.getDate());
-  const dateEl = document.getElementById('gwDate');
-  if (dateEl) dateEl.textContent = `${yy}-${mm}-${dd}`;
-  const t0 = document.getElementById('gwCardText0');
-  const t1 = document.getElementById('gwCardText1');
-  if (t0) t0.textContent = (gw.cardText && gw.cardText[0]) || '유치한 놈 ㅋㅋ、';
-  if (t1) t1.textContent = (gw.cardText && gw.cardText[1]) || '🤍🖤ineedu...^';
-  syncGwTemp();
+  [0, 1].forEach(i => {
+    const b = document.getElementById('gwBubble' + i);
+    const n = document.getElementById('gwName' + i);
+    const t = document.getElementById('gwTag' + i);
+    if (b) b.textContent = (gw.bubbles && gw.bubbles[i]) || (i === 0 ? 'o•ᴗ•o' : 'ᴗ ∧ ᴗ');
+    if (n) n.textContent = (gw.names && gw.names[i]) || (i === 0 ? 'Janice' : 'James');
+    if (t) t.textContent = (gw.tags && gw.tags[i]) || (i === 0 ? 'infp | Aries' : 'entp | Capricorn');
+    const img = document.getElementById('gwAvatar' + i);
+    const ph  = document.getElementById('gwAvatarPh' + i);
+    const val = gw.avatars && gw.avatars[i];
+    if (img && ph) {
+      if (val) { img.src = val; img.style.display = 'block'; ph.style.display = 'none'; }
+      else { img.style.display = 'none'; ph.style.display = 'block'; }
+    }
+  });
 }
 
-function syncGwTemp() {
-  const w = (state.home && state.home.weather) || {};
-  const tempEl = document.getElementById('gwTemp');
-  if (tempEl) tempEl.textContent = (w.temperature && w.temperature !== '--') ? w.temperature + '°C' : '--°C';
-}
+function syncGwTemp() {}
 
-function editGwCard(index) {
+function editGwChar(index) {
   const gw = _getGreetingWidget();
-  const cur = (gw.cardText && gw.cardText[index]) || '';
-  const labels = ['Edit Photo Caption', 'Edit Music Caption'];
-  _showTextInputModal(labels[index], 'Enter caption text', cur, v => {
+  const cur = (gw.bubbles && gw.bubbles[index]) || '';
+  _showTextInputModal('Edit Bubble Text', 'Enter bubble text', cur, v => {
     if (v !== null && v !== undefined) {
-      if (!gw.cardText) gw.cardText = ['', ''];
-      gw.cardText[index] = v;
+      if (!gw.bubbles) gw.bubbles = ['', ''];
+      gw.bubbles[index] = v;
       saveState();
       updateGreeting();
     }
   });
+}
+
+function editGwName(index) {
+  const gw = _getGreetingWidget();
+  const cur = (gw.names && gw.names[index]) || '';
+  _showTextInputModal('Edit Name', 'Enter name', cur, v => {
+    if (v !== null && v !== undefined) {
+      if (!gw.names) gw.names = ['', ''];
+      gw.names[index] = v;
+      saveState();
+      updateGreeting();
+    }
+  });
+}
+
+function editGwTag(index) {
+  const gw = _getGreetingWidget();
+  const cur = (gw.tags && gw.tags[index]) || '';
+  _showTextInputModal('Edit Tag', 'e.g. infp | Aries', cur, v => {
+    if (v !== null && v !== undefined) {
+      if (!gw.tags) gw.tags = ['', ''];
+      gw.tags[index] = v;
+      saveState();
+      updateGreeting();
+    }
+  });
+}
+
+function editGwAvatar(index) {
+  _showBlogMediaPicker(
+    () => document.getElementById('gwAvatarInput' + index).click(),
+    url => {
+      const gw = _getGreetingWidget();
+      if (!gw.avatars) gw.avatars = ['', ''];
+      gw.avatars[index] = url;
+      saveState();
+      updateGreeting();
+    }
+  );
+}
+
+function setGwAvatar(index, inp) {
+  if (!inp.files || !inp.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const gw = _getGreetingWidget();
+    if (!gw.avatars) gw.avatars = ['', ''];
+    gw.avatars[index] = e.target.result;
+    saveState();
+    updateGreeting();
+  };
+  r.readAsDataURL(inp.files[0]);
 }
 
 // ========== MUSIC WIDGET ==========

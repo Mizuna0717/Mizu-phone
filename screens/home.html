@@ -113,51 +113,45 @@
 			<!-- PAGE 2 -->
 			<div class="home-page" id="homePage2">
 								<div class="greeting-widget">
-					<!-- Left panel -->
-					<div class="gw-left">
-						<div class="gw-left-top">
-							<span class="gw-heart-emoji">🖤</span>
-						</div>
-						<div class="gw-left-bottom">
-							<div class="gw-meta-row">
-								<span class="gw-meta-dot gw-meta-dot--gray"></span>
-								<span class="gw-meta-temp" id="gwTemp">--°C</span>
-							</div>
-							<div class="gw-meta-row">
-								<span class="gw-meta-dot gw-meta-dot--white"></span>
-								<span class="gw-meta-date" id="gwDate">--</span>
-							</div>
-						</div>
-					</div>
-					<!-- Right panel -->
-					<div class="gw-right">
-						<div class="gw-dots-bg"></div>
-						<div class="gw-cards">
-							<!-- Card 1: Photo -->
-							<div class="gw-card" onclick="editGwCard(0)">
-								<div class="gw-card-icon gw-card-icon--dark">
-									<svg viewBox="0 0 40 40"><path d="M20 6C13 6 8 11.5 8 18c0 3.5 1.5 6.6 3.8 8.8L20 34l8.2-7.2A13 13 0 0 0 32 18c0-6.5-5-12-12-12z" fill="#1d1d1f" stroke="none"/><path d="M20 12v12M14 18h12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+									<div class="gw-bg-blur"></div>
+									<div class="gw-dots-header"></div>
+									<div class="gw-content-wrapper">
+										<!-- Bubbles row -->
+										<div class="gw-bubbles-row">
+											<div class="gw-bubble gw-bubble-left" onclick="editGwChar(0)">
+												<span id="gwBubble0">o•ᴗ•o</span>
+											</div>
+											<div class="gw-bubble gw-bubble-right" onclick="editGwChar(1)">
+												<span id="gwBubble1">ᴗ ∧ ᴗ</span>
+											</div>
+										</div>
+										<!-- Avatars + info row -->
+										<div class="gw-avatars-row">
+											<!-- Left info -->
+											<div class="gw-info gw-info-left">
+												<div class="gw-name" id="gwName0" onclick="editGwName(0);">Janice</div>
+												<div class="gw-tag" id="gwTag0" onclick="editGwTag(0);">infp | Aries</div>
+											</div>
+											<!-- Left avatar -->
+											<div class="gw-avatar" onclick="editGwAvatar(0);">
+												<img id="gwAvatar0" style="display:none">
+												<svg id="gwAvatarPh0" viewBox="0 0 80 80"><circle cx="40" cy="32" r="8"/><circle cx="32" cy="22" r="2.5"/><circle cx="48" cy="22" r="2.5"/><path d="M35 40c0 3 2 5 5 5s5-2 5-5" stroke-linecap="round"/><path d="M40 50c-6 0-10 3-10 8"/></svg>
+											</div>
+											<!-- Right avatar -->
+											<div class="gw-avatar" onclick="editGwAvatar(1);">
+												<img id="gwAvatar1" style="display:none">
+												<svg id="gwAvatarPh1" viewBox="0 0 80 80"><circle cx="40" cy="35" r="10"/><circle cx="32" cy="24" r="2.5"/><circle cx="48" cy="24" r="2.5"/><path d="M35 42c0 3 2 5 5 5s5-2 5-5" stroke-linecap="round"/><ellipse cx="40" cy="52" rx="8" ry="6"/></svg>
+											</div>
+											<!-- Right info -->
+											<div class="gw-info gw-info-right">
+												<div class="gw-name" id="gwName1" onclick="editGwName(1);">James</div>
+												<div class="gw-tag" id="gwTag1" onclick="editGwTag(1);">entp | Capricorn</div>
+											</div>
+										</div>
+									</div>
+									<input type="file" id="gwAvatarInput0" accept="image/*" onchange="setGwAvatar(0, this)" style="display:none">
+									<input type="file" id="gwAvatarInput1" accept="image/*" onchange="setGwAvatar(1, this)" style="display:none">
 								</div>
-								<div class="gw-card-meta">
-									<span class="gw-card-dot"></span>
-									<span class="gw-card-type">filetype：Photo</span>
-								</div>
-								<div class="gw-card-text" id="gwCardText0">유치한 놈 ㅋㅋ、</div>
-							</div>
-							<!-- Card 2: Music -->
-							<div class="gw-card" onclick="editGwCard(1)">
-								<div class="gw-card-icon gw-card-icon--light">
-									<svg viewBox="0 0 40 40"><path d="M20 6C13 6 8 11.5 8 18c0 3.5 1.5 6.6 3.8 8.8L20 34l8.2-7.2A13 13 0 0 0 32 18c0-6.5-5-12-12-12z" fill="rgba(200,200,205,0.5)" stroke="rgba(180,180,185,0.6)" stroke-width="1"/><path d="M20 12v12M14 18h12" stroke="#3a3a3c" stroke-width="2.5" stroke-linecap="round"/></svg>
-								</div>
-								<div class="gw-card-meta">
-									<span class="gw-card-dot"></span>
-									<span class="gw-card-type">filetype：Music</span>
-								</div>
-								<div class="gw-card-text" id="gwCardText1">🤍🖤ineedu...^</div>
-							</div>
-						</div>
-					</div>
-				</div>
 				<div class="p2-grid">
 					<div class="p2-left">
 						<div class="music-widget">
