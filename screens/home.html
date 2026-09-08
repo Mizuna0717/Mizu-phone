@@ -112,15 +112,50 @@
 			</div>
 			<!-- PAGE 2 -->
 			<div class="home-page" id="homePage2">
-				<div class="greeting-widget" onclick="document.getElementById('greetingBgInput').click()">
-					<div class="gw-bg"><img id="greetingBgImg" style="display:none"></div>
-					<button class="gw-edit"><svg viewBox="0 0 12 12"><path d="M8.5 1.5l2 2M1 8.5V11h2.5L10 4.5l-2-2L1 8.5z"/></svg></button>
-					<input type="file" id="greetingBgInput" accept="image/*" onchange="setGreetingBg(this)" style="display:none">
-					<div class="gw-content">
-						<div class="gw-icon"><svg viewBox="0 0 28 28"><circle cx="14" cy="10" r="5"/><path d="M14 3v1M14 17v1M7 10H6M22 10h-1"/><path d="M8 20c0-2 2-4 4-4h4c2 0 4 2 4 4"/></svg></div>
-						<div class="gw-title" id="greetingText">Good Evening</div>
-						<div class="gw-sub">Have a nice day.</div>
-						<div class="gw-dots" id="greetingDots"></div>
+								<div class="greeting-widget">
+					<!-- Left panel -->
+					<div class="gw-left">
+						<div class="gw-left-top">
+							<span class="gw-heart-emoji">🖤</span>
+						</div>
+						<div class="gw-left-bottom">
+							<div class="gw-meta-row">
+								<span class="gw-meta-dot gw-meta-dot--gray"></span>
+								<span class="gw-meta-temp" id="gwTemp">--°C</span>
+							</div>
+							<div class="gw-meta-row">
+								<span class="gw-meta-dot gw-meta-dot--white"></span>
+								<span class="gw-meta-date" id="gwDate">--</span>
+							</div>
+						</div>
+					</div>
+					<!-- Right panel -->
+					<div class="gw-right">
+						<div class="gw-dots-bg"></div>
+						<div class="gw-cards">
+							<!-- Card 1: Photo -->
+							<div class="gw-card" onclick="editGwCard(0)">
+								<div class="gw-card-icon gw-card-icon--dark">
+									<svg viewBox="0 0 40 40"><path d="M20 6C13 6 8 11.5 8 18c0 3.5 1.5 6.6 3.8 8.8L20 34l8.2-7.2A13 13 0 0 0 32 18c0-6.5-5-12-12-12z" fill="#1d1d1f" stroke="none"/><path d="M20 12v12M14 18h12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+								</div>
+								<div class="gw-card-meta">
+									<span class="gw-card-dot"></span>
+									<span class="gw-card-type">filetype：Photo</span>
+								</div>
+								<div class="gw-card-text" id="gwCardText0">유치한 놈 ㅋㅋ、</div>
+							</div>
+							<!-- Card 2: Music -->
+							<div class="gw-card" onclick="editGwCard(1)">
+								<div class="gw-card-icon gw-card-icon--light">
+									<svg viewBox="0 0 40 40"><path d="M20 6C13 6 8 11.5 8 18c0 3.5 1.5 6.6 3.8 8.8L20 34l8.2-7.2A13 13 0 0 0 32 18c0-6.5-5-12-12-12z" fill="rgba(200,200,205,0.5)" stroke="rgba(180,180,185,0.6)" stroke-width="1"/><path d="M20 12v12M14 18h12" stroke="#3a3a3c" stroke-width="2.5" stroke-linecap="round"/></svg>
+								</div>
+								<div class="gw-card-meta">
+									<span class="gw-card-dot"></span>
+									<span class="gw-card-type">filetype：Music</span>
+								</div>
+								<div class="gw-card-text" id="gwCardText1">🤍🖤ineedu...^</div>
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="p2-grid">

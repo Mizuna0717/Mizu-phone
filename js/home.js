@@ -338,29 +338,50 @@ function startEditHomeBio() {
 }
 
 // ========== GREETING WIDGET ==========
-function setGreetingBg(inp) {
-  if (inp.files?.[0]) {
-    const r = new FileReader();
-    r.onload = e => {
-      const img = document.getElementById('greetingBgImg');
-      img.src = e.target.result;
-      img.style.display = 'block';
+function _getGreetingWidget() {
+  if (!state.home) state.home = {};
+  if (!state.home.greetingWidget) {
+    state.home.greetingWidget = {
+      cardText: ['유치한 놈 ㅋㅋ、', '🤍🖤ineedu...^']
     };
-    r.readAsDataURL(inp.files[0]);
   }
+  return state.home.greetingWidget;
 }
 
 function updateGreeting() {
-  const h = new Date().getHours();
-  let t = 'Good Evening';
-  if (h >= 5 && h < 12) t = 'Good Morning';
-  else if (h >= 12 && h < 18) t = 'Good Afternoon';
-  document.getElementById('greetingText').textContent = t;
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const today = new Date().getDay();
-  document.getElementById('greetingDots').innerHTML = days.map((d, i) =>
-    `<div class="gw-day${i === today ? ' today' : ''}"><span>${d}</span><div class="gd-dot"></div></div>`
-  ).join('');
+  const gw = _getGreetingWidget();
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const yy = String(now.getFullYear()).slice(2);
+  const mm = pad(now.getMonth() + 1);
+  const dd = pad(now.getDate());
+  const dateEl = document.getElementById('gwDate');
+  if (dateEl) dateEl.textContent = `${yy}-${mm}-${dd}`;
+  const t0 = document.getElementById('gwCardText0');
+  const t1 = document.getElementById('gwCardText1');
+  if (t0) t0.textContent = (gw.cardText && gw.cardText[0]) || '유치한 놈 ㅋㅋ、';
+  if (t1) t1.textContent = (gw.cardText && gw.cardText[1]) || '🤍🖤ineedu...^';
+  syncGwTemp();
+}
+
+function syncGwTemp() {
+  const w = (state.home && state.home.weather) || {};
+  const tempEl = document.getElementById('gwTemp');
+  if (tempEl) tempEl.textContent = (w.temperature && w.temperature !== '--') ? w.temperature + '°C' : '--°C';
+}
+
+function editGwCard(index) {
+  const gw = _getGreetingWidget();
+  const cur = (gw.cardText && gw.cardText[index]) || '';
+  const labels = ['Edit Photo Caption', 'Edit Music Caption'];
+  _showTextInputModal(labels[index], 'Enter caption text', cur, v => {
+    if (v !== null && v !== undefined) {
+      if (!gw.cardText) gw.cardText = ['', ''];
+      gw.cardText[index] = v;
+      saveState();
+      updateGreeting();
+    }
+  });
 }
 
 // ========== MUSIC WIDGET ==========
@@ -545,8 +566,9 @@ function fetchWeather() {
       state.home.weather.condition   = cond;
       state.home.weather.humidity    = cur.humidity || '--';
       state.home.weather.updatedAt   = updatedAt;
-      saveState();
+            saveState();
       renderWeather();
+      syncGwTemp();
     })
     .catch(() => renderWeather())
     .finally(() => { if (indicator) indicator.classList.remove('loading'); });

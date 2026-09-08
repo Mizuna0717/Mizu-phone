@@ -589,134 +589,172 @@
   letter-spacing: .2px;
 }
 
-/* ===== Greeting Widget ===== */
+/* ===== Greeting Widget (new — split card style) ===== */
 .greeting-widget {
   border-radius: 22px;
-  background: linear-gradient(150deg, rgba(255, 255, 255, .68), rgba(248, 248, 250, .42));
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, .5);
-  padding: 22px;
+  overflow: hidden;
   margin-bottom: 18px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, .04);
-  min-height: 110px;
-  cursor: pointer;
-}
-
-.greeting-widget .gw-bg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.greeting-widget .gw-bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.greeting-widget .gw-edit {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, .06);
-  backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  z-index: 2;
-  opacity: .5;
-  transition: opacity .2s;
+  flex-direction: row;
+  min-height: 120px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, .07);
+  border: 1px solid rgba(255, 255, 255, .7);
 }
 
-.greeting-widget .gw-edit:active {
-  opacity: .8;
-}
-
-.greeting-widget .gw-edit svg {
-  width: 12px;
-  height: 12px;
-  stroke: #fff;
-  fill: none;
-  stroke-width: 2;
-}
-
-.gw-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
+/* Left grey panel */
+.gw-left {
+  width: 36%;
+  background: #d8d8dc;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 14px 16px;
+  flex-shrink: 0;
+}
+
+.gw-left-top {
+  display: flex;
+  align-items: flex-start;
+}
+
+.gw-heart-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.gw-left-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.gw-meta-row {
+  display: flex;
   align-items: center;
+  gap: 7px;
 }
 
-.gw-icon {
-  width: 24px;
-  height: 24px;
-  margin-bottom: 10px;
+.gw-meta-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.gw-icon svg {
-  width: 24px;
-  height: 24px;
-  stroke: #8e8e93;
-  fill: none;
-  stroke-width: 1.3;
+.gw-meta-dot--gray {
+  background: #a0a0a8;
 }
 
-.gw-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #2c2c2e;
+.gw-meta-dot--white {
+  background: #f0f0f4;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.06);
+}
+
+.gw-meta-temp {
+  font-size: 13px;
+  font-weight: 500;
+  color: #3a3a3c;
   letter-spacing: -.2px;
 }
 
-.gw-sub {
-  font-size: 12px;
-  color: #a0a0a5;
-  margin-top: 5px;
+.gw-meta-date {
+  font-size: 13px;
+  font-weight: 500;
+  color: #3a3a3c;
+  letter-spacing: -.2px;
 }
 
-.gw-dots {
+/* Right dotted panel */
+.gw-right {
+  flex: 1;
+  background: #f0f0f4;
+  position: relative;
   display: flex;
-  gap: 12px;
-  margin-top: 16px;
+  align-items: stretch;
+  overflow: hidden;
 }
 
-.gw-day {
+.gw-dots-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(160,160,168,.35) 1.5px, transparent 1.5px);
+  background-size: 14px 14px;
+  pointer-events: none;
+}
+
+.gw-cards {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  width: 100%;
+  padding: 14px 10px 12px;
+  align-items: end;
+}
+
+.gw-card {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.gw-card:active { opacity: .7; }
+
+.gw-card-icon {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gw-card-icon svg {
+  width: 54px;
+  height: 54px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+}
+
+.gw-card-icon--light svg {
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.1));
+}
+
+.gw-card-meta {
+  display: flex;
+  align-items: center;
   gap: 5px;
-  font-size: 9px;
-  color: #c7c7cc;
-  font-weight: 500;
-  letter-spacing: .3px;
 }
 
-.gw-day.today {
-  color: #4a4a4e;
-}
-
-.gw-day .gd-dot {
-  width: 4px;
-  height: 4px;
+.gw-card-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #d8d8dc;
-  transition: all .3s;
+  background: #8e8e93;
+  flex-shrink: 0;
 }
 
-.gw-day.today .gd-dot {
-  background: #6e6e73;
-  width: 6px;
-  height: 6px;
-  box-shadow: 0 0 4px rgba(110, 110, 115, .2);
+.gw-card-type {
+  font-size: 10px;
+  color: #6e6e73;
+  font-weight: 400;
+  letter-spacing: .1px;
+  white-space: nowrap;
+}
+
+.gw-card-text {
+  font-size: 10px;
+  color: #8e8e93;
+  font-weight: 400;
+  text-align: center;
+  line-height: 1.4;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ===== Music Widget ===== */
