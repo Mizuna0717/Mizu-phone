@@ -622,8 +622,8 @@
   position: absolute;
   inset: 0;
   background-image: radial-gradient(circle, rgba(180,180,188,.58) 2px, transparent 2px);
-  background-size: 16px 10px;
-  background-position: 0px 4px;
+  background-size: 16px 20px;   /* ← 10 改成 20 */
+  background-position: 3px -2px;
 }
 
 /* 删掉原来的 ::after（大圆点 + 旧样式） */
@@ -633,8 +633,8 @@
   position: absolute;
   inset: 0;
   background-image: radial-gradient(circle, rgba(180,180,188,.4) 2px, transparent 2px);
-  background-size: 16px 20px;
-  background-position: 8px 9px;
+  background-size: 16px 20px;      /* 垂直间距改大，只保留一排 */
+  background-position: 11px 8px;   /* 垂直位置从 9px 改为 14px */
 }
 
 /* Content wrapper */
