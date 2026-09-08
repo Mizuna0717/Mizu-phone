@@ -123,6 +123,8 @@ function _validateState() {
   if (!state.home.weatherWidget || typeof state.home.weatherWidget !== 'object') state.home.weatherWidget = { recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'], image: { type: 'url', value: '' } };
   if (!Array.isArray(state.home.weatherWidget.recordText)) state.home.weatherWidget.recordText = ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'];
   if (!state.home.weatherWidget.image) state.home.weatherWidget.image = { type: 'url', value: '' };
+  if (!state.home.weatherWidget.image.value) state.home.weatherWidget.image = { type: 'url', value: 'images/weather-1.jpg' };
+  if (!state.home.widget.avatar || !state.home.widget.avatar.value) state.home.widget.avatar = { type: 'url', value: 'images/blog-avatar.jpg' };
   if (window.__user) {
     state.user = window.__user;
   }

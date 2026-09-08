@@ -78,7 +78,7 @@ function setHomeAvatar(inp) {
 // ========== BLOG WIDGET ==========
 function _getBlogWidget() {
   if (!state.home) state.home = {};
-  if (!state.home.widget) {
+    if (!state.home.widget) {
     state.home.widget = {
       topLeftText: 'Mizu phone.com', topRightText: 'Mizu',
       avatar: { type: 'url', value: '' },
@@ -86,6 +86,10 @@ function _getBlogWidget() {
       description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ '],
       images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }]
     };
+  }
+  if (!state.home.widget.avatar || !state.home.widget.avatar.value) {
+    state.home.widget.avatar = { type: 'url', value: 'images/blog-avatar.jpg' };
+    saveState(true);
   }
   const _defaultImgs = ['images/blog-1.jpg', 'images/blog-2.jpg', 'images/blog-3.jpg'];
   let _imgChanged = false;
@@ -469,11 +473,15 @@ function editMusicInfo(type) {
 // ========== WEATHER WIDGET (NEW) ==========
 function _getWeatherWidget() {
   if (!state.home) state.home = {};
-  if (!state.home.weatherWidget) {
+    if (!state.home.weatherWidget) {
     state.home.weatherWidget = {
-            recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'],
+      recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'],
       image: { type: 'url', value: '' }
     };
+  }
+  if (!state.home.weatherWidget.image || !state.home.weatherWidget.image.value) {
+    state.home.weatherWidget.image = { type: 'url', value: 'images/weather-1.jpg' };
+    saveState(true);
   }
   return state.home.weatherWidget;
 }
