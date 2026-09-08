@@ -598,20 +598,11 @@
   position: relative;
   min-height: 210px;
   box-shadow: 0 4px 28px rgba(0,0,0,.13), 0 1px 4px rgba(0,0,0,.07);
-  border: 1px solid rgba(255,255,255,.75);
-  background: rgba(200,200,205,.55);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(220,220,225,.9);
+    background: #ffffff;
 }
 
-/* Frosted glass inner layer */
-.gw-bg-blur {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(155deg, rgba(255,255,255,.38) 0%, rgba(220,220,225,.18) 100%);
-  pointer-events: none;
-  z-index: 0;
-}
+.gw-bg-blur { display: none; }
 
 /* Dotted top strip — staggered rows */
 .gw-dots-header {
@@ -629,19 +620,12 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(160,160,170,.55) 2px, transparent 2px);
+  background-image: radial-gradient(circle, rgba(180,180,188,.6) 2px, transparent 2px);
   background-size: 16px 16px;
-  background-position: 0px 6px;
+  background-position: 0px 10px;
 }
 
-.gw-dots-header::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(160,160,170,.35) 2px, transparent 2px);
-  background-size: 16px 16px;
-  background-position: 8px 14px;
-}
+.gw-dots-header::after { display: none; }
 
 /* Content wrapper */
 .gw-content-wrapper {
@@ -665,23 +649,22 @@
 
 /* Speech bubble */
 .gw-bubble {
-  background: rgba(255,255,255,.28);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,.65);
+  background: rgba(230,230,235,.6);
+  border: 1px solid rgba(210,210,218,.8);
   border-radius: 16px;
   padding: 6px 14px 8px;
-  font-size: 13px;
-  color: rgba(255,255,255,.92);
+  font-size: 12px;
+  color: #4a4a50;
   font-weight: 400;
-  letter-spacing: .5px;
+  letter-spacing: .4px;
   position: relative;
   min-width: 70px;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.4);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
   cursor: pointer;
 }
 
+/* triangle pointing toward the corresponding avatar center */
 .gw-bubble::before {
   content: '';
   position: absolute;
@@ -690,17 +673,19 @@
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-top: 7px solid rgba(255,255,255,.35);
-  filter: blur(0.5px);
+  border-top: 7px solid rgba(230,230,235,.9);
 }
 
+/* left bubble: tail points right toward left avatar */
 .gw-bubble-left::before {
-  left: 20px;
+  right: 22px;
+  left: auto;
 }
 
+/* right bubble: tail points left toward right avatar */
 .gw-bubble-right::before {
-  right: 20px;
-  left: auto;
+  left: 22px;
+  right: auto;
 }
 
 .gw-bubble:active { opacity: .75; }
@@ -777,27 +762,25 @@
 .gw-name {
   font-size: 20px;
   font-weight: 700;
-  color: rgba(255,255,255,.95);
+  color: #2c2c2e;
   letter-spacing: -.3px;
-  text-shadow: 0 1px 6px rgba(0,0,0,.2);
   cursor: pointer;
   line-height: 1.1;
 }
 
-.gw-name:active { opacity: .7; }
+.gw-name:active { opacity: .6; }
 
 /* Tag line */
 .gw-tag {
   font-size: 11px;
   font-weight: 400;
-  color: rgba(255,255,255,.68);
+  color: #8e8e93;
   letter-spacing: .1px;
   cursor: pointer;
-  text-shadow: 0 1px 4px rgba(0,0,0,.15);
   line-height: 1.3;
 }
 
-.gw-tag:active { opacity: .7; }
+.gw-tag:active { opacity: .6; }
 
 /* ===== Music Widget ===== */
 .music-widget {
