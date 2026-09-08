@@ -117,7 +117,7 @@ function renderBlogWidget() {
   const desc0 = document.getElementById('bwDesc0');
   if (desc0) desc0.textContent = (w.description && w.description[0]) || '🤍ineedu…^';
   const desc1 = document.getElementById('bwDesc1');
-  if (desc1) desc1.textContent = (w.description && w.description[1]) || '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ , healthy, and peaceful.';
+  if (desc1) desc1.textContent = (w.description && w.description[1]) || '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ ';
   const avatarImg = document.getElementById('bwAvatarImg');
   const avatarPh  = document.getElementById('bwAvatarPh');
   const avatarVal = w.avatar && w.avatar.value;
@@ -397,7 +397,7 @@ function _getWeatherWidget() {
   if (!state.home) state.home = {};
   if (!state.home.weatherWidget) {
     state.home.weatherWidget = {
-      recordText: ['Record time, record life,', 'record everything.'],
+            recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'],
       image: { type: 'url', value: '' }
     };
   }
@@ -414,8 +414,8 @@ function renderWeatherWidget() {
   if (wdEl)  wdEl.textContent  = days[now.getDay()];
   const r1 = document.getElementById('nwwRecord1');
   const r2 = document.getElementById('nwwRecord2');
-  if (r1) r1.textContent = (ww.recordText && ww.recordText[0]) || 'Record time, record life,';
-  if (r2) r2.textContent = (ww.recordText && ww.recordText[1]) || 'record everything.';
+  if (r1) r1.textContent = (ww.recordText && ww.recordText[0]) || '♡ㅠ ㅠ…？';
+  if (r2) r2.textContent = (ww.recordText && ww.recordText[1]) || 'i 🤍uuu so..';
   const img = document.getElementById('nwwImg');
   const ph  = document.getElementById('nwwImgPh');
   const val = ww.image && ww.image.value;

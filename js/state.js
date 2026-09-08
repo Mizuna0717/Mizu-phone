@@ -13,8 +13,8 @@ let state = {
   npcs: [],
   wikiSchedule: [],
     together: { songs: [], videos: [], novels: [] },
-  home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'Mizu phone.com', topRightText: 'Mizu', avatar: { type: 'url', value: '' }, titleText: 'Mizu', description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ , healthy, and peaceful.'], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] }, weatherWidget: { recordText: ['🤍ineedu…^'], image: { type: 'url', value: '' } } },
-  allowQuote: true,
+  home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'Mizu phone.com', topRightText: 'Mizu', avatar: { type: 'url', value: '' }, titleText: 'Mizu', description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ '], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] }, weatherWidget: { recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'], image: { type: 'url', value: '' } } },
+    allowQuote: true,
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium',homeIcons: {}, desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
           systemPromptIM: '',
   systemPromptMeeting: '',
@@ -62,8 +62,8 @@ function _getStateDefaults() {
     npcs: [], messageChats: [],
     wikiSchedule: [],
     together: { songs: [], videos: [], novels: [] },
-    home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'Mizu phone.com', topRightText: 'Mizu', avatar: { type: 'url', value: '' }, titleText: 'Mizu', description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ , healthy, and peaceful.'], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] }, weatherWidget: { recordText: ['Record time, record life,', 'record everything.'], image: { type: 'url', value: '' } } },
-    allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
+    home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'Mizu phone.com', topRightText: 'Mizu', avatar: { type: 'url', value: '' }, titleText: 'Mizu', description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ '], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] }, weatherWidget: { recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'], image: { type: 'url', value: '' } } },
+      allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
     user: null
   };
@@ -120,8 +120,8 @@ function _validateState() {
     if (!state.home.widget.avatar) state.home.widget.avatar = { type: 'url', value: '' };
   if (!Array.isArray(state.home.widget.images) || state.home.widget.images.length < 3) state.home.widget.images = [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }];
   if (!Array.isArray(state.home.widget.description)) state.home.widget.description = ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ '];
-  if (!state.home.weatherWidget || typeof state.home.weatherWidget !== 'object') state.home.weatherWidget = { recordText: ['Record time, record life,', 'record everything.'], image: { type: 'url', value: '' } };
-  if (!Array.isArray(state.home.weatherWidget.recordText)) state.home.weatherWidget.recordText = ['Record time, record life,', 'record everything.'];
+  if (!state.home.weatherWidget || typeof state.home.weatherWidget !== 'object') state.home.weatherWidget = { recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'], image: { type: 'url', value: '' } };
+  if (!Array.isArray(state.home.weatherWidget.recordText)) state.home.weatherWidget.recordText = ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'];
   if (!state.home.weatherWidget.image) state.home.weatherWidget.image = { type: 'url', value: '' };
   if (window.__user) {
     state.user = window.__user;
