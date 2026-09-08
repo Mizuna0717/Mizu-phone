@@ -604,7 +604,7 @@
 
 .gw-bg-blur { display: none; }
 
-/* Dotted top strip — staggered rows */
+/* ===== Greeting Widget 圆点装饰（重构版） ===== */
 .gw-dots-header {
   position: absolute;
   top: 0;
@@ -616,25 +616,24 @@
   overflow: hidden;
 }
 
-/* 第一、三排圓點（同一水平起點） */
+/* 三排圆点：第1排(4px) + 第2排(16px, 错位) + 第3排(28px) */
 .gw-dots-header::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(180,180,188,.58) 2px, transparent 2px);
-  background-size: 16px 10px;
-  background-position: 0px 4px;
+  background-image:
+    radial-gradient(circle, rgba(180, 180, 188, 0.58) 2px, transparent 2px),
+    radial-gradient(circle, rgba(180, 180, 188, 0.58) 2px, transparent 2px),
+    radial-gradient(circle, rgba(180, 180, 188, 0.58) 2px, transparent 2px);
+  background-size: 16px 2px, 16px 2px, 16px 2px;
+  background-position: 0px 4px, 8px 16px, 0px 28px;
+  background-repeat: repeat-x, repeat-x, repeat-x;
 }
 
-/* 第二排圓點，水平錯開 8px */
+/* 删掉原来的 ::after（大圆点 + 旧样式） */
 .gw-dots-header::after {
-  content: '';
-  display: block;
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(180,180,188,.4) 2px, transparent 2px);
-  background-size: 16px 20px;
-  background-position: 8px 9px;
+  content: none;
+  display: none;
 }
 
 /* Content wrapper */
