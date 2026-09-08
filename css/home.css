@@ -1025,10 +1025,11 @@
   align-items: flex-start;
   flex-shrink: 0;
   min-width: 44px;
+  padding-left: 8px;   /* ← 新增：向右挪進 */
 }
 
 .nww-weekday {
-  font-size: 11px;
+  font-size: 9px;      /* ← 由 11px 縮小 */
   color: rgba(120,120,128,.7);
   font-weight: 500;
   letter-spacing: .4px;
@@ -1037,12 +1038,13 @@
 }
 
 .nww-day {
-  font-size: 44px;
+  font-size: 34px;     /* ← 由 44px 縮小 */
   font-weight: 200;
   color: #2c2c2e;
   line-height: 1;
-  letter-spacing: -3px;
+  letter-spacing: -2px;   /* ← 由 -3px 微調，配合縮小 */
 }
+
 
 .nww-record-block {
   flex: 1;
@@ -1063,10 +1065,10 @@
 .nww-record1:active,
 .nww-record2:active { opacity: .6; }
 
-/* oval container — fills remaining space */
 .nww-oval {
   flex: 1;
   min-height: 0;
+  margin: 0 -4px -2px;   /* ← 新增：用負邊距向外撐大橢圓 */
   border-radius: 999px;
   border: 1.5px solid rgba(255,255,255,.85);
   background: rgba(248,248,250,.5);
@@ -1075,6 +1077,7 @@
   overflow: hidden;
   box-shadow: 0 1px 8px rgba(0,0,0,.06) inset;
 }
+
 
 /* left circle image — takes ~63% width, circular crop via border-radius trick */
 .nww-oval-img {
@@ -1116,7 +1119,6 @@
 
 .nww-oval-img:active { opacity: .8; }
 
-/* right info: weather icon + temperature */
 .nww-oval-info {
   flex: 1;
   display: flex;
@@ -1124,7 +1126,7 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 8px 6px;
+  padding: 8px 12px 8px 0;   /* ← 右邊 padding 加大、左邊改 0，把內容往左推 */
 }
 
 .nww-cond-icon svg {
