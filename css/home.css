@@ -589,27 +589,44 @@
   letter-spacing: .2px;
 }
 
-/* ===== Greeting Widget (new — split card style) ===== */
+/* ===== Greeting Widget (premium split card style) ===== */
 .greeting-widget {
-  border-radius: 22px;
+  border-radius: 24px;
   overflow: hidden;
   margin-bottom: 18px;
+  margin-top: 10px;
   display: flex;
   flex-direction: row;
-  min-height: 120px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, .07);
-  border: 1px solid rgba(255, 255, 255, .7);
+  min-height: 200px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, .12), 0 1px 3px rgba(0, 0, 0, .08);
+  border: 1px solid rgba(255, 255, 255, .9);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.greeting-widget:active {
+  transform: scale(0.99);
 }
 
 /* Left grey panel */
 .gw-left {
-  width: 36%;
-  background: #d8d8dc;
+  width: 38%;
+  background: linear-gradient(165deg, #d0d0d4 0%, #c5c5ca 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 14px 14px 16px;
+  padding: 24px 20px 26px;
   flex-shrink: 0;
+  position: relative;
+}
+
+.gw-left::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(255,255,255,.4) 0%, rgba(0,0,0,.05) 100%);
 }
 
 .gw-left-top {
@@ -618,56 +635,58 @@
 }
 
 .gw-heart-emoji {
-  font-size: 22px;
+  font-size: 36px;
   line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.15));
 }
 
 .gw-left-bottom {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
 }
 
 .gw-meta-row {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
 }
 
 .gw-meta-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
 }
 
 .gw-meta-dot--gray {
-  background: #a0a0a8;
+  background: linear-gradient(135deg, #8e8e93 0%, #6e6e73 100%);
 }
 
 .gw-meta-dot--white {
-  background: #f0f0f4;
-  box-shadow: 0 0 0 1px rgba(0,0,0,.06);
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%);
+  box-shadow: 0 2px 6px rgba(0,0,0,.12), inset 0 1px 2px rgba(255,255,255,.8);
 }
 
 .gw-meta-temp {
-  font-size: 13px;
-  font-weight: 500;
-  color: #3a3a3c;
-  letter-spacing: -.2px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c2c2e;
+  letter-spacing: -.3px;
 }
 
 .gw-meta-date {
-  font-size: 13px;
-  font-weight: 500;
-  color: #3a3a3c;
-  letter-spacing: -.2px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c2c2e;
+  letter-spacing: -.3px;
 }
 
 /* Right dotted panel */
 .gw-right {
   flex: 1;
-  background: #f0f0f4;
+  background: linear-gradient(165deg, #fafafa 0%, #f2f2f4 100%);
   position: relative;
   display: flex;
   align-items: stretch;
@@ -677,9 +696,10 @@
 .gw-dots-bg {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(160,160,168,.35) 1.5px, transparent 1.5px);
-  background-size: 14px 14px;
+  background-image: radial-gradient(circle, rgba(160,160,168,.28) 2px, transparent 2px);
+  background-size: 16px 16px;
   pointer-events: none;
+  opacity: .85;
 }
 
 .gw-cards {
@@ -689,7 +709,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 0;
   width: 100%;
-  padding: 14px 10px 12px;
+  padding: 28px 16px 24px;
   align-items: end;
 }
 
@@ -697,64 +717,75 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   cursor: pointer;
-  padding: 0 4px;
+  padding: 0 8px;
+  transition: transform .2s ease;
 }
 
-.gw-card:active { opacity: .7; }
+.gw-card:active { 
+  transform: scale(0.92);
+}
 
 .gw-card-icon {
-  width: 54px;
-  height: 54px;
+  width: 68px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform .3s ease;
+}
+
+.gw-card:hover .gw-card-icon {
+  transform: scale(1.05);
 }
 
 .gw-card-icon svg {
-  width: 54px;
-  height: 54px;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+  width: 68px;
+  height: 68px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.18));
 }
 
 .gw-card-icon--light svg {
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,.1));
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,.12));
 }
 
 .gw-card-meta {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  margin-top: 4px;
 }
 
 .gw-card-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #8e8e93;
+  background: linear-gradient(135deg, #a0a0a8 0%, #8e8e93 100%);
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
 }
 
 .gw-card-type {
-  font-size: 10px;
+  font-size: 11px;
   color: #6e6e73;
-  font-weight: 400;
-  letter-spacing: .1px;
+  font-weight: 500;
+  letter-spacing: -.1px;
   white-space: nowrap;
 }
 
 .gw-card-text {
-  font-size: 10px;
-  color: #8e8e93;
+  font-size: 12px;
+  color: #6e6e73;
   font-weight: 400;
   text-align: center;
-  line-height: 1.4;
-  max-width: 90px;
+  line-height: 1.5;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 0 4px;
 }
 
 /* ===== Music Widget ===== */
