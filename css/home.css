@@ -610,22 +610,32 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 40px;
+  height: 38px;
   z-index: 1;
   pointer-events: none;
   overflow: hidden;
 }
 
+/* 第一排圓點 */
 .gw-dots-header::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image: radial-gradient(circle, rgba(180,180,188,.6) 2px, transparent 2px);
-  background-size: 16px 16px;
-  background-position: 0px 10px;
+  background-size: 16px 11px;
+  background-position: 0px 7px;
 }
 
-.gw-dots-header::after { display: none; }
+/* 第二排圓點，水平錯開 8px，垂直緊貼第一排 */
+.gw-dots-header::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(180,180,188,.42) 2px, transparent 2px);
+  background-size: 16px 11px;
+  background-position: 8px 18px;
+}
 
 /* Content wrapper */
 .gw-content-wrapper {
@@ -641,10 +651,10 @@
 .gw-bubbles-row {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-end;
   padding: 0 8px;
-  gap: 12px;
+  gap: 20px;
 }
 
 /* Speech bubble */
@@ -708,13 +718,13 @@
 }
 
 .gw-info-left {
-  align-items: flex-start;
-  padding-right: 10px;
+  align-items: flex-end;
+  padding-right: 14px;
 }
 
 .gw-info-right {
-  align-items: flex-end;
-  padding-left: 10px;
+  align-items: flex-start;
+  padding-left: 14px;
 }
 
 /* Avatar circle */
