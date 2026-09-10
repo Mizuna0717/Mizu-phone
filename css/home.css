@@ -804,6 +804,8 @@
   flex-direction: column;
   gap: 6px;
   aspect-ratio: 1;
+  width: 100%;
+  flex-shrink: 0;
   justify-content: space-between;
   min-height: 0;
 }
@@ -947,6 +949,10 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  aspect-ratio: 1;
+  width: 100%;
+  flex-shrink: 0;
+  justify-content: center;
 }
 
 .cw-month {
@@ -1016,7 +1022,7 @@
 .p2-mini-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px 16px;
+  gap: 14px 12px;
   justify-items: center;
 }
 
@@ -1025,9 +1031,9 @@
 }
 
 .p2-mini-grid .app-icon {
-  width: 62px;
-  height: 62px;
-  border-radius: 17px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   background: linear-gradient(145deg, rgba(255, 255, 255, .85), rgba(255, 255, 255, .55));
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, .7);
@@ -1040,14 +1046,14 @@
 }
 
 .p2-mini-grid .app-icon svg {
-  width: 27px;
-  height: 27px;
+  width: 24px;
+  height: 24px;
   stroke: #4a4a4e;
-  stroke-width: 1.4;
+  stroke-width: 1.5;
 }
 
 .p2-mini-grid .app-label {
-  font-size: 10px;
+  font-size: 9px;
   color: #48484a;
   font-weight: 500;
   letter-spacing: .2px;
