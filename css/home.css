@@ -963,9 +963,9 @@
 /* Disc: diameter = cover side, center-x = cover right edge */
 .mw-disc-bg {
   position: absolute;
-  left: 35%;          /* center at 70% − radius 35% */
-  bottom: 12%;       /* slight bleed below */
-  width: 70%;         /* diameter = cover width */
+  left: 32%;          /* center at 70% − radius 35% */
+  bottom: 8%;       /* slight bleed below */
+  width: 74%;         /* diameter = cover width */
   aspect-ratio: 1;
   border-radius: 50%;
   background: #ffffff; /* outermost ring: white */
