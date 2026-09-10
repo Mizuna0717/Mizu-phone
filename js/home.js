@@ -14,9 +14,7 @@ function initHome() {
   renderWeatherWidget();
 
   const u = state.userProfile;
-  if (u.musicSong) { const el = document.getElementById('musicSong'); if (el) el.textContent = u.musicSong; }
-  if (u.musicArtist) { const el = document.getElementById('musicArtist'); if (el) el.textContent = u.musicArtist; }
-  if (u.musicCover) { const img = document.getElementById('musicCoverImg'); if (img) { img.src = u.musicCover; img.style.display = 'block'; } }
+    _renderMusicWidget();
   if (u.calEvent) renderCalEvent();
 }
 
@@ -447,12 +445,31 @@ function setMusicCover(inp) {
     const r = new FileReader();
     r.onload = e => {
       const img = document.getElementById('musicCoverImg');
+      const ph  = document.getElementById('musicCoverPh');
       img.src = e.target.result;
       img.style.display = 'block';
+      if (ph) ph.style.display = 'none';
       state.userProfile.musicCover = e.target.result;
       saveState();
     };
     r.readAsDataURL(inp.files[0]);
+  }
+}
+
+function _renderMusicWidget() {
+  const u = state.userProfile;
+  const song   = document.getElementById('musicSong');
+  const artist = document.getElementById('musicArtist');
+  const img    = document.getElementById('musicCoverImg');
+  const ph     = document.getElementById('musicCoverPh');
+  if (song)   song.textContent   = u.musicSong   || 'Collect,';
+  if (artist) artist.textContent = u.musicArtist || 'My album.';
+  if (img && ph) {
+    if (u.musicCover) {
+      img.src = u.musicCover; img.style.display = 'block'; ph.style.display = 'none';
+    } else {
+      img.style.display = 'none'; ph.style.display = 'flex';
+    }
   }
 }
 
@@ -463,10 +480,10 @@ function editMusicInfo(type) {
   const placeholder = type === 'song' ? 'Enter song name' : 'Enter artist name';
   _showTextInputModal(title, placeholder, cur, v => {
     if (v !== null && v !== undefined) {
-      state.userProfile[key] = v;
-      saveState();
-      document.getElementById(key === 'musicSong' ? 'musicSong' : 'musicArtist').textContent = v || (type === 'song' ? 'Song Title' : 'Artist');
-    }
+        state.userProfile[key] = v;
+        saveState();
+        _renderMusicWidget();
+      }
   });
 }
 

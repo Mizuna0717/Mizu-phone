@@ -155,21 +155,25 @@
 				<div class="p2-grid">
 					<div class="p2-left">
 						<div class="music-widget">
-							<div class="mw-cover" onclick="document.getElementById('musicCoverInput').click()">
-								<img id="musicCoverImg" style="display:none">
-								<button class="mw-cover-edit"><svg viewBox="0 0 10 10"><path d="M7 1l2 2M1 7V9h2L8 4 6 2 1 7z"/></svg></button>
-								<input type="file" id="musicCoverInput" accept="image/*" onchange="setMusicCover(this)" style="display:none">
+							<div class="mw-header">
+								<div class="mw-header-text">
+									<div class="mw-song" id="musicSong" onclick="editMusicInfo('song')">Collect,</div>
+									<div class="mw-artist" id="musicArtist" onclick="editMusicInfo('artist')">My album.</div>
+								</div>
+								<div class="mw-next-btn">
+									<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</div>
 							</div>
-							<div class="mw-info">
-								<div class="mw-song" id="musicSong" onclick="editMusicInfo('song')">Song Title</div>
-								<div class="mw-artist" id="musicArtist" onclick="editMusicInfo('artist')">Artist</div>
+							<div class="mw-disc-area">
+								<div class="mw-disc-bg"></div>
+								<div class="mw-cover" onclick="document.getElementById('musicCoverInput').click()">
+									<img id="musicCoverImg" style="display:none">
+									<div class="mw-cover-ph" id="musicCoverPh">
+										<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+									</div>
+									<input type="file" id="musicCoverInput" accept="image/*" onchange="setMusicCover(this)" style="display:none">
+								</div>
 							</div>
-							<div class="mw-controls">
-								<svg viewBox="0 0 18 18"><path d="M13 3l-8 6 8 6V3z"/><path d="M4 3v12"/></svg>
-								<svg viewBox="0 0 18 18"><rect x="3" y="3" width="4" height="12" rx="1"/><rect x="11" y="3" width="4" height="12" rx="1"/></svg>
-								<svg viewBox="0 0 18 18"><path d="M5 3l8 6-8 6V3z"/><path d="M14 3v12"/></svg>
-							</div>
-							<div class="mw-progress"><div class="mw-progress-bar"></div><div class="mw-progress-dot"></div></div>
 						</div>
 						<div class="p2-mini-grid">
 							<div class="app-icon-wrap" onclick="nav('screen-forum')"><div class="app-icon"><svg viewBox="0 0 32 32"><path d="M6 6h14a2 2 0 012 2v8a2 2 0 01-2 2H12l-4 3v-3H6a2 2 0 01-2-2V8a2 2 0 012-2z"/><path d="M22 12h4a2 2 0 012 2v8a2 2 0 01-2 2h-2v3l-4-3h-6a2 2 0 01-2-2v-2"/></svg></div><span class="app-label">Forum</span></div>
