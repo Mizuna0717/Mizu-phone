@@ -795,8 +795,8 @@
 /* ===== Music Widget (Collect / album style) ===== */
 .music-widget {
   border-radius: 22px;
-  background: #ffffff;
-  padding: 14px 14px 0;
+  background: #f5f5f7; /* 稍微換成帶一點灰的底色，更貼近參考圖 */
+  padding: 16px 16px 0;
   box-shadow: 0 2px 18px rgba(0, 0, 0, .06);
   display: flex;
   flex-direction: column;
@@ -815,29 +815,29 @@
   justify-content: space-between;
   gap: 8px;
   flex-shrink: 0;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
 }
 
 .mw-header-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .mw-song {
-  font-size: 14px;
+  font-size: 19px; /* 字體放大 */
   font-weight: 700;
-  color: #1d1d1f;
+  color: #2f2f31;
   cursor: pointer;
-  letter-spacing: -.3px;
+  letter-spacing: -.4px;
   line-height: 1.2;
 }
 
 .mw-song:active { opacity: .6; }
 
 .mw-artist {
-  font-size: 11px;
-  color: #9a9a9f;
+  font-size: 13px; /* 調整字體大小 */
+  color: #8e8e93;
   font-weight: 400;
   cursor: pointer;
   letter-spacing: -.1px;
@@ -845,25 +845,29 @@
 
 .mw-artist:active { opacity: .6; }
 
+/* 參考圖中的箭頭按鈕形狀（更圓潤的方形） */
 .mw-next-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, .9);
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .mw-next-btn svg {
-  width: 16px;
-  height: 16px;
-  stroke: #3a3a3c;
+  width: 18px;
+  height: 18px;
+  stroke: #8e8e93;
   fill: none;
   stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .mw-next-btn:active { opacity: .7; }
@@ -877,19 +881,19 @@
   align-items: flex-end;
 }
 
-/* The large "D" / disc shape — right-aligned circle */
+/* 唱片背景 */
 .mw-disc-bg {
   position: absolute;
-  right: -18%;
-  bottom: -18%;
-  width: 88%;
+  left: 35%;          
+  bottom: -14%;       
+  width: 70%;         
   aspect-ratio: 1;
   border-radius: 50%;
-  background: #f0f0f2;
-  box-shadow: 0 2px 12px rgba(0,0,0,.08) inset, 0 2px 10px rgba(0,0,0,.06);
+  background: #ffffff; /* 純白底 */
+  box-shadow: 4px 4px 12px rgba(0,0,0,.08);
+  z-index: 1;
 }
 
-/* Concentric circles on disc */
 .mw-disc-bg::before {
   content: '';
   position: absolute;
@@ -899,8 +903,7 @@
   width: 50%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: #e0e0e3;
-  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  background: #e4e4e8;
 }
 
 .mw-disc-bg::after {
@@ -912,11 +915,91 @@
   width: 25%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: #9a9a9f;
-  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+  background: #a6a6ac;
 }
 
-/* Album art cover — square, sits left over the disc */
+/* 專輯封面圖 —— 關鍵在於白色外框要夠大，才能跟唱片無縫接軌 */
+.mw-cover {
+  position: relative;
+  z-index: 2;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 16px; /* 圓角稍微調大，更柔和 */
+  background: #d8d8dc;
+  overflow: hidden;
+  cursor: pointer;
+  /* 外框從 4px 加大到 6px，並使用純白，這樣就能跟唱片的白色背景完美融合 */
+  box-shadow: 0 0 0 6px #ffffff, 2px 4px 14px rgba(0,0,0,.1);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.mw-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mw-cover-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d0d0d4;
+}
+
+.mw-cover-ph svg {
+  width: 28px;
+  height: 28px;
+  stroke: #b0b0b5;
+  fill: none;
+  stroke-width: 1.3;
+}
+
+.mw-cover:active { opacity: .85; }
+
+/* Disc: diameter = cover side, center-x = cover right edge */
+.mw-disc-bg {
+  position: absolute;
+  left: 35%;          /* center at 70% − radius 35% */
+  bottom: 12%;       /* slight bleed below */
+  width: 70%;         /* diameter = cover width */
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ffffff; /* outermost ring: white */
+  box-shadow: 3px 2px 10px rgba(0,0,0,.09);
+  z-index: 1;
+}
+
+/* Middle ring: diameter = 50% of disc (= white/2) */
+.mw-disc-bg::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #e4e4e8;
+}
+
+/* Center dot: diameter = 50% of middle ring (= white/4) */
+.mw-disc-bg::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 25%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #a6a6ac;
+}
+
+/* Album art cover — z-index above disc, so left half of disc is hidden */
 .mw-cover {
   position: relative;
   z-index: 2;
@@ -926,7 +1009,8 @@
   background: #d8d8dc;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 0 0 5px #ffffff, 0 4px 16px rgba(0,0,0,.12);
+  /* white border ring + light directional shadow */
+  box-shadow: 0 0 0 4px #ffffff, 2px 3px 12px rgba(0,0,0,.11);
   margin-bottom: 14px;
   flex-shrink: 0;
 }
