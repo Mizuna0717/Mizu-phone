@@ -631,3 +631,300 @@ function _escHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+// ══════════════════════════════════════════════
+// 歌单导入 — Playlist Import
+// API base: https://together-music-zeta.vercel.app
+// ══════════════════════════════════════════════
+var _MUSIC_API_BASE = 'https://together-music-zeta.vercel.app';
+
+/**
+ * Extract platform and playlist ID from a raw input string.
+ * Supports:
+ *   NetEase long:  https://music.163.com/#/playlist?id=123
+ *                  https://music.163.com/playlist?id=123
+ *   NetEase short: https://163cn.tv/xxxxxx  (resolved via API)
+ *   Pure numeric:  123456  (treated as NetEase by default)
+ *   QQ long:       https://y.qq.com/n/ryqq/playlist/12345
+ *   QQ short:      https://c.y.qq.com/...  (reserved)
+ * @returns {{ platform: 'netease'|'qq'|null, id: string|null, isShort: boolean }}
+ */
+function _extractPlaylistInfo(raw) {
+  raw = (raw || '').trim();
+  if (!raw) return { platform: null, id: null, isShort: false };
+
+  // NetEase long
+  var neMatch = raw.match(/music\.163\.com\/(?:#\/)?playlist[?&]id=(\d+)/);
+  if (neMatch) return { platform: 'netease', id: neMatch[1], isShort: false };
+
+  // NetEase short
+  if (/163cn\.tv\/[A-Za-z0-9]+/i.test(raw)) {
+    return { platform: 'netease', id: null, isShort: true, shortUrl: raw.match(/163cn\.tv\/[A-Za-z0-9]+/i)[0] };
+  }
+
+  // QQ Music long: y.qq.com/n/ryqq/playlist/12345  or  /playlist/12345.html
+  var qqMatch = raw.match(/y\.qq\.com\/.*?playlist[/\\](\d+)/);
+  if (qqMatch) return { platform: 'qq', id: qqMatch[1], isShort: false };
+
+  // QQ short / content domain — reserved, mark as qq short
+  if (/c\.y\.qq\.com|qmusic\.cn/i.test(raw)) {
+    return { platform: 'qq', id: null, isShort: true, shortUrl: raw };
+  }
+
+  // Pure numeric — assume NetEase
+  if (/^\d{5,}$/.test(raw)) {
+    return { platform: 'netease', id: raw, isShort: false };
+  }
+
+  return { platform: null, id: null, isShort: false };
+}
+
+/**
+ * Resolve a NetEase short link to its real URL via the /url/shorten endpoint,
+ * then re-extract the playlist ID.
+ * Falls back to fetching the short URL directly if the API doesn't have the endpoint.
+ */
+async function _resolveNeteaseShortUrl(shortUrlFragment) {
+  // Build full short URL if only the path was extracted
+  var full = shortUrlFragment.startsWith('http') ? shortUrlFragment : 'https://' + shortUrlFragment;
+  try {
+    // Try the API's shorten endpoint first
+    var resp = await fetch(_MUSIC_API_BASE + '/url/shorten?url=' + encodeURIComponent(full));
+    if (resp.ok) {
+      var data = await resp.json();
+      var realUrl = (data && data.data && data.data.url) || (data && data.url) || '';
+      if (realUrl) {
+        var info = _extractPlaylistInfo(realUrl);
+        if (info.id) return info.id;
+      }
+    }
+  } catch (e) {
+    console.warn('[Together] Short URL API failed, trying direct fetch:', e.message);
+  }
+  // Direct HEAD request to follow redirect
+  try {
+    var r2 = await fetch(full, { method: 'HEAD', redirect: 'follow' });
+    var info2 = _extractPlaylistInfo(r2.url);
+    if (info2.id) return info2.id;
+  } catch (e2) {
+    console.warn('[Together] Short URL direct fetch failed:', e2.message);
+  }
+  return null;
+}
+
+/**
+ * Parse LRC-format lyrics into plain text lines, stripping timestamps.
+ * e.g. "[00:12.34]Hello world" -> "Hello world"
+ */
+function _parseLrc(lrcText) {
+  if (!lrcText) return '';
+  return lrcText
+    .split('\n')
+    .map(function(line) { return line.replace(/\[\d+:\d+\.\d+\]/g, '').replace(/\[.*?\]/g, '').trim(); })
+    .filter(function(line) { return line.length > 0; })
+    .join('\n');
+}
+
+/**
+ * Fetch playlist detail from NetEase API and return array of track objects.
+ * Each track: { id, name, artist, cover }
+ */
+async function _fetchNeteasePlaylist(playlistId) {
+  var url = _MUSIC_API_BASE + '/playlist/detail?id=' + encodeURIComponent(playlistId);
+  var resp = await fetch(url);
+  if (!resp.ok) throw new Error('Playlist request failed: HTTP ' + resp.status);
+  var data = await resp.json();
+  // NeteaseCloudMusicApi: data.playlist.tracks  or  data.playlist.trackIds
+  var playlist = data && data.playlist;
+  if (!playlist) throw new Error('Invalid playlist response');
+
+  var tracks = playlist.tracks || [];
+  if (!tracks.length && playlist.trackIds && playlist.trackIds.length) {
+    // Tracks not embedded — need separate song/detail call
+    var ids = playlist.trackIds.slice(0, 50).map(function(t) { return t.id; }).join(',');
+    var detailResp = await fetch(_MUSIC_API_BASE + '/song/detail?ids=' + encodeURIComponent(ids));
+    if (detailResp.ok) {
+      var detailData = await detailResp.json();
+      tracks = (detailData && detailData.songs) || [];
+    }
+  }
+
+  return tracks.map(function(t) {
+    var artist = '';
+    if (t.ar && t.ar.length) {
+      artist = t.ar.map(function(a) { return a.name; }).join(' / ');
+    } else if (t.artists && t.artists.length) {
+      artist = t.artists.map(function(a) { return a.name; }).join(' / ');
+    }
+    var cover = (t.al && t.al.picUrl) || (t.album && t.album.picUrl) || '';
+    return { id: String(t.id), name: t.name || 'Unknown', artist: artist || 'Unknown', cover: cover };
+  });
+}
+
+/**
+ * Fetch audio URL for a single song ID via NetEase API.
+ * Returns a string URL or empty string.
+ */
+async function _fetchNeteaseAudioUrl(songId) {
+  try {
+    var resp = await fetch(_MUSIC_API_BASE + '/song/url?id=' + encodeURIComponent(songId));
+    if (!resp.ok) return '';
+    var data = await resp.json();
+    var item = data && data.data && data.data[0];
+    return (item && item.url) || '';
+  } catch (e) {
+    console.warn('[Together] Audio URL fetch failed for', songId, e.message);
+    return '';
+  }
+}
+
+/**
+ * Fetch lyrics for a single song ID via NetEase API.
+ * Returns plain text (LRC timestamps stripped).
+ */
+async function _fetchNeteaseLyric(songId) {
+  try {
+    var resp = await fetch(_MUSIC_API_BASE + '/lyric?id=' + encodeURIComponent(songId));
+    if (!resp.ok) return '';
+    var data = await resp.json();
+    var lrc = (data && data.lrc && data.lrc.lyric) || '';
+    return _parseLrc(lrc);
+  } catch (e) {
+    console.warn('[Together] Lyric fetch failed for', songId, e.message);
+    return '';
+  }
+}
+
+/**
+ * QQ Music playlist import — reserved for future implementation.
+ * Returns a user-facing error so they know it's not yet supported.
+ */
+async function _fetchQQPlaylist(playlistId) {
+  // TODO: implement when QQ Music API is available on the deployed service
+  throw new Error('QQ Music playlist import is not yet supported. Please use a NetEase Music link.');
+}
+
+/**
+ * Main entry point: called by the Parse button in the song modal.
+ * Reads playlistUrlInput, detects platform+ID, fetches all songs
+ * (with audio URLs and lyrics), bulk-adds them to state.together.songs,
+ * saves state, closes the modal, and refreshes the listen pane.
+ */
+async function parseMusicPlaylist() {
+  var raw = (document.getElementById('playlistUrlInput').value || '').trim();
+  if (!raw) {
+    _setStatus('playlistImportStatus', 'Please paste a playlist link first.', true);
+    return;
+  }
+
+  var btn = document.getElementById('parsePlaylistBtn');
+  if (btn) { btn.textContent = 'Parsing...'; btn.disabled = true; }
+  _setStatus('playlistImportStatus', 'Parsing playlist...', false);
+
+  try {
+    var info = _extractPlaylistInfo(raw);
+
+    if (!info.platform) {
+      throw new Error('Unrecognized link format. Please use a NetEase or QQ Music playlist link, or a numeric playlist ID.');
+    }
+
+    // Resolve short URL if needed
+    if (info.isShort) {
+      if (info.platform === 'netease') {
+        _setStatus('playlistImportStatus', 'Resolving short link...', false);
+        info.id = await _resolveNeteaseShortUrl(info.shortUrl);
+        if (!info.id) throw new Error('Could not resolve short link. Please use the full playlist URL.');
+      } else {
+        throw new Error('QQ Music short links are not yet supported. Please use the full playlist URL.');
+      }
+    }
+
+    _setStatus('playlistImportStatus', 'Fetching playlist details...', false);
+
+    var tracks;
+    if (info.platform === 'netease') {
+      tracks = await _fetchNeteasePlaylist(info.id);
+    } else {
+      tracks = await _fetchQQPlaylist(info.id);
+    }
+
+    if (!tracks || !tracks.length) {
+      throw new Error('No tracks found in this playlist.');
+    }
+
+    _setStatus('playlistImportStatus', 'Fetching audio & lyrics for ' + tracks.length + ' tracks...', false);
+
+    // Fetch audio URL and lyrics for each track (up to 50 to avoid overload)
+    var limited = tracks.slice(0, 50);
+    var songs = [];
+    for (var i = 0; i < limited.length; i++) {
+      var t = limited[i];
+      var audioUrl = '';
+      var lyrics   = '';
+      if (info.platform === 'netease') {
+        // Fetch audio and lyrics in parallel
+        var results = await Promise.allSettled([
+          _fetchNeteaseAudioUrl(t.id),
+          _fetchNeteaseLyric(t.id)
+        ]);
+        audioUrl = results[0].status === 'fulfilled' ? (results[0].value || '') : '';
+        lyrics   = results[1].status === 'fulfilled' ? (results[1].value || '') : '';
+      }
+      // Skip tracks with no playable URL
+      if (!audioUrl) continue;
+
+      songs.push({
+        id:       t.id + '_' + Date.now() + '_' + i,
+        title:    t.name,
+        artist:   t.artist,
+        cover:    t.cover,
+        lyrics:   lyrics,
+        audioUrl: audioUrl,
+        audioName: t.name,
+        source:   'playlist',
+        platform: info.platform
+      });
+    }
+
+    if (!songs.length) {
+      throw new Error('No playable tracks found. The audio URLs may be unavailable due to regional restrictions.');
+    }
+
+    _ensureTogetherState();
+    // Prepend imported songs (newest at front)
+    for (var j = songs.length - 1; j >= 0; j--) {
+      state.together.songs.unshift(songs[j]);
+    }
+    if (typeof saveState === 'function') saveState();
+
+    _setStatus('playlistImportStatus', 'Playlist imported successfully (' + songs.length + ' tracks added).', false);
+    console.log('[Together] Playlist imported:', songs.length, 'tracks from', info.platform, 'ID', info.id);
+
+    // Close modal and refresh listen pane after brief delay so user sees success message
+    setTimeout(function() {
+      closeTogetherModal('song');
+      switchTogetherTab('listen');
+      _renderListenContent();
+    }, 900);
+
+  } catch (err) {
+    console.error('[Together] Playlist import error:', err);
+    _setStatus('playlistImportStatus', 'Failed to parse playlist. ' + (err.message || 'Please check the link.'), true);
+  } finally {
+    if (btn) { btn.textContent = 'Parse'; btn.disabled = false; }
+  }
+}
+
+// Reset playlist import field when song modal resets
+(function _patchResetModalForPlaylist() {
+  var _origReset = _resetModal;
+  _resetModal = function(type) {
+    _origReset(type);
+    if (type === 'song') {
+      _setVal('playlistUrlInput', '');
+      _hide('playlistImportStatus');
+      var btn = document.getElementById('parsePlaylistBtn');
+      if (btn) { btn.textContent = 'Parse'; btn.disabled = false; }
+    }
+  };
+})();

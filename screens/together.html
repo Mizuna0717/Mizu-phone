@@ -106,8 +106,22 @@
             <input type="file" id="audioFileInput" accept=".mp3,audio/mpeg" style="display:none" onchange="handleAudioFile(this)">
           </div>
         </div>
-        <!-- 进度提示 -->
+                <!-- 进度提示 -->
         <div class="tg-upload-status" id="songUploadStatus" style="display:none"></div>
+
+        <!-- Import from Playlist -->
+        <div class="tg-playlist-import-divider">
+          <span class="tg-playlist-import-divider-text">or import from playlist</span>
+        </div>
+        <div class="tg-form-group">
+          <label class="tg-form-label">Import from Playlist</label>
+          <p class="tg-playlist-import-hint">Paste playlist link (NetEase / QQ Music, long or short link)</p>
+          <div class="tg-playlist-import-row">
+            <input class="tg-form-input tg-playlist-import-input" id="playlistUrlInput" type="text" placeholder="Paste playlist link here...">
+            <button class="tg-parse-playlist-btn" id="parsePlaylistBtn" onclick="parseMusicPlaylist()">Parse</button>
+          </div>
+          <div class="tg-upload-status" id="playlistImportStatus" style="display:none"></div>
+        </div>
       </div>
       <div class="tg-modal-footer">
         <button class="tg-btn-ghost" onclick="closeTogetherModal('song')" data-i18n="together.cancel">取消</button>
