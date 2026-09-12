@@ -4,7 +4,6 @@
 		<div class="home-pages" id="homePages">
 			<!-- PAGE 1 -->
 			<div class="home-page" id="homePage1">
-				<!-- Blog Widget (Safari-style) -->
 				<div class="blog-widget" id="blogWidget">
 					<div class="bw-topbar">
 						<span class="bw-top-left" id="bwTopLeft" onclick="editBlogTopLeft()">AA</span>
@@ -53,8 +52,8 @@
 						</div>
 						<span class="bw-nav-arrow">&gt;</span>
 					</div>
-				</div><div class="home-p1-bottom">
-					<!-- Weather Widget (new style) -->
+				</div>
+				<div class="home-p1-bottom">
 					<div class="weather-widget" id="weatherWidget">
 						<div class="nww-header">
 							<div class="nww-date-block">
@@ -63,7 +62,7 @@
 							</div>
 							<div class="nww-record-block">
 								<div class="nww-record1" id="nwwRecord1" onclick="editWeatherRecord(0)">♡ㅠ ㅠ…？</div>
-															<div class="nww-record2" id="nwwRecord2" onclick="editWeatherRecord(1)">i 🤍uuu so..</div>
+								<div class="nww-record2" id="nwwRecord2" onclick="editWeatherRecord(1)">i 🤍uuu so..</div>
 							</div>
 						</div>
 						<div class="nww-oval">
@@ -88,7 +87,6 @@
 						</div>
 						<input type="file" id="nwwImgInput" accept="image/*" onchange="setWeatherWidgetImageFile(this)" style="display:none">
 					</div>
-					<!-- 4 App Icons -->
 					<div class="home-icon-grid">
 						<div class="app-icon-wrap" onclick="nav('screen-imessage')">
 							<div class="app-icon"><svg viewBox="0 0 32 32"><path d="M6 6h20a2 2 0 012 2v12a2 2 0 01-2 2H12l-6 4v-4a2 2 0 01-2-2V8a2 2 0 012-2z"/><circle cx="11" cy="14" r="1.2" fill="#3a3a3c" stroke="none"/><circle cx="16" cy="14" r="1.2" fill="#3a3a3c" stroke="none"/><circle cx="21" cy="14" r="1.2" fill="#3a3a3c" stroke="none"/></svg></div>
@@ -112,46 +110,40 @@
 			</div>
 			<!-- PAGE 2 -->
 			<div class="home-page" id="homePage2">
-								<div class="greeting-widget">
-									<div class="gw-bg-blur"></div>
-									<div class="gw-dots-header"></div>
-									<div class="gw-content-wrapper">
-										<!-- Bubbles row -->
-										<div class="gw-bubbles-row">
-											<div class="gw-bubble gw-bubble-left" onclick="editGwChar(0)">
-												<span id="gwBubble0">>^•-•^<</span>
-											</div>
-											<div class="gw-bubble gw-bubble-right" onclick="editGwChar(1)">
-												<span id="gwBubble1">₍^_ ‸ _ ^₎⟆ </span>
-											</div>
-										</div>
-										<!-- Avatars + info row -->
-										<div class="gw-avatars-row">
-											<!-- Left info -->
-											<div class="gw-info gw-info-left">
-												<div class="gw-name" id="gwName0" onclick="editGwName(0);">Mio</div>
-												<div class="gw-tag" id="gwTag0" onclick="editGwTag(0);">infp | Aries</div>
-											</div>
-											<!-- Left avatar -->
-											<div class="gw-avatar" onclick="editGwAvatar(0);">
-												<img id="gwAvatar0" style="display:none">
-												<svg id="gwAvatarPh0" viewBox="0 0 80 80"><circle cx="40" cy="32" r="8"/><circle cx="32" cy="22" r="2.5"/><circle cx="48" cy="22" r="2.5"/><path d="M35 40c0 3 2 5 5 5s5-2 5-5" stroke-linecap="round"/><path d="M40 50c-6 0-10 3-10 8"/></svg>
-											</div>
-											<!-- Right avatar -->
-											<div class="gw-avatar" onclick="editGwAvatar(1);">
-												<img id="gwAvatar1" style="display:none">
-												<svg id="gwAvatarPh1" viewBox="0 0 80 80"><circle cx="40" cy="35" r="10"/><circle cx="32" cy="24" r="2.5"/><circle cx="48" cy="24" r="2.5"/><path d="M35 42c0 3 2 5 5 5s5-2 5-5" stroke-linecap="round"/><ellipse cx="40" cy="52" rx="8" ry="6"/></svg>
-											</div>
-											<!-- Right info -->
-											<div class="gw-info gw-info-right">
-												<div class="gw-name" id="gwName1" onclick="editGwName(1);">Ryo</div>
-												<div class="gw-tag" id="gwTag1" onclick="editGwTag(1);">entp | Cancer</div>
-											</div>
-										</div>
-									</div>
-									<input type="file" id="gwAvatarInput0" accept="image/*" onchange="setGwAvatar(0, this)" style="display:none">
-									<input type="file" id="gwAvatarInput1" accept="image/*" onchange="setGwAvatar(1, this)" style="display:none">
-								</div>
+				<div class="greeting-widget">
+					<div class="gw-bg-blur"></div>
+					<div class="gw-dots-header"></div>
+					<div class="gw-content-wrapper">
+						<div class="gw-bubbles-row">
+							<div class="gw-bubble gw-bubble-left" onclick="editGwChar(0)">
+								<span id="gwBubble0">>^•-•^<</span>
+							</div>
+							<div class="gw-bubble gw-bubble-right" onclick="editGwChar(1)">
+								<span id="gwBubble1">₍^_ ‸ _ ^₎⟆ </span>
+							</div>
+						</div>
+						<div class="gw-avatars-row">
+							<div class="gw-info gw-info-left">
+								<div class="gw-name" id="gwName0" onclick="editGwName(0);">Mio</div>
+								<div class="gw-tag" id="gwTag0" onclick="editGwTag(0);">infp | Aries</div>
+							</div>
+							<div class="gw-avatar" onclick="editGwAvatar(0);">
+								<img id="gwAvatar0" style="display:none">
+								<svg id="gwAvatarPh0" viewBox="0 0 80 80"><circle cx="40" cy="32" r="8"/><circle cx="32" cy="22" r="2.5"/><circle cx="48" cy="22" r="2.5"/><path d="M35 40c0 3 2 5 5 5s5-2 5-5" stroke-linecap="round"/><path d="M40 50c-6 0-10 3-10 8"/></svg>
+							</div>
+							<div class="gw-avatar" onclick="editGwAvatar(1);">
+								<img id="gwAvatar1" style="display:none">
+								<svg id="gwAvatarPh1" viewBox="0 0 80 80"><circle cx="40" cy="35" r="10"/><circle cx="32" cy="24" r="2.5"/><circle cx="48" cy="24" r="2.5"/><path d="M35 42c0 3 2 5 5 5s5-2 5-5" stroke-linecap="round"/><ellipse cx="40" cy="52" rx="8" ry="6"/></svg>
+							</div>
+							<div class="gw-info gw-info-right">
+								<div class="gw-name" id="gwName1" onclick="editGwName(1);">Ryo</div>
+								<div class="gw-tag" id="gwTag1" onclick="editGwTag(1);">entp | Cancer</div>
+							</div>
+						</div>
+					</div>
+					<input type="file" id="gwAvatarInput0" accept="image/*" onchange="setGwAvatar(0, this)" style="display:none">
+					<input type="file" id="gwAvatarInput1" accept="image/*" onchange="setGwAvatar(1, this)" style="display:none">
+				</div>
 				<div class="p2-grid">
 					<div class="p2-left">
 						<div class="music-widget">
@@ -193,8 +185,11 @@
 							<div class="cw-robot-bar">
 								<div class="cw-robot-checkbox"></div>
 								<span class="cw-robot-label">I'm not a robot</span>
+								<div class="cw-robot-bar-logo">
+									<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5L22 9.3l-5 4.9 1.2 7L12 18l-6.2 3.2L7 14.2 2 9.3l7-0.8z"/></svg>
+									<span class="cw-robot-bar-logo-text">reCAPTCHA</span>
+								</div>
 							</div>
-							<div class="cw-triangle"></div>
 							<div class="cw-body">
 								<div class="cw-input-row">
 									<input class="cw-type-input" type="text" placeholder="Type what u see">
@@ -212,7 +207,7 @@
 										<div class="cw-icon-btn" onclick="editCalCaptchaImage()">
 											<svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
 										</div>
-										<div class="cw-icon-btn">
+										<div class="cw-icon-btn" onclick="editCalEvent()">
 											<svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
 										</div>
 									</div>
@@ -268,6 +263,3 @@
 		</div>
 	</div>
 </div>
-
-
-

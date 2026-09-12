@@ -975,18 +975,18 @@
 
 .mw-cover:active { opacity: .85; }
 
-/* ===== Calendar Widget (CAPTCHA style) ===== */
+/* ===== Calendar Widget (redesigned — matches widget family) ===== */
 .calendar-widget {
-  border-radius: 14px;
+  border-radius: 22px;
   background: #ffffff;
-  border: 1.5px solid #d0d0d0;
-  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  box-shadow: 0 2px 18px rgba(0,0,0,.07), 0 1px 0 rgba(255,255,255,.9) inset;
+  border: 1px solid rgba(255,255,255,.7);
   padding: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
   flex-shrink: 0;
-  overflow: visible;
+  overflow: hidden;
   aspect-ratio: 1;
   gap: 0;
   align-items: unset;
@@ -994,123 +994,151 @@
   color: unset;
 }
 
-/* Top bar: checkbox + "I'm not a robot" */
+/* Top bar */
 .cw-robot-bar {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 10px 12px;
-  background: #ebebeb;
-  border-bottom: 1px solid #d0d0d0;
-  border-radius: 12px 12px 0 0;
+  gap: 10px;
+  padding: 13px 14px 11px;
+  background: #ffffff;
+  border-bottom: 0.5px solid rgba(0,0,0,.06);
 }
 
+/* Checkmark circle */
 .cw-robot-checkbox {
   width: 26px;
   height: 26px;
-  border: 2px solid #b8b8b8;
-  border-radius: 3px;
-  background: #ffffff;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8e8ed, #dddde3);
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.cw-robot-checkbox::after {
+  content: '';
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid #8e8e93;
+  border-bottom: 2px solid #8e8e93;
+  transform: rotate(-45deg) translate(1px, -1px);
+  display: block;
 }
 
 .cw-robot-label {
-  font-size: 14px;
-  font-weight: 700;
-  color: #2c2c2c;
-  letter-spacing: -.1px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c2c2e;
+  letter-spacing: -.2px;
+  flex: 1;
 }
 
-/* Triangle connector */
-.cw-triangle {
-  width: 0;
-  height: 0;
-  border-left: 12px solid transparent;
-  border-right: 12px solid transparent;
-  border-bottom: 12px solid #d0d0d0;
-  margin-left: 20px;
-  position: relative;
+/* reCAPTCHA logo area */
+.cw-robot-bar-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   flex-shrink: 0;
 }
 
-.cw-triangle::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: -10px;
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid #efefef;
+.cw-robot-bar-logo svg {
+  width: 18px;
+  height: 18px;
+  stroke: #b0b0b8;
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-/* Bottom container */
+.cw-robot-bar-logo-text {
+  font-size: 7px;
+  color: #c0c0c5;
+  font-weight: 500;
+  letter-spacing: .2px;
+  line-height: 1;
+}
+
+/* Triangle hidden in new design */
+.cw-triangle { display: none; }
+
+/* Body */
 .cw-body {
-  background: #efefef;
-  border-top: 1px solid #d0d0d0;
-  border-radius: 0 0 12px 12px;
-  padding: 8px 8px 10px 8px;
+  background: #f7f7f9;
+  border-radius: 0 0 22px 22px;
+  padding: 10px 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  flex: 1;
+  gap: 8px;
 }
 
 /* Input row */
 .cw-input-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .cw-type-input {
   flex: 1;
-  height: 34px;
-  border: 1.5px solid #d0d0d0;
-  border-radius: 4px;
+  height: 32px;
+  border: 1px solid rgba(0,0,0,.09);
+  border-radius: 10px;
   background: #ffffff;
   padding: 0 10px;
-  font-size: 12px;
-  color: #b0b0b0;
+  font-size: 11px;
+  color: #b0b0b8;
   font-weight: 400;
   outline: none;
   font-family: inherit;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05) inset;
 }
 
 .cw-type-input:focus {
-  border-color: #aaaaaa;
-  color: #333;
+  border-color: rgba(0,0,0,.18);
+  color: #3a3a3c;
 }
 
 .cw-verify-btn {
-  height: 34px;
+  height: 32px;
   padding: 0 12px;
-  background: #595959;
+  background: #2c2c2e;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   cursor: pointer;
   flex-shrink: 0;
   letter-spacing: .1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
 }
 
-.cw-verify-btn:active { background: #3a3a3a; }
+.cw-verify-btn:active {
+  background: #1a1a1c;
+  transform: scale(.97);
+}
 
-/* Image area row: big image left + icon buttons right */
+/* Image area */
 .cw-image-row {
   display: flex;
   align-items: stretch;
-  gap: 6px;
+  gap: 7px;
+  flex: 1;
+  min-height: 0;
 }
 
 .cw-captcha-img-wrap {
   flex: 1;
   min-height: 0;
-  border: 1.5px solid #c8c8c8;
-  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,.07);
+  border-radius: 14px;
   background: #ffffff;
   overflow: hidden;
   cursor: pointer;
@@ -1118,6 +1146,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 1px 6px rgba(0,0,0,.05);
 }
 
 .cw-captcha-img-wrap img {
@@ -1142,25 +1171,24 @@
 }
 
 .cw-captcha-img-ph svg {
-  width: 26px;
-  height: 26px;
-  stroke: #cccccc;
+  width: 24px;
+  height: 24px;
+  stroke: #d0d0d5;
   fill: none;
   stroke-width: 1.3;
 }
 
 .cw-captcha-img-wrap:active { opacity: .8; }
 
-/* Right icon buttons column */
+/* Right icon buttons */
 .cw-icon-btns {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 4px 2px;
+  gap: 8px;
   flex-shrink: 0;
-  width: 30px;
+  width: 28px;
 }
 
 .cw-icon-btn {
@@ -1170,18 +1198,24 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 50%;
-  transition: background .15s;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,.07);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  transition: background .15s, transform .15s;
 }
 
-.cw-icon-btn:active { background: rgba(0,0,0,.08); }
+.cw-icon-btn:active {
+  background: #f0f0f2;
+  transform: scale(.93);
+}
 
 .cw-icon-btn svg {
-  width: 22px;
-  height: 22px;
-  stroke: #b0b0b0;
+  width: 14px;
+  height: 14px;
+  stroke: #8e8e93;
   fill: none;
-  stroke-width: 1.6;
+  stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
