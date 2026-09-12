@@ -825,7 +825,7 @@
 }
 
 .mw-song {
-  font-size: 19px; /* 字體放大 */
+  font-size: 15px; /* 字體放大 */
   font-weight: 700;
   color: #2f2f31;
   cursor: pointer;
@@ -836,7 +836,7 @@
 .mw-song:active { opacity: .6; }
 
 .mw-artist {
-  font-size: 13px; /* 調整字體大小 */
+  font-size: 9px; /* 調整字體大小 */
   color: #8e8e93;
   font-weight: 400;
   cursor: pointer;
@@ -964,7 +964,7 @@
 .mw-disc-bg {
   position: absolute;
   left: 32%;          /* center at 70% − radius 35% */
-  bottom: 8%;       /* slight bleed below */
+  bottom: 10%;       /* slight bleed below */
   width: 74%;         /* diameter = cover width */
   aspect-ratio: 1;
   border-radius: 50%;
