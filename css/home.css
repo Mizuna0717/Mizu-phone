@@ -987,7 +987,11 @@
   width: 100%;
   flex-shrink: 0;
   overflow: hidden;
-  aspect-ratio: 1;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-height: 0;          /* ← 新增：防止內容撐高 */
+  max-height: 100%;       /* ← 新增：硬性上限 */
+  box-sizing: border-box;
   gap: 0;
   align-items: unset;
   justify-content: unset;
@@ -1002,6 +1006,7 @@
   padding: 13px 14px 11px;
   background: #ffffff;
   border-bottom: 0.5px solid rgba(0,0,0,.06);
+  flex-shrink: 0;         /* ← 新增：頂欄不被壓縮 */
 }
 
 /* Checkmark circle */
@@ -1076,6 +1081,8 @@
   flex-direction: column;
   flex: 1;
   gap: 8px;
+  min-height: 0;          /* ← 新增：關鍵，允許被壓縮 */
+  overflow: hidden;       /* ← 新增：不讓內容溢出撐大 */
 }
 
 /* Input row */
@@ -1083,11 +1090,13 @@
   display: flex;
   align-items: center;
   gap: 7px;
+  flex-shrink: 0;         /* ← 新增：固定輸入列高度 */
 }
 
 .cw-type-input {
   flex: 1;
   height: 32px;
+  min-height: 0;
   border: 1px solid rgba(0,0,0,.09);
   border-radius: 10px;
   background: #ffffff;
@@ -1107,6 +1116,7 @@
 
 .cw-verify-btn {
   height: 32px;
+  min-height: 0;
   padding: 0 12px;
   background: #2c2c2e;
   color: #ffffff;
@@ -1131,7 +1141,8 @@
   align-items: stretch;
   gap: 7px;
   flex: 1;
-  min-height: 0;
+  min-height: 0;          /* ← 新增：關鍵，允許被壓縮 */
+  overflow: hidden;       /* ← 新增：不讓內容溢出 */
 }
 
 .cw-captcha-img-wrap {
@@ -1189,6 +1200,8 @@
   gap: 8px;
   flex-shrink: 0;
   width: 28px;
+  min-height: 0;          /* ← 核心修復：不再撐高父層 */
+  overflow: hidden;       /* ← 新增：保險 */
 }
 
 .cw-icon-btn {
@@ -1203,6 +1216,7 @@
   border: 1px solid rgba(0,0,0,.07);
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
   transition: background .15s, transform .15s;
+  flex-shrink: 0;
 }
 
 .cw-icon-btn:active {
