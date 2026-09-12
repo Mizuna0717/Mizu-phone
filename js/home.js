@@ -1,4 +1,4 @@
-// ========== 15-home.js ==========
+﻿// ========== 15-home.js ==========
 // 依賴：02-state.js, 03-utils.js
 
 let homePageIndex = 0;
@@ -9,12 +9,11 @@ function initHome() {
   updateCalendar();
   renderHomeProfile();
   renderCalEvent();
-
   renderBlogWidget();
   renderWeatherWidget();
-
+  renderCalCaptchaImage();
   const u = state.userProfile;
-    _renderMusicWidget();
+  _renderMusicWidget();
   if (u.calEvent) renderCalEvent();
 }
 
@@ -76,7 +75,7 @@ function setHomeAvatar(inp) {
 // ========== BLOG WIDGET ==========
 function _getBlogWidget() {
   if (!state.home) state.home = {};
-    if (!state.home.widget) {
+  if (!state.home.widget) {
     state.home.widget = {
       topLeftText: 'Mizu phone.com', topRightText: 'Mizu',
       avatar: { type: 'url', value: '' },
@@ -89,15 +88,6 @@ function _getBlogWidget() {
     state.home.widget.avatar = { type: 'url', value: 'images/blog-avatar.jpg' };
     saveState(true);
   }
-  const _defaultImgs = ['images/blog-1.jpg', 'images/blog-2.jpg', 'images/blog-3.jpg'];
-  let _imgChanged = false;
-  [0, 1, 2].forEach(i => {
-    if (!state.home.widget.images[i] || !state.home.widget.images[i].value) {
-      state.home.widget.images[i] = { type: 'url', value: _defaultImgs[i] };
-      _imgChanged = true;
-    }
-  });
-  if (_imgChanged) saveState(true);
   const defaultImgs = ['images/blog-1.jpg', 'images/blog-2.jpg', 'images/blog-3.jpg'];
   let changed = false;
   [0, 1, 2].forEach(i => {
@@ -154,7 +144,7 @@ function _showBlogMediaPicker(onLocalFile, onUrlInput) {
         <div class="modern-modal-subtitle">Select how you want to add an image</div>
       </div>
       <div class="modern-modal-body">
-                <div class="modern-modal-option" id="_mmpFile">
+        <div class="modern-modal-option" id="_mmpFile">
           <div class="modern-modal-option-icon">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
           </div>
@@ -179,12 +169,10 @@ function _showBlogMediaPicker(onLocalFile, onUrlInput) {
     </div>`;
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add('show'), 10);
-  
   const closeModal = () => {
     overlay.classList.remove('show');
     setTimeout(() => document.body.removeChild(overlay), 250);
   };
-  
   overlay.querySelector('#_mmpFile').onclick = () => { closeModal(); onLocalFile(); };
   overlay.querySelector('#_mmpUrl').onclick = () => {
     closeModal();
@@ -214,21 +202,17 @@ function _showTextInputModal(title, placeholder, defaultValue, onConfirm) {
     </div>`;
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add('show'), 10);
-  
   const input = overlay.querySelector('#_timInput');
   setTimeout(() => input.focus(), 300);
-  
   const closeModal = () => {
     overlay.classList.remove('show');
     setTimeout(() => document.body.removeChild(overlay), 250);
   };
-  
   const confirm = () => {
     const val = input.value;
     closeModal();
     onConfirm(val);
   };
-  
   overlay.querySelector('#_timConfirm').onclick = confirm;
   overlay.querySelector('#_timCancel').onclick = closeModal;
   overlay.onclick = e => { if (e.target === overlay) closeModal(); };
@@ -480,17 +464,17 @@ function editMusicInfo(type) {
   const placeholder = type === 'song' ? 'Enter song name' : 'Enter artist name';
   _showTextInputModal(title, placeholder, cur, v => {
     if (v !== null && v !== undefined) {
-        state.userProfile[key] = v;
-        saveState();
-        _renderMusicWidget();
-      }
+      state.userProfile[key] = v;
+      saveState();
+      _renderMusicWidget();
+    }
   });
 }
 
 // ========== WEATHER WIDGET (NEW) ==========
 function _getWeatherWidget() {
   if (!state.home) state.home = {};
-    if (!state.home.weatherWidget) {
+  if (!state.home.weatherWidget) {
     state.home.weatherWidget = {
       recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'],
       image: { type: 'url', value: '' }
@@ -644,7 +628,7 @@ function fetchWeather() {
       state.home.weather.condition   = cond;
       state.home.weather.humidity    = cur.humidity || '--';
       state.home.weather.updatedAt   = updatedAt;
-            saveState();
+      saveState();
       renderWeather();
       syncGwTemp();
     })
@@ -670,9 +654,12 @@ function updateCalendar() {
   const now = new Date();
   const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  document.getElementById('calMonth').textContent = months[now.getMonth()];
-  document.getElementById('calDate').textContent = now.getDate();
-  document.getElementById('calWeekday').textContent = days[now.getDay()];
+  const m = document.getElementById('calMonth');
+  const d = document.getElementById('calDate');
+  const w = document.getElementById('calWeekday');
+  if (m) m.textContent = months[now.getMonth()];
+  if (d) d.textContent = now.getDate();
+  if (w) w.textContent = days[now.getDay()];
 }
 
 function editCalEvent() {
@@ -697,7 +684,65 @@ function editCalEvent() {
 
 function renderCalEvent() {
   const ev = state.userProfile.calEvent;
-  const el = document.getElementById('calEvent'), cd = document.getElementById('calCountdown');
-  if (ev) { el.textContent = ev; cd.textContent = state.userProfile.calDays || 0; cd.style.display = 'block'; }
-  else { el.textContent = 'Tap to set event'; cd.style.display = 'none'; }
+  const el = document.getElementById('calEvent');
+  const cd = document.getElementById('calCountdown');
+  if (!el) return;
+  if (ev) { el.textContent = ev; if (cd) { cd.textContent = state.userProfile.calDays || 0; cd.style.display = 'block'; } }
+  else { el.textContent = 'Tap to set event'; if (cd) cd.style.display = 'none'; }
+}
+
+// ========== CAPTCHA WIDGET IMAGE ==========
+function _getCalCaptchaImage() {
+  if (!state.home) state.home = {};
+  if (!state.home.calCaptchaImage) state.home.calCaptchaImage = { type: 'url', value: '' };
+  return state.home.calCaptchaImage;
+}
+
+function renderCalCaptchaImage() {
+  const img = document.getElementById('cwCaptchaImg');
+  const ph  = document.getElementById('cwCaptchaImgPh');
+  if (!img || !ph) return;
+  const cap = _getCalCaptchaImage();
+  const val = cap && cap.value;
+  if (val) {
+    img.src = val; img.style.display = 'block'; ph.style.display = 'none';
+  } else {
+    img.style.display = 'none'; ph.style.display = 'flex';
+  }
+}
+
+function editCalCaptchaImage() {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file'; fileInput.accept = 'image/*';
+  _showBlogMediaPicker(
+    () => {
+      fileInput.onchange = () => {
+        if (!fileInput.files || !fileInput.files[0]) return;
+        const r = new FileReader();
+        r.onload = e => {
+          if (!state.home) state.home = {};
+          state.home.calCaptchaImage = { type: 'local', value: e.target.result };
+          saveState(); renderCalCaptchaImage();
+        };
+        r.readAsDataURL(fileInput.files[0]);
+      };
+      fileInput.click();
+    },
+    url => {
+      if (!state.home) state.home = {};
+      state.home.calCaptchaImage = { type: 'url', value: url };
+      saveState(); renderCalCaptchaImage();
+    }
+  );
+}
+
+function setCaptchaImageFile(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    if (!state.home) state.home = {};
+    state.home.calCaptchaImage = { type: 'local', value: e.target.result };
+    saveState(); renderCalCaptchaImage();
+  };
+  r.readAsDataURL(inp.files[0]);
 }

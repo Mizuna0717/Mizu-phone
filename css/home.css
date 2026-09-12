@@ -975,74 +975,218 @@
 
 .mw-cover:active { opacity: .85; }
 
-/* ===== Calendar Widget ===== */
+/* ===== Calendar Widget (CAPTCHA style) ===== */
 .calendar-widget {
-  border-radius: 22px;
-  background: linear-gradient(160deg, rgba(42, 42, 46, .88), rgba(28, 28, 32, .92));
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, .05);
-  padding: 16px 14px;
-  color: #fff;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, .12);
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1.5px solid #d0d0d0;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  padding: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  aspect-ratio: 1;
   width: 100%;
   flex-shrink: 0;
+  overflow: visible;
+  aspect-ratio: 1;
+  gap: 0;
+  align-items: unset;
+  justify-content: unset;
+  color: unset;
+}
+
+/* Top bar: checkbox + "I'm not a robot" */
+.cw-robot-bar {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  background: #ebebeb;
+  border-bottom: 1px solid #d0d0d0;
+  border-radius: 12px 12px 0 0;
+}
+
+.cw-robot-checkbox {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #b8b8b8;
+  border-radius: 3px;
+  background: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.10);
+}
+
+.cw-robot-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2c2c2c;
+  letter-spacing: -.1px;
+}
+
+/* Triangle connector */
+.cw-triangle {
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 12px solid #d0d0d0;
+  margin-left: 20px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cw-triangle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: -10px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid #efefef;
+}
+
+/* Bottom container */
+.cw-body {
+  background: #efefef;
+  border-top: 1px solid #d0d0d0;
+  border-radius: 0 0 12px 12px;
+  padding: 8px 8px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Input row */
+.cw-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cw-type-input {
+  flex: 1;
+  height: 34px;
+  border: 1.5px solid #d0d0d0;
+  border-radius: 4px;
+  background: #ffffff;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #b0b0b0;
+  font-weight: 400;
+  outline: none;
+  font-family: inherit;
+}
+
+.cw-type-input:focus {
+  border-color: #aaaaaa;
+  color: #333;
+}
+
+.cw-verify-btn {
+  height: 34px;
+  padding: 0 12px;
+  background: #595959;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  letter-spacing: .1px;
+}
+
+.cw-verify-btn:active { background: #3a3a3a; }
+
+/* Image area row: big image left + icon buttons right */
+.cw-image-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.cw-captcha-img-wrap {
+  flex: 1;
+  min-height: 0;
+  border: 1.5px solid #c8c8c8;
+  border-radius: 4px;
+  background: #ffffff;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 
-.cw-month {
-  font-size: 10px;
-  color: rgba(255, 255, 255, .35);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-weight: 500;
+.cw-captcha-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-.cw-date {
-  font-size: 44px;
-  font-weight: 100;
-  line-height: 1;
-  letter-spacing: -2px;
-  color: rgba(255, 255, 255, .95);
+.cw-captcha-img-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-.cw-weekday {
-  font-size: 12px;
-  color: rgba(255, 255, 255, .35);
-  font-weight: 400;
-  letter-spacing: .3px;
+.cw-captcha-img-ph svg {
+  width: 26px;
+  height: 26px;
+  stroke: #cccccc;
+  fill: none;
+  stroke-width: 1.3;
 }
 
-.cw-divider {
-  width: 24px;
-  height: 0.5px;
-  background: rgba(255, 255, 255, .1);
-  margin: 10px 0;
+.cw-captcha-img-wrap:active { opacity: .8; }
+
+/* Right icon buttons column */
+.cw-icon-btns {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 2px;
+  flex-shrink: 0;
+  width: 30px;
 }
 
-.cw-event {
-  font-size: 10px;
-  color: rgba(255, 255, 255, .3);
-  text-align: center;
+.cw-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  letter-spacing: .2px;
+  border-radius: 50%;
+  transition: background .15s;
 }
 
-.cw-event:active {
-  opacity: .6;
+.cw-icon-btn:active { background: rgba(0,0,0,.08); }
+
+.cw-icon-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: #b0b0b0;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.cw-countdown {
-  font-size: 22px;
-  font-weight: 200;
-  color: rgba(255, 255, 255, .85);
-  margin-top: 2px;
-  letter-spacing: -1px;
-}
+.cw-month, .cw-date, .cw-weekday, .cw-divider, .cw-event, .cw-countdown { display: none; }
 
 /* ===== 第二頁佈局 ===== */
 .p2-grid {
