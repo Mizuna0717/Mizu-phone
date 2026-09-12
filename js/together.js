@@ -1,6 +1,25 @@
 // ========== together.js ==========
 // Together 应用 — Tab 切换 + 内容上传
 
+// ══════════════════════════════════════════════
+// 模块级工具
+// ══════════════════════════════════════════════
+
+// 【问题3】全局自增 id 生成器，避免同一毫秒内 id 碰撞
+var _togetherIdCounter = 0;
+function _nextTogetherId() {
+  return Date.now() + '_' + (_togetherIdCounter++);
+}
+
+// 【问题8】歌单导入 token，防止关闭/重开弹窗后 setTimeout 乱触发
+var _togetherPlaylistImportToken = 0;
+
+// 【问题12】截断工具函数
+function _truncate(str, n) {
+  str = String(str || '');
+  return str.length > n ? str.slice(0, n) + '...' : str;
+}
+
 /**
  * 切换 Together 底部 Tab
  * @param {'listen'|'watch'|'read'} tab
@@ -36,12 +55,14 @@ function switchTogetherTab(tab) {
   if (pane) pane.classList.add('active');
   if (btn)  btn.classList.add('active');
 
-  // 更新顶部标题（如果有 i18n 函数则使用翻译）
+    // 【问题5】统一 i18n：优先 t()，其次 T()，都没有走 LANG
   var headerEl = document.getElementById('togetherHeaderTitle');
   if (headerEl) {
     var key = titleMap[tab];
     if (typeof t === 'function') {
       headerEl.textContent = t(key);
+    } else if (typeof T === 'function') {
+      headerEl.textContent = T(key) || key;
     } else if (typeof LANG !== 'undefined') {
       var lang = (typeof state !== 'undefined' && state.settings && state.settings.language) ? state.settings.language : 'en';
       headerEl.textContent = (LANG[lang] && LANG[lang][key]) || key;
@@ -108,6 +129,10 @@ var _togetherModalState = { song: {}, video: {}, novel: {} };
 
 function openTogetherModal(type) {
   closeTogetherAddMenu();
+  // 【问题8】打开 song 弹窗时递增 token，使旧的定时器失效
+  if (type === 'song') {
+    _togetherPlaylistImportToken++;
+  }
   var overlay = document.getElementById('modalOverlay' + _cap(type));
   var modal   = document.getElementById('modal'       + _cap(type));
   if (overlay) overlay.classList.add('active');
@@ -126,6 +151,7 @@ function _cap(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+// 【问题7】_resetModal 唯一定义，直接包含 playlist 重置逻辑（删掉文件末尾的 IIFE 猴补丁）
 function _resetModal(type) {
   _togetherModalState[type] = {};
   if (type === 'song') {
@@ -142,6 +168,11 @@ function _resetModal(type) {
     _hide('coverPreviewWrap');
     _hide('songUploadStatus');
     switchCoverTab('local');
+    // playlist 重置
+    _setVal('playlistUrlInput', '');
+    _hide('playlistImportStatus');
+    var parseBtn = document.getElementById('parsePlaylistBtn');
+    if (parseBtn) { parseBtn.textContent = 'Parse'; parseBtn.disabled = false; }
   } else if (type === 'video') {
     _setVal('biliUrlInput', '');
     document.getElementById('videoFileInput').value = '';
@@ -156,7 +187,9 @@ function _resetModal(type) {
   }
 }
 
+// 【问题5】统一 i18n：优先 t()，其次 T()，都没有用 fallback
 function _t(key, fallback) {
+  if (typeof t === 'function') return t(key) || fallback;
   if (typeof T === 'function') return T(key) || fallback;
   return fallback;
 }
@@ -180,9 +213,7 @@ function switchCoverTab(tab) {
   document.getElementById('coverTabUrl').classList.toggle('active', tab === 'url');
   document.getElementById('coverLocalPane').style.display = tab === 'local' ? '' : 'none';
   document.getElementById('coverUrlPane').style.display   = tab === 'url'   ? '' : 'none';
-  if (tab === 'local') {
-    document.getElementById('coverUrlInput').value = '';
-  }
+  // 【问题10】删掉「切到 local 时清空 coverUrlInput」，保留用户已输入的 URL
   _togetherModalState.song._coverTab = tab;
 }
 
@@ -253,7 +284,8 @@ function handleAudioFile(input) {
     _togetherModalState.song.audioName = file.name;
     _setStatus('songUploadStatus', _t('together.audioLoaded', '音频已加载'), false);
   };
-  reader.onerror = function() {
+    reader.onerror = function() {
+    // 【问题9】读取失败时不写入 modalState
     _setStatus('songUploadStatus', _t('together.loadError', '加载失败'), true);
   };
   reader.readAsDataURL(file);
@@ -274,8 +306,8 @@ function submitSong() {
   if (!title)  { _setStatus('songUploadStatus', _t('together.titleRequired',  '请输入歌曲名称'), true);  return; }
   if (!artist) { _setStatus('songUploadStatus', _t('together.artistRequired', '请输入歌手名称'), true); return; }
 
-  var song = {
-    id:       Date.now(),
+    var song = {
+    id:       _nextTogetherId(), // 【问题3】
     title:    title,
     artist:   artist,
     cover:    cover,
@@ -312,21 +344,32 @@ function parseBiliUrl() {
   var raw = (document.getElementById('biliUrlInput').value || '').trim();
   if (!raw) { _setStatus('videoUploadStatus', _t('together.enterBiliUrl', '请输入 B 站链接'), true); return; }
 
+  // 【问题4b】b23.tv 短链明确不支持
+  if (/b23\.tv\//i.test(raw)) {
+    _setStatus('videoUploadStatus',
+      _t('together.b23NotSupported', '暂不支持 b23.tv 短链，请使用完整 B 站链接'), true);
+    return;
+  }
+
   _setStatus('videoUploadStatus', _t('together.parsing', '解析中...'), false);
 
-  var bvMatch  = raw.match(/BV([A-Za-z0-9]+)/i);
-  var avMatch  = raw.match(/av(\d+)/i);
-  var epMatch  = raw.match(/ep(\d+)/i);
-  var ssMatch  = raw.match(/ss(\d+)/i);
-  var shortMatch = raw.match(/b23\.tv\/([A-Za-z0-9]+)/i);
+  // 【问题4a】BV 严格匹配 12 位（BV + 10 位字母数字），不吞多余字符
+  var bvMatch = raw.match(/BV[0-9A-Za-z]{10}/);
+  // av/ep/ss 只取纯数字部分
+  var avMatch = raw.match(/av(\d+)/i);
+  var epMatch = raw.match(/ep(\d+)/i);
+  var ssMatch = raw.match(/ss(\d+)/i);
 
   var vid = '';
-  if (bvMatch)    vid = 'BV' + bvMatch[1];
-  else if (avMatch)    vid = 'av' + avMatch[1];
-  else if (epMatch)    vid = 'ep' + epMatch[1];
-  else if (ssMatch)    vid = 'ss' + ssMatch[1];
-  else if (shortMatch) vid = shortMatch[1];
-  else                 vid = raw;
+  if (bvMatch)      vid = bvMatch[0];         // 已经是完整 12 位
+  else if (avMatch) vid = 'av' + avMatch[1];
+  else if (epMatch) vid = 'ep' + epMatch[1];
+  else if (ssMatch) vid = 'ss' + ssMatch[1];
+  else {
+    _setStatus('videoUploadStatus',
+      _t('together.biliParseFailure', '无法识别 B 站链接，请检查后重试'), true);
+    return;
+  }
 
   _togetherModalState.video.biliVid = vid;
   _togetherModalState.video.biliUrl = raw;
@@ -347,9 +390,20 @@ function parseBiliUrl() {
 // ══════════════════════════════════════════════
 // 本地视频文件
 // ══════════════════════════════════════════════
+var _VIDEO_SIZE_LIMIT = 50 * 1024 * 1024; // 50 MB
+
 function handleVideoFile(input) {
   var file = input.files && input.files[0];
   if (!file) return;
+
+  // 【问题9】视频体积超限时直接报错，不读入 DataURL
+  if (file.size > _VIDEO_SIZE_LIMIT) {
+    _setStatus('videoUploadStatus',
+      _t('together.videoTooLarge', '视频文件过大，请选择小于 50MB 的文件'), true);
+    input.value = '';
+    return;
+  }
+
   _setText('videoFileLabel', file.name);
   _setStatus('videoUploadStatus', _t('together.loading', '加载中...'), false);
   var reader = new FileReader();
@@ -361,6 +415,7 @@ function handleVideoFile(input) {
     _setStatus('videoUploadStatus', _t('together.videoLoaded', '视频已加载'), false);
   };
   reader.onerror = function() {
+    // 【问题9】读取失败时不写入 modalState
     _setStatus('videoUploadStatus', _t('together.loadError', '加载失败'), true);
   };
   reader.readAsDataURL(file);
@@ -379,8 +434,8 @@ function submitVideo() {
     if (!mv.localDataUrl) { _setStatus('videoUploadStatus', _t('together.selectVideoFile', '请选择视频文件'), true); return; }
   }
 
-  var video = {
-    id:       Date.now(),
+    var video = {
+    id:       _nextTogetherId(), // 【问题3】
     title:    mv.title || mv.biliVid || mv.localName || 'Video',
     source:   mv.source || tab,
     biliUrl:  mv.biliUrl  || '',
@@ -444,8 +499,8 @@ function submitNovel() {
   var mn = _togetherModalState.novel;
   if (!mn.fileName) { _setStatus('novelUploadStatus', _t('together.selectNovelFile', '请选择小说文件'), true); return; }
 
-  var novel = {
-    id:      Date.now(),
+    var novel = {
+    id:      _nextTogetherId(), // 【问题3】
     title:   mn.title    || mn.fileName,
     content: mn.content  || '',
     fileName:mn.fileName || ''
@@ -471,44 +526,50 @@ function _renderAllTogetherContent() {
   _renderReadContent();
 }
 
+// 【问题2、12】_renderListenContent：有内容时渲染，无内容时清空；歌词每行截断
 function _renderListenContent() {
   _ensureTogetherState();
   var songs = (state.together && state.together.songs) || [];
-  if (!songs.length) return;
 
-  var latest = songs[0];
+  if (songs.length) {
+    var latest = songs[0];
 
-  var coverEl = document.querySelector('#togetherListen .tg-album-cover');
-  if (coverEl && latest.cover) {
-    coverEl.innerHTML = '<img src="' + latest.cover + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-  }
+    var coverEl = document.querySelector('#togetherListen .tg-album-cover');
+    if (coverEl && latest.cover) {
+      coverEl.innerHTML = '<img src="' + latest.cover + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    }
 
-  var titleEl  = document.querySelector('#togetherListen .tg-song-title');
-  var artistEl = document.querySelector('#togetherListen .tg-song-artist');
-  if (titleEl)  titleEl.textContent  = latest.title;
-  if (artistEl) artistEl.textContent = latest.artist;
+    var titleEl  = document.querySelector('#togetherListen .tg-song-title');
+    var artistEl = document.querySelector('#togetherListen .tg-song-artist');
+    if (titleEl)  titleEl.textContent  = latest.title;
+    if (artistEl) artistEl.textContent = latest.artist;
 
-  if (latest.lyrics) {
-    var lines = latest.lyrics.split('\n').filter(function(l) { return l.trim(); }).slice(0, 8);
     var lyricsCard = document.querySelector('#togetherListen .tg-lyrics-card');
     if (lyricsCard) {
-      lyricsCard.innerHTML = lines.map(function(line, i) {
-        return '<div class="tg-lyric-line' + (i === 0 ? ' active' : '') + '">' +
-          '<span class="tg-lyric-text">' + _escHtml(line) + '</span></div>';
-      }).join('');
+      if (latest.lyrics) {
+        // 【问题12】保留 slice(0,8)，每行截断到 60 字符
+        var lines = latest.lyrics.split('\n').filter(function(l) { return l.trim(); }).slice(0, 8);
+        lyricsCard.innerHTML = lines.map(function(line, i) {
+          return '<div class="tg-lyric-line' + (i === 0 ? ' active' : '') + '">' +
+            '<span class="tg-lyric-text">' + _escHtml(_truncate(line, 60)) + '</span></div>';
+        }).join('');
+      } else {
+        lyricsCard.innerHTML = '';
+      }
     }
   }
 
+  // 【问题2】无论有几首歌都处理 playlist 容器；无内容时清空
   var playlist = document.querySelector('#togetherListen .tg-playlist');
-  if (playlist && songs.length > 1) {
-    var upNext = songs.slice(1);
+  if (playlist) {
+    var upNext = songs.length > 1 ? songs.slice(1) : [];
     playlist.innerHTML = upNext.map(function(s) {
       var coverHtml = s.cover
         ? '<img src="' + s.cover + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">' : '';
       return '<div class="tg-playlist-item">' +
         '<div class="tg-pl-cover">' + coverHtml + '</div>' +
         '<div class="tg-pl-info">' +
-          '<div class="tg-pl-title">' + _escHtml(s.title)  + '</div>' +
+          '<div class="tg-pl-title">'  + _escHtml(s.title)  + '</div>' +
           '<div class="tg-pl-artist">' + _escHtml(s.artist) + '</div>' +
         '</div>' +
         '</div>';
@@ -516,37 +577,40 @@ function _renderListenContent() {
   }
 }
 
+// 【问题2、4b】_renderWatchContent：有内容时渲染，无内容时清空
 function _renderWatchContent() {
   _ensureTogetherState();
   var videos = (state.together && state.together.videos) || [];
-  if (!videos.length) return;
 
-  var latest = videos[0];
+  if (videos.length) {
+    var latest = videos[0];
 
-  var titleEl = document.querySelector('#togetherWatch .tg-vi-title');
-  if (titleEl) titleEl.textContent = latest.title;
+    var titleEl = document.querySelector('#togetherWatch .tg-vi-title');
+    if (titleEl) titleEl.textContent = latest.title;
 
-  var screen = document.querySelector('#togetherWatch .tg-video-screen');
-  if (screen && latest.source === 'local' && latest.localUrl) {
-    screen.innerHTML =
-      '<video src="' + latest.localUrl + '" controls style="width:100%;height:100%;object-fit:cover;"></video>';
-  } else if (screen && latest.source === 'bili') {
-    var bvid = latest.biliVid || '';
-    var embedSrc = bvid
-      ? 'https://player.bilibili.com/player.html?bvid=' + encodeURIComponent(bvid) + '&autoplay=0'
-      : '';
-    if (embedSrc) {
-      screen.innerHTML =
-        '<iframe src="' + embedSrc + '" width="100%" height="100%" frameborder="0"' +
-        ' allowfullscreen scrolling="no"></iframe>';
-    } else {
-      screen.innerHTML = '<div class="tg-video-bili-label">' + _escHtml(latest.title) + '</div>';
+    var screen = document.querySelector('#togetherWatch .tg-video-screen');
+    if (screen) {
+      if (latest.source === 'local' && latest.localUrl) {
+        screen.innerHTML =
+          '<video src="' + latest.localUrl + '" controls style="width:100%;height:100%;object-fit:cover;"></video>';
+      } else if (latest.source === 'bili' && latest.biliVid) {
+        // 【问题4b】bvid 本身只含安全字符，直接拼接；补上 &page=1
+        var embedSrc = 'https://player.bilibili.com/player.html?bvid=' +
+          latest.biliVid + '&page=1&autoplay=0';
+        screen.innerHTML =
+          '<iframe src="' + embedSrc + '" width="100%" height="100%" frameborder="0"' +
+          ' allowfullscreen scrolling="no"></iframe>';
+      } else {
+        screen.innerHTML = '<div class="tg-video-bili-label">' + _escHtml(latest.title) + '</div>';
+      }
     }
   }
 
+  // 【问题2】无论有几个视频都处理列表容器；无内容时清空
   var list = document.querySelector('#togetherWatch .tg-video-list');
-  if (list && videos.length > 1) {
-    list.innerHTML = videos.slice(1).map(function(v) {
+  if (list) {
+    var rest = videos.length > 1 ? videos.slice(1) : [];
+    list.innerHTML = rest.map(function(v) {
       return '<div class="tg-vl-item">' +
         '<div class="tg-vl-thumb">' +
           '<svg viewBox="0 0 32 32" class="tg-vl-play"><path d="M12 8l12 8-12 8z"/></svg>' +
@@ -560,42 +624,45 @@ function _renderWatchContent() {
   }
 }
 
+// 【问题1、2、11】_renderReadContent：幂等渲染，保留稳定容器，不替换 class 节点
 function _renderReadContent() {
   _ensureTogetherState();
   var novels = (state.together && state.together.novels) || [];
-  if (!novels.length) return;
 
-  var latest = novels[0];
+  if (novels.length) {
+    var latest = novels[0];
 
-  var titleEl = document.querySelector('#togetherRead .tg-book-meta .tg-skel');
-  if (titleEl) {
-    var span = document.createElement('span');
-    span.style.cssText = 'font-size:15px;font-weight:600;color:#1d1d1f;';
-    span.textContent   = latest.title;
-    titleEl.replaceWith(span);
-  }
+    // 【问题1】以 .tg-book-meta 为稳定容器，直接写 innerHTML，不 replaceWith
+    var metaEl = document.querySelector('#togetherRead .tg-book-meta');
+    if (metaEl) {
+      metaEl.innerHTML =
+        '<span style="font-size:15px;font-weight:600;color:#1d1d1f;">' +
+        _escHtml(latest.title) + '</span>';
+    }
 
-  if (latest.content) {
-    var pageCard = document.querySelector('#togetherRead .tg-page-card');
-    if (pageCard) {
-      var chapterTitle = pageCard.querySelector('.tg-chapter-title');
-      if (chapterTitle) {
-        chapterTitle.innerHTML = '<span style="font-size:14px;font-weight:600;color:#3a3a3c;">' +
-          _escHtml(latest.title) + '</span>';
-      }
-      var paragraphs = pageCard.querySelectorAll('.tg-paragraph');
-      var textChunks = _splitNovelContent(latest.content);
-      paragraphs.forEach(function(p, i) {
-        if (textChunks[i] !== undefined) {
-          p.innerHTML = '<span style="font-size:14px;line-height:1.9;color:#3a3a3c;">' +
-            _escHtml(textChunks[i]) + '</span>';
+    if (latest.content) {
+      var pageCard = document.querySelector('#togetherRead .tg-page-card');
+      if (pageCard) {
+        var chapterTitle = pageCard.querySelector('.tg-chapter-title');
+        if (chapterTitle) {
+          chapterTitle.innerHTML = '<span style="font-size:14px;font-weight:600;color:#3a3a3c;">' +
+            _escHtml(latest.title) + '</span>';
         }
-      });
+        var paragraphs = pageCard.querySelectorAll('.tg-paragraph');
+        var textChunks = _splitNovelContent(latest.content);
+        paragraphs.forEach(function(p, i) {
+          p.innerHTML = textChunks[i] !== undefined
+            ? '<span style="font-size:14px;line-height:1.9;color:#3a3a3c;">' +
+              _escHtml(textChunks[i]) + '</span>'
+            : '';
+        });
+      }
     }
   }
 
+  // 【问题2、11】TOC 每次都全量重新生成，幂等，无内容时清空
   var toc = document.querySelector('#togetherRead .tg-toc');
-  if (toc && novels.length > 0) {
+  if (toc) {
     toc.innerHTML = novels.map(function(n, i) {
       var isActive = i === 0;
       return '<div class="tg-toc-item' + (isActive ? ' active' : '') + '">' +
@@ -680,15 +747,13 @@ function _extractPlaylistInfo(raw) {
 }
 
 /**
- * Resolve a NetEase short link to its real URL via the /url/shorten endpoint,
- * then re-extract the playlist ID.
- * Falls back to fetching the short URL directly if the API doesn't have the endpoint.
+ * 【问题6】Resolve a NetEase short link via the /url/shorten API endpoint.
+ * 浏览器环境下受 CORS 限制，不能直接 fetch 163cn.tv，
+ * 所以只走后端 API 路径；不再做直连 HEAD 兜底。
  */
 async function _resolveNeteaseShortUrl(shortUrlFragment) {
-  // Build full short URL if only the path was extracted
   var full = shortUrlFragment.startsWith('http') ? shortUrlFragment : 'https://' + shortUrlFragment;
   try {
-    // Try the API's shorten endpoint first
     var resp = await fetch(_MUSIC_API_BASE + '/url/shorten?url=' + encodeURIComponent(full));
     if (resp.ok) {
       var data = await resp.json();
@@ -699,15 +764,8 @@ async function _resolveNeteaseShortUrl(shortUrlFragment) {
       }
     }
   } catch (e) {
-    console.warn('[Together] Short URL API failed, trying direct fetch:', e.message);
-  }
-  // Direct HEAD request to follow redirect
-  try {
-    var r2 = await fetch(full, { method: 'HEAD', redirect: 'follow' });
-    var info2 = _extractPlaylistInfo(r2.url);
-    if (info2.id) return info2.id;
-  } catch (e2) {
-    console.warn('[Together] Short URL direct fetch failed:', e2.message);
+    console.warn('[Together] Short URL API failed:', e.message);
+    // 浏览器下无法直连 163cn.tv（CORS），不做直连兜底
   }
   return null;
 }
@@ -813,33 +871,43 @@ async function _fetchQQPlaylist(playlistId) {
 async function parseMusicPlaylist() {
   var raw = (document.getElementById('playlistUrlInput').value || '').trim();
   if (!raw) {
-    _setStatus('playlistImportStatus', 'Please paste a playlist link first.', true);
+    _setStatus('playlistImportStatus',
+      _t('together.pastePlaylistFirst', 'Please paste a playlist link first.'), true);
     return;
   }
 
+  // 【问题8】记录本次导入的 token；定时器回调里比对，不一致则放弃
+  _togetherPlaylistImportToken++;
+  var currentToken = _togetherPlaylistImportToken;
+
   var btn = document.getElementById('parsePlaylistBtn');
   if (btn) { btn.textContent = 'Parsing...'; btn.disabled = true; }
-  _setStatus('playlistImportStatus', 'Parsing playlist...', false);
+  _setStatus('playlistImportStatus',
+    _t('together.parsingPlaylist', 'Parsing playlist...'), false);
 
   try {
     var info = _extractPlaylistInfo(raw);
 
     if (!info.platform) {
-      throw new Error('Unrecognized link format. Please use a NetEase or QQ Music playlist link, or a numeric playlist ID.');
+      throw new Error(_t('together.unrecognizedLink',
+        'Unrecognized link format. Please use a NetEase or QQ Music playlist link, or a numeric playlist ID.'));
     }
 
-    // Resolve short URL if needed
     if (info.isShort) {
       if (info.platform === 'netease') {
-        _setStatus('playlistImportStatus', 'Resolving short link...', false);
+        _setStatus('playlistImportStatus',
+          _t('together.resolvingShortLink', 'Resolving short link...'), false);
         info.id = await _resolveNeteaseShortUrl(info.shortUrl);
-        if (!info.id) throw new Error('Could not resolve short link. Please use the full playlist URL.');
+        if (!info.id) throw new Error(
+          _t('together.shortLinkFailed', 'Could not resolve short link. Please use the full playlist URL.'));
       } else {
-        throw new Error('QQ Music short links are not yet supported. Please use the full playlist URL.');
+        throw new Error(
+          _t('together.qqShortNotSupported', 'QQ Music short links are not yet supported. Please use the full playlist URL.'));
       }
     }
 
-    _setStatus('playlistImportStatus', 'Fetching playlist details...', false);
+    _setStatus('playlistImportStatus',
+      _t('together.fetchingPlaylist', 'Fetching playlist details...'), false);
 
     var tracks;
     if (info.platform === 'netease') {
@@ -849,23 +917,24 @@ async function parseMusicPlaylist() {
     }
 
     if (!tracks || !tracks.length) {
-      throw new Error('No tracks found in this playlist.');
+      throw new Error(_t('together.noTracksFound', 'No tracks found in this playlist.'));
     }
 
-    _setStatus('playlistImportStatus', 'Fetching audio & lyrics for ' + tracks.length + ' tracks...', false);
+    _setStatus('playlistImportStatus',
+      _t('together.fetchingAudio', 'Fetching audio & lyrics for ' + tracks.length + ' tracks...'), false);
 
     // Fetch audio URL and lyrics for each track (up to 50 to avoid overload)
     var limited = tracks.slice(0, 50);
     var songs = [];
     for (var i = 0; i < limited.length; i++) {
-      var t = limited[i];
+      var tr = limited[i];
       var audioUrl = '';
       var lyrics   = '';
       if (info.platform === 'netease') {
         // Fetch audio and lyrics in parallel
         var results = await Promise.allSettled([
-          _fetchNeteaseAudioUrl(t.id),
-          _fetchNeteaseLyric(t.id)
+          _fetchNeteaseAudioUrl(tr.id),
+          _fetchNeteaseLyric(tr.id)
         ]);
         audioUrl = results[0].status === 'fulfilled' ? (results[0].value || '') : '';
         lyrics   = results[1].status === 'fulfilled' ? (results[1].value || '') : '';
@@ -874,20 +943,21 @@ async function parseMusicPlaylist() {
       if (!audioUrl) continue;
 
       songs.push({
-        id:       t.id + '_' + Date.now() + '_' + i,
-        title:    t.name,
-        artist:   t.artist,
-        cover:    t.cover,
+        id:       _nextTogetherId(), // 【问题3】
+        title:    tr.name,
+        artist:   tr.artist,
+        cover:    tr.cover,
         lyrics:   lyrics,
         audioUrl: audioUrl,
-        audioName: t.name,
+        audioName: tr.name,
         source:   'playlist',
         platform: info.platform
       });
     }
 
     if (!songs.length) {
-      throw new Error('No playable tracks found. The audio URLs may be unavailable due to regional restrictions.');
+      throw new Error(_t('together.noPlayableTracks',
+        'No playable tracks found. The audio URLs may be unavailable due to regional restrictions.'));
     }
 
     _ensureTogetherState();
@@ -897,11 +967,13 @@ async function parseMusicPlaylist() {
     }
     if (typeof saveState === 'function') saveState();
 
-    _setStatus('playlistImportStatus', 'Playlist imported successfully (' + songs.length + ' tracks added).', false);
+    _setStatus('playlistImportStatus',
+      _t('together.importSuccess', 'Playlist imported successfully (' + songs.length + ' tracks added).'), false);
     console.log('[Together] Playlist imported:', songs.length, 'tracks from', info.platform, 'ID', info.id);
 
-    // Close modal and refresh listen pane after brief delay so user sees success message
+    // 【问题8】延迟关闭前先比对 token，防止用户已重开弹窗时误操作
     setTimeout(function() {
+      if (_togetherPlaylistImportToken !== currentToken) return;
       closeTogetherModal('song');
       switchTogetherTab('listen');
       _renderListenContent();
@@ -909,22 +981,9 @@ async function parseMusicPlaylist() {
 
   } catch (err) {
     console.error('[Together] Playlist import error:', err);
-    _setStatus('playlistImportStatus', 'Failed to parse playlist. ' + (err.message || 'Please check the link.'), true);
+    _setStatus('playlistImportStatus',
+      _t('together.importFailed', 'Failed: ') + (err.message || 'Please check the link.'), true);
   } finally {
     if (btn) { btn.textContent = 'Parse'; btn.disabled = false; }
   }
 }
-
-// Reset playlist import field when song modal resets
-(function _patchResetModalForPlaylist() {
-  var _origReset = _resetModal;
-  _resetModal = function(type) {
-    _origReset(type);
-    if (type === 'song') {
-      _setVal('playlistUrlInput', '');
-      _hide('playlistImportStatus');
-      var btn = document.getElementById('parsePlaylistBtn');
-      if (btn) { btn.textContent = 'Parse'; btn.disabled = false; }
-    }
-  };
-})();
