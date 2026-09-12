@@ -1804,3 +1804,68 @@
 .app-icon-wrap:has(.blank-icon):active .app-icon {
   transform: none;
 }
+
+/* ===== 窄螢幕（手機）下壓縮 Calendar Widget 內部，避免撐破 aspect-ratio 方塊 ===== */
+@media (max-width: 520px) {
+
+  /* Top bar 縮小 */
+  .cw-robot-bar {
+    padding: 10px 12px 9px;
+    gap: 8px;
+  }
+  .cw-robot-checkbox {
+    width: 22px;
+    height: 22px;
+  }
+  .cw-robot-checkbox::after {
+    width: 8px;
+    height: 4px;
+    border-left-width: 1.8px;
+    border-bottom-width: 1.8px;
+  }
+  .cw-robot-label {
+    font-size: 12px;
+  }
+  .cw-robot-bar-logo svg {
+    width: 15px;
+    height: 15px;
+  }
+  .cw-robot-bar-logo-text {
+    font-size: 6px;
+  }
+
+  /* Body 內距縮小 */
+  .cw-body {
+    padding: 8px 8px 10px;
+    gap: 6px;
+  }
+
+  /* 輸入列縮小 */
+  .cw-input-row { gap: 5px; }
+  .cw-type-input {
+    height: 28px;
+    font-size: 10px;
+    padding: 0 8px;
+  }
+  .cw-verify-btn {
+    height: 28px;
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
+  /* 圖片區 + 右側按鈕列縮小 */
+  .cw-image-row { gap: 5px; }
+  .cw-icon-btns {
+    gap: 5px;
+    width: 22px;
+  }
+  .cw-icon-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 8px;
+  }
+  .cw-icon-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+}
