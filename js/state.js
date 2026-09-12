@@ -12,7 +12,6 @@ let state = {
     meetings: [],
   npcs: [],
   wikiSchedule: [],
-    together: { songs: [], videos: [], novels: [] },
   home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'Mizu phone.com', topRightText: 'Mizu', avatar: { type: 'url', value: '' }, titleText: 'Mizu', description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ '], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] }, weatherWidget: { recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'], image: { type: 'url', value: '' } } },
     allowQuote: true,
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium',homeIcons: {}, desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
@@ -62,8 +61,6 @@ function _getStateDefaults() {
     npcs: [], messageChats: [],
     wikiSchedule: [],
     together: { songs: [], videos: [], novels: [] },
-    home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'Mizu phone.com', topRightText: 'Mizu', avatar: { type: 'url', value: '' }, titleText: 'Mizu', description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ '], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] }, weatherWidget: { recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'], image: { type: 'url', value: '' } } },
-      allowQuote: true, systemPromptIM: '', systemPromptMeeting: '',
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
     user: null
   };
@@ -92,10 +89,6 @@ function _validateState() {
   if (!state.together || typeof state.together !== 'object') state.together = { songs: [], videos: [], novels: [] };
   if (!Array.isArray(state.together.songs))  state.together.songs  = [];
   if (!Array.isArray(state.together.videos)) state.together.videos = [];
-  if (!Array.isArray(state.together.novels)) state.together.novels = [];
-  if (state.allowQuote == null) state.allowQuote = true;
-  if (state.systemPromptIM == null) state.systemPromptIM = '';
-  if (state.systemPromptMeeting == null) state.systemPromptMeeting = '';
   if (!state.theme || typeof state.theme !== 'object') state.theme = { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '' };
   if (!state.theme.fontSize) state.theme.fontSize = 'medium';
   if (state.theme.chatBubble == null) state.theme.chatBubble = '';

@@ -496,6 +496,32 @@
   text-overflow: ellipsis;
 }
 
+/* ── Active playlist item (now playing) ── */
+.tg-playlist-item.tg-pl-active {
+  background: rgba(58,58,60,.07);
+  border-color: rgba(58,58,60,.12);
+}
+.tg-pl-now {
+  font-size: 9px;
+  font-weight: 600;
+  color: #8e8e93;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+/* ── Empty lyrics note ── */
+.tg-lyric-empty {
+  color: #c7c7cc !important;
+  font-style: italic;
+}
+/* ── Song play status ── */
+#songPlayStatus {
+  margin-bottom: 8px;
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+}
+
 /* ── 歌词真实文本行 ── */
 .tg-lyric-text {
   font-size: 13px;

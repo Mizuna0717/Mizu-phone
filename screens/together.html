@@ -250,15 +250,16 @@
             </div>
           </div>
 
-          <!-- 播放控制 -->
+                    <!-- 播放控制 -->
+          <div class="tg-upload-status" id="songPlayStatus" style="display:none"></div>
           <div class="tg-controls">
-            <button class="tg-ctrl-btn tg-ctrl-sm">
+            <button class="tg-ctrl-btn tg-ctrl-sm" onclick="tgPlayPrev()">
               <svg viewBox="0 0 24 24"><path d="M19 20L9 12l10-8v16z"/><path d="M5 4v16"/></svg>
             </button>
-            <button class="tg-ctrl-btn tg-ctrl-play">
+            <button class="tg-ctrl-btn tg-ctrl-play" onclick="tgTogglePlay()">
               <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
             </button>
-            <button class="tg-ctrl-btn tg-ctrl-sm">
+            <button class="tg-ctrl-btn tg-ctrl-sm" onclick="tgPlayNext()">
               <svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 4v16"/></svg>
             </button>
           </div>
@@ -287,8 +288,8 @@
             <div class="tg-lyric-line"><div class="tg-skel" style="width:70%"></div></div>
           </div>
 
-          <!-- 播放列表 -->
-          <div class="tg-section-label">UP NEXT</div>
+                    <!-- 播放列表 -->
+          <div class="tg-section-label">ALL TRACKS</div>
           <div class="tg-playlist">
             <div class="tg-playlist-item">
               <div class="tg-pl-cover"></div>
