@@ -1,107 +1,356 @@
 // ========== together.js ==========
-// Together 应用 — Tab 切换 + 内容上传
+// Together — Tab switch + upload + playback engine
 
 // ══════════════════════════════════════════════
-// 模块级工具
+// Utilities
 // ══════════════════════════════════════════════
 
-// 【问题3】全局自增 id 生成器，避免同一毫秒内 id 碰撞
 var _togetherIdCounter = 0;
 function _nextTogetherId() {
   return Date.now() + '_' + (_togetherIdCounter++);
 }
 
-// 【问题8】歌单导入 token，防止关闭/重开弹窗后 setTimeout 乱触发
 var _togetherPlaylistImportToken = 0;
 
-// 【问题12】截断工具函数
 function _truncate(str, n) {
   str = String(str || '');
   return str.length > n ? str.slice(0, n) + '...' : str;
 }
 
-/**
- * 切换 Together 底部 Tab
- * @param {'listen'|'watch'|'read'} tab
- */
+// ══════════════════════════════════════════════
+// Audio engine
+// ══════════════════════════════════════════════
+
+var _tgAudio = null;          // single HTMLAudioElement
+var _tgCurrentIndex = 0;      // index into state.together.songs
+var _tgIsPlaying = false;
+var _tgLrcLines  = [];        // [{ time: seconds, text: string }]
+var _tgProgressDragging = false;
+
+function _getTgAudio() {
+  if (!_tgAudio) {
+    _tgAudio = new Audio();
+    _tgAudio.preload = 'auto';
+    _tgAudio.addEventListener('timeupdate', _onTgTimeUpdate);
+    _tgAudio.addEventListener('ended',      _onTgEnded);
+    _tgAudio.addEventListener('play',  function() { _tgIsPlaying = true;  _updatePlayBtn(); });
+    _tgAudio.addEventListener('pause', function() { _tgIsPlaying = false; _updatePlayBtn(); });
+    _tgAudio.addEventListener('error', function() {
+      _setStatus('songPlayStatus', 'Audio not available', true);
+    });
+  }
+  return _tgAudio;
+}
+
+function _onTgTimeUpdate() {
+  if (_tgProgressDragging) return;
+  var audio = _tgAudio;
+  if (!audio || !audio.duration) return;
+  var pct = audio.currentTime / audio.duration;
+  _updateProgressUI(pct, audio.currentTime, audio.duration);
+  _syncLyrics(audio.currentTime);
+}
+
+function _onTgEnded() {
+  _tgIsPlaying = false;
+  _updatePlayBtn();
+  tgPlayNext();
+}
+
+// Load song at index; autoPlay=true starts playback immediately
+function _tgLoadSong(index, autoPlay) {
+  _ensureTogetherState();
+  var songs = state.together.songs || [];
+  if (!songs.length) return;
+  index = ((index % songs.length) + songs.length) % songs.length;
+  _tgCurrentIndex = index;
+  state.together.currentIndex = index;
+
+  var song  = songs[index];
+  var audio = _getTgAudio();
+
+  _updateProgressUI(0, 0, 0);
+  _tgLastLrcIdx = -1;
+
+  // Cover
+  var coverEl = document.querySelector('#togetherListen .tg-album-cover');
+  if (coverEl) {
+    coverEl.innerHTML = song.cover
+      ? '<img src="' + song.cover + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
+      : '<svg viewBox="0 0 80 80" class="tg-album-icon"><circle cx="40" cy="40" r="28"/><circle cx="40" cy="40" r="8"/><path d="M40 12v8M40 60v8M12 40h8M60 40h8"/></svg>';
+  }
+
+  // Title / artist
+  var titleEl  = document.querySelector('#togetherListen .tg-song-title');
+  var artistEl = document.querySelector('#togetherListen .tg-song-artist');
+  if (titleEl)  titleEl.textContent  = song.title  || 'Unknown';
+  if (artistEl) artistEl.textContent = song.artist || 'Unknown';
+
+  // Lyrics
+  _tgLrcLines = _parseLrcToLines(song.lyrics || '');
+  _renderLyricsStatic(_tgLrcLines, song.lyrics);
+
+  // Up Next (all tracks, current highlighted)
+  _renderUpNext(index);
+
+  // Audio
+  _hide('songPlayStatus');
+  if (song.audioUrl) {
+    audio.src = song.audioUrl;
+    audio.load();
+    if (autoPlay) {
+      var p = audio.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(function(e) {
+          console.warn('[Together] play() blocked:', e.message);
+          _setStatus('songPlayStatus', 'Playback blocked. Tap play to start.', true);
+        });
+      }
+    }
+  } else {
+    audio.src = '';
+    _setStatus('songPlayStatus', 'Audio not available', true);
+  }
+}
+
+// ── Public playback controls ─────────────────
+function tgTogglePlay() {
+  _ensureTogetherState();
+  var songs = state.together.songs || [];
+  if (!songs.length) return;
+  var audio = _getTgAudio();
+  if (!audio.src || audio.src === window.location.href) {
+    _tgLoadSong(_tgCurrentIndex, true);
+    return;
+  }
+  if (_tgIsPlaying) {
+    audio.pause();
+  } else {
+    var p = audio.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(function(e) { console.warn('[Together] play():', e.message); });
+    }
+  }
+}
+
+function tgPlayPrev() {
+  _ensureTogetherState();
+  if (!(state.together.songs || []).length) return;
+  _tgLoadSong(_tgCurrentIndex - 1, true);
+}
+
+function tgPlayNext() {
+  _ensureTogetherState();
+  if (!(state.together.songs || []).length) return;
+  _tgLoadSong(_tgCurrentIndex + 1, true);
+}
+
+function tgPlayAt(index) {
+  _tgLoadSong(index, true);
+}
+
+// ── Progress bar ─────────────────────────────
+function _fmtTime(sec) {
+  if (!sec || isNaN(sec)) return '0:00';
+  var m = Math.floor(sec / 60);
+  var s = Math.floor(sec % 60);
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function _updateProgressUI(pct, current, duration) {
+  var fill  = document.querySelector('#togetherListen .tg-progress-fill');
+  var thumb = document.querySelector('#togetherListen .tg-progress-thumb');
+  var times = document.querySelectorAll('#togetherListen .tg-progress-time span');
+  var p = Math.max(0, Math.min(1, pct || 0));
+  if (fill)     fill.style.width  = (p * 100) + '%';
+  if (thumb)    thumb.style.left  = (p * 100) + '%';
+  if (times[0]) times[0].textContent = _fmtTime(current);
+  if (times[1]) times[1].textContent = _fmtTime(duration);
+}
+
+function tgSeek(event) {
+  var audio = _getTgAudio();
+  if (!audio.duration) return;
+  var track = document.querySelector('#togetherListen .tg-progress-track');
+  if (!track) return;
+  var rect = track.getBoundingClientRect();
+  var x    = event.touches ? event.touches[0].clientX : event.clientX;
+  var pct  = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
+  audio.currentTime = pct * audio.duration;
+  _updateProgressUI(pct, audio.currentTime, audio.duration);
+}
+
+// ── Play button icon ─────────────────────────
+function _updatePlayBtn() {
+  var btn = document.querySelector('#togetherListen .tg-ctrl-play');
+  if (!btn) return;
+  if (_tgIsPlaying) {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+  } else {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round"><path d="M8 5v14l11-7z"/></svg>';
+  }
+}
+
+// ══════════════════════════════════════════════
+// LRC lyrics parsing + rendering
+// ══════════════════════════════════════════════
+
+// Parse LRC text into [{time, text}] sorted by time.
+function _parseLrcToLines(lrc) {
+  if (!lrc) return [];
+  var results = [];
+  var RE      = /\[(\d+):(\d+)\.(\d+)\]/g;
+  lrc.split('\n').forEach(function(line) {
+    var text = line.replace(/\[\d+:\d+[.:]\d+\]/g, '').replace(/\[.*?\]/g, '').trim();
+    if (!text) return;
+    RE.lastIndex = 0;
+    var match;
+    while ((match = RE.exec(line)) !== null) {
+      var sec = parseInt(match[1], 10) * 60 + parseInt(match[2], 10) + parseInt(match[3], 10) / 100;
+      results.push({ time: sec, text: text });
+    }
+  });
+  results.sort(function(a, b) { return a.time - b.time; });
+  return results;
+}
+
+function _renderLyricsStatic(lines, rawLyrics) {
+  var card = document.querySelector('#togetherListen .tg-lyrics-card');
+  if (!card) return;
+  if (!lines.length) {
+    if (rawLyrics && rawLyrics.trim()) {
+      var plainLines = rawLyrics.split('\n').filter(function(l) { return l.trim(); }).slice(0, 10);
+      card.innerHTML = plainLines.map(function(l, i) {
+        return '<div class="tg-lyric-line' + (i === 0 ? ' active' : '') + '">' +
+          '<span class="tg-lyric-text">' + _escHtml(_truncate(l, 60)) + '</span></div>';
+      }).join('');
+    } else {
+      card.innerHTML = '<div class="tg-lyric-line"><span class="tg-lyric-text tg-lyric-empty">No lyrics available</span></div>';
+    }
+    return;
+  }
+  card.innerHTML = lines.map(function(l, i) {
+    return '<div class="tg-lyric-line" data-lrc-idx="' + i + '">' +
+      '<span class="tg-lyric-text">' + _escHtml(_truncate(l.text, 60)) + '</span></div>';
+  }).join('');
+}
+
+var _tgLastLrcIdx = -1;
+
+function _syncLyrics(currentTime) {
+  var lines = _tgLrcLines;
+  if (!lines.length) return;
+  var idx = 0;
+  for (var i = 0; i < lines.length; i++) {
+    if (lines[i].time <= currentTime) idx = i; else break;
+  }
+  if (idx === _tgLastLrcIdx) return;
+  _tgLastLrcIdx = idx;
+  var card = document.querySelector('#togetherListen .tg-lyrics-card');
+  if (!card) return;
+  var allLines = card.querySelectorAll('.tg-lyric-line');
+  allLines.forEach(function(el, i) { el.classList.toggle('active', i === idx); });
+  if (allLines[idx]) allLines[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ══════════════════════════════════════════════
+// Up Next rendering (all tracks, current highlighted)
+// ══════════════════════════════════════════════
+
+function _renderUpNext(currentIdx) {
+  _ensureTogetherState();
+  var songs    = (state.together && state.together.songs) || [];
+  var playlist = document.querySelector('#togetherListen .tg-playlist');
+  if (!playlist) return;
+
+  if (!songs.length) {
+    playlist.innerHTML = '';
+    return;
+  }
+  if (songs.length === 1 && currentIdx === 0) {
+    playlist.innerHTML = '<div style="padding:12px 0;font-size:12px;color:#a0a0a5;text-align:center;">No other tracks</div>';
+    return;
+  }
+
+  playlist.innerHTML = songs.map(function(s, i) {
+    var isCurrent = (i === currentIdx);
+    var coverHtml = s.cover
+      ? '<img src="' + s.cover + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">'
+      : '';
+    return '<div class="tg-playlist-item' + (isCurrent ? ' tg-pl-active' : '') + '" onclick="tgPlayAt(' + i + ')" style="cursor:pointer;">' +
+      '<div class="tg-pl-cover">' + coverHtml + '</div>' +
+      '<div class="tg-pl-info">' +
+        '<div class="tg-pl-title">'  + _escHtml(s.title)  + '</div>' +
+        '<div class="tg-pl-artist">' + _escHtml(s.artist) + '</div>' +
+      '</div>' +
+      (isCurrent
+        ? '<span class="tg-pl-now">Now Playing</span>'
+        : '<span class="tg-pl-dur">&#9654;</span>') +
+      '</div>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// Tab switching
+// ══════════════════════════════════════════════
+
 function switchTogetherTab(tab) {
-  var paneMap = {
-    listen: 'togetherListen',
-    watch:  'togetherWatch',
-    read:   'togetherRead'
-  };
-  var tabMap = {
-    listen: 'tabListen',
-    watch:  'tabWatch',
-    read:   'tabRead'
-  };
-  var titleMap = {
-    listen: 'together.listen',
-    watch:  'together.watch',
-    read:   'together.read'
-  };
+  var paneMap  = { listen: 'togetherListen', watch: 'togetherWatch', read: 'togetherRead' };
+  var tabMap   = { listen: 'tabListen',      watch: 'tabWatch',      read: 'tabRead'      };
+  var titleMap = { listen: 'together.listen',watch: 'together.watch',read: 'together.read' };
+  var labelMap = { 'together.listen': 'Listen Together', 'together.watch': 'Watch Together', 'together.read': 'Read Together' };
 
-  // 隐藏所有 pane & 取消所有 tab 激活
-  document.querySelectorAll('.together-pane').forEach(function(el) {
-    el.classList.remove('active');
-  });
-  document.querySelectorAll('.together-tab').forEach(function(el) {
-    el.classList.remove('active');
-  });
+  document.querySelectorAll('.together-pane').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.together-tab').forEach(function(el)  { el.classList.remove('active'); });
 
-  // 激活目标
   var pane = document.getElementById(paneMap[tab]);
   var btn  = document.getElementById(tabMap[tab]);
   if (pane) pane.classList.add('active');
   if (btn)  btn.classList.add('active');
 
-    // 【问题5】统一 i18n：优先 t()，其次 T()，都没有走 LANG
   var headerEl = document.getElementById('togetherHeaderTitle');
   if (headerEl) {
     var key = titleMap[tab];
-    if (typeof t === 'function') {
-      headerEl.textContent = t(key);
-    } else if (typeof T === 'function') {
-      headerEl.textContent = T(key) || key;
-    } else if (typeof LANG !== 'undefined') {
-      var lang = (typeof state !== 'undefined' && state.settings && state.settings.language) ? state.settings.language : 'en';
-      headerEl.textContent = (LANG[lang] && LANG[lang][key]) || key;
-    }
+    if (typeof t === 'function')      headerEl.textContent = t(key) || labelMap[key];
+    else if (typeof T === 'function') headerEl.textContent = T(key) || labelMap[key];
+    else                              headerEl.textContent = labelMap[key] || key;
   }
-
-  console.log('[Together] Tab switched →', tab);
+  console.log('[Together] Tab ->', tab);
 }
 
-/**
- * 从桌面打开 Together
- */
 function openTogether() {
-  console.log('[Together] Opening Together app');
   nav('screen-together');
-  // 默认选中第一个 Tab
   switchTogetherTab('listen');
 }
 
-/**
- * 初始化 Together（可选：在页面载入时调用）
- */
 function initTogether() {
+  _ensureTogetherState();
+  _tgCurrentIndex = state.together.currentIndex || 0;
   switchTogetherTab('listen');
   _renderAllTogetherContent();
+  // Load saved track without auto-playing
+  if (state.together.songs && state.together.songs.length) {
+    _tgLoadSong(_tgCurrentIndex, false);
+  }
+  // Wire progress track tap-to-seek
+  var track = document.querySelector('#togetherListen .tg-progress-track');
+  if (track && !track._tgSeekBound) {
+    track.addEventListener('click', tgSeek);
+    track._tgSeekBound = true;
+  }
   console.log('[Together] Initialized');
 }
 
 // ══════════════════════════════════════════════
-// 状态初始化
+// State helpers
 // ══════════════════════════════════════════════
 function _ensureTogetherState() {
   if (typeof state === 'undefined') return;
-  if (!state.together) {
-    state.together = { songs: [], videos: [], novels: [] };
-  }
+  if (!state.together) state.together = { songs: [], videos: [], novels: [], currentIndex: 0 };
   if (!state.together.songs)  state.together.songs  = [];
   if (!state.together.videos) state.together.videos = [];
   if (!state.together.novels) state.together.novels = [];
+  if (state.together.currentIndex == null) state.together.currentIndex = 0;
 }
 
 // ══════════════════════════════════════════════
@@ -151,43 +400,44 @@ function _cap(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-// 【问题7】_resetModal 唯一定义，直接包含 playlist 重置逻辑（删掉文件末尾的 IIFE 猴补丁）
 function _resetModal(type) {
   _togetherModalState[type] = {};
   if (type === 'song') {
     _setVal('songTitleInput', '');
     _setVal('artistNameInput', '');
     _setVal('coverUrlInput', '');
-    _setVal('biliUrlInput', '');
-    _setText('coverLocalLabel', _t('together.tapSelectImage', '点击选择图片'));
-    _setText('lyricsFileLabel', _t('together.lyricsFilePh', 'txt / doc / docx'));
-    _setText('audioFileLabel',  _t('together.audioFilePh', 'mp3'));
-    document.getElementById('coverFileInput').value  = '';
-    document.getElementById('lyricsFileInput').value = '';
-    document.getElementById('audioFileInput').value  = '';
+    _setText('coverLocalLabel', 'Tap to select image');
+    _setText('lyricsFileLabel', 'txt / doc / docx');
+    _setText('audioFileLabel',  'mp3');
+    var cfi = document.getElementById('coverFileInput');
+    var lfi = document.getElementById('lyricsFileInput');
+    var afi = document.getElementById('audioFileInput');
+    if (cfi) cfi.value = '';
+    if (lfi) lfi.value = '';
+    if (afi) afi.value = '';
     _hide('coverPreviewWrap');
     _hide('songUploadStatus');
     switchCoverTab('local');
-    // playlist 重置
     _setVal('playlistUrlInput', '');
     _hide('playlistImportStatus');
     var parseBtn = document.getElementById('parsePlaylistBtn');
     if (parseBtn) { parseBtn.textContent = 'Parse'; parseBtn.disabled = false; }
   } else if (type === 'video') {
     _setVal('biliUrlInput', '');
-    document.getElementById('videoFileInput').value = '';
-    _setText('videoFileLabel', _t('together.videoFilePh', 'mp4 / mov / avi'));
+    var vfi = document.getElementById('videoFileInput');
+    if (vfi) vfi.value = '';
+    _setText('videoFileLabel', 'mp4 / mov / avi');
     _hide('biliResult');
     _hide('videoUploadStatus');
     switchVideoTab('bili');
   } else if (type === 'novel') {
-    document.getElementById('novelFileInput').value = '';
-    _setText('novelFileLabel', _t('together.novelFilePh', 'txt / pdf / doc / docx'));
+    var nfi = document.getElementById('novelFileInput');
+    if (nfi) nfi.value = '';
+    _setText('novelFileLabel', 'txt / pdf / doc / docx');
     _hide('novelUploadStatus');
   }
 }
 
-// 【问题5】统一 i18n：优先 t()，其次 T()，都没有用 fallback
 function _t(key, fallback) {
   if (typeof t === 'function') return t(key) || fallback;
   if (typeof T === 'function') return T(key) || fallback;
@@ -213,7 +463,6 @@ function switchCoverTab(tab) {
   document.getElementById('coverTabUrl').classList.toggle('active', tab === 'url');
   document.getElementById('coverLocalPane').style.display = tab === 'local' ? '' : 'none';
   document.getElementById('coverUrlPane').style.display   = tab === 'url'   ? '' : 'none';
-  // 【问题10】删掉「切到 local 时清空 coverUrlInput」，保留用户已输入的 URL
   _togetherModalState.song._coverTab = tab;
 }
 
@@ -233,96 +482,93 @@ function handleCoverFile(input) {
 
 function clearCoverPreview() {
   _togetherModalState.song.coverDataUrl = null;
-  document.getElementById('coverFileInput').value = '';
-  _setText('coverLocalLabel', _t('together.tapSelectImage', '点击选择图片'));
+  var cfi = document.getElementById('coverFileInput');
+  if (cfi) cfi.value = '';
+  _setText('coverLocalLabel', 'Tap to select image');
   _hide('coverPreviewWrap');
 }
 
 // ══════════════════════════════════════════════
-// 歌词文件解析
+// Lyrics file handler
 // ══════════════════════════════════════════════
 function handleLyricsFile(input) {
   var file = input.files && input.files[0];
   if (!file) return;
   _setText('lyricsFileLabel', file.name);
-  _setStatus('songUploadStatus', _t('together.parsing', '解析中...'), false);
-
+  _setStatus('songUploadStatus', 'Parsing...', false);
   var name = file.name.toLowerCase();
   if (name.endsWith('.txt')) {
     var reader = new FileReader();
     reader.onload = function(e) {
       _togetherModalState.song.lyrics = e.target.result;
-      _setStatus('songUploadStatus', _t('together.lyricsLoaded', '歌词已加载'), false);
+      _setStatus('songUploadStatus', 'Lyrics loaded', false);
     };
-    reader.onerror = function() {
-      _setStatus('songUploadStatus', _t('together.parseError', '解析失败'), true);
-    };
+    reader.onerror = function() { _setStatus('songUploadStatus', 'Parse failed', true); };
     reader.readAsText(file, 'utf-8');
   } else if (name.endsWith('.doc') || name.endsWith('.docx')) {
     var reader2 = new FileReader();
-    reader2.onload = function(e) {
+    reader2.onload = function() {
       _togetherModalState.song.lyrics = '[' + file.name + ']';
-      _setStatus('songUploadStatus', _t('together.lyricsLoaded', '歌词已加载'), false);
+      _setStatus('songUploadStatus', 'Lyrics loaded', false);
     };
     reader2.readAsArrayBuffer(file);
   } else {
-    _setStatus('songUploadStatus', _t('together.unsupportedFormat', '不支持的格式'), true);
+    _setStatus('songUploadStatus', 'Unsupported format', true);
   }
 }
 
 // ══════════════════════════════════════════════
-// 音频文件
+// Audio file handler
 // ══════════════════════════════════════════════
 function handleAudioFile(input) {
   var file = input.files && input.files[0];
   if (!file) return;
   _setText('audioFileLabel', file.name);
+  _setStatus('songUploadStatus', 'Loading...', false);
   var reader = new FileReader();
-  _setStatus('songUploadStatus', _t('together.loading', '加载中...'), false);
   reader.onload = function(e) {
     _togetherModalState.song.audioDataUrl = e.target.result;
-    _togetherModalState.song.audioName = file.name;
-    _setStatus('songUploadStatus', _t('together.audioLoaded', '音频已加载'), false);
+    _togetherModalState.song.audioName    = file.name;
+    _setStatus('songUploadStatus', 'Audio loaded', false);
   };
-    reader.onerror = function() {
-    // 【问题9】读取失败时不写入 modalState
-    _setStatus('songUploadStatus', _t('together.loadError', '加载失败'), true);
-  };
+  reader.onerror = function() { _setStatus('songUploadStatus', 'Load failed', true); };
   reader.readAsDataURL(file);
 }
 
 // ══════════════════════════════════════════════
-// 提交歌曲
+// Submit song
 // ══════════════════════════════════════════════
 function submitSong() {
-  var title    = (document.getElementById('songTitleInput').value  || '').trim();
-  var artist   = (document.getElementById('artistNameInput').value || '').trim();
-  var ms       = _togetherModalState.song;
+  var title  = (document.getElementById('songTitleInput').value  || '').trim();
+  var artist = (document.getElementById('artistNameInput').value || '').trim();
+  var ms      = _togetherModalState.song;
   var coverTab = ms._coverTab || 'local';
   var cover    = coverTab === 'local'
     ? (ms.coverDataUrl || '')
     : ((document.getElementById('coverUrlInput').value || '').trim());
 
-  if (!title)  { _setStatus('songUploadStatus', _t('together.titleRequired',  '请输入歌曲名称'), true);  return; }
-  if (!artist) { _setStatus('songUploadStatus', _t('together.artistRequired', '请输入歌手名称'), true); return; }
+  if (!title)  { _setStatus('songUploadStatus', 'Please enter a song title',   true); return; }
+  if (!artist) { _setStatus('songUploadStatus', 'Please enter an artist name', true); return; }
 
-    var song = {
-    id:       _nextTogetherId(), // 【问题3】
-    title:    title,
-    artist:   artist,
-    cover:    cover,
-    lyrics:   ms.lyrics   || '',
-    audioUrl: ms.audioDataUrl || '',
-    audioName:ms.audioName || ''
+  var song = {
+    id:        _nextTogetherId(),
+    title:     title,
+    artist:    artist,
+    cover:     cover,
+    lyrics:    ms.lyrics       || '',
+    audioUrl:  ms.audioDataUrl || '',
+    audioName: ms.audioName    || ''
   };
 
   _ensureTogetherState();
   state.together.songs.unshift(song);
+  _tgCurrentIndex = 0;
+  state.together.currentIndex = 0;
   if (typeof saveState === 'function') saveState();
 
   closeTogetherModal('song');
   switchTogetherTab('listen');
-  _renderListenContent();
+  _tgLoadSong(0, false);
   console.log('[Together] Song added:', title);
 }
 
@@ -338,53 +584,36 @@ function switchVideoTab(tab) {
 }
 
 // ══════════════════════════════════════════════
-// B站链接解析
+// Bilibili URL parser
 // ══════════════════════════════════════════════
 function parseBiliUrl() {
   var raw = (document.getElementById('biliUrlInput').value || '').trim();
-  if (!raw) { _setStatus('videoUploadStatus', _t('together.enterBiliUrl', '请输入 B 站链接'), true); return; }
-
-  // 【问题4b】b23.tv 短链明确不支持
+  if (!raw) { _setStatus('videoUploadStatus', 'Please enter a Bilibili URL', true); return; }
   if (/b23\.tv\//i.test(raw)) {
-    _setStatus('videoUploadStatus',
-      _t('together.b23NotSupported', '暂不支持 b23.tv 短链，请使用完整 B 站链接'), true);
+    _setStatus('videoUploadStatus', 'Short b23.tv links are not supported. Please use the full Bilibili URL.', true);
     return;
   }
-
-  _setStatus('videoUploadStatus', _t('together.parsing', '解析中...'), false);
-
-  // 【问题4a】BV 严格匹配 12 位（BV + 10 位字母数字），不吞多余字符
+  _setStatus('videoUploadStatus', 'Parsing...', false);
   var bvMatch = raw.match(/BV[0-9A-Za-z]{10}/);
-  // av/ep/ss 只取纯数字部分
   var avMatch = raw.match(/av(\d+)/i);
   var epMatch = raw.match(/ep(\d+)/i);
   var ssMatch = raw.match(/ss(\d+)/i);
-
   var vid = '';
-  if (bvMatch)      vid = bvMatch[0];         // 已经是完整 12 位
+  if (bvMatch)      vid = bvMatch[0];
   else if (avMatch) vid = 'av' + avMatch[1];
   else if (epMatch) vid = 'ep' + epMatch[1];
   else if (ssMatch) vid = 'ss' + ssMatch[1];
-  else {
-    _setStatus('videoUploadStatus',
-      _t('together.biliParseFailure', '无法识别 B 站链接，请检查后重试'), true);
-    return;
-  }
-
+  else { _setStatus('videoUploadStatus', 'Could not identify Bilibili video ID. Please check the link.', true); return; }
   _togetherModalState.video.biliVid = vid;
   _togetherModalState.video.biliUrl = raw;
   _togetherModalState.video.title   = vid;
   _togetherModalState.video.source  = 'bili';
-
   var titleEl = document.getElementById('biliTitle');
   var metaEl  = document.getElementById('biliMeta');
-  var thumbEl = document.getElementById('biliThumb');
   if (titleEl) titleEl.textContent = vid;
   if (metaEl)  metaEl.textContent  = 'bilibili.com';
-  if (thumbEl) thumbEl.style.background = '';
-
   _show('biliResult');
-  _setStatus('videoUploadStatus', _t('together.biliParsed', '链接已解析'), false);
+  _setStatus('videoUploadStatus', 'Link parsed', false);
 }
 
 // ══════════════════════════════════════════════
@@ -395,59 +624,48 @@ var _VIDEO_SIZE_LIMIT = 50 * 1024 * 1024; // 50 MB
 function handleVideoFile(input) {
   var file = input.files && input.files[0];
   if (!file) return;
-
-  // 【问题9】视频体积超限时直接报错，不读入 DataURL
   if (file.size > _VIDEO_SIZE_LIMIT) {
-    _setStatus('videoUploadStatus',
-      _t('together.videoTooLarge', '视频文件过大，请选择小于 50MB 的文件'), true);
+    _setStatus('videoUploadStatus', 'File too large. Please select a file under 50MB.', true);
     input.value = '';
     return;
   }
-
   _setText('videoFileLabel', file.name);
-  _setStatus('videoUploadStatus', _t('together.loading', '加载中...'), false);
+  _setStatus('videoUploadStatus', 'Loading...', false);
   var reader = new FileReader();
   reader.onload = function(e) {
     _togetherModalState.video.localDataUrl = e.target.result;
-    _togetherModalState.video.localName   = file.name;
-    _togetherModalState.video.title       = file.name.replace(/\.[^.]+$/, '');
-    _togetherModalState.video.source      = 'local';
-    _setStatus('videoUploadStatus', _t('together.videoLoaded', '视频已加载'), false);
+    _togetherModalState.video.localName    = file.name;
+    _togetherModalState.video.title        = file.name.replace(/\.[^.]+$/, '');
+    _togetherModalState.video.source       = 'local';
+    _setStatus('videoUploadStatus', 'Video loaded', false);
   };
-  reader.onerror = function() {
-    // 【问题9】读取失败时不写入 modalState
-    _setStatus('videoUploadStatus', _t('together.loadError', '加载失败'), true);
-  };
+  reader.onerror = function() { _setStatus('videoUploadStatus', 'Load failed', true); };
   reader.readAsDataURL(file);
 }
 
 // ══════════════════════════════════════════════
-// 提交视频
+// Submit video
 // ══════════════════════════════════════════════
 function submitVideo() {
   var mv  = _togetherModalState.video;
   var tab = mv._videoTab || 'bili';
-
   if (tab === 'bili') {
-    if (!mv.biliVid) { _setStatus('videoUploadStatus', _t('together.parseBiliFirst', '请先解析 B 站链接'), true); return; }
+    if (!mv.biliVid) { _setStatus('videoUploadStatus', 'Please parse a Bilibili link first', true); return; }
   } else {
-    if (!mv.localDataUrl) { _setStatus('videoUploadStatus', _t('together.selectVideoFile', '请选择视频文件'), true); return; }
+    if (!mv.localDataUrl) { _setStatus('videoUploadStatus', 'Please select a video file', true); return; }
   }
-
-    var video = {
-    id:       _nextTogetherId(), // 【问题3】
-    title:    mv.title || mv.biliVid || mv.localName || 'Video',
-    source:   mv.source || tab,
-    biliUrl:  mv.biliUrl  || '',
-    biliVid:  mv.biliVid  || '',
-    localUrl: mv.localDataUrl || '',
-    localName:mv.localName || ''
+  var video = {
+    id:        _nextTogetherId(),
+    title:     mv.title || mv.biliVid || mv.localName || 'Video',
+    source:    mv.source || tab,
+    biliUrl:   mv.biliUrl     || '',
+    biliVid:   mv.biliVid     || '',
+    localUrl:  mv.localDataUrl || '',
+    localName: mv.localName    || ''
   };
-
   _ensureTogetherState();
   state.together.videos.unshift(video);
   if (typeof saveState === 'function') saveState();
-
   closeTogetherModal('video');
   switchTogetherTab('watch');
   _renderWatchContent();
@@ -455,61 +673,54 @@ function submitVideo() {
 }
 
 // ══════════════════════════════════════════════
-// 小说文件解析
+// Novel file handler
 // ══════════════════════════════════════════════
 function handleNovelFile(input) {
   var file = input.files && input.files[0];
   if (!file) return;
   _setText('novelFileLabel', file.name);
-  _setStatus('novelUploadStatus', _t('together.parsing', '解析中...'), false);
-
+  _setStatus('novelUploadStatus', 'Parsing...', false);
   var name = file.name.toLowerCase();
   _togetherModalState.novel.fileName = file.name;
   _togetherModalState.novel.title    = file.name.replace(/\.[^.]+$/, '');
-
   if (name.endsWith('.txt')) {
     var reader = new FileReader();
     reader.onload = function(e) {
       _togetherModalState.novel.content = e.target.result;
-      _setStatus('novelUploadStatus', _t('together.novelLoaded', '文件已加载'), false);
+      _setStatus('novelUploadStatus', 'File loaded', false);
     };
-    reader.onerror = function() {
-      _setStatus('novelUploadStatus', _t('together.parseError', '解析失败'), true);
-    };
+    reader.onerror = function() { _setStatus('novelUploadStatus', 'Parse failed', true); };
     reader.readAsText(file, 'utf-8');
   } else if (name.endsWith('.pdf')) {
     _togetherModalState.novel.content = '[PDF: ' + file.name + ']';
-    _setStatus('novelUploadStatus', _t('together.novelLoaded', '文件已加载'), false);
+    _setStatus('novelUploadStatus', 'File loaded', false);
   } else if (name.endsWith('.doc') || name.endsWith('.docx')) {
     var reader2 = new FileReader();
     reader2.onload = function() {
       _togetherModalState.novel.content = '[' + file.name + ']';
-      _setStatus('novelUploadStatus', _t('together.novelLoaded', '文件已加载'), false);
+      _setStatus('novelUploadStatus', 'File loaded', false);
     };
     reader2.readAsArrayBuffer(file);
   } else {
-    _setStatus('novelUploadStatus', _t('together.unsupportedFormat', '不支持的格式'), true);
+    _setStatus('novelUploadStatus', 'Unsupported format', true);
   }
 }
 
 // ══════════════════════════════════════════════
-// 提交小说
+// Submit novel
 // ══════════════════════════════════════════════
 function submitNovel() {
   var mn = _togetherModalState.novel;
-  if (!mn.fileName) { _setStatus('novelUploadStatus', _t('together.selectNovelFile', '请选择小说文件'), true); return; }
-
-    var novel = {
-    id:      _nextTogetherId(), // 【问题3】
-    title:   mn.title    || mn.fileName,
-    content: mn.content  || '',
-    fileName:mn.fileName || ''
+  if (!mn.fileName) { _setStatus('novelUploadStatus', 'Please select a novel file', true); return; }
+  var novel = {
+    id:       _nextTogetherId(),
+    title:    mn.title    || mn.fileName,
+    content:  mn.content  || '',
+    fileName: mn.fileName || ''
   };
-
   _ensureTogetherState();
   state.together.novels.unshift(novel);
   if (typeof saveState === 'function') saveState();
-
   closeTogetherModal('novel');
   switchTogetherTab('read');
   _renderReadContent();
@@ -517,7 +728,7 @@ function submitNovel() {
 }
 
 // ══════════════════════════════════════════════
-// 内容渲染
+// Content renderers
 // ══════════════════════════════════════════════
 function _renderAllTogetherContent() {
   _ensureTogetherState();
@@ -526,58 +737,32 @@ function _renderAllTogetherContent() {
   _renderReadContent();
 }
 
-// 【问题2、12】_renderListenContent：有内容时渲染，无内容时清空；歌词每行截断
 function _renderListenContent() {
   _ensureTogetherState();
   var songs = (state.together && state.together.songs) || [];
+  var idx   = _tgCurrentIndex;
 
   if (songs.length) {
-    var latest = songs[0];
-
+    var song = songs[Math.min(idx, songs.length - 1)];
     var coverEl = document.querySelector('#togetherListen .tg-album-cover');
-    if (coverEl && latest.cover) {
-      coverEl.innerHTML = '<img src="' + latest.cover + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    if (coverEl && song.cover) {
+      coverEl.innerHTML = '<img src="' + song.cover + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
     }
-
     var titleEl  = document.querySelector('#togetherListen .tg-song-title');
     var artistEl = document.querySelector('#togetherListen .tg-song-artist');
-    if (titleEl)  titleEl.textContent  = latest.title;
-    if (artistEl) artistEl.textContent = latest.artist;
+    if (titleEl)  titleEl.textContent  = song.title  || 'Unknown';
+    if (artistEl) artistEl.textContent = song.artist || 'Unknown';
 
     var lyricsCard = document.querySelector('#togetherListen .tg-lyrics-card');
     if (lyricsCard) {
-      if (latest.lyrics) {
-        // 【问题12】保留 slice(0,8)，每行截断到 60 字符
-        var lines = latest.lyrics.split('\n').filter(function(l) { return l.trim(); }).slice(0, 8);
-        lyricsCard.innerHTML = lines.map(function(line, i) {
-          return '<div class="tg-lyric-line' + (i === 0 ? ' active' : '') + '">' +
-            '<span class="tg-lyric-text">' + _escHtml(_truncate(line, 60)) + '</span></div>';
-        }).join('');
-      } else {
-        lyricsCard.innerHTML = '';
-      }
+      var lrcLines = _parseLrcToLines(song.lyrics || '');
+      _renderLyricsStatic(lrcLines, song.lyrics);
     }
   }
 
-  // 【问题2】无论有几首歌都处理 playlist 容器；无内容时清空
-  var playlist = document.querySelector('#togetherListen .tg-playlist');
-  if (playlist) {
-    var upNext = songs.length > 1 ? songs.slice(1) : [];
-    playlist.innerHTML = upNext.map(function(s) {
-      var coverHtml = s.cover
-        ? '<img src="' + s.cover + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">' : '';
-      return '<div class="tg-playlist-item">' +
-        '<div class="tg-pl-cover">' + coverHtml + '</div>' +
-        '<div class="tg-pl-info">' +
-          '<div class="tg-pl-title">'  + _escHtml(s.title)  + '</div>' +
-          '<div class="tg-pl-artist">' + _escHtml(s.artist) + '</div>' +
-        '</div>' +
-        '</div>';
-    }).join('');
-  }
+  _renderUpNext(idx);
 }
 
-// 【问题2、4b】_renderWatchContent：有内容时渲染，无内容时清空
 function _renderWatchContent() {
   _ensureTogetherState();
   var videos = (state.together && state.together.videos) || [];
@@ -614,7 +799,7 @@ function _renderWatchContent() {
       return '<div class="tg-vl-item">' +
         '<div class="tg-vl-thumb">' +
           '<svg viewBox="0 0 32 32" class="tg-vl-play"><path d="M12 8l12 8-12 8z"/></svg>' +
-          '<span class="tg-vl-badge">' + _escHtml(v.source === 'bili' ? 'B站' : '本地') + '</span>' +
+          '<span class="tg-vl-badge">' + _escHtml(v.source === 'bili' ? 'Bili' : 'Local') + '</span>' +
         '</div>' +
         '<div class="tg-vl-info">' +
           '<div class="tg-vl-title">' + _escHtml(v.title) + '</div>' +
@@ -624,7 +809,6 @@ function _renderWatchContent() {
   }
 }
 
-// 【问题1、2、11】_renderReadContent：幂等渲染，保留稳定容器，不替换 class 节点
 function _renderReadContent() {
   _ensureTogetherState();
   var novels = (state.together && state.together.novels) || [];
@@ -770,15 +954,12 @@ async function _resolveNeteaseShortUrl(shortUrlFragment) {
   return null;
 }
 
-/**
- * Parse LRC-format lyrics into plain text lines, stripping timestamps.
- * e.g. "[00:12.34]Hello world" -> "Hello world"
- */
+// _parseLrc: strip LRC timestamps to plain text (used in lyric fetch)
 function _parseLrc(lrcText) {
   if (!lrcText) return '';
   return lrcText
     .split('\n')
-    .map(function(line) { return line.replace(/\[\d+:\d+\.\d+\]/g, '').replace(/\[.*?\]/g, '').trim(); })
+    .map(function(line) { return line.replace(/\[\d+:\d+[.:]\d+\]/g, '').replace(/\[.*?\]/g, '').trim(); })
     .filter(function(line) { return line.length > 0; })
     .join('\n');
 }
@@ -836,17 +1017,13 @@ async function _fetchNeteaseAudioUrl(songId) {
   }
 }
 
-/**
- * Fetch lyrics for a single song ID via NetEase API.
- * Returns plain text (LRC timestamps stripped).
- */
+// Returns raw LRC text (timestamps preserved for time-sync)
 async function _fetchNeteaseLyric(songId) {
   try {
     var resp = await fetch(_MUSIC_API_BASE + '/lyric?id=' + encodeURIComponent(songId));
     if (!resp.ok) return '';
     var data = await resp.json();
-    var lrc = (data && data.lrc && data.lrc.lyric) || '';
-    return _parseLrc(lrc);
+    return (data && data.lrc && data.lrc.lyric) || '';
   } catch (e) {
     console.warn('[Together] Lyric fetch failed for', songId, e.message);
     return '';
@@ -967,22 +1144,21 @@ async function parseMusicPlaylist() {
     }
     if (typeof saveState === 'function') saveState();
 
-    _setStatus('playlistImportStatus',
-      _t('together.importSuccess', 'Playlist imported successfully (' + songs.length + ' tracks added).'), false);
+        _setStatus('playlistImportStatus', 'Playlist imported (' + songs.length + ' tracks added).', false);
     console.log('[Together] Playlist imported:', songs.length, 'tracks from', info.platform, 'ID', info.id);
 
-    // 【问题8】延迟关闭前先比对 token，防止用户已重开弹窗时误操作
     setTimeout(function() {
       if (_togetherPlaylistImportToken !== currentToken) return;
+      _tgCurrentIndex = 0;
+      state.together.currentIndex = 0;
       closeTogetherModal('song');
       switchTogetherTab('listen');
-      _renderListenContent();
+      _tgLoadSong(0, true);
     }, 900);
 
   } catch (err) {
     console.error('[Together] Playlist import error:', err);
-    _setStatus('playlistImportStatus',
-      _t('together.importFailed', 'Failed: ') + (err.message || 'Please check the link.'), true);
+        _setStatus('playlistImportStatus', 'Failed: ' + (err.message || 'Please check the link.'), true);
   } finally {
     if (btn) { btn.textContent = 'Parse'; btn.disabled = false; }
   }

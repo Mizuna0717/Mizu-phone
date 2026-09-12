@@ -86,9 +86,14 @@ function _validateState() {
   if (!Array.isArray(state.messageChats)) state.messageChats = [];
   if (!Array.isArray(state.npcs)) state.npcs = [];
   if (!Array.isArray(state.wikiSchedule)) state.wikiSchedule = [];
-  if (!state.together || typeof state.together !== 'object') state.together = { songs: [], videos: [], novels: [] };
+
+
+
+    if (!state.together || typeof state.together !== 'object') state.together = { songs: [], videos: [], novels: [], currentIndex: 0 };
   if (!Array.isArray(state.together.songs))  state.together.songs  = [];
   if (!Array.isArray(state.together.videos)) state.together.videos = [];
+  if (!Array.isArray(state.together.novels)) state.together.novels = [];
+  if (state.together.currentIndex == null)   state.together.currentIndex = 0;
   if (!state.theme || typeof state.theme !== 'object') state.theme = { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '' };
   if (!state.theme.fontSize) state.theme.fontSize = 'medium';
   if (state.theme.chatBubble == null) state.theme.chatBubble = '';
