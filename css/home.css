@@ -1836,9 +1836,18 @@
 
   /* Body 內距縮小 */
   .cw-body {
-    padding: 8px 8px 10px;
-    gap: 6px;
+    flex: 1;
+    min-height: 0;       /* 允许被压缩 */
+    overflow: hidden;    /* 防止内容溢出 */
   }
+  .cw-image-row {
+    flex: 1;
+    min-height: 0;
+  }
+  .cw-captcha-img-wrap {
+    height: 100%;        /* 让图片区填满剩余高度，而不是固定高度 */
+  }
+}
 
   /* 輸入列縮小 */
   .cw-input-row { gap: 5px; }
