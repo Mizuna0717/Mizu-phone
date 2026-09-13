@@ -1117,14 +1117,17 @@
 
 /* Input row */
 .cw-input-row {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr auto;  /* 輸入框吃剩餘空間，按鈕吃自己的寬度 */
   gap: 7px;
-  flex-shrink: 0;         /* ← 新增：固定輸入列高度 */
+  align-items: center;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .cw-type-input {
   flex: 1;
+  min-width: 0;
   height: 32px;
   min-height: 0;
   border: 1px solid rgba(0,0,0,.09);
@@ -1278,7 +1281,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  align-items: flex-start; /* 關鍵：防止子元素被拉伸變形 */
+  /* 删掉 align-items: flex-start */
+  align-items: stretch;  /* 改回 stretch，让子元素撑满宽度 */
 }
 
 .p2-mini-grid {
@@ -1286,6 +1290,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 14px 12px;
   justify-items: center;
+  width: 100%;  /* ← 新增 */
 }
 
 .p2-mini-grid .app-icon-wrap {
@@ -1858,7 +1863,7 @@
   .cw-captcha-img-wrap {
     height: 100%;
   }
-  
+
   .cw-robot-bar {
     padding: 10px 12px 9px;
     gap: 8px;
