@@ -1,6 +1,6 @@
 /* ========== shop.css ========== */
 
-#screen-shop {
+#screen-shop.active {
   background: #f2f2f7;
   display: flex;
   flex-direction: column;
