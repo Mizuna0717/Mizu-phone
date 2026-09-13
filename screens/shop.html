@@ -1,0 +1,185 @@
+<!-- SHOP -->
+<div class="screen" id="screen-shop">
+  <div class="shop-container">
+
+    <!-- Tab Bar -->
+    <div class="shop-tabbar">
+      <div class="shop-tab active" id="shopTab-shop" onclick="shopSwitchTab('shop')">Shop</div>
+      <div class="shop-tab" id="shopTab-delivery" onclick="shopSwitchTab('delivery')">Delivery</div>
+      <div class="shop-tab" id="shopTab-wallet" onclick="shopSwitchTab('wallet')">Wallet</div>
+      <div class="shop-tab" id="shopTab-cart" onclick="shopSwitchTab('cart')">
+        Cart
+        <span class="shop-cart-badge" id="shopCartBadge" style="display:none">0</span>
+      </div>
+    </div>
+
+    <!-- ========== TAB: SHOP ========== -->
+    <div class="shop-tab-content active" id="shopPanel-shop">
+      <div class="shop-search-bar">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search products..." class="shop-search-input">
+      </div>
+      <div class="shop-categories" id="shopCategories">
+        <div class="shop-cat active" onclick="shopSelectCat(this,'shop')">All</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'shop')">Fashion</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'shop')">Electronics</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'shop')">Home</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'shop')">Beauty</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'shop')">Sports</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'shop')">Books</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'shop')">Toys</div>
+      </div>
+      <div class="shop-grid" id="shopProductGrid">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+    <!-- ========== TAB: DELIVERY ========== -->
+    <div class="shop-tab-content" id="shopPanel-delivery">
+      <div class="shop-search-bar">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search restaurants..." class="shop-search-input">
+      </div>
+      <div class="shop-categories" id="deliveryCategories">
+        <div class="shop-cat active" onclick="shopSelectCat(this,'delivery')">All</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'delivery')">Fast Food</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'delivery')">Chinese</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'delivery')">Japanese</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'delivery')">Dessert</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'delivery')">Drinks</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'delivery')">Italian</div>
+        <div class="shop-cat" onclick="shopSelectCat(this,'delivery')">Salad</div>
+      </div>
+      <div class="shop-grid" id="shopDeliveryGrid">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+    <!-- ========== TAB: WALLET ========== -->
+    <div class="shop-tab-content" id="shopPanel-wallet">
+      <div class="shop-wallet-profile">
+        <div class="shop-wallet-avatar">
+          <svg viewBox="0 0 40 40"><circle cx="20" cy="16" r="8"/><path d="M6 36c0-8 6-14 14-14s14 6 14 14"/></svg>
+        </div>
+        <div class="shop-wallet-profile-info">
+          <div class="shop-wallet-username">My Account</div>
+          <div class="shop-wallet-email">user@mizuphone.com</div>
+        </div>
+      </div>
+
+      <div class="shop-section-label">My Cards</div>
+      <div class="shop-cards-scroll">
+        <div class="shop-card shop-card-main" onclick="shopSelectCard(this)">
+          <div class="shop-card-type">Wallet</div>
+          <div class="shop-card-balance">$1,284.50</div>
+          <div class="shop-card-label">Available Balance</div>
+        </div>
+        <div class="shop-card shop-card-bank1" onclick="shopSelectCard(this)">
+          <div class="shop-card-type">Visa</div>
+          <div class="shop-card-number">**** **** **** 4821</div>
+          <div class="shop-card-row">
+            <div>
+              <div class="shop-card-field-label">Valid Thru</div>
+              <div class="shop-card-field-value">09 / 27</div>
+            </div>
+            <div>
+              <div class="shop-card-field-label">Cardholder</div>
+              <div class="shop-card-field-value">M. User</div>
+            </div>
+          </div>
+        </div>
+        <div class="shop-card shop-card-bank2" onclick="shopSelectCard(this)">
+          <div class="shop-card-type">Mastercard</div>
+          <div class="shop-card-number">**** **** **** 3307</div>
+          <div class="shop-card-row">
+            <div>
+              <div class="shop-card-field-label">Valid Thru</div>
+              <div class="shop-card-field-value">03 / 26</div>
+            </div>
+            <div>
+              <div class="shop-card-field-label">Cardholder</div>
+              <div class="shop-card-field-value">M. User</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="shop-add-wallet-btn" onclick="shopToast('Coming soon')">+ Add New Card</button>
+
+      <div class="shop-section-label">Recent Transactions</div>
+      <div class="shop-transactions">
+        <div class="shop-tx">
+          <div class="shop-tx-icon"><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>
+          <div class="shop-tx-info">
+            <div class="shop-tx-name">Online Purchase</div>
+            <div class="shop-tx-date">Today, 14:23</div>
+          </div>
+          <div class="shop-tx-amount shop-tx-out">-$29.99</div>
+        </div>
+        <div class="shop-tx">
+          <div class="shop-tx-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          <div class="shop-tx-info">
+            <div class="shop-tx-name">Top Up</div>
+            <div class="shop-tx-date">Yesterday, 09:10</div>
+          </div>
+          <div class="shop-tx-amount shop-tx-in">+$200.00</div>
+        </div>
+        <div class="shop-tx">
+          <div class="shop-tx-icon"><svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>
+          <div class="shop-tx-info">
+            <div class="shop-tx-name">Food Delivery</div>
+            <div class="shop-tx-date">2 days ago, 19:44</div>
+          </div>
+          <div class="shop-tx-amount shop-tx-out">-$14.50</div>
+        </div>
+        <div class="shop-tx">
+          <div class="shop-tx-icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          <div class="shop-tx-info">
+            <div class="shop-tx-name">Refund</div>
+            <div class="shop-tx-date">3 days ago, 11:02</div>
+          </div>
+          <div class="shop-tx-amount shop-tx-in">+$9.99</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TAB: CART ========== -->
+    <div class="shop-tab-content" id="shopPanel-cart">
+      <div class="shop-cart-header">
+        <div class="shop-cart-title">My Cart</div>
+        <button class="shop-cart-clear-btn" onclick="shopClearCart()">Clear</button>
+      </div>
+      <div class="shop-cart-list" id="shopCartList">
+        <!-- Injected by JS -->
+      </div>
+      <div class="shop-cart-footer" id="shopCartFooter">
+        <div class="shop-cart-total-row">
+          <span class="shop-cart-total-label">Total</span>
+          <span class="shop-cart-total-value" id="shopCartTotal">$0.00</span>
+        </div>
+        <button class="shop-checkout-btn" onclick="shopToast('Checkout coming soon')">Checkout</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Product Detail Modal -->
+  <div class="shop-modal-overlay" id="shopModalOverlay" onclick="shopCloseModal(event)">
+    <div class="shop-modal" id="shopModal">
+      <button class="shop-modal-close" onclick="shopCloseModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="shop-modal-img-wrap" id="shopModalImgWrap"></div>
+      <div class="shop-modal-body">
+        <div class="shop-modal-name" id="shopModalName"></div>
+        <div class="shop-modal-price" id="shopModalPrice"></div>
+        <div class="shop-modal-seller" id="shopModalSeller"></div>
+        <div class="shop-modal-desc" id="shopModalDesc"></div>
+        <button class="shop-modal-add-btn" onclick="shopAddToCart()">Add to Cart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="shop-toast" id="shopToast"></div>
+</div>

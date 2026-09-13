@@ -172,6 +172,7 @@ var screenFragments = [
     'screens/forum.html',
     'screens/ao3.html',
     'screens/dice.html',
+    'screens/shop.html',
     'screens/wiki.html',
     'screens/memory.html',
     'screens/memory-edit.html',
@@ -304,6 +305,7 @@ var scripts = [
     'js/theme.js',
     'js/phone-message.js',
     'js/together.js',
+    'js/shop.js',
     'js/init.js',
 ];
 

@@ -1,0 +1,43 @@
+<!-- MCP -->
+<div class="screen" id="screen-mcp">
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="nav('screen-home')">
+      <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <span class="nav-title">MCP Manager</span>
+    <button class="nav-btn" style="margin-left:auto" onclick="mcpAddServer()">
+      <svg viewBox="0 0 20 20"><line x1="10" y1="4" x2="10" y2="16" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="10" x2="16" y2="10" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div class="screen-body" style="padding-bottom: 40px;">
+
+    <!-- Status bar -->
+    <div class="mcp-status-bar">
+      <div class="mcp-status-dot active"></div>
+      <span class="mcp-status-label">MCP Runtime Active</span>
+      <span class="mcp-status-version">v0.1.0</span>
+    </div>
+
+    <!-- Server list -->
+    <div class="mcp-section-label">Connected Servers</div>
+    <div class="mcp-list" id="mcpList">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- Add button -->
+    <div style="padding: 16px 16px 0;">
+      <button class="mcp-add-btn" onclick="mcpAddServer()">Add MCP Server</button>
+    </div>
+
+    <!-- Info -->
+    <div class="mcp-info-block">
+      <div class="mcp-info-title">What is MCP?</div>
+      <div class="mcp-info-text">Model Context Protocol (MCP) connects AI models to external tools and data sources. Each server exposes a set of capabilities your AI characters can use during conversations.</div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="mcp-toast" id="mcpToast"></div>
+</div>

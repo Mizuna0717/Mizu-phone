@@ -79,6 +79,7 @@ function nav(id) {
   if (id === 'screen-meeting-settings') try { applyLang(); } catch(e) {}
   if (id === 'screen-meeting-manage') try { applyLang(); } catch(e) {}  
   if (id === 'screen-theme') try { onThemeScreenOpen(); } catch(e) {}
+  if (id === 'screen-shop') try { initShop(); } catch(e) {}
 }
 
 
