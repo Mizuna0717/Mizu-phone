@@ -1,7 +1,7 @@
-// ========== shop.js ==========
+﻿// ========== shop.js ==========
 // Depends: state.js, utils.js
 
-// ── Static Data ──────────────────────────────────────────────
+// 鈹€鈹€ Static Data 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 const SHOP_PRODUCTS = [
   { id: 1,  name: 'Linen Shirt',          price: 39.99, desc: 'Breathable everyday linen shirt.', seller: 'Nordic Basics',    cat: 'Fashion',     color: '#e8e8ed' },
   { id: 2,  name: 'Wireless Earbuds',     price: 59.99, desc: 'True wireless, 24h battery life.', seller: 'SoundCo',          cat: 'Electronics', color: '#d8d8dc' },
@@ -37,7 +37,7 @@ let _shopCart = [
 ];
 let _shopCurrentProduct = null;
 
-// ── Init ─────────────────────────────────────────────────────
+// 鈹€鈹€ Init 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function initShop() {
   _renderShopGrid();
   _renderDeliveryGrid();
@@ -45,7 +45,7 @@ function initShop() {
   _updateCartBadge();
 }
 
-// ── Tab Switching ─────────────────────────────────────────────
+// 鈹€鈹€ Tab Switching 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function shopSwitchTab(tab) {
   document.querySelectorAll('#screen-shop .shop-tab').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('#screen-shop .shop-tab-content').forEach(el => el.classList.remove('active'));
@@ -53,9 +53,21 @@ function shopSwitchTab(tab) {
   const panelEl = document.getElementById('shopPanel-' + tab);
   if (tabEl) tabEl.classList.add('active');
   if (panelEl) panelEl.classList.add('active');
+  
+  // Update header title
+  const headerTitle = document.querySelector('.shop-header-title');
+  if (headerTitle) {
+    const titles = {
+      'shop': 'Shop',
+      'delivery': 'Delivery',
+      'cart': 'Cart',
+      'wallet': 'Wallet'
+    };
+    headerTitle.textContent = titles[tab] || 'Shop';
+  }
 }
 
-// ── Category Selection ────────────────────────────────────────
+// 鈹€鈹€ Category Selection 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function shopSelectCat(el, panel) {
   const container = el.closest('.shop-categories');
   if (!container) return;
@@ -63,7 +75,7 @@ function shopSelectCat(el, panel) {
   el.classList.add('active');
 }
 
-// ── Render Grids ──────────────────────────────────────────────
+// 鈹€鈹€ Render Grids 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function _shopCard(item) {
   return `
     <div class="shop-product-card" onclick="shopOpenModal(${item.id}, '${_escapeAttr(item.name)}', ${item.price}, '${_escapeAttr(item.desc)}', '${_escapeAttr(item.seller)}', '${item.color}')">
@@ -94,7 +106,7 @@ function _renderDeliveryGrid() {
   grid.innerHTML = SHOP_DELIVERY.map(_shopCard).join('');
 }
 
-// ── Modal ─────────────────────────────────────────────────────
+// 鈹€鈹€ Modal 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function shopOpenModal(id, name, price, desc, seller, color) {
   _shopCurrentProduct = { id, name, price, desc, seller };
   const overlay = document.getElementById('shopModalOverlay');
@@ -135,7 +147,7 @@ function shopAddToCart() {
   shopToast('Added to cart');
 }
 
-// ── Cart ──────────────────────────────────────────────────────
+// 鈹€鈹€ Cart 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function _renderCartList() {
   const list = document.getElementById('shopCartList');
   if (!list) return;
@@ -199,13 +211,13 @@ function _updateCartBadge() {
   else { badge.style.display = 'none'; }
 }
 
-// ── Card Selection ────────────────────────────────────────────
+// 鈹€鈹€ Card Selection 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function shopSelectCard(el) {
   document.querySelectorAll('#shopPanel-wallet .shop-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
 }
 
-// ── Toast ─────────────────────────────────────────────────────
+// 鈹€鈹€ Toast 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function shopToast(msg) {
   const toast = document.getElementById('shopToast');
   if (!toast) return;
@@ -214,11 +226,11 @@ function shopToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
-// ── Helpers ───────────────────────────────────────────────────
+// 鈹€鈹€ Helpers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function _escapeHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function _escapeAttr(str) {
-  return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return String(str).replace(/'/g, "\\\'").replace(/"/g, '&quot;');
 }
