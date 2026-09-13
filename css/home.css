@@ -975,27 +975,57 @@
 
 .mw-cover:active { opacity: .85; }
 
-/* ===== Calendar Widget (redesigned — matches widget family) ===== */
+/* ===== Calendar Widget (Captcha) — padding-bottom 正方形版本 ===== */
 .calendar-widget {
+  /* 核心：用 padding-bottom 撐出正方形，完全不依賴 aspect-ratio */
+  position: relative;
+  width: 100%;
+  height: 0 !important;
+  padding-bottom: 100% !important; /* 高度 = 寬度 → 正方形 */
+
+  /* 外觀 */
   border-radius: 22px;
   background: #ffffff;
   box-shadow: 0 2px 18px rgba(0,0,0,.07), 0 1px 0 rgba(255,255,255,.9) inset;
   border: 1px solid rgba(255,255,255,.7);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  
-  /* ↓ 核心修復：強制正方形，並且不受手機父容器擠壓 */
-  aspect-ratio: 1 / 1 !important; 
-  height: auto !important;
-  flex-shrink: 0 !important;
-  max-height: none !important;  /* 刪除原本的 max-height: 100%，這是手機被壓扁的元兇 */
-  min-height: 0;
-  
   overflow: hidden;
   box-sizing: border-box;
-  gap: 0;
+
+  /* 防止被 flex 壓縮或拉伸 */
+  flex: 0 0 auto !important;
+  align-self: flex-start;
+}
+
+/* 內部所有「直接子元素」絕對定位填滿 */
+.calendar-widget > .cw-robot-bar,
+.calendar-widget > .cw-body,
+.calendar-widget > div[style*="display:none"] {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+/* 頂欄貼齊頂部 */
+.calendar-widget > .cw-robot-bar {
+  top: 0;
+  height: auto;
+}
+
+/* Body 撐滿剩餘空間：從頂欄底部到容器底部 */
+.calendar-widget > .cw-body {
+  top: 50px;   /* ← 這個值 = 頂欄實際高度，若跑版可微調 48~54 */
+  bottom: 0;
+  border-radius: 0 0 22px 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 隱藏用的 div 不要佔空間 */
+.calendar-widget > div[style*="display:none"] {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
 /* Top bar */
@@ -1807,8 +1837,28 @@
 }
 
 /* ===== 窄螢幕（手機）下壓縮 Calendar Widget 內部，避免撐破 aspect-ratio 方塊 ===== */
-/* ===== 窄螢幕（手機）下壓縮 Calendar Widget 內部，避免撐破正方形 ===== */
 @media (max-width: 520px) {
+  /* 頂欄高度變小，body 的 top 也要跟著改 */
+  .calendar-widget > .cw-body {
+    top: 44px;   /* ← 因為手機端頂欄縮小了，這裡也縮小 */
+  }
+
+  /* 內部佈局 */
+  .cw-body {
+    padding: 8px 8px 10px;
+    gap: 6px;
+  }
+  .cw-input-row {
+    flex-shrink: 0;
+  }
+  .cw-image-row {
+    flex: 1;
+    min-height: 0;
+  }
+  .cw-captcha-img-wrap {
+    height: 100%;
+  }
+  
   .cw-robot-bar {
     padding: 10px 12px 9px;
     gap: 8px;
