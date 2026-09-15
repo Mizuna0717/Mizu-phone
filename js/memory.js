@@ -34,6 +34,79 @@ function getUnconsolidatedSTM(charId) {
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 }
 
+// ========== buildMemoryContext ==========
+// 供 prompt 构建器调用：返回注入到 system prompt 的记忆文本块
+function buildMemoryContext(charId) {
+  if (!charId) return '';
+
+  // LTM: 最近 3 条长期记忆（核心、重要）
+  var ltmList = getCharMemoriesByType(charId, 'ltm')
+    .slice(0, 3);
+
+  // STM: 最近 5 条短期记忆（未合并的优先）
+  var stmAll = getCharMemoriesByType(charId, 'stm');
+  var stmUnconsolidated = stmAll.filter(function(m) { return !m.consolidated; });
+  var stmList = (stmUnconsolidated.length > 0 ? stmUnconsolidated : stmAll).slice(0, 5);
+
+  // FTM: 最近 3 条模糊/可遗忘记忆（阶段二补全）
+  var ftmList = getCharMemoriesByType(charId, 'ftm').slice(0, 3);
+
+  // 手动记忆（无 memType 的条目）
+  var manualList = (state.memories || [])
+    .filter(function(m) { return m.charId === charId && !m.memType; })
+    .sort(function(a, b) { return new Date(b.date) - new Date(a.date); })
+    .slice(0, 3);
+
+  // 如果什么都没有，返回空串
+  if (!ltmList.length && !stmList.length && !ftmList.length && !manualList.length) {
+    return '';
+  }
+
+  var parts = [];
+
+  // 【临时备忘】FTM
+  if (ftmList.length > 0) {
+    var ftmLines = ftmList.map(function(m) {
+      return '- ' + (m.date ? '(' + m.date + ') ' : '') + (m.content || '').trim();
+    }).join('\n');
+    parts.push('[临时备忘]\n' + ftmLines);
+  }
+
+  // 【近期发生的事情】STM
+  if (stmList.length > 0) {
+    var stmLines = stmList.map(function(m) {
+      return '- ' + (m.date ? '(' + m.date + ') ' : '') + (m.content || '').trim();
+    }).join('\n');
+    parts.push('[近期发生的事情]\n' + stmLines);
+  }
+
+  // 手动记忆归入近期
+  if (manualList.length > 0 && stmList.length === 0) {
+    var manLines = manualList.map(function(m) {
+      return '- ' + (m.date ? '(' + m.date + ') ' : '') +
+        (m.title ? m.title + ': ' : '') + (m.content || '').trim();
+    }).join('\n');
+    parts.push('[近期发生的事情]\n' + manLines);
+  } else if (manualList.length > 0) {
+    var manLines2 = manualList.map(function(m) {
+      return '- ' + (m.date ? '(' + m.date + ') ' : '') +
+        (m.title ? m.title + ': ' : '') + (m.content || '').trim();
+    }).join('\n');
+    parts[parts.length - 1] += '\n' + manLines2;
+  }
+
+  // 【深刻的过往记忆】LTM
+  if (ltmList.length > 0) {
+    var ltmLines = ltmList.map(function(m) {
+      return '- ' + (m.date ? '(' + m.date + ') ' : '') + (m.content || '').trim();
+    }).join('\n');
+    parts.push('[深刻的过往记忆]\n' + ltmLines);
+  }
+
+  return parts.join('\n\n');
+}
+window.buildMemoryContext = buildMemoryContext;
+
 function saveMemoryEntry(charId, memType, title, content) {
   if (!state.memories) state.memories = [];
   const today = new Date().toISOString().split('T')[0];

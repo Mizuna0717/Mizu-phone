@@ -380,30 +380,14 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
 标签会被系统自动移除。如果转账已标记为"(已领取)"或"(已拒绝)"，无需再次处理。`;
   }
 
-  const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'ltm') : [];
-  const charSTM = (typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'stm') : []).filter(m => !m.consolidated);
-  const charFTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(ch.id, 'ftm') : [];
-  const charManual = (state.memories || []).filter(m => m.charId === ch.id && !m.memType)
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-  if (charLTM.length || charSTM.length || charFTM.length || charManual.length) {
-    p += '\n\n[Character Memories]';
-  }
-  if (charLTM.length) {
-    p += '\n\n— Long-term Memories (core, important) —\n';
-    charLTM.slice(0, 5).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
-  }
-  if (charSTM.length) {
-    p += '\n\n— Recent Short-term Memories —\n';
-    charSTM.slice(0, 8).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
-  }
-  if (charManual.length) {
-    p += '\n\n— Personal Notes —\n';
-    charManual.slice(0, 5).forEach(m => { p += `- (${m.date}) ${m.title}: ${m.content}\n`; });
-  }
-  if (charFTM.length) {
-    p += '\n\n— Vague / Forgettable Memories (you only vaguely remember these) —\n';
-    charFTM.slice(0, 3).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
+  // ★★★ 统一记忆注入：使用 buildMemoryContext ★★★
+  var _memCtx = (typeof buildMemoryContext === 'function') ? buildMemoryContext(ch.id) : '';
+  if (_memCtx) {
+    var _userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User';
+    var _charName = ch.name || 'Character';
+    p += '\\n\\n[系统设定]\\n你是' + _charName + '，你正在和' + _userName + '聊天。';
+    p += '\\n\\n[以下是你脑海中关于' + _userName + '的记忆]\\n' + _memCtx;
+    p += '\\n\\n[对话规则]\\n1. 请自然地结合你脑海中的记忆来回应，不要机械地复述记忆。\\n2. 如果记忆中的事件与当前对话无关，不要强行提起，以免显得生硬。\\n3. 你的语气要带有回忆的温度，就像是一个真的在努力记住对方的人。\\n4. 保持你原本的角色设定，不要跳出角色。';
   }
 
   return p;
@@ -491,24 +475,13 @@ You are ONLY ${targetChar.name}. Do NOT generate responses for other characters.
     }
   }
 
-  const charLTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'ltm') : [];
-  const charSTM = (typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'stm') : []).filter(m => !m.consolidated);
-  const charFTM = typeof getCharMemoriesByType === 'function' ? getCharMemoriesByType(targetChar.id, 'ftm') : [];
-
-  if (charLTM.length || charSTM.length || charFTM.length) {
-    p += `\n\n[Character Memories for ${targetChar.name}]`;
-    if (charLTM.length) {
-      p += '\n— Long-term Memories —\n';
-      charLTM.slice(0, 5).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
-    }
-    if (charSTM.length) {
-      p += '\n— Recent Memories —\n';
-      charSTM.slice(0, 8).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
-    }
-    if (charFTM.length) {
-      p += '\n— Vague / Forgettable Memories —\n';
-      charFTM.slice(0, 3).forEach(m => { p += `- (${m.date}) ${m.content}\n`; });
-    }
+  // ★★★ 统一记忆注入：使用 buildMemoryContext ★★★
+  var _grpMemCtx = (typeof buildMemoryContext === 'function') ? buildMemoryContext(targetChar.id) : '';
+  if (_grpMemCtx) {
+    var _grpUserName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User';
+    p += '\\n\\n[系统设定]\\n你是' + targetChar.name + '，你正在和' + _grpUserName + '聊天。';
+    p += '\\n\\n[以下是你脑海中关于' + _grpUserName + '的记忆]\\n' + _grpMemCtx;
+    p += '\\n\\n[对话规则]\\n1. 请自然地结合你脑海中的记忆来回应，不要机械地复述记忆。\\n2. 如果记忆中的事件与当前对话无关，不要强行提起，以免显得生硬。\\n3. 你的语气要带有回忆的温度，就像是一个真的在努力记住对方的人。\\n4. 保持你原本的角色设定，不要跳出角色。';
   }
 
   return p;

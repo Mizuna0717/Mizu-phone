@@ -96,45 +96,26 @@ function mtgBuildSystemPrompt(session, ch) {
     p += '\n';
   }
 
-  // ★ 7. 角色的长期/短期记忆
-  if (typeof getCharMemoriesByType === 'function') {
-    var charLTM = getCharMemoriesByType(ch.id, 'ltm') || [];
-    var charSTM = (getCharMemoriesByType(ch.id, 'stm') || []).filter(function(m) { return !m.consolidated; });
-    var charFTM = getCharMemoriesByType(ch.id, 'ftm') || [];
+    // ★ 7. 角色的记忆注入（统一使用 buildMemoryContext）
+  var _mtgMemCtx = (typeof buildMemoryContext === 'function')
+    ? buildMemoryContext(ch.id)
+    : (function() {
+        // 兜底：直接读 state.memories
+        var _allMem = (state.memories || []).filter(function(m) { return m.charId === ch.id; });
+        if (!_allMem.length) return '';
+        _allMem.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+        return '[近期发生的事情]\n' + _allMem.slice(0, 10).map(function(m) {
+          return '- (' + (m.date || '') + ') ' + (m.title ? m.title + ': ' : '') + m.content;
+        }).join('\n');
+      })();
 
-    if (charLTM.length > 0 || charSTM.length > 0 || charFTM.length > 0) {
-      p += '\n[Character Memories for ' + ch.name + ']\n';
-
-      if (charLTM.length > 0) {
-        p += '\u2014 Long-term Memories (core, important) \u2014\n';
-        charLTM.slice(0, 5).forEach(function(m) {
-          p += '- (' + (m.date || '') + ') ' + m.content + '\n';
-        });
-      }
-      if (charSTM.length > 0) {
-        p += '\u2014 Recent Short-term Memories \u2014\n';
-        charSTM.slice(0, 8).forEach(function(m) {
-          p += '- (' + (m.date || '') + ') ' + m.content + '\n';
-        });
-      }
-      if (charFTM.length > 0) {
-        p += '\u2014 Vague / Forgettable Memories \u2014\n';
-        charFTM.slice(0, 3).forEach(function(m) {
-          p += '- (' + (m.date || '') + ') ' + m.content + '\n';
-        });
-      }
-      p += '\n';
-    }
-  } else {
-    var _allMem = (state.memories || []).filter(function(m) { return m.charId === ch.id; });
-    if (_allMem.length > 0) {
-      p += '\n[Character Memories for ' + ch.name + ']\n';
-      _allMem.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
-      _allMem.slice(0, 10).forEach(function(m) {
-        p += '- (' + (m.date || '') + ') ' + (m.title ? m.title + ': ' : '') + m.content + '\n';
-      });
-      p += '\n';
-    }
+  if (_mtgMemCtx) {
+    var _mtgUserName = (typeof mtgGetUserName === 'function') ? mtgGetUserName()
+      : ((state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户');
+    p += '\n[系统设定]\n你是' + ch.name + '，你正在和' + _mtgUserName + '进行协作写作。';
+    p += '\n\n[以下是你脑海中关于' + _mtgUserName + '的记忆]\n' + _mtgMemCtx;
+    p += '\n\n[对话规则]\n1. 请自然地结合你脑海中的记忆来回应，不要机械地复述记忆。\n2. 如果记忆中的事件与当前对话无关，不要强行提起，以免显得生硬。\n3. 你的语气要带有回忆的温度，就像是一个真的在努力记住对方的人。\n4. 保持你原本的角色设定，不要跳出角色。';
+    p += '\n';
   }
 
     // ★ 8. Ban NSFW 指令注入
