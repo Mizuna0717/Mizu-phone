@@ -92,6 +92,9 @@ function openCallInterface(charId, callType, callMsgId) {
   screen.classList.add('show');
   startCallTimer();
 
+  // 清理过期 FTM
+  if (typeof cleanupExpiredMemories === 'function') cleanupExpiredMemories();
+
   callState.greetingPromise = generateCallGreeting(charId, callType);
 
   setTimeout(async () => {
@@ -328,29 +331,36 @@ function closeCallHistory() {
   document.getElementById('callScreen').classList.remove('show');
 }
 
-// ========== ★★★ 通话记忆自动总结 — 改为写入 FTM ★★★ ==========
+// ========== ★★★ 通话记忆自动总结 — FTM 易遗忘记忆（带过期） ★★★ ==========
 async function summarizeCallMemory(charId, messages) {
-  const api = state.apis.find(a => a.id === state.activeApiId);
-  if (!api?.url || !api.model) return;
+  if (!charId || !messages || messages.length < 2) return;
   const ch = state.characters.find(c => c.id === charId);
   if (!ch) return;
 
+  // 格式化通话记录
+  const userName = (typeof getCurrentUserMaskName === 'function')
+    ? getCurrentUserMaskName()
+    : ((state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User');
   const formatted = messages.map(m => {
-    return (m.role === 'user' ? 'User' : ch.name) + ': ' + m.content;
+    return (m.role === 'user' ? userName : ch.name) + ': ' + m.content;
   }).join('\n');
 
-  const prompt = 'Summarize this phone call between User and ' + ch.name + ' into a concise memory note (under 100 words). Focus on key topics, emotions, and important info. Write in third person. No headers.\n\nCall transcript:\n' + formatted + '\n\nSummary:';
-
-  try {
-    const summary = await sendChat(api, [
-      { role: 'system', content: prompt },
-      { role: 'user', content: 'Summarize now.' }
-    ]);
-    if (summary && typeof saveMemoryEntry === 'function') {
-      // ★★★ 改为 'ftm' — 通话记忆写入易遗忘记忆 ★★★
-      saveMemoryEntry(charId, 'ftm', '通话记录: ' + ch.name, summary.trim());
-    }
-  } catch (e) { console.error('Call memory summarize error:', e); }
+  // 优先使用 callEphemeralSummarize（FTM 专用，含过期时间）
+  if (typeof callEphemeralSummarize === 'function') {
+    await callEphemeralSummarize(charId, formatted);
+  } else {
+    // 兜底：直接保存为 ftm
+    const api = state.apis.find(a => a.id === state.activeApiId);
+    if (!api?.url || !api.model) return;
+    const prompt = '用一段 30-80 字的第一人称备忘录，总结这段通话的关键信息（事件、情绪、待办）。直接输出文本。\n\n通话内容：\n' + formatted;
+    try {
+      const summary = await sendChat(api, [
+        { role: 'system', content: prompt },
+        { role: 'user', content: '请记录。' }
+      ]);
+      if (summary) saveMemoryEntry(charId, 'ftm', '通话备忘: ' + ch.name, summary.trim());
+    } catch (e) { console.error('Call memory summarize fallback error:', e); }
+  }
 }
 
 // ========== 发送消息 ==========

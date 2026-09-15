@@ -36,8 +36,8 @@ var SAVE_KEYS = [
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
   'groups', 'moments', 'imsgTab','messageChats' ,           
-  'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting', 'theme',
-  'wikiSchedule', 'together', 'home'
+    'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting', 'theme',
+  'wikiSchedule', 'together', 'home', 'settings'
 ];
 
 var _stateLoaded = false;
@@ -60,8 +60,16 @@ function _getStateDefaults() {
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
     npcs: [], messageChats: [],
     wikiSchedule: [],
-    together: { songs: [], videos: [], novels: [] },
+        together: { songs: [], videos: [], novels: [] },
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
+    settings: {
+      retrieval: {
+        mode: 'auto',
+        topK: 3,
+        timeDecay: 0.99,
+        embedding: { enabled: false, baseUrl: '', apiKey: '', model: 'text-embedding-3-small', timeout: 15 }
+      }
+    },
     user: null
   };
 }
@@ -74,6 +82,16 @@ function _validateState() {
   if (!state.userProfile || typeof state.userProfile !== 'object') state.userProfile = { name: 'User', avatar: null };
   if (!Array.isArray(state.masks)) state.masks = [];
   if (!Array.isArray(state.memories)) state.memories = [];
+  // FTM expiresAt migration: ensure all ftm entries have expiresAt
+  if (Array.isArray(state.memories)) {
+    var _now = Date.now();
+    var _3days = 3 * 24 * 60 * 60 * 1000;
+    state.memories.forEach(function(m) {
+      if (m.memType === 'ftm' && !m.expiresAt) {
+        m.expiresAt = _now + _3days;
+      }
+    });
+  }
   if (!Array.isArray(state.bookmarks)) state.bookmarks = [];
   if (state.replyPrompt == null) state.replyPrompt = (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null;
   if (!state.charConfig || typeof state.charConfig !== 'object') state.charConfig = {};
@@ -126,6 +144,20 @@ function _validateState() {
   if (window.__user) {
     state.user = window.__user;
   }
+
+  // settings.retrieval 初始化
+  if (!state.settings || typeof state.settings !== 'object') state.settings = {};
+  if (!state.settings.retrieval || typeof state.settings.retrieval !== 'object') {
+    state.settings.retrieval = { mode: 'auto', topK: 3, timeDecay: 0.99, embedding: { enabled: false, baseUrl: '', apiKey: '', model: 'text-embedding-3-small', timeout: 15 } };
+  }
+  var _r = state.settings.retrieval;
+  if (!_r.mode) _r.mode = 'auto';
+  if (!(_r.topK > 0)) _r.topK = 3;
+  if (!(_r.timeDecay > 0)) _r.timeDecay = 0.99;
+  if (!_r.embedding || typeof _r.embedding !== 'object') _r.embedding = { enabled: false, baseUrl: '', apiKey: '', model: 'text-embedding-3-small', timeout: 15 };
+  if (_r.embedding.timeout == null) _r.embedding.timeout = 15;
+  // Embedding rebuild flag (transient, not persisted)
+  if (state.embeddingRebuildInProgress == null) state.embeddingRebuildInProgress = false;
 
   if (Array.isArray(state.meetings)) {
     state.meetings.forEach(function(session) {

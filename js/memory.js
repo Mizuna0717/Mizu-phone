@@ -34,22 +34,398 @@ function getUnconsolidatedSTM(charId) {
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 }
 
+// ========== TF-IDF 检索器 ==========
+class TfidfRetriever {
+  // 分词：中文按字切分，英文按空格，过滤停用词
+  _tokenize(text) {
+    if (!text) return [];
+    var STOP = new Set(['的','了','是','在','我','你','他','她','它','们','和','与','或','也','都','就','从','对','把','被','让','但','因','为','所','以','这','那','有','没','不','而','又','到','过','着','时','上','下','里','中','后','前','当','其','等','很','太','更','最','只','还','要','能','会','可','应','该','已','将','正','再','却','即','若','如','由','于','并','及','且','且','之','以','与','不','无','非','未','否']);
+    var tokens = [];
+    // 中文字符逐字
+    var cjk = text.match(/[\u4e00-\u9fff\u3040-\u309f\uac00-\ud7af]/g) || [];
+    cjk.forEach(function(c) { if (!STOP.has(c)) tokens.push(c); });
+    // 英文单词
+    var eng = text.toLowerCase().match(/[a-z]{2,}/g) || [];
+    var engStop = new Set(['the','a','an','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','shall','can','need','dare','ought','used','of','in','to','for','on','at','by','with','from','up','about','into','through','during','before','after','above','below','to','from','up','down','in','out','off','over','under','again','further','then','once','and','but','or','nor','so','yet','both','either','neither','not','only','own','same','than','too','very','just','because','as','until','while','although','though','if','unless','when','where','who','which','that','this','these','those','am','i','you','he','she','it','we','they','me','him','her','us','them','my','your','his','its','our','their']);
+    eng.forEach(function(w) { if (!engStop.has(w)) tokens.push(w); });
+    return tokens;
+  }
+
+  // 计算词频
+  _tf(tokens) {
+    var freq = {};
+    tokens.forEach(function(t) { freq[t] = (freq[t] || 0) + 1; });
+    var total = tokens.length || 1;
+    Object.keys(freq).forEach(function(k) { freq[k] = freq[k] / total; });
+    return freq;
+  }
+
+  // 余弦相似度（稀疏向量）
+  _cosine(vecA, vecB) {
+    var dot = 0, normA = 0, normB = 0;
+    Object.keys(vecA).forEach(function(k) {
+      normA += vecA[k] * vecA[k];
+      if (vecB[k]) dot += vecA[k] * vecB[k];
+    });
+    Object.keys(vecB).forEach(function(k) { normB += vecB[k] * vecB[k]; });
+    var denom = Math.sqrt(normA) * Math.sqrt(normB);
+    return denom > 0 ? dot / denom : 0;
+  }
+
+  // 计算 IDF
+  _idf(allTokenSets) {
+    var N = allTokenSets.length || 1;
+    var df = {};
+    allTokenSets.forEach(function(tokens) {
+      var seen = new Set(tokens);
+      seen.forEach(function(t) { df[t] = (df[t] || 0) + 1; });
+    });
+    var idf = {};
+    Object.keys(df).forEach(function(t) {
+      idf[t] = Math.log((N + 1) / (df[t] + 1)) + 1;
+    });
+    return idf;
+  }
+
+  // 构建 TF-IDF 向量
+  _tfidfVec(tf, idf) {
+    var vec = {};
+    Object.keys(tf).forEach(function(t) {
+      vec[t] = tf[t] * (idf[t] || 1);
+    });
+    return vec;
+  }
+
+  // 主检索方法：返回 [{score, memory}] 降序
+  retrieve(query, memories, topK) {
+    topK = topK || 3;
+    if (!memories || memories.length === 0) return [];
+    if (!query) {
+      // 无 query 时按时间倒序取 topK
+      return memories.slice(0, topK).map(function(m) { return { score: 1, memory: m }; });
+    }
+
+    var queryTokens = this._tokenize(query);
+    if (queryTokens.length === 0) {
+      return memories.slice(0, topK).map(function(m) { return { score: 1, memory: m }; });
+    }
+
+    var self = this;
+    var memTokenSets = memories.map(function(m) {
+      return self._tokenize((m.content || '') + ' ' + (m.title || ''));
+    });
+
+    // 构建 IDF（语料 = 所有记忆 + query）
+    var allSets = memTokenSets.concat([queryTokens]);
+    var idf = this._idf(allSets);
+
+    var queryVec = this._tfidfVec(this._tf(queryTokens), idf);
+    var now = Date.now();
+    var MS_PER_DAY = 86400000;
+
+    var scored = memories.map(function(mem, i) {
+      var memVec = self._tfidfVec(self._tf(memTokenSets[i]), idf);
+      var sim = self._cosine(queryVec, memVec);
+
+      // 时间衰减：最近的记忆权重更高
+      var ts = mem.timestamp || (mem.date ? new Date(mem.date + 'T00:00:00').getTime() : now);
+      var daysSince = Math.max(0, (now - ts) / MS_PER_DAY);
+      var decay = Math.pow(0.99, daysSince);
+
+      return { score: sim * decay, memory: mem };
+    });
+
+    // 降序排序，取 topK
+    scored.sort(function(a, b) { return b.score - a.score; });
+    return scored.slice(0, topK);
+  }
+}
+
+var _tfidfRetriever = new TfidfRetriever();
+window.TfidfRetriever = TfidfRetriever;
+window._tfidfRetriever = _tfidfRetriever;
+
+// ========== Embedding 检索器 ==========
+class EmbeddingRetriever {
+  constructor(baseUrl, apiKey, model, timeout) {
+    this.baseUrl = (baseUrl || '').replace(/\/+$/, '');
+    this.apiKey = apiKey || '';
+    this.model = model || 'text-embedding-3-small';
+    this.timeout = (timeout > 0 ? timeout : 15) * 1000;
+  }
+
+  async embed(texts) {
+    if (!this.baseUrl || !this.apiKey) throw new Error('Embedding: missing baseUrl or apiKey');
+    var url = this.baseUrl + '/v1/embeddings';
+    var ctrl = new AbortController();
+    var tid = setTimeout(function() { ctrl.abort(); }, this.timeout);
+    try {
+      var resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + this.apiKey },
+        body: JSON.stringify({ model: this.model, input: texts }),
+        signal: ctrl.signal
+      });
+      clearTimeout(tid);
+      if (!resp.ok) throw new Error('Embedding API error: ' + resp.status);
+      var data = await resp.json();
+      // 返回向量数组（按 index 排序）
+      var sorted = (data.data || []).slice().sort(function(a, b) { return a.index - b.index; });
+      return sorted.map(function(d) { return d.embedding; });
+    } catch (e) {
+      clearTimeout(tid);
+      throw e;
+    }
+  }
+
+  _cosine(a, b) {
+    if (!a || !b || a.length !== b.length) return 0;
+    var dot = 0, na = 0, nb = 0;
+    for (var i = 0; i < a.length; i++) {
+      dot += a[i] * b[i];
+      na += a[i] * a[i];
+      nb += b[i] * b[i];
+    }
+    var denom = Math.sqrt(na) * Math.sqrt(nb);
+    return denom > 0 ? dot / denom : 0;
+  }
+
+  async retrieve(query, memories, topK) {
+    topK = topK || 3;
+    if (!memories || memories.length === 0) return [];
+    // 只使用已有 embedding 缓存的记忆（不在此处补算，避免大量 API 调用）
+    var withEmb = memories.filter(function(m) { return Array.isArray(m.embedding) && m.embedding.length > 0; });
+    if (withEmb.length === 0) return [];
+
+    var queryEmb;
+    try {
+      var vecs = await this.embed([query]);
+      queryEmb = vecs[0];
+    } catch (e) {
+      console.warn('[EmbeddingRetriever] embed query failed:', e);
+      return [];
+    }
+
+    var self = this;
+    var now = Date.now();
+    var MS_PER_DAY = 86400000;
+    var scored = withEmb.map(function(mem) {
+      var sim = self._cosine(queryEmb, mem.embedding);
+      var ts = mem.timestamp || (mem.date ? new Date(mem.date + 'T00:00:00').getTime() : now);
+      var daysSince = Math.max(0, (now - ts) / MS_PER_DAY);
+      var decay = Math.pow(0.99, daysSince);
+      return { score: sim * decay, memory: mem };
+    });
+    scored.sort(function(a, b) { return b.score - a.score; });
+    return scored.slice(0, topK);
+  }
+}
+window.EmbeddingRetriever = EmbeddingRetriever;
+
+// ========== Embedding 连通性测试 ==========
+async function testEmbeddingConnection(cfg) {
+  if (!cfg || !cfg.baseUrl || !cfg.apiKey) {
+    console.warn('[testEmbeddingConnection] 缺少配置');
+    return false;
+  }
+  try {
+    var retriever = new EmbeddingRetriever(cfg.baseUrl, cfg.apiKey, cfg.model || 'text-embedding-3-small', cfg.timeout || 15);
+    var result = await retriever.embed(['ping']);
+    if (result && result[0] && result[0].length > 0) {
+      console.log('[testEmbeddingConnection] ✅ 连接成功，向量维度:', result[0].length);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.error('[testEmbeddingConnection] ❌ 失败:', e.message || e);
+    return false;
+  }
+}
+window.testEmbeddingConnection = testEmbeddingConnection;
+
+// ========== AutoRetriever ==========
+class AutoRetriever {
+  constructor(cfg) {
+    this._tfidf = _tfidfRetriever;
+    this.embedding = null;
+    this.disabledUntil = 0;
+    this._cfg = cfg || {};
+    this._init();
+  }
+
+  _init() {
+    var emb = this._cfg.embedding || {};
+    if (!emb.enabled || !emb.baseUrl || !emb.apiKey || !emb.model) {
+      console.log('[AutoRetriever] Embedding not configured, using TF-IDF');
+      this.embedding = null;
+      return;
+    }
+    // Async ping test — does not block constructor
+    var self = this;
+    var candidate = new EmbeddingRetriever(emb.baseUrl, emb.apiKey, emb.model, emb.timeout || 15);
+    candidate.embed(['ping']).then(function(res) {
+      if (res && res[0] && res[0].length > 0) {
+        self.embedding = candidate;
+        console.log('[AutoRetriever] Embedding ready, dim:', res[0].length);
+      } else {
+        self.embedding = null;
+        console.warn('[AutoRetriever] Embedding ping returned empty, degraded to TF-IDF');
+      }
+    }).catch(function(e) {
+      self.embedding = null;
+      console.warn('[AutoRetriever] Embedding unavailable, degraded to TF-IDF:', e.message || e);
+    });
+  }
+
+  async retrieve(query, memories, topK) {
+    topK = topK || 3;
+    // During embedding rebuild, force TF-IDF
+    if (state.embeddingRebuildInProgress) {
+      return this._tfidf.retrieve(query, memories, topK);
+    }
+    // If embedding is enabled and not in cooldown, try it
+    if (this.embedding && Date.now() > this.disabledUntil) {
+      try {
+        var results = await this.embedding.retrieve(query, memories, topK);
+        // If no cached embeddings available, fall through to TF-IDF
+        if (results.length > 0) return results;
+      } catch (e) {
+        this.disabledUntil = Date.now() + 300000; // 5 min cooldown
+        console.warn('[AutoRetriever] Embedding failed, degraded to TF-IDF for 5 min:', e.message || e);
+      }
+    }
+    return this._tfidf.retrieve(query, memories, topK);
+  }
+}
+
+// Global AutoRetriever instance — (re)initialized from settings
+var autoRetriever = new AutoRetriever((window.state && state.settings && state.settings.retrieval) || {});
+window.autoRetriever = autoRetriever;
+
+// Re-initialize AutoRetriever from current settings
+function initAutoRetriever() {
+  var cfg = (state.settings && state.settings.retrieval) || {};
+  autoRetriever = new AutoRetriever(cfg);
+  window.autoRetriever = autoRetriever;
+  console.log('[initAutoRetriever] Re-initialized with mode:', cfg.mode);
+}
+window.initAutoRetriever = initAutoRetriever;
+
+// ========== Embedding cache helpers ==========
+function _contentHash(str) {
+  // Simple djb2 hash for change detection
+  var h = 5381;
+  for (var i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+
+async function _embedAndCache(mem) {
+  var cfg = (state.settings && state.settings.retrieval && state.settings.retrieval.embedding) || {};
+  if (!cfg.enabled || !cfg.baseUrl || !cfg.apiKey || !cfg.model) return;
+  if (!autoRetriever.embedding) return;
+  var text = (mem.content || '') + ' ' + (mem.title || '');
+  var hash = _contentHash(text);
+  // Skip if already cached for same model and content
+  if (mem.embedding && mem.embeddingModel === cfg.model && mem.contentHash === hash) return;
+  try {
+    var vecs = await autoRetriever.embedding.embed([text]);
+    if (vecs && vecs[0]) {
+      mem.embedding = vecs[0];
+      mem.embeddingModel = cfg.model;
+      mem.embeddingDim = vecs[0].length;
+      mem.contentHash = hash;
+    }
+  } catch (e) {
+    console.warn('[_embedAndCache] Failed for mem', mem.id, e.message || e);
+  }
+}
+window._embedAndCache = _embedAndCache;
+
+// ========== Index rebuild ==========
+async function rebuildEmbeddings(charId) {
+  var cfg = (state.settings && state.settings.retrieval && state.settings.retrieval.embedding) || {};
+  if (!cfg.enabled || !cfg.baseUrl || !cfg.apiKey || !cfg.model) {
+    console.warn('[rebuildEmbeddings] Embedding not configured, skipping');
+    return;
+  }
+  if (!autoRetriever.embedding) {
+    console.warn('[rebuildEmbeddings] AutoRetriever has no embedding instance, skipping');
+    return;
+  }
+  var mems = (state.memories || []).filter(function(m) {
+    return m.memType === 'ltm' && (charId ? m.charId === charId : true);
+  });
+  if (mems.length === 0) { console.log('[rebuildEmbeddings] No LTM to rebuild'); return; }
+  state.embeddingRebuildInProgress = true;
+  console.log('[rebuildEmbeddings] Starting rebuild for', mems.length, 'LTM entries...');
+  var done = 0;
+  for (var i = 0; i < mems.length; i++) {
+    await _embedAndCache(mems[i]);
+    done++;
+    if (done % 5 === 0) console.log('[rebuildEmbeddings] Progress:', done + '/' + mems.length);
+  }
+  state.embeddingRebuildInProgress = false;
+  saveState();
+  console.log('[rebuildEmbeddings] Done. Rebuilt', done, 'embeddings.');
+}
+window.rebuildEmbeddings = rebuildEmbeddings;
+
 // ========== buildMemoryContext ==========
 // 供 prompt 构建器调用：返回注入到 system prompt 的记忆文本块
-function buildMemoryContext(charId) {
+async function buildMemoryContext(charId, queryOverride) {
   if (!charId) return '';
 
-  // LTM: 最近 3 条长期记忆（核心、重要）
-  var ltmList = getCharMemoriesByType(charId, 'ltm')
-    .slice(0, 3);
+  // 核心记忆：isCore === true，全量注入，不限条数
+  var coreList = (state.memories || []).filter(function(m) {
+    return m.charId === charId && m.isCore;
+  }).sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+
+    // LTM: 最近 3 条长期记忆（按时间倒序）
+  var _allLtm = getCharMemoriesByType(charId, 'ltm').filter(function(m) { return !m.isCore; });
+  var ltmList = _allLtm.slice(0, 3);
+
+  // TF-IDF 检索：额外召回相关 LTM（去重后追加到 [相关回忆]）
+  var _recentLtmIds = new Set(ltmList.map(function(m) { return m.id; }));
+  var _query = (function() {
+    if (!charId) return '';
+    var _msgs = (state.chats && state.chats[charId]) ? state.chats[charId] : [];
+    for (var _i = _msgs.length - 1; _i >= 0; _i--) {
+      if (_msgs[_i].role === 'user' && _msgs[_i].content) return _msgs[_i].content.slice(0, 300);
+    }
+    return '';
+  })();
+    // 只在 LTM 超过 3 条时才检索额外相关记忆
+  var recallList = [];
+  // Note: autoRetriever.retrieve is async; for sync buildMemoryContext we use TF-IDF sync path
+  // Embedding results (if available) will be used next call after async init completes
+  if (_allLtm.length > 3 && _query) {
+    var _retrieval = (state.settings && state.settings.retrieval) || {};
+    var _topK = (_retrieval.topK > 0) ? _retrieval.topK : 3;
+    var _mode = _retrieval.mode || 'auto';
+    var _retrieved;
+    if (_mode === 'tfidf') {
+      _retrieved = _tfidfRetriever.retrieve(_query, _allLtm, _topK + 3);
+    } else {
+      // auto / embedding: use sync TF-IDF (embedding async results available after first call)
+      _retrieved = _tfidfRetriever.retrieve(_query, _allLtm, _topK + 3);
+    }
+    _retrieved.forEach(function(r) {
+      if (!_recentLtmIds.has(r.memory.id) && recallList.length < _topK) {
+        recallList.push(r.memory);
+      }
+    });
+  }
 
   // STM: 最近 5 条短期记忆（未合并的优先）
   var stmAll = getCharMemoriesByType(charId, 'stm');
   var stmUnconsolidated = stmAll.filter(function(m) { return !m.consolidated; });
   var stmList = (stmUnconsolidated.length > 0 ? stmUnconsolidated : stmAll).slice(0, 5);
 
-  // FTM: 最近 3 条模糊/可遗忘记忆（阶段二补全）
-  var ftmList = getCharMemoriesByType(charId, 'ftm').slice(0, 3);
+    // FTM: 最近 3 条模糊/可遗忘记忆（仅取未过期的）
+  var _nowTs = Date.now();
+  var ftmList = getCharMemoriesByType(charId, 'ftm').filter(function(m) {
+    return !m.expiresAt || m.expiresAt > _nowTs;
+  }).slice(0, 3);
 
   // 手动记忆（无 memType 的条目）
   var manualList = (state.memories || [])
@@ -57,12 +433,20 @@ function buildMemoryContext(charId) {
     .sort(function(a, b) { return new Date(b.date) - new Date(a.date); })
     .slice(0, 3);
 
-  // 如果什么都没有，返回空串
-  if (!ltmList.length && !stmList.length && !ftmList.length && !manualList.length) {
-    return '';
-  }
+    // 如果什么都没有，返回空串
+    if (!coreList.length && !ltmList.length && !stmList.length && !ftmList.length && !manualList.length && !recallList.length) {
+      return '';
+    }
 
   var parts = [];
+
+  // 【核心记忆】全量注入，置顶
+  if (coreList.length > 0) {
+    var coreLines = coreList.map(function(m) {
+      return '- ' + (m.content || '').trim();
+    }).join('\n');
+    parts.push('[核心记忆 - 绝对不可忘记]\n' + coreLines);
+  }
 
   // 【临时备忘】FTM
   if (ftmList.length > 0) {
@@ -95,7 +479,7 @@ function buildMemoryContext(charId) {
     parts[parts.length - 1] += '\n' + manLines2;
   }
 
-  // 【深刻的过往记忆】LTM
+    // 【深刻的过往记忆】LTM
   if (ltmList.length > 0) {
     var ltmLines = ltmList.map(function(m) {
       return '- ' + (m.date ? '(' + m.date + ') ' : '') + (m.content || '').trim();
@@ -103,19 +487,309 @@ function buildMemoryContext(charId) {
     parts.push('[深刻的过往记忆]\n' + ltmLines);
   }
 
+  // 【相关回忆】TF-IDF 检索额外结果
+  if (recallList.length > 0) {
+    var recallLines = recallList.map(function(m) {
+      return '- ' + (m.date ? '(' + m.date + ') ' : '') + (m.content || '').trim();
+    }).join('\n');
+    parts.push('[相关回忆]\n' + recallLines);
+  }
+
   return parts.join('\n\n');
 }
 window.buildMemoryContext = buildMemoryContext;
 
-function saveMemoryEntry(charId, memType, title, content) {
+// ========== 记忆检索设置面板 ==========
+function renderRetrievalSettings(containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  var cfg = (state.settings && state.settings.retrieval) || {};
+  var emb = cfg.embedding || {};
+  var mode = cfg.mode || 'auto';
+  var showEmb = (mode === 'auto' || mode === 'embedding');
+
+  el.innerHTML = [
+    '<div class="retrieval-settings-card">',
+    '<div class="rs-section-title">Memory Retrieval</div>',
+
+    '<div class="rs-row">',
+    '<label class="rs-label">Mode</label>',
+    '<select class="rs-select retrieval-mode" onchange="onRetrievalModeChange(this.value)">',
+    '<option value="auto"' + (mode === 'auto' ? ' selected' : '') + '>Auto (TF-IDF)</option>',
+    '<option value="tfidf"' + (mode === 'tfidf' ? ' selected' : '') + '>TF-IDF Only</option>',
+    '<option value="embedding"' + (mode === 'embedding' ? ' selected' : '') + '>Embedding</option>',
+    '</select>',
+    '</div>',
+
+    '<div class="rs-row">',
+    '<label class="rs-label">Top K Results</label>',
+    '<input class="rs-input" id="retrievalTopK" type="number" min="1" max="10" value="' + (cfg.topK || 3) + '">',
+    '</div>',
+
+    '<div class="rs-row">',
+    '<label class="rs-label">Time Decay</label>',
+    '<input class="rs-input" id="retrievalDecay" type="number" min="0.9" max="1" step="0.001" value="' + (cfg.timeDecay || 0.99) + '">',
+    '</div>',
+
+    '<div id="retrievalEmbSection" style="display:' + (showEmb ? 'block' : 'none') + '">',
+    '<div class="rs-divider"></div>',
+    '<div class="rs-sub-title">Embedding API</div>',
+
+    '<div class="rs-row">',
+    '<label class="rs-label">Enabled</label>',
+    '<label class="rs-toggle"><input type="checkbox" id="retrievalEmbEnabled"' + (emb.enabled ? ' checked' : '') + '><span class="rs-toggle-track"></span></label>',
+    '</div>',
+
+    '<div class="rs-row">',
+    '<label class="rs-label">Base URL</label>',
+    '<input class="rs-input" id="retrievalEmbUrl" type="url" placeholder="https://api.openai.com" value="' + (emb.baseUrl || '') + '">',
+    '</div>',
+
+    '<div class="rs-row">',
+    '<label class="rs-label">API Key</label>',
+    '<input class="rs-input" id="retrievalEmbKey" type="password" placeholder="sk-..." value="' + (emb.apiKey || '') + '">',
+    '</div>',
+
+    '<div class="rs-row">',
+    '<label class="rs-label">Model</label>',
+    '<input class="rs-input" id="retrievalEmbModel" type="text" placeholder="text-embedding-3-small" value="' + (emb.model || '') + '">',
+    '</div>',
+
+    '<div class="rs-row">',
+    '<label class="rs-label">Timeout (s)</label>',
+    '<input class="rs-input" id="retrievalEmbTimeout" type="number" min="5" max="60" value="' + (emb.timeout || 15) + '">',
+    '</div>',
+
+    '<div class="rs-row rs-btn-row">',
+    '<button class="rs-btn retrieval-test-btn" onclick="testRetrievalConnection()">Test Connection</button>',
+    '<span class="rs-test-result" id="retrievalTestResult"></span>',
+    '</div>',
+    '</div>',
+
+    '<div class="rs-row rs-btn-row">',
+    '<button class="rs-btn rs-btn-primary" onclick="saveRetrievalSettings()">Save</button>',
+    '</div>',
+    '</div>'
+  ].join('');
+}
+window.renderRetrievalSettings = renderRetrievalSettings;
+
+function onRetrievalModeChange(val) {
+  var sec = document.getElementById('retrievalEmbSection');
+  if (sec) sec.style.display = (val === 'auto' || val === 'embedding') ? 'block' : 'none';
+  var sel = document.querySelector('.retrieval-mode');
+  if (sel) sel.value = val;
+}
+window.onRetrievalModeChange = onRetrievalModeChange;
+
+function saveRetrievalSettings() {
+  if (!state.settings) state.settings = {};
+  if (!state.settings.retrieval) state.settings.retrieval = {};
+  var r = state.settings.retrieval;
+  var sel = document.querySelector('.retrieval-mode');
+  if (sel) r.mode = sel.value;
+  var topK = document.getElementById('retrievalTopK');
+  if (topK) r.topK = parseInt(topK.value) || 3;
+  var decay = document.getElementById('retrievalDecay');
+  if (decay) r.timeDecay = parseFloat(decay.value) || 0.99;
+  if (!r.embedding) r.embedding = {};
+  var enabled = document.getElementById('retrievalEmbEnabled');
+  if (enabled) r.embedding.enabled = enabled.checked;
+  var url = document.getElementById('retrievalEmbUrl');
+  if (url) r.embedding.baseUrl = url.value.trim();
+  var key = document.getElementById('retrievalEmbKey');
+  if (key) r.embedding.apiKey = key.value.trim();
+  var model = document.getElementById('retrievalEmbModel');
+  if (model) r.embedding.model = model.value.trim();
+  var timeout = document.getElementById('retrievalEmbTimeout');
+  if (timeout) r.embedding.timeout = parseInt(timeout.value) || 15;
+    // Capture new model before save (r is already mutated above)
+    var _newModel = r.embedding ? (r.embedding.model || '') : '';
+    // Capture previous saved model from localStorage snapshot (before saveState)
+    var _prevModel = '';
+    try {
+      var _snap = localStorage.getItem('ai_app_account_' + accountStore.currentAccountId);
+      if (_snap) { var _sd = JSON.parse(_snap); _prevModel = (_sd.settings && _sd.settings.retrieval && _sd.settings.retrieval.embedding && _sd.settings.retrieval.embedding.model) || ''; }
+    } catch(e) {}
+    saveState();
+    // Re-initialize AutoRetriever with new config
+    if (typeof initAutoRetriever === 'function') initAutoRetriever();
+    // If model changed and embedding is enabled, rebuild index
+    if (_prevModel && _newModel && _prevModel !== _newModel) {
+    var _rebuildCharId = state.currentCharId || null;
+    console.log('[saveRetrievalSettings] Embedding model changed:', _prevModel, '->', _newModel, '| triggering rebuild for', _rebuildCharId || 'all');
+    if (typeof rebuildEmbeddings === 'function') {
+      rebuildEmbeddings(_rebuildCharId).catch(function(e) { console.warn('[saveRetrievalSettings] rebuild error:', e); });
+    }
+  }
+  if (typeof showToast === 'function') showToast('Retrieval settings saved');
+}
+window.saveRetrievalSettings = saveRetrievalSettings;
+
+async function testRetrievalConnection() {
+  var result = document.getElementById('retrievalTestResult');
+  if (result) { result.textContent = 'Testing...'; result.style.color = '#8e8e93'; }
+  var cfg = {};
+  var url = document.getElementById('retrievalEmbUrl');
+  var key = document.getElementById('retrievalEmbKey');
+  var model = document.getElementById('retrievalEmbModel');
+  var timeout = document.getElementById('retrievalEmbTimeout');
+  if (url) cfg.baseUrl = url.value.trim();
+  if (key) cfg.apiKey = key.value.trim();
+  if (model) cfg.model = model.value.trim();
+  if (timeout) cfg.timeout = parseInt(timeout.value) || 15;
+  var ok = await testEmbeddingConnection(cfg);
+  if (result) {
+    result.textContent = ok ? '✓ Connected' : '✗ Failed';
+    result.style.color = ok ? '#34c759' : '#ff3b30';
+  }
+}
+window.testRetrievalConnection = testRetrievalConnection;
+
+// ========== 核心记忆操作 ==========
+
+// 将某条记忆升级/降级为核心记忆
+function setCoreMemory(memId, isCore) {
+  var m = (state.memories || []).find(function(x) { return x.id === memId; });
+  if (!m) return false;
+  m.isCore = !!isCore;
+  saveState();
+  return true;
+}
+window.setCoreMemory = setCoreMemory;
+
+// 从一段 LTM 内容中 AI 提取核心记忆，保存为独立条目
+async function extractCoreFromLTM(charId, ltmContent, apiOverride) {
+  if (!charId || !ltmContent) return null;
+  var api = apiOverride || (state.apis.find(function(a) { return a.id === state.activeApiId; }));
+  if (!api || !api.url || !api.model) return null;
+  var ch = state.characters.find(function(c) { return c.id === charId; });
+  if (!ch) return null;
+  var userName = (typeof getCurrentUserMaskName === 'function')
+    ? getCurrentUserMaskName()
+    : ((state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户');
+  var prompt = '你是 ' + ch.name + '。下面是你关于 ' + userName + ' 的一段长期记忆。\n' +
+    '现在，请从中提取出【绝对不可忘记的核心事实】，这将作为你世界观和关系的基石。\n\n' +
+    '【提取规则】\n' +
+    '1. 只提取那些永久有效的事实、承诺、重大秘密或不可动摇的关系设定。\n' +
+    '2. 剔除所有带有情绪起伏的日常事件和无关紧要的细节。\n' +
+    '3. 每条核心记忆控制在 100 字以内，使用第一人称。\n' +
+    '4. 如果这段话中不存在需要永久刻骨铭心的信息，请直接回复："无核心记忆"。\n\n' +
+    '长期记忆内容：\n' + ltmContent;
+  try {
+    var result = await sendChat(api, [
+      { role: 'system', content: prompt },
+      { role: 'user', content: '请提取核心记忆。' }
+    ]);
+    if (!result || result.trim() === '无核心记忆') {
+      console.log('[CoreMemory] extractCoreFromLTM: no core memories found');
+      return null;
+    }
+    // 按行拆分，每行一条核心记忆
+    var lines = result.split('\n').map(function(l) {
+      return l.replace(/^[-·•\d\.\s]+/, '').trim();
+    }).filter(function(l) { return l.length > 0; });
+    var saved = 0;
+    lines.forEach(function(line) {
+      if (line.length > 0 && line.length <= 60) {
+        saveMemoryEntry(charId, 'ltm', '核心记忆: ' + ch.name, line, { isCore: true });
+        saved++;
+      }
+    });
+    console.log('[CoreMemory] extractCoreFromLTM: saved', saved, 'core memories for', ch.name);
+    return saved > 0 ? lines : null;
+  } catch (e) {
+    console.error('[CoreMemory] extractCoreFromLTM error:', e);
+    return null;
+  }
+}
+window.extractCoreFromLTM = extractCoreFromLTM;
+
+function saveMemoryEntry(charId, memType, title, content, extraFields) {
   if (!state.memories) state.memories = [];
   const today = new Date().toISOString().split('T')[0];
-  state.memories.push({
-    id: uid(), title, date: today, content, mood: '', photo: null,
-    charId, memType, autoGenerated: true, timestamp: Date.now()
-  });
+  var entry = {
+    id: uid(), title: title, date: today, content: content, mood: '', photo: null,
+    charId: charId, memType: memType, autoGenerated: true, timestamp: Date.now()
+  };
+  // FTM: auto-set expiresAt to 3 days from now
+  if (memType === 'ftm') {
+    var _ftmTTL = (typeof state.ftmTTLDays === 'number' ? state.ftmTTLDays : 3) * 24 * 60 * 60 * 1000;
+    entry.expiresAt = Date.now() + _ftmTTL;
+  }
+    if (extraFields && typeof extraFields === 'object') {
+    Object.assign(entry, extraFields);
+  }
+  state.memories.push(entry);
   saveState();
+  // Async: compute and cache embedding for LTM entries
+  if (memType === 'ltm' && typeof _embedAndCache === 'function') {
+    _embedAndCache(entry).then(function() {
+      if (entry.embedding) saveState();
+    }).catch(function() {});
+  }
 }
+
+// ========== FTM 过期清理 ==========
+function cleanupExpiredMemories() {
+  if (!Array.isArray(state.memories)) return 0;
+  var before = state.memories.length;
+  var now = Date.now();
+  state.memories = state.memories.filter(function(m) {
+    if (m.memType === 'ftm' && m.expiresAt && m.expiresAt < now) {
+      return false;
+    }
+    return true;
+  });
+  var removed = before - state.memories.length;
+  if (removed > 0) {
+    saveState();
+    console.log('[FTM] cleanupExpiredMemories: removed', removed, 'expired FTM entries');
+  }
+  return removed;
+}
+window.cleanupExpiredMemories = cleanupExpiredMemories;
+
+// ========== 通话专用 FTM 总结 ==========
+async function callEphemeralSummarize(charId, callTranscript, apiOverride) {
+  if (!charId || !callTranscript) return null;
+  var api = apiOverride || (state.apis.find(function(a) { return a.id === state.activeApiId; }));
+  if (!api || !api.url || !api.model) return null;
+  var ch = state.characters.find(function(c) { return c.id === charId; });
+  if (!ch) return null;
+  var userName = (typeof getCurrentUserMaskName === 'function')
+    ? getCurrentUserMaskName()
+    : ((state.userProfile && state.userProfile.name) ? state.userProfile.name : '用户');
+  var charName = ch.name;
+  var prompt = '你是 ' + charName + '。刚才你和 ' + userName + ' 进行了一次通话。\n' +
+    '现在通话结束了，你需要把这段内容记在一个"便利贴"上，作为短期备忘。\n\n' +
+    '【写作规则】\n' +
+    '1. 这是一个"易遗忘"的记忆，不需要记录长篇大论的情感，只需要保留：\n' +
+    '   - 刚才互动中提到的具体事件、待办事项、临时状态\n' +
+    '   - 互动结束时双方的情绪状态。\n' +
+    '2. 语气像写备忘录，第一人称，简短直接，控制在 30-80 字。\n' +
+    '3. 不要加标题，直接输出文本。\n\n' +
+    '互动内容：\n' + callTranscript;
+  try {
+    var summary = await sendChat(api, [
+      { role: 'system', content: prompt },
+      { role: 'user', content: '请记录这段通话备忘。' }
+    ]);
+    if (summary && summary.trim()) {
+      var ttlDays = (typeof state.ftmTTLDays === 'number') ? state.ftmTTLDays : 3;
+      saveMemoryEntry(charId, 'ftm', '通话备忘: ' + charName, summary.trim(), {
+        expiresAt: Date.now() + ttlDays * 24 * 60 * 60 * 1000,
+        callEphemeral: true
+      });
+      console.log('[FTM] callEphemeralSummarize: saved for', charName, '| expires in', ttlDays, 'days');
+      return summary.trim();
+    }
+  } catch (e) {
+    console.error('[FTM] callEphemeralSummarize error:', e);
+  }
+  return null;
+}
+window.callEphemeralSummarize = callEphemeralSummarize;
 
 // ========== 记忆类型选择（适配 .mem-seg-option）==========
 function selectMemType(el, value) {
@@ -228,7 +902,10 @@ function renderMemoryList() {
       <p>${isFiltered ? T('noCharMemories') : T('noMemories')}<br><span style="font-size:12px">${isFiltered ? esc(ch?.name || '') : T('noMemoriesSub')}</span></p>
     </div>`;
   } else {
-    const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
+        // 核心记忆置顶，其余按时间倒序
+    const coreItems = filtered.filter(m => m.isCore);
+    const nonCoreItems = filtered.filter(m => !m.isCore).sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sorted = [...coreItems, ...nonCoreItems];
     h += '<div class="mem-timeline">';
     sorted.forEach(mem => {
       const moodKey = mem.mood ? ('mood' + mem.mood.charAt(0).toUpperCase() + mem.mood.slice(1)) : '';
@@ -243,6 +920,11 @@ function renderMemoryList() {
         h += `<span class="mem-tl-mood">${esc(moodKey ? T(moodKey) : mem.mood)}</span>`;
       }
 
+            // 核心记忆标签（金色星星，线条风格，置于最前）
+      if (mem.isCore) {
+        h += `<span class="mem-type-core" title="核心记忆 - 永久注入">
+          <svg viewBox="0 0 14 14" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align:-1px;margin-right:2px"><polygon points="7,1 8.8,5.2 13.4,5.2 9.8,7.9 11.1,12.3 7,9.5 2.9,12.3 4.2,7.9 0.6,5.2 5.2,5.2"/></svg>核心</span>`;
+      }
       if (mem.memType === 'stm') {
         h += `<span class="mem-type-stm">${T('stmLabel')}</span>`;
       } else if (mem.memType === 'ltm') {
@@ -253,8 +935,16 @@ function renderMemoryList() {
         h += `<span class="mem-type-auto">Auto</span>`;
       }
 
-      if (mem.consolidated) {
+            if (mem.consolidated) {
         h += `<span class="mem-tag" style="text-decoration:line-through;color:#aeaeb2">merged</span>`;
+      }
+      // 升级/降级核心记忆按钮
+      if (!mem.isCore) {
+        h += `<span class="mem-core-btn" onclick="event.stopPropagation();setCoreMemory('${mem.id}',true);renderMemoryList()" title="升级为核心记忆">
+          <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="7,1 8.8,5.2 13.4,5.2 9.8,7.9 11.1,12.3 7,9.5 2.9,12.3 4.2,7.9 0.6,5.2 5.2,5.2"/></svg></span>`;
+      } else {
+        h += `<span class="mem-core-btn mem-core-btn--active" onclick="event.stopPropagation();setCoreMemory('${mem.id}',false);renderMemoryList()" title="取消核心记忆">
+          <svg viewBox="0 0 14 14" width="11" height="11" fill="currentColor" stroke="none"><polygon points="7,1 8.8,5.2 13.4,5.2 9.8,7.9 11.1,12.3 7,9.5 2.9,12.3 4.2,7.9 0.6,5.2 5.2,5.2"/></svg></span>`;
       }
 
       if (memFilterCharId === 'all' && memChar) {

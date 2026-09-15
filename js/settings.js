@@ -74,6 +74,11 @@ function renderSettings() {
 
   if (!state.memories) state.memories = [];
 
+  // ★ 渲染记忆检索设置面板
+  if (typeof renderRetrievalSettings === 'function') {
+    renderRetrievalSettings('retrievalSettingsContainer');
+  }
+
   // ★ NEW: 渲染认证区块（退出登录 + 用户信息）
   if (typeof mizuAuth !== 'undefined' && typeof mizuAuth.renderSettingsSection === 'function') {
     try {

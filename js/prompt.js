@@ -230,6 +230,9 @@ function getPendingTransfers(charId) {
 }
 
 function buildSystemPrompt(ch, wbs, stickers) {
+  // 每次构建 prompt 前清理过期 FTM
+  if (typeof cleanupExpiredMemories === 'function') cleanupExpiredMemories();
+
   let p = '';
 
   const activePrompt = getActiveSystemPrompt();
