@@ -171,7 +171,6 @@ var screenFragments = [
     'screens/theme.html',
     'screens/forum.html',
     'screens/ao3.html',
-    'screens/dice.html',
     'screens/shop.html',
     'screens/mcp.html',
     'screens/wiki.html',

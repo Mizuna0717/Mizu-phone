@@ -36,21 +36,54 @@ function _pmsgResolveFullPersona(npc) {
   return '';
 }
 
-// ★ 手机主人 = 当前角色卡角色（不是 userProfile）
+// ★ 拉「当前角色 ↔ 用户」在 iMessage 里的聊天记录
+function _pmsgPullOwnerChatHistory(ownerCharId, limit) {
+  limit = limit || 20;
+  if (!ownerCharId || !state.chats) return [];
+  var arr = state.chats[ownerCharId];
+  if (!Array.isArray(arr)) return [];
+  var msgs = [];
+  for (var i = 0; i < arr.length; i++) {
+    var m = arr[i];
+    if (!m) continue;
+    var isUser = (m.role === 'user' || m.sender === 'user' || m.isUser === true);
+    var sender = isUser ? 'user' : 'owner';
+    var content = (m.content || '').replace(/<[^>]*>/g, '').trim();
+    if (content) {
+      msgs.push({ sender: sender, content: content, timestamp: m.ts || m.timestamp || 0 });
+    }
+  }
+  msgs.sort(function(a, b){ return a.timestamp - b.timestamp; });
+  return msgs.slice(-limit);
+}
+
+// ★ 手机主人 = 手机当前选中的角色（state.phoneCharId）
 function _pmsgResolveOwnerCharacter() {
   if (!state.characters || !Array.isArray(state.characters) || state.characters.length === 0) {
     return null;
   }
-  // 优先用 currentCharId
-  if (state.currentCharId) {
+  // ① 最优先：手机页面选中的角色
+  var phoneId = state.phoneCharId;
+  if (phoneId) {
     for (var i = 0; i < state.characters.length; i++) {
-      if (state.characters[i].id === state.currentCharId) return state.characters[i];
+      if (state.characters[i].id === phoneId) return state.characters[i];
     }
   }
-  // 只有在「只有一个角色卡」时才 fallback
+  // ② 次优先：state.currentCharId
+  if (state.currentCharId) {
+    for (var j = 0; j < state.characters.length; j++) {
+      if (state.characters[j].id === state.currentCharId) return state.characters[j];
+    }
+  }
+  // ③ 只有一张卡才 fallback
   if (state.characters.length === 1) return state.characters[0];
-  // 多卡且没选中 → 返回 null，让 prompt 里显示 "the character"
   return null;
+}
+
+// ★ 手机主人 ID（用于 messageChats 隔离）
+function _pmsgOwnerCharId() {
+  var c = _pmsgResolveOwnerCharacter();
+  return c ? c.id : '__no_owner__';
 }
 
 // ★ 手机主人完整人设（用于 prompt）
@@ -173,57 +206,60 @@ function _pmsgDetectOwnerLang(ownerChar) {
     if (nickname && nickname !== realName) return nickname + ' (' + realName + ')';
     return realName || 'Unknown';
   }
+function _pmsgEnsureUserChat() {
+  if (!state.messageChats) state.messageChats = [];
 
-    function _pmsgMakeUserDisplayName() {
-    var userName = (typeof getCurrentUserMaskName === 'function') ? getCurrentUserMaskName() : ((state.userProfile && state.userProfile.name) || 'User');
-    return '\u6211 (' + userName + ')';
+  var ownerChar = _pmsgResolveOwnerCharacter();
+  var ownerId   = ownerChar ? ownerChar.id : '__no_owner__';
+  var userRealName = (state.userProfile && state.userProfile.name) || 'User';
+
+  // 找这个角色专属的 userChat
+  var userChat = null;
+  for (var i = 0; i < state.messageChats.length; i++) {
+    var m = state.messageChats[i];
+    if (m && m.isUser && m.ownerCharId === ownerId) { userChat = m; break; }
   }
 
-    function _pmsgEnsureUserChat() {
-    if (!state.messageChats) state.messageChats = [];
+  // ★ 角色对我的备注（存在 userChat 上，由 AI 生成时写入）
+  var ownerCallsUser = (userChat && userChat._ownerCallsUser) || null;
 
-    // ★ 手机主人 = 角色卡角色；没角色时才 fallback 到 userProfile
-    var ownerChar = _pmsgResolveOwnerCharacter();
-    var resolvedUserName   = ownerChar ? (ownerChar.name || 'Character')
-                                       : ((typeof getCurrentUserMaskName === 'function')
-                                           ? getCurrentUserMaskName()
-                                           : ((state.userProfile && state.userProfile.name) || 'User'));
-    var resolvedUserAvatar = ownerChar ? (ownerChar.avatar || null)
-                                       : ((typeof getCurrentUserMaskAvatar === 'function')
-                                           ? getCurrentUserMaskAvatar()
-                                           : ((state.userProfile && state.userProfile.avatar) || null));
-    var displayName = '\u6211 (' + resolvedUserName + ')';
+  // ★★ 显示格式：有备注 → 只显示备注；无备注 → "我"
+  var displayName = ownerCallsUser ? ownerCallsUser : '\u6211';
 
-    var userMessages = _pmsgPullUserMessages();
-    var userChat = null;
-    for (var i = 0; i < state.messageChats.length; i++) {
-      if (state.messageChats[i].roleId === 'user' || state.messageChats[i].isUser) {
-        userChat = state.messageChats[i]; break;
-      }
-    }
-    var lastMsg = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
-    var lastContent = lastMsg
-      ? (lastMsg.content.length > 50 ? lastMsg.content.substring(0, 50) + '...' : lastMsg.content)
-      : '';
-    var lastTime = lastMsg ? lastMsg.timestamp : Date.now();
+  var userMessages = _pmsgPullUserMessages();
+  var lastMsg = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
+  var lastContent = lastMsg
+    ? (lastMsg.content.length > 50 ? lastMsg.content.substring(0, 50) + '...' : lastMsg.content)
+    : '';
+  var lastTime = lastMsg ? lastMsg.timestamp : Date.now();
 
-    if (!userChat) {
-      state.messageChats.push({
-        id: 'msgchat_user_self', roleId: 'user', npcId: 'user_self',
-        npcName: resolvedUserName, displayName: displayName,
-        avatar: resolvedUserAvatar, isUser: true,
-        messages: userMessages, lastMessage: lastContent, lastTime: lastTime
-      });
-    } else {
-      userChat.roleId = 'user'; userChat.isUser = true;
-      userChat.displayName = displayName;
-      userChat.npcName = resolvedUserName;
-      userChat.avatar = resolvedUserAvatar;
-      userChat.messages = userMessages;
-      userChat.lastMessage = lastContent;
-      userChat.lastTime = lastTime;
-    }
+  if (!userChat) {
+    state.messageChats.push({
+      id: 'msgchat_user_self_' + ownerId,
+      roleId: 'user',
+      npcId: 'user_self',
+      ownerCharId: ownerId,
+      npcName: userRealName,
+      displayName: displayName,
+      _ownerCallsUser: ownerCallsUser,
+      avatar: (ownerChar && ownerChar.avatar) || null,
+      isUser: true,
+      messages: userMessages,
+      lastMessage: lastContent,
+      lastTime: lastTime
+    });
+  } else {
+    userChat.roleId = 'user';
+    userChat.isUser = true;
+    userChat.ownerCharId = ownerId;
+    userChat.displayName = displayName;
+    userChat.npcName = userRealName;
+    userChat.avatar = (ownerChar && ownerChar.avatar) || null;
+    userChat.messages = userMessages;
+    userChat.lastMessage = lastContent;
+    userChat.lastTime = lastTime;
   }
+}
 
   function _pmsgPullUserMessages() {
     var allUserMsgs = [];
@@ -248,7 +284,13 @@ function _pmsgDetectOwnerLang(ownerChar) {
   }
 
   function _pmsgBuildListHTML() {
-    if (!state.messageChats || !state.messageChats.length) {
+    var ownerId = _pmsgOwnerCharId();
+    // ★ 只显示属于当前角色手机的聊天
+    var ownerChats = (state.messageChats || []).filter(function(c){
+      return c && c.ownerCharId === ownerId;
+    });
+
+    if (!ownerChats.length) {
       return '<div class="pmsg-empty">' +
         '<svg viewBox="0 0 48 48" width="56" height="56" stroke="rgba(255,255,255,.3)" fill="none" stroke-width="1.2">' +
           '<path d="M8 10h32a2 2 0 012 2v18a2 2 0 01-2 2H22l-8 6v-6H8a2 2 0 01-2-2V12a2 2 0 012-2z"/>' +
@@ -256,7 +298,7 @@ function _pmsgDetectOwnerLang(ownerChar) {
         '<div class="pmsg-empty-title">No conversations yet</div>' +
         '<div class="pmsg-empty-sub">Tap the dice icon to generate chats</div></div>';
     }
-    var sorted = state.messageChats.slice().sort(function(a,b) {
+    var sorted = ownerChats.slice().sort(function(a,b) {
       var aU=a.isUser?1:0, bU=b.isUser?1:0;
       if(aU!==bU) return bU-aU;
       return (b.lastTime||0)-(a.lastTime||0);
@@ -305,15 +347,16 @@ function _pmsgDetectOwnerLang(ownerChar) {
     .filter(function(m){ return m && (m.content||'').toString().trim().length>0; })
     .sort(function(a,b){return (a.timestamp||0)-(b.timestamp||0);});
 
-  // ★ 断言：本会话所有消息 sender 只能是 user / npc 两类
-  var _bad = msgs.filter(function(m){ var s=_pmsgNormSender(m); return s!=='user'&&s!=='npc'; });
+    // ★ 断言：本会话所有消息 sender 只能是 owner / other 两类
+  var _bad = msgs.filter(function(m){ var s=_pmsgNormSender(m); return s!=='owner'&&s!=='other'; });
   if(_bad.length) console.warn('[openMessageChat] 发现异常 sender 消息', _bad);
 
   var prevSender=null, prevTs=0;
   msgs.forEach(function(msg,idx){
     var sender=_pmsgNormSender(msg);
     if(msg.timestamp&&(msg.timestamp-prevTs>1800000||idx===0)) h+='<div class="pmsg-time-label">'+_pmsgFormatFullTime(msg.timestamp)+'</div>';
-    var isSent=(sender==='user'), isGF=(sender!==prevSender);
+    // ★ owner → 右侧（手机主人视角）；other → 左侧
+    var isSent=(sender==='owner'), isGF=(sender!==prevSender);
     var cls='pmsg-msg-row '+(isSent?'pmsg-msg-sent':'pmsg-msg-received'); if(isGF) cls+=' pmsg-group-first';
     h+='<div class="'+cls+'"><div class="pmsg-msg-bubble">'+_pmsgEscHtml(msg.content)+'</div></div>';
     prevSender=sender; prevTs=msg.timestamp||0;
@@ -336,25 +379,66 @@ function _pmsgDetectOwnerLang(ownerChar) {
 
         window.rollMessageChats = async function() {
 
-      // ===== 0. 手机主人 = 当前角色卡角色 =====
+            // ===== 0. 手机主人 = 当前角色卡角色 =====
       var ownerInfo = _pmsgBuildOwnerBlock(_pmsgResolveOwnerCharacter());
       var ownerName  = ownerInfo.name;
       var ownerLang  = ownerInfo.lang;
       var ownerBlock = ownerInfo.block;
+      var ownerCharId = _pmsgOwnerCharId();   // ★ 新增
+      console.log('[rollMessageChats] ownerCharId =', ownerCharId);
+            // ★★★ 清空该角色旧的 messageChats（不参考旧数据，只保留 userChat 骨架）
+      if (state.messageChats && state.messageChats.length > 0) {
+        var _beforeCount = state.messageChats.length;
+        state.messageChats = state.messageChats.filter(function(c){
+          if (c.isUser && c.ownerCharId === ownerCharId) return true;
+          if (c.ownerCharId !== ownerCharId) return true;
+          return false;
+        });
+        console.log('[rollMessageChats] 清空旧数据:', _beforeCount, '→', state.messageChats.length);
+        for (var _ri = 0; _ri < state.messageChats.length; _ri++) {
+          var _rc = state.messageChats[_ri];
+          if (_rc.isUser && _rc.ownerCharId === ownerCharId) {
+            _rc._ownerCallsUser = null;
+            _rc.displayName = '\u6211';
+            break;
+          }
+        }
+      }
+
+      // ★ 拉「角色 ↔ 用户」在 iMessage 里的最近聊天记录
+      var recentHistory = _pmsgPullOwnerChatHistory(ownerCharId, 20);
+      var historyBlock = '';
+      if (recentHistory.length > 0) {
+        historyBlock = '=== RECENT iMESSAGE CHAT BETWEEN OWNER AND USER ===\n' +
+          '(This is the MAIN STORYLINE. The contacts\' messages MUST feel consistent with this context.\n' +
+          ' Do NOT contradict what was said here.)\n';
+        recentHistory.forEach(function(m){
+          historyBlock += '  [' + m.sender + '] ' + m.content + '\n';
+        });
+        historyBlock += '\n';
+      }
+      console.log('[rollMessageChats] 历史聊天条数 =', recentHistory.length);
 
       // ===== 1. 选联络人 =====
       var selectedNpcs = [];
       var useGeneratedContacts = false;
 
-      if (state.npcs && state.npcs.length > 0) {
-        // 有 NPC 池 → 用 NPC 池
+        if (state.npcs && state.npcs.length > 0) {
+        // 有 NPC 池 → 用 NPC 池（6~15 个）
         var pool = state.npcs.slice();
-        var pickCount = Math.min(pool.length, 5 + Math.floor(Math.random()*6));
-        pickCount = Math.max(pickCount, Math.min(pool.length, 5));
+        var pickCount;
+        if (pool.length <= 6) {
+          pickCount = pool.length;
+        } else {
+          var _maxN = Math.min(pool.length, 15);
+          var _minN = Math.min(pool.length, 6);
+          pickCount = _minN + Math.floor(Math.random() * (_maxN - _minN + 1));
+        }
         _shuffle(pool);
         selectedNpcs = pool.slice(0, pickCount);
+        console.log('[rollMessageChats] NPC 池选人:', pickCount, '/', pool.length);
       } else {
-        // 没 NPC 池 → 让 AI 现场生成虚拟人物
+        // 没 NPC 池 → 让 AI 现场生成虚拟人物（6~15 个，按人设决定）
         useGeneratedContacts = true;
       }
 
@@ -377,12 +461,20 @@ function _pmsgDetectOwnerLang(ownerChar) {
       var worldbookBlk = _pmsgBuildWorldbookBlock();
 
       var contactsBlock = '';
-      if (useGeneratedContacts) {
+        if (useGeneratedContacts) {
         contactsBlock =
           '=== CONTACTS ===\n' +
-          'There is NO predefined contact list. You MUST invent 5-8 fictional contacts\n' +
-          'that would realistically exist in the PHONE OWNER\'s world — based on their\n' +
-          'name, culture, background, occupation, and the world setting above.\n' +
+          'There is NO predefined contact list. You MUST invent fictional contacts\n' +
+          'that would realistically exist in the PHONE OWNER\'s world.\n\n' +
+          '★ HOW MANY CONTACTS — read the phone owner\'s personality CAREFULLY and decide:\n' +
+          '   - VERY social / extroverted / outgoing / popular / friendly / 社交达人 / 热情开朗\n' +
+          '       → generate 12-15 contacts\n' +
+          '   - MODERATELY social / balanced / ordinary\n' +
+          '       → generate 9-11 contacts\n' +
+          '   - INTROVERTED / loner / quiet / cold / antisocial / 孤僻冷漠 / 不善社交\n' +
+          '       → generate 6-8 contacts\n' +
+          '   ★ MINIMUM 6, MAXIMUM 15. NEVER outside this range.\n' +
+          '   ★ Reflect their personality through NUMBER of contacts, not just content.\n\n' +
           'Each contact needs: Name, Nickname (optional), Personality, Background, Language.\n\n';
       } else {
         var npcList = selectedNpcs.map(function(npc, idx){
@@ -435,9 +527,11 @@ function _pmsgDetectOwnerLang(ownerChar) {
         '=== PHONE OWNER (whose phone we are viewing) ===\n' +
         ownerBlock + '\n' +
 
-        (worldbookBlk
+         (worldbookBlk
           ? '=== WORLD SETTING (all messages MUST stay consistent with this) ===\n' + worldbookBlk + '\n\n'
           : '') +
+
+        historyBlock +   // ★ 新增
 
         contactsBlock +
 
@@ -458,18 +552,29 @@ function _pmsgDetectOwnerLang(ownerChar) {
         '   Personality / Background / Speaking style. Two different contacts must sound obviously different.\n' +
         '5. ALL content MUST stay consistent with the WORLD SETTING above (no out-of-world references).\n' +
         '6. Messages should alternate naturally between "owner" and "contact".\n' +
+                '6.5 CRITICAL — STORYLINE CONSISTENCY: if a RECENT iMESSAGE CHAT is provided above,\n' +
+        '     every generated contact conversation MUST feel like it happens in the same\n' +
+        '     time/context/situation. Do NOT contradict events, moods, or facts from that chat.\n' +
 
-        // ★★★ 语言 + 翻译规则 ★★★
+                // ★★★ 语言 + 翻译规则 ★★★
         '7. LANGUAGE RULE (HIGHEST PRIORITY):\n' + langRule +
         '   - This language rule applies to BOTH "owner" and "contact" messages.\n' +
         '   - ABSOLUTELY FORBIDDEN to inject brands / apps / places / slang that do not exist\n' +
         '     in the phone owner\'s world. When unsure, OMIT the brand.\n\n' +
 
+        // ★★★ 新增：手机主人怎么称呼 user ★★★
+        '8. ADDITIONAL FIELD "ownerCallsUser":\n' +
+        '   - In the FIRST object of the array, add a field "ownerCallsUser".\n' +
+        '   - It is the contact name the phone owner uses for the user in his/her phone.\n' +
+        '   - MUST match the owner\'s personality & relationship with the user.\n' +
+        '     Examples: "老婆", "蠢货", "社长", "那个女人", "Boss", "Master", "笨蛋".\n' +
+        '   - If no special nickname, use the user\'s real name.\n' +
+        '   - Only the FIRST object needs this field. Others can omit.\n\n' +
+
         'Return ONLY a valid JSON array. One object per contact:\n' +
         (useGeneratedContacts
-          ? '[\n  {\n    "contact": { "name":"...", "nickname":"...", "personality":"...", "background":"...", "language":"ja" },\n    "messages": [ { "sender":"owner", "content":"..." }, { "sender":"contact", "content":"..." } ]\n  }\n]\n'
-          : '[\n  { "npcIndex": 0, "messages": [ { "sender":"owner", "content":"..." }, { "sender":"contact", "content":"..." } ] }\n]\n');
-
+          ? '[\n  {\n    "ownerCallsUser":"...",\n    "contact": { "name":"...", "nickname":"...", "personality":"...", "background":"...", "language":"ja" },\n    "messages": [ { "sender":"owner", "content":"..." }, { "sender":"contact", "content":"..." } ]\n  },\n  { "contact": {...}, "messages": [...] }\n]\n'
+          : '[\n  { "npcIndex": 0, "ownerCallsUser":"...", "messages": [ { "sender":"owner", "content":"..." }, { "sender":"contact", "content":"..." } ] },\n  { "npcIndex": 1, "messages": [...] }\n]\n');
       console.log('[rollMessageChats] owner:', ownerName, '| lang:', ownerLang,
         '| generated:', useGeneratedContacts, '| npcs:', selectedNpcs.length);
 
@@ -493,8 +598,18 @@ function _pmsgDetectOwnerLang(ownerChar) {
         if (!convos || !Array.isArray(convos) || convos.length === 0) {
           showToast('Generation failed'); openPhoneApp('messages'); return;
         }
-        if (!state.messageChats) state.messageChats = [];
+                if (!state.messageChats) state.messageChats = [];
         var now = Date.now();
+
+        // ★ 先扫一遍，找 ownerCallsUser
+        var ownerCallsUser = null;
+        for (var _ci = 0; _ci < convos.length; _ci++) {
+          if (convos[_ci] && convos[_ci].ownerCallsUser) {
+            ownerCallsUser = String(convos[_ci].ownerCallsUser).trim();
+            break;
+          }
+        }
+        console.log('[rollMessageChats] ownerCallsUser =', ownerCallsUser);
 
         // ===== 7. 解析结果 =====
         convos.forEach(function(convo, ci){
@@ -533,17 +648,34 @@ function _pmsgDetectOwnerLang(ownerChar) {
           if (stamped.length === 0) return;
           var lastMsg = stamped[stamped.length - 1];
 
-          var found = false;
+                    var found = false;
           for (var ei = 0; ei < state.messageChats.length; ei++) {
-            if (state.messageChats[ei].npcId === npcId && !state.messageChats[ei].isUser) {
-              state.messageChats[ei] = _pmsgBuildChatObj(npcId, npcName, displayName, stamped, lastMsg);
+            var ec = state.messageChats[ei];
+            if (ec.npcId === npcId && !ec.isUser && ec.ownerCharId === ownerCharId) {
+              var newChat = _pmsgBuildChatObj(npcId, npcName, displayName, stamped, lastMsg);
+              newChat.ownerCharId = ownerCharId;   // ★
+              state.messageChats[ei] = newChat;
               found = true; break;
             }
           }
           if (!found) {
-            state.messageChats.push(_pmsgBuildChatObj(npcId, npcName, displayName, stamped, lastMsg));
+            var newChat2 = _pmsgBuildChatObj(npcId, npcName, displayName, stamped, lastMsg);
+            newChat2.ownerCharId = ownerCharId;    // ★
+            state.messageChats.push(newChat2);
           }
         });
+
+        // ★ 把 ownerCallsUser 写进这个角色的 userChat
+        if (ownerCallsUser) {
+          for (var uk = 0; uk < state.messageChats.length; uk++) {
+            var uc = state.messageChats[uk];
+            if (uc.isUser && uc.ownerCharId === ownerCharId) {
+              uc._ownerCallsUser = ownerCallsUser;
+              uc.displayName = ownerCallsUser;   // 立即更新显示
+              break;
+            }
+          }
+        }
 
         _pmsgEnsureUserChat();
         saveState();
@@ -568,14 +700,13 @@ function _pmsgDetectOwnerLang(ownerChar) {
   function _pmsgFormatTime(ts){if(!ts)return '';var d=new Date(ts);var now=new Date();var diff=now.getTime()-d.getTime();if(diff<60000)return 'now';if(diff<3600000)return Math.floor(diff/60000)+'m';if(diff<86400000)return(''+d.getHours()).padStart(2,'0')+':'+(''+d.getMinutes()).padStart(2,'0');if(diff<604800000)return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];return(d.getMonth()+1)+'/'+d.getDate();}
   function _pmsgFormatFullTime(ts){if(!ts)return '';var d=new Date(ts);var now=new Date();var diff=now.getTime()-d.getTime();var time=(''+d.getHours()).padStart(2,'0')+':'+(''+d.getMinutes()).padStart(2,'0');if(diff<86400000)return 'Today '+time;if(diff<172800000)return 'Yesterday '+time;return(d.getMonth()+1)+'/'+d.getDate()+' '+time;}
   function _pmsgNormSender(m){
-    if(!m) return 'npc';
-    if(m.isUser===true) return 'user';
+    if(!m) return 'other';
     var s = (m.sender!=null ? m.sender : (m.role!=null ? m.role : (m.from!=null ? m.from : '')));
     s = String(s).trim().toLowerCase();
-    // 手机主人（角色本人）
-    if(s==='owner'||s==='user'||s==='me'||s==='self'||s==='u'||s==='我') return 'user';
-    // 联络人
-    return 'npc';
+    // ★ 手机主人（角色本人）发的消息 → 右侧
+    if(s==='owner'||s==='me'||s==='self'||s==='我') return 'owner';
+    // ★ 其他一切（用户发的 / 联系人发的 / 未知）→ 左侧
+    return 'other';
   }
 
   // ==========================================================
