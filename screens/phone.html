@@ -23,7 +23,7 @@
     </div>
 
     <!-- Character Select -->
-    <div id="phoneCharSelect" style="flex:1;overflow-y:auto;background:linear-gradient(180deg,#1a1a1e 0%,#2c2c30 100%);padding:20px 16px">
+        <div id="phoneCharSelect" style="flex:1;min-height:0;overflow-y:auto;background:linear-gradient(180deg,#1a1a1e 0%,#2c2c30 100%);padding:20px 16px">
         <div style="text-align:center;padding:30px 0 28px">
             <div style="width:72px;height:72px;margin:0 auto 16px;background:rgba(255,255,255,.05);border-radius:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)">
                 <svg viewBox="0 0 32 32" style="width:36px;height:36px;stroke:rgba(255,255,255,.25);fill:none;stroke-width:1.2">
@@ -40,7 +40,7 @@
     </div>
 
     <!-- Phone Frame -->
-    <div id="phoneFrameWrap" style="display:none;flex:1;overflow-y:auto">
+        <div id="phoneFrameWrap" style="display:none;flex:1;min-height:0;overflow:hidden">
         <div class="phone-frame" id="phoneFrame">
             <div class="phone-statusbar">
                 <div class="phone-statusbar-left">
@@ -59,7 +59,7 @@
                 <div class="ptd-date" id="phoneDate">Monday, January 1</div>
             </div>
 
-            <div style="text-align:center;padding:0 0 20px">
+                       <div class="phone-owner-wrap" style="text-align:center;padding:0 0 20px">
                 <span style="display:inline-block;padding:4px 14px;background:rgba(255,255,255,.06);border-radius:20px;color:rgba(255,255,255,.4);font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;border:1px solid rgba(255,255,255,.06)" id="phoneOwnerName"></span>
             </div>
 

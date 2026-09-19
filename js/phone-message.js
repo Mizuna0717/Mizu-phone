@@ -216,6 +216,8 @@ function _pmsgResolveFullPersona(npc) {
 } else { h+='<div class="pmsg-info-line">No messages</div>'; }
 
 
+       // ★ FIX: 输入栏必须是 .pmsg-dark 的直接子元素，先关闭 .pmsg-chat-messages
+    h+='</div>';
     h+='<div class="pmsg-chat-input-bar"><div class="pmsg-chat-input-wrap"><input type="text" class="pmsg-chat-input" placeholder="Message" readonly /></div>' +
       '<button class="pmsg-chat-send-btn" disabled><svg viewBox="0 0 20 20" stroke="#fff" fill="none" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 10L16 3.5 12.5 17l-3-5.5z"/><path d="M16 3.5L9.5 11.5"/></svg></button></div>';
     h+='</div>';
