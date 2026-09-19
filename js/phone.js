@@ -304,7 +304,6 @@ var PHONE_APP_RENDERERS = {
   notes: phonePageNotes,
   diary: phonePageDiary,
   books: phonePageBooks,
-  drawing: phonePageDrawing,
   recorder: phonePageRecorder,
   files: phonePageFiles,
   translator: phonePageTranslator,
@@ -312,21 +311,15 @@ var PHONE_APP_RENDERERS = {
   music: phonePageMusic,
   videos: phonePageVideos,
   photos: phonePagePhotos,
-  camera: phonePageCamera,
   games: phonePageGames,
   podcast: phonePagePodcast,
   // Batch 4: Life Tools
   calendar: phonePageCalendar,
   clock: phonePageClock,
-  weather: phonePageWeather,
   maps: phonePageMaps,
-  compass: phonePageCompass,
-  calculator: phonePageCalculator,
   reminders: phonePageReminders,
   // Batch 5: Info & Health
   news: phonePageNews,
-  stocks: phonePageStocks,
-  coding: phonePageCoding,
   health: phonePageHealth,
   fitness: phonePageFitness,
   meditation: phonePageMeditation,
@@ -546,16 +539,6 @@ function phonePageBooks(charName) {
   return h;
 }
 
-// ========== 11. DRAWING ==========
-function phonePageDrawing(charName) {
-  var h = '<div class="papp-draw-toolbar">';
-  ['<path d="M4 16l1.5-5L15 1.5 18.5 5 9 14.5z"/><path d="M12.5 4l3 3"/>','<path d="M3 17h14"/><path d="M5 13l3-10h4l3 10"/><path d="M6.5 10h7"/>','<circle cx="10" cy="10" r="7"/>','<rect x="3" y="3" width="14" height="14" rx="2"/>','<path d="M3 17L10 3l7 14z"/>'].forEach(function(s, i) { h += '<div class="papp-draw-tool' + (i === 0 ? ' papp-draw-tool-active' : '') + '"><svg viewBox="0 0 20 20">' + s + '</svg></div>'; });
-  h += '</div><div class="papp-draw-canvas"><svg viewBox="0 0 300 400" style="width:100%;height:100%;stroke:rgba(255,255,255,.06);fill:none;stroke-width:.5"><path d="M0 80h300M0 160h300M0 240h300M0 320h300"/><path d="M60 0v400M120 0v400M180 0v400M240 0v400"/><path d="M80 120 Q120 80 160 130 T240 110" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/><circle cx="190" cy="200" r="40" stroke="rgba(255,255,255,.1)" stroke-width="1.2"/><path d="M60 280 L120 240 L180 260 L240 230" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/></svg></div>';
-  h += '<div class="papp-draw-palette">';
-  ['rgba(255,255,255,.7)','rgba(255,69,58,.6)','rgba(10,132,255,.6)','rgba(48,209,88,.6)','rgba(255,214,10,.6)','rgba(175,130,255,.6)'].forEach(function(c, i) { h += '<div class="papp-draw-color' + (i === 0 ? ' papp-draw-color-active' : '') + '" style="background:' + c + '"></div>'; });
-  h += '<div class="papp-draw-size-indicator"><div class="papp-draw-size-dot"></div></div></div>';
-  return h;
-}
 
 // ========== 12. RECORDER ==========
 function phonePageRecorder(charName) {
@@ -666,36 +649,6 @@ function phonePagePhotos(charName) {
   return h;
 }
 
-// ========== 18. CAMERA ==========
-function phonePageCamera(charName) {
-  var h = '';
-  h += '<div class="papp-camera-viewfinder">' +
-    '<div class="papp-camera-corners">' +
-      '<div class="papp-camera-corner papp-cc-tl"></div>' +
-      '<div class="papp-camera-corner papp-cc-tr"></div>' +
-      '<div class="papp-camera-corner papp-cc-bl"></div>' +
-      '<div class="papp-camera-corner papp-cc-br"></div>' +
-    '</div>' +
-    '<div class="papp-camera-crosshair"><div class="papp-camera-cross-h"></div><div class="papp-camera-cross-v"></div></div>' +
-    '<div class="papp-camera-grid">' +
-      '<div class="papp-camera-grid-h" style="top:33%"></div>' +
-      '<div class="papp-camera-grid-h" style="top:66%"></div>' +
-      '<div class="papp-camera-grid-v" style="left:33%"></div>' +
-      '<div class="papp-camera-grid-v" style="left:66%"></div>' +
-    '</div>' +
-    '</div>';
-  h += '<div class="papp-camera-modes">';
-  ['TIME-LAPSE','SLO-MO','VIDEO','PHOTO','PORTRAIT','PANO'].forEach(function(m) {
-    h += '<div class="papp-camera-mode' + (m === 'PHOTO' ? ' papp-camera-mode-active' : '') + '">' + m + '</div>';
-  });
-  h += '</div>';
-  h += '<div class="papp-camera-bottom">' +
-    '<div class="papp-camera-preview"></div>' +
-    '<div class="papp-camera-shutter"><div class="papp-camera-shutter-inner"></div></div>' +
-    '<div class="papp-camera-flip"><svg viewBox="0 0 24 24" style="width:24px;height:24px;stroke:rgba(255,255,255,.5);fill:none;stroke-width:1.5;stroke-linecap:round"><path d="M20 8h-6l2-3"/><path d="M4 16h6l-2 3"/><path d="M20 8c0 6-3 10-8 12M4 16c0-6 3-10 8-12"/></svg></div>' +
-    '</div>';
-  return h;
-}
 
 // ========== 19. GAMES ==========
 function phonePageGames(charName) {
@@ -923,92 +876,6 @@ function phonePageClock(charName) {
   return h;
 }
 
-// ========== 23. WEATHER ==========
-function phonePageWeather(charName) {
-  var h = '';
-
-  h += '<div class="papp-weather-current">' +
-    '<div class="papp-weather-city">San Francisco</div>' +
-    '<div class="papp-weather-temp">18</div>' +
-    '<div class="papp-weather-desc">Partly Cloudy</div>' +
-    '<div class="papp-weather-hilo">H:22  L:14</div>' +
-    '</div>';
-
-  h += '<div class="papp-weather-card">' +
-    '<div class="papp-weather-card-title">Hourly Forecast</div>' +
-    '<div class="papp-weather-hourly">';
-
-  var hourlyData = [
-    { t:'Now', temp:'18', icon:'cloud' },
-    { t:'1PM', temp:'19', icon:'cloud' },
-    { t:'2PM', temp:'20', icon:'sun' },
-    { t:'3PM', temp:'21', icon:'sun' },
-    { t:'4PM', temp:'22', icon:'sun' },
-    { t:'5PM', temp:'21', icon:'cloud' },
-    { t:'6PM', temp:'19', icon:'cloud' },
-    { t:'7PM', temp:'18', icon:'moon' },
-    { t:'8PM', temp:'17', icon:'moon' }
-  ];
-
-  var weatherIcons = {
-    sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>',
-    cloud: '<svg viewBox="0 0 24 24"><path d="M6 19a4 4 0 01-.9-7.9A5 5 0 0115 8a4 4 0 012 7.5"/><path d="M8 19h9"/></svg>',
-    moon: '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>',
-    rain: '<svg viewBox="0 0 24 24"><path d="M6 17a4 4 0 01-.9-7.9A5 5 0 0115 6a4 4 0 012 7.5"/><path d="M9 19v2M12 19v2M15 19v2"/></svg>'
-  };
-
-  hourlyData.forEach(function(hr) {
-    h += '<div class="papp-weather-hour">' +
-      '<div class="papp-weather-hour-t">' + hr.t + '</div>' +
-      '<div class="papp-weather-hour-icon">' + (weatherIcons[hr.icon] || weatherIcons.cloud) + '</div>' +
-      '<div class="papp-weather-hour-temp">' + hr.temp + '</div>' +
-      '</div>';
-  });
-  h += '</div></div>';
-
-  h += '<div class="papp-weather-card">' +
-    '<div class="papp-weather-card-title">7-Day Forecast</div>';
-
-  var dailyData = [
-    { day:'Today',     icon:'cloud', lo:'14', hi:'22' },
-    { day:'Tue',       icon:'sun',   lo:'15', hi:'24' },
-    { day:'Wed',       icon:'sun',   lo:'16', hi:'25' },
-    { day:'Thu',       icon:'rain',  lo:'13', hi:'19' },
-    { day:'Fri',       icon:'rain',  lo:'12', hi:'18' },
-    { day:'Sat',       icon:'cloud', lo:'14', hi:'21' },
-    { day:'Sun',       icon:'sun',   lo:'15', hi:'23' }
-  ];
-
-  dailyData.forEach(function(d) {
-    var loP = Math.max(0, Math.min(100, ((parseInt(d.lo) - 10) / 18) * 100));
-    var hiP = Math.max(0, Math.min(100, ((parseInt(d.hi) - 10) / 18) * 100));
-    h += '<div class="papp-weather-daily">' +
-      '<div class="papp-weather-daily-day">' + d.day + '</div>' +
-      '<div class="papp-weather-daily-icon">' + (weatherIcons[d.icon] || weatherIcons.cloud) + '</div>' +
-      '<div class="papp-weather-daily-lo">' + d.lo + '</div>' +
-      '<div class="papp-weather-daily-bar"><div class="papp-weather-daily-bar-track"><div class="papp-weather-daily-bar-fill" style="left:' + loP + '%;right:' + (100 - hiP) + '%"></div></div></div>' +
-      '<div class="papp-weather-daily-hi">' + d.hi + '</div>' +
-      '</div>';
-  });
-
-  h += '</div>';
-
-  h += '<div class="papp-weather-card"><div class="papp-weather-card-title">Details</div>' +
-    '<div class="papp-weather-details">';
-  [
-    { label:'Humidity',    val:'62%' },
-    { label:'Wind',        val:'12 km/h' },
-    { label:'Visibility',  val:'16 km' },
-    { label:'Pressure',    val:'1015 hPa' },
-    { label:'UV Index',    val:'5 Moderate' },
-    { label:'Sunrise',     val:'06:42' }
-  ].forEach(function(d) {
-    h += '<div class="papp-weather-detail-item"><div class="papp-weather-detail-label">' + d.label + '</div><div class="papp-weather-detail-val">' + d.val + '</div></div>';
-  });
-  h += '</div></div>';
-
-  return h;
-}
 
 // ========== 24. MAPS ==========
 function phonePageMaps(charName) {
