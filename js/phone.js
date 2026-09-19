@@ -8,12 +8,14 @@ var APP_LIBRARY = {
     svg:'<rect x="6" y="3" width="14" height="20" rx="2"/><path d="M9 8h8M9 12h8M9 16h5"/>' },
   photos: { name:'Photos', desc:'Photo gallery and memories', css:'pi-photos',
     svg:'<rect x="3" y="5" width="20" height="16" rx="2"/><path d="M3 17l5-5 3 3 4-4 5 5"/><circle cx="18" cy="9" r="1.5"/>' },
-  
+  camera: { name:'Camera', desc:'Take photos and videos', css:'pi-camera',
+    svg:'<path d="M3 9a1 1 0 011-1h3l2-3h8l2 3h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9z"/><circle cx="13" cy="14" r="3.5"/>' },
   calendar: { name:'Calendar', desc:'Schedule, events and dates', css:'pi-calendar',
     svg:'<rect x="4" y="5" width="18" height="17" rx="2"/><path d="M4 10h18M9 3v4M17 3v4"/>' },
   clock: { name:'Clock', desc:'Clock, timers and alarms', css:'pi-clock',
     svg:'<circle cx="13" cy="13" r="9"/><path d="M13 7v6l4 3"/>' },
-  
+  weather: { name:'Weather', desc:'Weather forecast and conditions', css:'pi-weather',
+    svg:'<circle cx="13" cy="13" r="4"/><path d="M13 4v3M13 19v3M4 13h3M19 13h3M6.8 6.8l2.1 2.1M17.1 17.1l2.1 2.1M6.8 19.2l2.1-2.1M17.1 8.9l2.1-2.1"/>' },
   maps: { name:'Maps', desc:'Maps, navigation and directions', css:'pi-maps',
     svg:'<path d="M13 3C9 3 6 6 6 9.7c0 5.4 7 13.3 7 13.3s7-7.9 7-13.3C20 6 17 3 13 3z"/><circle cx="13" cy="10" r="2.5"/>' },
   music: { name:'Music', desc:'Music player and playlists', css:'pi-music',
@@ -30,7 +32,8 @@ var APP_LIBRARY = {
     svg:'<circle cx="13" cy="9" r="4"/><path d="M5 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/>' },
   settings: { name:'Settings', desc:'System settings and preferences', css:'pi-settings',
     svg:'<circle cx="11" cy="7" r="2"/><circle cx="15" cy="13" r="2"/><circle cx="9" cy="19" r="2"/><path d="M4 7h5M13 7h9M4 13h9M17 13h5M4 19h3M11 19h11"/>' },
-  
+  calculator: { name:'Calculator', desc:'Math and calculations', css:'pi-wallet',
+    svg:'<rect x="5" y="3" width="16" height="20" rx="2"/><rect x="8" y="6" width="10" height="4" rx="1"/><path d="M8 14h3M15 14h3M8 18h3M15 18h3"/>' },
   files: { name:'Files', desc:'File manager and documents', css:'pi-files',
     svg:'<path d="M4 7h7l2 2h9v12a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z"/>' },
   recorder: { name:'Voice Memo', desc:'Audio and voice recording', css:'pi-recorder',
@@ -59,16 +62,20 @@ var APP_LIBRARY = {
     svg:'<rect x="5" y="9" width="16" height="12" rx="2"/><path d="M9 9V6a1 1 0 011-1h6a1 1 0 011 1v3M5 14h16"/>' },
   games: { name:'Games', desc:'Games and entertainment', css:'pi-music',
     svg:'<rect x="3" y="9" width="20" height="10" rx="5"/><circle cx="8" cy="14" r="1.5"/><path d="M16 12v4M14 14h4"/>' },
-  
-  
-  
+  drawing: { name:'Drawing', desc:'Digital art, sketching and design', css:'pi-photos',
+    svg:'<path d="M4 21l2-6L18 3l3 3L9 18z"/><path d="M15 6l3 3"/>' },
+  coding: { name:'Code', desc:'Programming, development and terminal', css:'pi-files',
+    svg:'<path d="M8 7l-5 6 5 6M18 7l5 6-5 6"/><path d="M14 4l-3 18"/>' },
+  stocks: { name:'Stocks', desc:'Stock market, investments and finance', css:'pi-wallet',
+    svg:'<path d="M4 18l4-5 4 3 5-8 4 4"/><path d="M4 22h18"/>' },
   podcast: { name:'Podcast', desc:'Podcast listening and audio shows', css:'pi-recorder',
     svg:'<circle cx="13" cy="13" r="3"/><path d="M7 13a6 6 0 0112 0M4 13a9 9 0 0118 0M13 16v5M10 21h6"/>' },
   translator: { name:'Translator', desc:'Language translation and dictionary', css:'pi-browser',
     svg:'<path d="M4 5h10M9 3v2M6 9c1.5 3 3.5 5 4.5 6M13 9c-1.5 3-3.5 5-4.5 6"/><path d="M15 14l3 7 3-7M16 19h4"/>' },
   reminders: { name:'Reminders', desc:'To-do lists, tasks and checklists', css:'pi-calendar',
     svg:'<path d="M4 7h3v3H4zM4 13h3v3H4zM4 19h3v3H4z"/><path d="M10 8.5h12M10 14.5h12M10 20.5h8"/>' },
-  
+  compass: { name:'Compass', desc:'Direction finding and orientation', css:'pi-maps',
+    svg:'<circle cx="13" cy="13" r="9"/><path d="M16.5 9.5l-2 5-5 2 2-5z"/>' },
   check_phone: { name:'Check Phone', desc:'View phone access log', css:'pi-check',
     svg:'<path d="M3 13s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="13" cy="13" r="3"/>' }
 };
@@ -311,22 +318,29 @@ var PHONE_APP_RENDERERS = {
   notes: phonePageNotes,
   diary: phonePageDiary,
   books: phonePageBooks,
+  drawing: phonePageDrawing,
   recorder: phonePageRecorder,
   files: phonePageFiles,
   translator: phonePageTranslator,
-    // Batch 3: Media & Entertainment
+  // Batch 3: Media & Entertainment
   music: phonePageMusic,
   videos: phonePageVideos,
   photos: phonePagePhotos,
+  camera: phonePageCamera,
   games: phonePageGames,
   podcast: phonePagePodcast,
-    // Batch 4: Life Tools
+  // Batch 4: Life Tools
   calendar: phonePageCalendar,
   clock: phonePageClock,
+  weather: phonePageWeather,
   maps: phonePageMaps,
+  compass: phonePageCompass,
+  calculator: phonePageCalculator,
   reminders: phonePageReminders,
-    // Batch 5: Info & Health
+  // Batch 5: Info & Health
   news: phonePageNews,
+  stocks: phonePageStocks,
+  coding: phonePageCoding,
   health: phonePageHealth,
   fitness: phonePageFitness,
   meditation: phonePageMeditation,
@@ -546,6 +560,17 @@ function phonePageBooks(charName) {
   return h;
 }
 
+// ========== 11. DRAWING ==========
+function phonePageDrawing(charName) {
+  var h = '<div class="papp-draw-toolbar">';
+  ['<path d="M4 16l1.5-5L15 1.5 18.5 5 9 14.5z"/><path d="M12.5 4l3 3"/>','<path d="M3 17h14"/><path d="M5 13l3-10h4l3 10"/><path d="M6.5 10h7"/>','<circle cx="10" cy="10" r="7"/>','<rect x="3" y="3" width="14" height="14" rx="2"/>','<path d="M3 17L10 3l7 14z"/>'].forEach(function(s, i) { h += '<div class="papp-draw-tool' + (i === 0 ? ' papp-draw-tool-active' : '') + '"><svg viewBox="0 0 20 20">' + s + '</svg></div>'; });
+  h += '</div><div class="papp-draw-canvas"><svg viewBox="0 0 300 400" style="width:100%;height:100%;stroke:rgba(255,255,255,.06);fill:none;stroke-width:.5"><path d="M0 80h300M0 160h300M0 240h300M0 320h300"/><path d="M60 0v400M120 0v400M180 0v400M240 0v400"/><path d="M80 120 Q120 80 160 130 T240 110" stroke="rgba(255,255,255,.12)" stroke-width="1.5"/><circle cx="190" cy="200" r="40" stroke="rgba(255,255,255,.1)" stroke-width="1.2"/><path d="M60 280 L120 240 L180 260 L240 230" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/></svg></div>';
+  h += '<div class="papp-draw-palette">';
+  ['rgba(255,255,255,.7)','rgba(255,69,58,.6)','rgba(10,132,255,.6)','rgba(48,209,88,.6)','rgba(255,214,10,.6)','rgba(175,130,255,.6)'].forEach(function(c, i) { h += '<div class="papp-draw-color' + (i === 0 ? ' papp-draw-color-active' : '') + '" style="background:' + c + '"></div>'; });
+  h += '<div class="papp-draw-size-indicator"><div class="papp-draw-size-dot"></div></div></div>';
+  return h;
+}
+
 // ========== 12. RECORDER ==========
 function phonePageRecorder(charName) {
   var svgW = '<svg viewBox="0 0 40 20" style="width:40px;height:20px;flex-shrink:0"><path d="M2 10h3M7 6v8M11 4v12M15 7v6M19 3v14M23 6v8M27 8v4M31 5v10M35 7v6M38 9v2" stroke="rgba(255,255,255,.15)" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg>';
@@ -655,6 +680,36 @@ function phonePagePhotos(charName) {
   return h;
 }
 
+// ========== 18. CAMERA ==========
+function phonePageCamera(charName) {
+  var h = '';
+  h += '<div class="papp-camera-viewfinder">' +
+    '<div class="papp-camera-corners">' +
+      '<div class="papp-camera-corner papp-cc-tl"></div>' +
+      '<div class="papp-camera-corner papp-cc-tr"></div>' +
+      '<div class="papp-camera-corner papp-cc-bl"></div>' +
+      '<div class="papp-camera-corner papp-cc-br"></div>' +
+    '</div>' +
+    '<div class="papp-camera-crosshair"><div class="papp-camera-cross-h"></div><div class="papp-camera-cross-v"></div></div>' +
+    '<div class="papp-camera-grid">' +
+      '<div class="papp-camera-grid-h" style="top:33%"></div>' +
+      '<div class="papp-camera-grid-h" style="top:66%"></div>' +
+      '<div class="papp-camera-grid-v" style="left:33%"></div>' +
+      '<div class="papp-camera-grid-v" style="left:66%"></div>' +
+    '</div>' +
+    '</div>';
+  h += '<div class="papp-camera-modes">';
+  ['TIME-LAPSE','SLO-MO','VIDEO','PHOTO','PORTRAIT','PANO'].forEach(function(m) {
+    h += '<div class="papp-camera-mode' + (m === 'PHOTO' ? ' papp-camera-mode-active' : '') + '">' + m + '</div>';
+  });
+  h += '</div>';
+  h += '<div class="papp-camera-bottom">' +
+    '<div class="papp-camera-preview"></div>' +
+    '<div class="papp-camera-shutter"><div class="papp-camera-shutter-inner"></div></div>' +
+    '<div class="papp-camera-flip"><svg viewBox="0 0 24 24" style="width:24px;height:24px;stroke:rgba(255,255,255,.5);fill:none;stroke-width:1.5;stroke-linecap:round"><path d="M20 8h-6l2-3"/><path d="M4 16h6l-2 3"/><path d="M20 8c0 6-3 10-8 12M4 16c0-6 3-10 8-12"/></svg></div>' +
+    '</div>';
+  return h;
+}
 
 // ========== 19. GAMES ==========
 function phonePageGames(charName) {
@@ -882,6 +937,92 @@ function phonePageClock(charName) {
   return h;
 }
 
+// ========== 23. WEATHER ==========
+function phonePageWeather(charName) {
+  var h = '';
+
+  h += '<div class="papp-weather-current">' +
+    '<div class="papp-weather-city">San Francisco</div>' +
+    '<div class="papp-weather-temp">18</div>' +
+    '<div class="papp-weather-desc">Partly Cloudy</div>' +
+    '<div class="papp-weather-hilo">H:22  L:14</div>' +
+    '</div>';
+
+  h += '<div class="papp-weather-card">' +
+    '<div class="papp-weather-card-title">Hourly Forecast</div>' +
+    '<div class="papp-weather-hourly">';
+
+  var hourlyData = [
+    { t:'Now', temp:'18', icon:'cloud' },
+    { t:'1PM', temp:'19', icon:'cloud' },
+    { t:'2PM', temp:'20', icon:'sun' },
+    { t:'3PM', temp:'21', icon:'sun' },
+    { t:'4PM', temp:'22', icon:'sun' },
+    { t:'5PM', temp:'21', icon:'cloud' },
+    { t:'6PM', temp:'19', icon:'cloud' },
+    { t:'7PM', temp:'18', icon:'moon' },
+    { t:'8PM', temp:'17', icon:'moon' }
+  ];
+
+  var weatherIcons = {
+    sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>',
+    cloud: '<svg viewBox="0 0 24 24"><path d="M6 19a4 4 0 01-.9-7.9A5 5 0 0115 8a4 4 0 012 7.5"/><path d="M8 19h9"/></svg>',
+    moon: '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>',
+    rain: '<svg viewBox="0 0 24 24"><path d="M6 17a4 4 0 01-.9-7.9A5 5 0 0115 6a4 4 0 012 7.5"/><path d="M9 19v2M12 19v2M15 19v2"/></svg>'
+  };
+
+  hourlyData.forEach(function(hr) {
+    h += '<div class="papp-weather-hour">' +
+      '<div class="papp-weather-hour-t">' + hr.t + '</div>' +
+      '<div class="papp-weather-hour-icon">' + (weatherIcons[hr.icon] || weatherIcons.cloud) + '</div>' +
+      '<div class="papp-weather-hour-temp">' + hr.temp + '</div>' +
+      '</div>';
+  });
+  h += '</div></div>';
+
+  h += '<div class="papp-weather-card">' +
+    '<div class="papp-weather-card-title">7-Day Forecast</div>';
+
+  var dailyData = [
+    { day:'Today',     icon:'cloud', lo:'14', hi:'22' },
+    { day:'Tue',       icon:'sun',   lo:'15', hi:'24' },
+    { day:'Wed',       icon:'sun',   lo:'16', hi:'25' },
+    { day:'Thu',       icon:'rain',  lo:'13', hi:'19' },
+    { day:'Fri',       icon:'rain',  lo:'12', hi:'18' },
+    { day:'Sat',       icon:'cloud', lo:'14', hi:'21' },
+    { day:'Sun',       icon:'sun',   lo:'15', hi:'23' }
+  ];
+
+  dailyData.forEach(function(d) {
+    var loP = Math.max(0, Math.min(100, ((parseInt(d.lo) - 10) / 18) * 100));
+    var hiP = Math.max(0, Math.min(100, ((parseInt(d.hi) - 10) / 18) * 100));
+    h += '<div class="papp-weather-daily">' +
+      '<div class="papp-weather-daily-day">' + d.day + '</div>' +
+      '<div class="papp-weather-daily-icon">' + (weatherIcons[d.icon] || weatherIcons.cloud) + '</div>' +
+      '<div class="papp-weather-daily-lo">' + d.lo + '</div>' +
+      '<div class="papp-weather-daily-bar"><div class="papp-weather-daily-bar-track"><div class="papp-weather-daily-bar-fill" style="left:' + loP + '%;right:' + (100 - hiP) + '%"></div></div></div>' +
+      '<div class="papp-weather-daily-hi">' + d.hi + '</div>' +
+      '</div>';
+  });
+
+  h += '</div>';
+
+  h += '<div class="papp-weather-card"><div class="papp-weather-card-title">Details</div>' +
+    '<div class="papp-weather-details">';
+  [
+    { label:'Humidity',    val:'62%' },
+    { label:'Wind',        val:'12 km/h' },
+    { label:'Visibility',  val:'16 km' },
+    { label:'Pressure',    val:'1015 hPa' },
+    { label:'UV Index',    val:'5 Moderate' },
+    { label:'Sunrise',     val:'06:42' }
+  ].forEach(function(d) {
+    h += '<div class="papp-weather-detail-item"><div class="papp-weather-detail-label">' + d.label + '</div><div class="papp-weather-detail-val">' + d.val + '</div></div>';
+  });
+  h += '</div></div>';
+
+  return h;
+}
 
 // ========== 24. MAPS ==========
 function phonePageMaps(charName) {
@@ -944,7 +1085,116 @@ function phonePageMaps(charName) {
   return h;
 }
 
+// ========== 25. COMPASS ==========
+function phonePageCompass(charName) {
+  var h = '';
 
+  h += '<div class="papp-compass-wrap">' +
+    '<div class="papp-compass-ring">' +
+      '<svg viewBox="0 0 260 260">' +
+        '<circle cx="130" cy="130" r="120" stroke="rgba(255,255,255,.06)" fill="none" stroke-width="1"/>' +
+        '<circle cx="130" cy="130" r="100" stroke="rgba(255,255,255,.04)" fill="none" stroke-width="0.5"/>';
+
+  for (var i = 0; i < 360; i += 5) {
+    var rad = i * Math.PI / 180;
+    var isMajor = (i % 30 === 0);
+    var r1 = isMajor ? 108 : 112;
+    var r2 = 118;
+    var sx = 130 + r1 * Math.sin(rad);
+    var sy = 130 - r1 * Math.cos(rad);
+    var ex = 130 + r2 * Math.sin(rad);
+    var ey = 130 - r2 * Math.cos(rad);
+    var sw = isMajor ? '1.5' : '0.8';
+    var op = isMajor ? '.3' : '.1';
+    h += '<line x1="' + sx.toFixed(1) + '" y1="' + sy.toFixed(1) + '" x2="' + ex.toFixed(1) + '" y2="' + ey.toFixed(1) + '" stroke="rgba(255,255,255,' + op + ')" stroke-width="' + sw + '"/>';
+  }
+
+  var cardinals = [
+    { label:'N', angle:0, color:'rgba(255,69,58,.7)' },
+    { label:'E', angle:90, color:'rgba(255,255,255,.35)' },
+    { label:'S', angle:180, color:'rgba(255,255,255,.35)' },
+    { label:'W', angle:270, color:'rgba(255,255,255,.35)' }
+  ];
+  cardinals.forEach(function(c) {
+    var crad = c.angle * Math.PI / 180;
+    var cx = 130 + 92 * Math.sin(crad);
+    var cy = 130 - 92 * Math.cos(crad);
+    h += '<text x="' + cx.toFixed(1) + '" y="' + (cy + 4).toFixed(1) + '" text-anchor="middle" fill="' + c.color + '" font-size="14" font-weight="600">' + c.label + '</text>';
+  });
+
+  h += '<g transform="translate(130,130)">' +
+    '<polygon points="0,-70 -7,0 0,-10 7,0" fill="rgba(255,69,58,.5)" stroke="rgba(255,69,58,.3)" stroke-width=".5"/>' +
+    '<polygon points="0,70 -7,0 0,10 7,0" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.08)" stroke-width=".5"/>' +
+    '<circle cx="0" cy="0" r="5" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.1)" stroke-width="1"/>' +
+    '</g>';
+
+  h += '</svg></div>';
+
+  h += '<div class="papp-compass-readout">' +
+    '<div class="papp-compass-degree">0</div>' +
+    '<div class="papp-compass-dir">North</div>' +
+    '</div>';
+
+  h += '</div>';
+
+  h += '<div class="papp-compass-coords">' +
+    '<div class="papp-compass-coord-row">' +
+      '<div class="papp-compass-coord-item"><div class="papp-compass-coord-label">Latitude</div><div class="papp-compass-coord-val">37.7749</div></div>' +
+      '<div class="papp-compass-coord-divider"></div>' +
+      '<div class="papp-compass-coord-item"><div class="papp-compass-coord-label">Longitude</div><div class="papp-compass-coord-val">-122.4194</div></div>' +
+    '</div>' +
+    '<div class="papp-compass-coord-row" style="margin-top:8px">' +
+      '<div class="papp-compass-coord-item"><div class="papp-compass-coord-label">Elevation</div><div class="papp-compass-coord-val">16 m</div></div>' +
+      '<div class="papp-compass-coord-divider"></div>' +
+      '<div class="papp-compass-coord-item"><div class="papp-compass-coord-label">Accuracy</div><div class="papp-compass-coord-val">+/- 5 m</div></div>' +
+    '</div>' +
+    '</div>';
+
+  return h;
+}
+
+// ========== 26. CALCULATOR ==========
+function phonePageCalculator(charName) {
+  var h = '';
+
+  h += '<div class="papp-calc-display">' +
+    '<div class="papp-calc-expr">384 + 216</div>' +
+    '<div class="papp-calc-result">600</div>' +
+    '</div>';
+
+  h += '<div class="papp-calc-history">';
+  [
+    { expr:'1024 / 4', res:'256' },
+    { expr:'99 x 12',  res:'1,188' },
+    { expr:'500 - 187', res:'313' }
+  ].forEach(function(item) {
+    h += '<div class="papp-calc-history-item"><div class="papp-calc-hist-expr">' + item.expr + '</div><div class="papp-calc-hist-res">= ' + item.res + '</div></div>';
+  });
+  h += '</div>';
+
+  h += '<div class="papp-calc-grid">';
+
+  var buttons = [
+    { label:'AC', type:'func' }, { label:'+/-', type:'func' }, { label:'%', type:'func' }, { label:'/', type:'op' },
+    { label:'7',  type:'num' }, { label:'8',  type:'num' }, { label:'9',  type:'num' }, { label:'x', type:'op' },
+    { label:'4',  type:'num' }, { label:'5',  type:'num' }, { label:'6',  type:'num' }, { label:'-', type:'op' },
+    { label:'1',  type:'num' }, { label:'2',  type:'num' }, { label:'3',  type:'num' }, { label:'+', type:'op' },
+    { label:'0',  type:'num zero' }, { label:'.',  type:'num' }, { label:'=', type:'op eq' }
+  ];
+
+  buttons.forEach(function(b) {
+    var cls = 'papp-calc-btn';
+    if (b.type === 'func') cls += ' papp-calc-func';
+    else if (b.type === 'op') cls += ' papp-calc-op';
+    else if (b.type === 'op eq') cls += ' papp-calc-op papp-calc-eq';
+    else if (b.type === 'num zero') cls += ' papp-calc-zero';
+    h += '<div class="' + cls + '">' + b.label + '</div>';
+  });
+
+  h += '</div>';
+
+  return h;
+}
 
 // ========== 27. REMINDERS ==========
 function phonePageReminders(charName) {
@@ -1068,6 +1318,119 @@ function phonePageNews(charName) {
   return h;
 }
 
+// ========== 29. STOCKS ==========
+function phonePageStocks(charName) {
+  var h = '';
+
+  // Portfolio summary
+  h += '<div class="papp-stocks-summary">' +
+    '<div class="papp-stocks-portfolio-label">Portfolio Value</div>' +
+    '<div class="papp-stocks-portfolio-val">$24,831.56</div>' +
+    '<div class="papp-stocks-portfolio-change papp-stocks-up">+$342.18 (+1.40%) Today</div>' +
+    '</div>';
+
+  // Mini chart
+  h += '<div class="papp-stocks-chart"><svg viewBox="0 0 320 80" style="width:100%;height:80px">' +
+    '<path d="M0 60 L20 55 L40 58 L60 50 L80 45 L100 48 L120 40 L140 35 L160 38 L180 30 L200 28 L220 32 L240 25 L260 22 L280 20 L300 18 L320 15" stroke="rgba(48,209,88,.5)" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="M0 60 L20 55 L40 58 L60 50 L80 45 L100 48 L120 40 L140 35 L160 38 L180 30 L200 28 L220 32 L240 25 L260 22 L280 20 L300 18 L320 15 L320 80 L0 80 Z" fill="rgba(48,209,88,.06)"/>' +
+    '</svg></div>';
+
+  // Time range
+  h += '<div class="papp-stocks-range">';
+  ['1D','1W','1M','3M','6M','1Y','ALL'].forEach(function(r, i) {
+    h += '<div class="papp-stocks-range-btn' + (i === 0 ? ' papp-stocks-range-active' : '') + '">' + r + '</div>';
+  });
+  h += '</div>';
+
+  // Watchlist
+  h += '<div class="papp-section" style="padding-top:8px">Watchlist</div>';
+
+  var stocks = [
+    { sym:'AAPL', name:'Apple Inc.', price:'178.52', change:'+2.34', pct:'+1.33', up:true },
+    { sym:'GOOGL', name:'Alphabet Inc.', price:'141.80', change:'+1.12', pct:'+0.80', up:true },
+    { sym:'MSFT', name:'Microsoft Corp.', price:'378.91', change:'-3.20', pct:'-0.84', up:false },
+    { sym:'TSLA', name:'Tesla Inc.', price:'242.68', change:'+8.45', pct:'+3.61', up:true },
+    { sym:'AMZN', name:'Amazon.com', price:'178.25', change:'-1.56', pct:'-0.87', up:false },
+    { sym:'NVDA', name:'NVIDIA Corp.', price:'875.32', change:'+12.80', pct:'+1.48', up:true },
+    { sym:'META', name:'Meta Platforms', price:'504.18', change:'+4.22', pct:'+0.84', up:true },
+    { sym:'NFLX', name:'Netflix Inc.', price:'628.45', change:'-2.10', pct:'-0.33', up:false }
+  ];
+
+  stocks.forEach(function(s) {
+    h += '<div class="papp-item">' +
+      '<div class="papp-item-content">' +
+        '<div class="papp-item-top"><span class="papp-item-name">' + esc(s.sym) + '</span><span class="papp-stocks-price">$' + s.price + '</span></div>' +
+        '<div class="papp-item-top" style="margin-top:2px"><span class="papp-item-sub" style="margin-top:0">' + esc(s.name) + '</span><span class="papp-stocks-change' + (s.up ? ' papp-stocks-up' : ' papp-stocks-down') + '">' + s.change + ' (' + s.pct + '%)</span></div>' +
+      '</div>' +
+      '</div>';
+  });
+
+  return h;
+}
+
+// ========== 30. CODING ==========
+function phonePageCoding(charName) {
+  var h = '';
+
+  // Editor area
+  h += '<div class="papp-code-editor">' +
+    '<div class="papp-code-tabs">' +
+      '<div class="papp-code-tab papp-code-tab-active">main.js</div>' +
+      '<div class="papp-code-tab">utils.js</div>' +
+      '<div class="papp-code-tab">index.html</div>' +
+    '</div>' +
+    '<div class="papp-code-content">';
+
+  var lines = [
+    { num:1,  code:'<span class="papp-ck">const</span> <span class="papp-cv">app</span> = <span class="papp-cf">require</span>(<span class="papp-cs">\'express\'</span>);' },
+    { num:2,  code:'<span class="papp-ck">const</span> <span class="papp-cv">port</span> = <span class="papp-cn">3000</span>;' },
+    { num:3,  code:'' },
+    { num:4,  code:'<span class="papp-cv">app</span>.<span class="papp-cf">get</span>(<span class="papp-cs">\'/\'</span>, (<span class="papp-cv">req</span>, <span class="papp-cv">res</span>) => {' },
+    { num:5,  code:'  <span class="papp-cv">res</span>.<span class="papp-cf">json</span>({' },
+    { num:6,  code:'    <span class="papp-cv">status</span>: <span class="papp-cs">\'ok\'</span>,' },
+    { num:7,  code:'    <span class="papp-cv">time</span>: <span class="papp-ck">new</span> <span class="papp-cf">Date</span>()' },
+    { num:8,  code:'  });' },
+    { num:9,  code:'});' },
+    { num:10, code:'' },
+    { num:11, code:'<span class="papp-cv">app</span>.<span class="papp-cf">listen</span>(<span class="papp-cv">port</span>, () => {' },
+    { num:12, code:'  <span class="papp-cv">console</span>.<span class="papp-cf">log</span>(<span class="papp-cs">`Running on port ${<span class="papp-cv">port</span>}`</span>);' },
+    { num:13, code:'});' }
+  ];
+
+  lines.forEach(function(l) {
+    h += '<div class="papp-code-line"><span class="papp-code-num">' + l.num + '</span><span class="papp-code-text">' + (l.code || '&nbsp;') + '</span></div>';
+  });
+
+  h += '</div></div>';
+
+  // Terminal output
+  h += '<div class="papp-code-terminal">' +
+    '<div class="papp-code-term-header"><span class="papp-code-term-dot"></span><span class="papp-code-term-dot"></span><span class="papp-code-term-dot"></span><span class="papp-code-term-title">Terminal</span></div>' +
+    '<div class="papp-code-term-body">' +
+      '<div class="papp-code-term-line"><span class="papp-code-term-prompt">$</span> node main.js</div>' +
+      '<div class="papp-code-term-line papp-code-term-output">Running on port 3000</div>' +
+      '<div class="papp-code-term-line"><span class="papp-code-term-prompt">$</span> npm test</div>' +
+      '<div class="papp-code-term-line papp-code-term-success">All 12 tests passed</div>' +
+      '<div class="papp-code-term-line"><span class="papp-code-term-prompt">$</span> <span class="papp-code-term-cursor"></span></div>' +
+    '</div>' +
+    '</div>';
+
+  // Recent projects
+  h += '<div class="papp-section">Projects</div>';
+  [
+    { name:'web-app', lang:'JavaScript', files:24, modified:'Today' },
+    { name:'api-server', lang:'TypeScript', files:18, modified:'Yesterday' },
+    { name:'data-pipeline', lang:'Python', files:12, modified:'3 days ago' },
+    { name:'mobile-ui', lang:'Swift', files:32, modified:'Last week' }
+  ].forEach(function(p) {
+    h += '<div class="papp-item"><div class="papp-code-proj-icon"><svg viewBox="0 0 20 20"><path d="M3 6h5l2 2h7v9a1 1 0 01-1 1H3a1 1 0 01-1-1V7a1 1 0 011-1z"/></svg></div>' +
+      '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(p.name) + '</span><span class="papp-item-time">' + p.modified + '</span></div>' +
+      '<div class="papp-item-sub">' + esc(p.lang) + ' -- ' + p.files + ' files</div></div>' + _svgChevron + '</div>';
+  });
+
+  return h;
+}
+
 // ========== 31. HEALTH ==========
 function phonePageHealth(charName) {
   var h = '';
@@ -1111,4 +1474,457 @@ function phonePageHealth(charName) {
   [
     { name:'Blood Pressure', val:'120/78 mmHg', time:'Today, 08:15' },
     { name:'Blood Oxygen', val:'98%', time:'Today, 07:30' },
-    { name:'Body Temperature', val:'36.6 C', time:'Today, 07:
+    { name:'Body Temperature', val:'36.6 C', time:'Today, 07:00' },
+    { name:'Respiratory Rate', val:'16 /min', time:'Yesterday' },
+    { name:'Resting Heart Rate', val:'62 BPM', time:'Average' }
+  ].forEach(function(v) {
+    h += '<div class="papp-item"><div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(v.name) + '</span><span class="papp-item-time">' + v.time + '</span></div><div class="papp-item-sub">' + esc(v.val) + '</div></div>' + _svgChevron + '</div>';
+  });
+
+  return h;
+}
+
+// ========== 32. FITNESS ==========
+function phonePageFitness(charName) {
+  var h = '';
+
+  // Today's workout summary
+  h += '<div class="papp-fit-today">' +
+    '<div class="papp-fit-today-header">Today\'s Activity</div>' +
+    '<div class="papp-fit-stats">' +
+      '<div class="papp-fit-stat"><div class="papp-fit-stat-val">48</div><div class="papp-fit-stat-label">Minutes</div></div>' +
+      '<div class="papp-fit-stat-divider"></div>' +
+      '<div class="papp-fit-stat"><div class="papp-fit-stat-val">385</div><div class="papp-fit-stat-label">Calories</div></div>' +
+      '<div class="papp-fit-stat-divider"></div>' +
+      '<div class="papp-fit-stat"><div class="papp-fit-stat-val">142</div><div class="papp-fit-stat-label">Avg BPM</div></div>' +
+    '</div>' +
+    '</div>';
+
+  // Weekly chart
+  h += '<div class="papp-fit-chart">' +
+    '<div class="papp-fit-chart-title">This Week</div>' +
+    '<div class="papp-fit-bars">';
+  var weekData = [
+    { day:'Mon', val:65, done:true },
+    { day:'Tue', val:45, done:true },
+    { day:'Wed', val:80, done:true },
+    { day:'Thu', val:30, done:true },
+    { day:'Fri', val:48, done:true },
+    { day:'Sat', val:0, done:false },
+    { day:'Sun', val:0, done:false }
+  ];
+  weekData.forEach(function(d) {
+    var pct = Math.min(100, (d.val / 90) * 100);
+    h += '<div class="papp-fit-bar-col">' +
+      '<div class="papp-fit-bar-track"><div class="papp-fit-bar-fill" style="height:' + pct + '%"></div></div>' +
+      '<div class="papp-fit-bar-day">' + d.day + '</div>' +
+      '</div>';
+  });
+  h += '</div></div>';
+
+  // Workout history
+  h += '<div class="papp-section" style="padding-top:8px">Recent Workouts</div>';
+
+  var workouts = [
+    { type:'Running', dur:'32:15', dist:'5.2 km', cal:'320', time:'Today' },
+    { type:'Weight Training', dur:'45:00', dist:'', cal:'280', time:'Yesterday' },
+    { type:'Cycling', dur:'1:10:00', dist:'22.5 km', cal:'450', time:'Wednesday' },
+    { type:'HIIT', dur:'25:00', dist:'', cal:'310', time:'Tuesday' },
+    { type:'Running', dur:'28:40', dist:'4.5 km', cal:'285', time:'Monday' },
+    { type:'Yoga', dur:'40:00', dist:'', cal:'150', time:'Sunday' }
+  ];
+
+  var fitIcons = {
+    Running: '<path d="M5 18l3-3 2 1 3-3 2 1 3-3"/>',
+    'Weight Training': '<path d="M4 10h12M6 7v6M14 7v6M3 9v2M17 9v2"/>',
+    Cycling: '<circle cx="6" cy="12" r="3.5"/><circle cx="14" cy="12" r="3.5"/><path d="M6 12l4-5h3l1 5"/>',
+    HIIT: '<path d="M2 12h3l2-5 2 10 2-5h3l2-3 2 6 2-3h2"/>',
+    Yoga: '<circle cx="10" cy="4" r="2"/><path d="M10 6v5M7 8h6M10 11l-3 5M10 11l3 5"/>',
+    default: '<path d="M4 16l3-4 3 2 4-5 3 3"/>'
+  };
+
+  workouts.forEach(function(w) {
+    var icon = fitIcons[w.type] || fitIcons.default;
+    h += '<div class="papp-item"><div class="papp-fit-icon"><svg viewBox="0 0 20 20">' + icon + '</svg></div>' +
+      '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(w.type) + '</span><span class="papp-item-time">' + w.time + '</span></div>' +
+      '<div class="papp-item-sub">' + w.dur + (w.dist ? ' -- ' + w.dist : '') + ' -- ' + w.cal + ' kcal</div></div>' + _svgChevron + '</div>';
+  });
+
+  return h;
+}
+
+// ========== 33. MEDITATION ==========
+function phonePageMeditation(charName) {
+  var h = '';
+
+  // Main timer area
+  h += '<div class="papp-med-hero">' +
+    '<div class="papp-med-circle">' +
+      '<svg viewBox="0 0 200 200" style="width:180px;height:180px">' +
+        '<circle cx="100" cy="100" r="88" stroke="rgba(255,255,255,.04)" fill="none" stroke-width="1"/>' +
+        '<circle cx="100" cy="100" r="78" stroke="rgba(255,255,255,.06)" fill="none" stroke-width="2" stroke-dasharray="4 8" stroke-linecap="round"/>' +
+        '<circle cx="100" cy="100" r="65" stroke="rgba(175,130,255,.2)" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="408" stroke-dashoffset="102" transform="rotate(-90 100 100)"/>' +
+      '</svg>' +
+      '<div class="papp-med-timer">' +
+        '<div class="papp-med-time">10:00</div>' +
+        '<div class="papp-med-label">Minutes</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="papp-med-start">Begin Session</div>' +
+    '</div>';
+
+  // Quick durations
+  h += '<div class="papp-med-durations">';
+  ['3 min','5 min','10 min','15 min','20 min','30 min'].forEach(function(d, i) {
+    h += '<div class="papp-med-dur' + (i === 2 ? ' papp-med-dur-active' : '') + '">' + d + '</div>';
+  });
+  h += '</div>';
+
+  // Streak
+  h += '<div class="papp-med-streak">' +
+    '<div class="papp-med-streak-info">' +
+      '<div class="papp-med-streak-val">14</div>' +
+      '<div class="papp-med-streak-label">Day Streak</div>' +
+    '</div>' +
+    '<div class="papp-med-streak-dots">';
+  for (var i = 0; i < 7; i++) {
+    var filled = i < 5;
+    h += '<div class="papp-med-streak-dot' + (filled ? ' papp-med-dot-filled' : '') + '"></div>';
+  }
+  h += '</div></div>';
+
+  // Sessions
+  h += '<div class="papp-section">Sessions</div>';
+
+  var sessions = [
+    { name:'Morning Calm', dur:'10 min', cat:'Focus', plays:142 },
+    { name:'Deep Breathing', dur:'5 min', cat:'Breathwork', plays:89 },
+    { name:'Body Scan', dur:'15 min', cat:'Relaxation', plays:67 },
+    { name:'Sleep Wind Down', dur:'20 min', cat:'Sleep', plays:234 },
+    { name:'Stress Relief', dur:'10 min', cat:'Anxiety', plays:156 },
+    { name:'Gratitude Practice', dur:'8 min', cat:'Mindfulness', plays:78 },
+    { name:'Walking Meditation', dur:'12 min', cat:'Movement', plays:45 }
+  ];
+
+  sessions.forEach(function(s) {
+    h += '<div class="papp-item"><div class="papp-med-session-icon"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3"/></svg></div>' +
+      '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(s.name) + '</span><span class="papp-item-time">' + s.dur + '</span></div>' +
+      '<div class="papp-item-sub">' + esc(s.cat) + '</div></div>' + _svgChevron + '</div>';
+  });
+
+  // Stats
+  h += '<div class="papp-section">This Month</div>';
+  h += '<div class="papp-med-month-stats">' +
+    '<div class="papp-med-month-stat"><div class="papp-med-month-stat-val">22</div><div class="papp-med-month-stat-label">Sessions</div></div>' +
+    '<div class="papp-med-month-stat"><div class="papp-med-month-stat-val">3.5h</div><div class="papp-med-month-stat-label">Total Time</div></div>' +
+    '<div class="papp-med-month-stat"><div class="papp-med-month-stat-val">9.5</div><div class="papp-med-month-stat-label">Avg Min</div></div>' +
+    '</div>';
+
+  return h;
+}
+
+// ==========================================================
+//  PHONE APP PAGES — Batch 6: System & Life
+// ==========================================================
+
+// ========== 34. SETTINGS ==========
+function phonePageSettings(charName) {
+  var h = '';
+
+  // Profile card
+  h += '<div class="papp-settings-profile">' +
+    '<div class="papp-settings-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg></div>' +
+    '<div class="papp-settings-profile-info">' +
+      '<div class="papp-settings-profile-name">' + esc(charName) + '</div>' +
+      '<div class="papp-settings-profile-sub">Account, iCloud, Media</div>' +
+    '</div>' + _svgChevron +
+    '</div>';
+
+  h += '<div class="papp-search">' + _svgSearch + '<span>Search</span></div>';
+
+  // Settings groups
+  var groups = [
+    {
+      items: [
+        { icon:'<path d="M13 3C9 3 6 6 6 9.7c0 5.4 7 13.3 7 13.3s7-7.9 7-13.3C20 6 17 3 13 3z"/><circle cx="13" cy="10" r="2.5"/>', name:'Airplane Mode', toggle:false },
+        { icon:'<path d="M3 7a4 4 0 014-4h12a4 4 0 014 4v0a4 4 0 01-4 4H7a4 4 0 01-4-4zM3 17a4 4 0 014-4h12a4 4 0 014 4v0a4 4 0 01-4 4H7a4 4 0 01-4-4z"/>', name:'Wi-Fi', val:'Home_5G' },
+        { icon:'<rect x="3" y="6" width="20" height="14" rx="2"/><path d="M3 11h20"/>', name:'Bluetooth', val:'On' },
+        { icon:'<rect x="6" y="2" width="14" height="22" rx="3"/><path d="M10 18h6"/>', name:'Cellular', val:'' }
+      ]
+    },
+    {
+      items: [
+        { icon:'<circle cx="13" cy="13" r="9"/><path d="M13 7v6l4 3"/>', name:'Notifications', val:'' },
+        { icon:'<rect x="6" y="3" width="14" height="20" rx="2"/><path d="M9 8h8M9 12h8M9 16h5"/>', name:'Sounds & Haptics', val:'' },
+        { icon:'<circle cx="13" cy="13" r="5"/><path d="M13 4v3M13 19v3M4 13h3M19 13h3"/>', name:'Focus', val:'' },
+        { icon:'<path d="M13 7v6l4 3"/><circle cx="13" cy="13" r="9"/>', name:'Screen Time', val:'3h 24m' }
+      ]
+    },
+    {
+      items: [
+        { icon:'<circle cx="11" cy="7" r="2"/><circle cx="15" cy="13" r="2"/><circle cx="9" cy="19" r="2"/><path d="M4 7h5M13 7h9M4 13h9M17 13h5M4 19h3M11 19h11"/>', name:'General', val:'' },
+        { icon:'<rect x="3" y="5" width="20" height="16" rx="2"/><path d="M3 17l5-5 3 3 4-4 5 5"/>', name:'Wallpaper', val:'' },
+        { icon:'<circle cx="13" cy="13" r="9"/><path d="M4 13h18"/>', name:'Display & Brightness', val:'' },
+        { icon:'<rect x="5" y="9" width="16" height="12" rx="2"/><path d="M9 9V6a1 1 0 011-1h6a1 1 0 011 1v3"/>', name:'Privacy & Security', val:'' }
+      ]
+    },
+    {
+      items: [
+        { icon:'<rect x="3" y="6" width="20" height="14" rx="2"/><path d="M3 11h20M7 16h4"/>', name:'Battery', val:'85%' },
+        { icon:'<path d="M4 7h7l2 2h9v12a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z"/>', name:'Storage', val:'48.2 GB used' }
+      ]
+    }
+  ];
+
+  groups.forEach(function(g) {
+    h += '<div class="papp-settings-group">';
+    g.items.forEach(function(item, idx) {
+      h += '<div class="papp-item' + (idx === g.items.length - 1 ? ' papp-settings-last' : '') + '">' +
+        '<div class="papp-settings-icon"><svg viewBox="0 0 26 26">' + item.icon + '</svg></div>' +
+        '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(item.name) + '</span>' +
+        (item.val ? '<span class="papp-item-time">' + esc(item.val) + '</span>' : '') +
+        '</div></div>';
+      if (item.toggle !== undefined) {
+        h += '<div class="papp-clock-toggle"><div class="papp-clock-toggle-knob"></div></div>';
+      } else {
+        h += _svgChevron;
+      }
+      h += '</div>';
+    });
+    h += '</div>';
+  });
+
+  // Software Update
+  h += '<div class="papp-settings-group"><div class="papp-item papp-settings-last">' +
+    '<div class="papp-settings-icon"><svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="9"/><path d="M13 9v4l3 2"/></svg></div>' +
+    '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">Software Update</span>' +
+    '<div class="papp-badge" style="min-width:14px;height:14px;font-size:9px;padding:0 4px">1</div></span></div>' +
+    '<div class="papp-item-sub">Update available</div></div>' + _svgChevron + '</div></div>';
+
+  return h;
+}
+
+// ========== 35. WALLET ==========
+function phonePageWallet(charName) {
+  var h = '';
+
+  // Balance
+  h += '<div class="papp-wallet-balance">' +
+    '<div class="papp-wallet-balance-label">Total Balance</div>' +
+    '<div class="papp-wallet-balance-val">$4,286.50</div>' +
+    '</div>';
+
+  // Cards
+  h += '<div class="papp-section" style="padding-top:4px">Cards</div>';
+  h += '<div class="papp-wallet-cards">';
+  [
+    { name:'Visa Debit', last:'4821', color:'rgba(10,132,255,.15)', border:'rgba(10,132,255,.3)' },
+    { name:'Mastercard', last:'7390', color:'rgba(255,159,10,.12)', border:'rgba(255,159,10,.3)' },
+    { name:'Amex Platinum', last:'1055', color:'rgba(175,130,255,.12)', border:'rgba(175,130,255,.3)' }
+  ].forEach(function(c) {
+    h += '<div class="papp-wallet-card" style="background:' + c.color + ';border-color:' + c.border + '">' +
+      '<div class="papp-wallet-card-top"><span class="papp-wallet-card-name">' + esc(c.name) + '</span><svg viewBox="0 0 20 20" class="papp-wallet-card-chip"><rect x="3" y="6" width="14" height="8" rx="2"/><path d="M3 10h14M8 6v8"/></svg></div>' +
+      '<div class="papp-wallet-card-num">**** **** **** ' + c.last + '</div>' +
+      '</div>';
+  });
+  h += '</div>';
+
+  // Quick actions
+  h += '<div class="papp-wallet-actions">';
+  [
+    { icon:'<path d="M12 4v16M4 12h16"/>', label:'Add' },
+    { icon:'<path d="M5 12h14M12 5l7 7-7 7"/>', label:'Send' },
+    { icon:'<path d="M19 12H5M12 19l-7-7 7-7"/>', label:'Request' },
+    { icon:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/>', label:'Pay' }
+  ].forEach(function(a) {
+    h += '<div class="papp-wallet-action"><div class="papp-wallet-action-icon"><svg viewBox="0 0 24 24">' + a.icon + '</svg></div><div class="papp-wallet-action-label">' + a.label + '</div></div>';
+  });
+  h += '</div>';
+
+  // Transactions
+  h += '<div class="papp-section">Recent Transactions</div>';
+  [
+    { name:'Coffee Shop', amount:'-$4.80', time:'Today, 08:32', cat:'Food' },
+    { name:'Salary Deposit', amount:'+$3,200.00', time:'Yesterday', cat:'Income' },
+    { name:'Grocery Store', amount:'-$67.45', time:'Yesterday', cat:'Shopping' },
+    { name:'Streaming Service', amount:'-$12.99', time:'Monday', cat:'Entertainment' },
+    { name:'Electric Bill', amount:'-$85.20', time:'Monday', cat:'Utilities' },
+    { name:'Transfer from Savings', amount:'+$500.00', time:'Last week', cat:'Transfer' },
+    { name:'Restaurant', amount:'-$42.00', time:'Last week', cat:'Food' },
+    { name:'Gym Membership', amount:'-$35.00', time:'Last week', cat:'Health' }
+  ].forEach(function(t) {
+    var isIncome = t.amount.charAt(0) === '+';
+    h += '<div class="papp-item"><div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(t.name) + '</span>' +
+      '<span class="papp-wallet-amount' + (isIncome ? ' papp-wallet-income' : '') + '">' + t.amount + '</span></div>' +
+      '<div class="papp-item-sub">' + t.time + ' -- ' + esc(t.cat) + '</div></div></div>';
+  });
+
+  return h;
+}
+
+// ========== 36. SHOPPING ==========
+function phonePageShopping(charName) {
+  var h = '';
+
+  h += '<div class="papp-search">' + _svgSearch + '<span>Search products</span></div>';
+
+  // Categories
+  h += '<div class="papp-shop-cats">';
+  ['All','Electronics','Clothing','Home','Books','Sports'].forEach(function(c, i) {
+    h += '<div class="papp-game-cat' + (i === 0 ? ' papp-game-cat-active' : '') + '">' + c + '</div>';
+  });
+  h += '</div>';
+
+  // Featured
+  h += '<div class="papp-shop-featured">' +
+    '<div class="papp-shop-featured-img"><svg viewBox="0 0 32 32"><rect x="4" y="8" width="24" height="16" rx="3"/><path d="M10 14h12M10 18h8"/></svg></div>' +
+    '<div class="papp-shop-featured-info">' +
+      '<div style="font-size:11px;color:rgba(255,255,255,.3);text-transform:uppercase;font-weight:600;letter-spacing:.3px">Featured Deal</div>' +
+      '<div style="font-size:16px;color:#fff;font-weight:600;margin-top:4px">Wireless Headphones Pro</div>' +
+      '<div style="font-size:14px;color:rgba(255,255,255,.5);margin-top:4px">$89.99 <span style="text-decoration:line-through;color:rgba(255,255,255,.2)">$149.99</span></div>' +
+    '</div></div>';
+
+  // Product list
+  h += '<div class="papp-section" style="padding-top:8px">Recommended</div>';
+  [
+    { name:'Mechanical Keyboard', price:'$64.99', rating:'4.7', cat:'Electronics' },
+    { name:'Running Shoes V3', price:'$129.00', rating:'4.5', cat:'Sports' },
+    { name:'Minimalist Backpack', price:'$45.00', rating:'4.8', cat:'Accessories' },
+    { name:'Desk Lamp LED', price:'$32.99', rating:'4.3', cat:'Home' },
+    { name:'Bluetooth Speaker', price:'$39.99', rating:'4.6', cat:'Electronics' },
+    { name:'Cotton T-Shirt Pack', price:'$28.00', rating:'4.4', cat:'Clothing' },
+    { name:'Notebook Set (3)', price:'$12.99', rating:'4.9', cat:'Stationery' }
+  ].forEach(function(p) {
+    h += '<div class="papp-item"><div class="papp-shop-thumb"><svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M5 12l3-2 2 1 3-2 4 3"/></svg></div>' +
+      '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(p.name) + '</span><span style="font-size:14px;color:#fff;font-weight:600;flex-shrink:0">' + p.price + '</span></div>' +
+      '<div class="papp-item-sub">' + esc(p.cat) + ' -- ' + p.rating + ' stars</div></div></div>';
+  });
+
+  // Cart
+  h += '<div class="papp-section">Cart (3 items)</div>';
+  [
+    { name:'Wireless Headphones Pro', qty:1, price:'$89.99' },
+    { name:'USB-C Cable (2m)', qty:2, price:'$15.98' },
+    { name:'Phone Case', qty:1, price:'$19.99' }
+  ].forEach(function(c) {
+    h += '<div class="papp-item"><div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(c.name) + '</span><span class="papp-item-time">' + c.price + '</span></div>' +
+      '<div class="papp-item-sub">Qty: ' + c.qty + '</div></div></div>';
+  });
+  h += '<div style="padding:12px 16px;text-align:right;font-size:15px;color:#fff;font-weight:600;border-top:1px solid rgba(255,255,255,.06)">Total: $125.96</div>';
+
+  return h;
+}
+
+// ========== 37. RECIPES ==========
+function phonePageRecipes(charName) {
+  var h = '';
+
+  h += '<div class="papp-search">' + _svgSearch + '<span>Search recipes</span></div>';
+
+  // Categories
+  h += '<div class="papp-shop-cats">';
+  ['All','Breakfast','Lunch','Dinner','Dessert','Quick'].forEach(function(c, i) {
+    h += '<div class="papp-game-cat' + (i === 0 ? ' papp-game-cat-active' : '') + '">' + c + '</div>';
+  });
+  h += '</div>';
+
+  // Featured recipe
+  h += '<div class="papp-recipe-featured">' +
+    '<div class="papp-recipe-featured-img"><svg viewBox="0 0 40 40"><path d="M15 8v24M10 8v8a5 5 0 0010 0V8" stroke="rgba(255,255,255,.1)" fill="none" stroke-width="1.5" stroke-linecap="round"/><path d="M28 8v10l-3 3v11" stroke="rgba(255,255,255,.1)" fill="none" stroke-width="1.5" stroke-linecap="round"/></svg></div>' +
+    '<div class="papp-recipe-featured-info">' +
+      '<div class="papp-recipe-featured-title">Homemade Ramen Bowl</div>' +
+      '<div class="papp-recipe-featured-meta">45 min -- Medium -- 4 servings</div>' +
+    '</div></div>';
+
+  // Recipe list
+  h += '<div class="papp-section" style="padding-top:4px">My Recipes</div>';
+  [
+    { name:'Avocado Toast', time:'10 min', diff:'Easy', cat:'Breakfast' },
+    { name:'Pasta Carbonara', time:'25 min', diff:'Medium', cat:'Dinner' },
+    { name:'Greek Salad', time:'15 min', diff:'Easy', cat:'Lunch' },
+    { name:'Chicken Stir-Fry', time:'20 min', diff:'Easy', cat:'Dinner' },
+    { name:'Banana Pancakes', time:'15 min', diff:'Easy', cat:'Breakfast' },
+    { name:'Tomato Soup', time:'35 min', diff:'Easy', cat:'Lunch' },
+    { name:'Chocolate Mousse', time:'30 min', diff:'Medium', cat:'Dessert' },
+    { name:'Grilled Salmon', time:'25 min', diff:'Medium', cat:'Dinner' }
+  ].forEach(function(r) {
+    h += '<div class="papp-item"><div class="papp-recipe-icon"><svg viewBox="0 0 20 20"><path d="M9 3v14M6 3v5a3 3 0 006 0V3"/><path d="M15 3v6l-2 2v7"/></svg></div>' +
+      '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(r.name) + '</span><span class="papp-item-time">' + r.time + '</span></div>' +
+      '<div class="papp-item-sub">' + esc(r.diff) + ' -- ' + esc(r.cat) + '</div></div>' + _svgChevron + '</div>';
+  });
+
+  // Meal plan
+  h += '<div class="papp-section">This Week\'s Plan</div>';
+  ['Mon: Oatmeal / Sandwich / Stir-Fry','Tue: Smoothie / Salad / Pasta','Wed: Toast / Soup / Salmon','Thu: Pancakes / Wrap / Ramen','Fri: Eggs / Rice Bowl / Pizza'].forEach(function(d) {
+    h += '<div class="papp-item"><div class="papp-item-content"><div class="papp-item-name" style="font-size:13px;color:rgba(255,255,255,.6)">' + esc(d) + '</div></div></div>';
+  });
+
+  return h;
+}
+
+// ========== 38. TRAVEL ==========
+function phonePageTravel(charName) {
+  var h = '';
+
+  // Upcoming trip
+  h += '<div class="papp-travel-upcoming">' +
+    '<div class="papp-travel-upcoming-header">Upcoming Trip</div>' +
+    '<div class="papp-travel-route">' +
+      '<div class="papp-travel-city"><div class="papp-travel-code">SFO</div><div class="papp-travel-city-name">San Francisco</div></div>' +
+      '<div class="papp-travel-line"><svg viewBox="0 0 60 20" style="width:60px;height:20px"><path d="M5 10h50" stroke="rgba(255,255,255,.15)" fill="none" stroke-width="1" stroke-dasharray="3 3"/><path d="M45 6l8 4-8 4" stroke="rgba(255,255,255,.2)" fill="none" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+      '<div class="papp-travel-city"><div class="papp-travel-code">NRT</div><div class="papp-travel-city-name">Tokyo</div></div>' +
+    '</div>' +
+    '<div class="papp-travel-details">' +
+      '<div class="papp-travel-detail"><div class="papp-travel-detail-label">Date</div><div class="papp-travel-detail-val">Mar 15, 2024</div></div>' +
+      '<div class="papp-travel-detail"><div class="papp-travel-detail-label">Flight</div><div class="papp-travel-detail-val">JL 001</div></div>' +
+      '<div class="papp-travel-detail"><div class="papp-travel-detail-label">Depart</div><div class="papp-travel-detail-val">11:30 AM</div></div>' +
+    '</div>' +
+    '</div>';
+
+  // Boarding pass style
+  h += '<div class="papp-travel-pass">' +
+    '<div class="papp-travel-pass-row"><span class="papp-travel-pass-label">Passenger</span><span class="papp-travel-pass-val">' + esc(charName) + '</span></div>' +
+    '<div class="papp-travel-pass-row"><span class="papp-travel-pass-label">Seat</span><span class="papp-travel-pass-val">14A Window</span></div>' +
+    '<div class="papp-travel-pass-row"><span class="papp-travel-pass-label">Gate</span><span class="papp-travel-pass-val">G12</span></div>' +
+    '<div class="papp-travel-pass-row"><span class="papp-travel-pass-label">Boarding</span><span class="papp-travel-pass-val">10:45 AM</span></div>' +
+    '<div class="papp-travel-pass-barcode"><svg viewBox="0 0 200 30" style="width:100%;height:30px">';
+  for (var i = 0; i < 40; i++) {
+    var w = (i % 3 === 0) ? 3 : (i % 2 === 0) ? 2 : 1;
+    var x = i * 5;
+    h += '<rect x="' + x + '" y="2" width="' + w + '" height="26" fill="rgba(255,255,255,' + (0.1 + Math.random() * 0.15).toFixed(2) + ')"/>';
+  }
+  h += '</svg></div></div>';
+
+  // Packing list
+  h += '<div class="papp-section">Packing List</div>';
+  var svgCheck = '<svg viewBox="0 0 20 20" style="width:18px;height:18px;flex-shrink:0"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.15)" fill="none" stroke-width="1.5"/></svg>';
+  var svgChecked = '<svg viewBox="0 0 20 20" style="width:18px;height:18px;flex-shrink:0"><circle cx="10" cy="10" r="7" stroke="rgba(48,209,88,.5)" fill="rgba(48,209,88,.1)" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="rgba(48,209,88,.7)" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  [
+    { text:'Passport', done:true },
+    { text:'Phone charger', done:true },
+    { text:'Headphones', done:true },
+    { text:'Travel adapter', done:false },
+    { text:'Jacket', done:false },
+    { text:'Toiletries', done:true },
+    { text:'Camera', done:false },
+    { text:'Book for flight', done:true }
+  ].forEach(function(p) {
+    h += '<div class="papp-remind-item' + (p.done ? ' papp-remind-done' : '') + '">' +
+      (p.done ? svgChecked : svgCheck) +
+      '<div class="papp-item-content"><div class="papp-remind-text">' + esc(p.text) + '</div></div></div>';
+  });
+
+  // Past trips
+  h += '<div class="papp-section">Past Trips</div>';
+  [
+    { dest:'London, UK', dates:'Jan 5-12, 2024', flights:2 },
+    { dest:'Paris, France', dates:'Nov 20-25, 2023', flights:2 },
+    { dest:'New York, US', dates:'Sep 8-15, 2023', flights:2 }
+  ].forEach(function(t) {
+    h += '<div class="papp-item"><div class="papp-travel-past-icon"><svg viewBox="0 0 20 20"><rect x="4" y="7" width="12" height="9" rx="2"/><path d="M7 7V5a1 1 0 011-1h4a1 1 0 011 1v2M4 11h12"/></svg></div>' +
+      '<div class="papp-item-content"><div class="papp-item-name">' + esc(t.dest) + '</div>' +
+      '<div class="papp-item-sub">' + esc(t.dates) + '</div></div>' + _svgChevron + '</div>';
+  });
+
+  return h;
+}
