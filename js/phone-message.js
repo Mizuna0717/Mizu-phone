@@ -184,6 +184,9 @@ function _pmsgDetectOwnerLang(ownerChar) {
   window.__pmsgTestMakeDisplayName = function(npc) {
     return _pmsgMakeDisplayName(npc || {});
   };
+  window.__pmsgTestPullMessages = function(oid) {
+    return _pmsgPullUserMessages(oid);
+  };
 
   function _pmsgInjectDiceBtn() {
     var hr = document.querySelector('#phoneAppPage .papp-header-right');
@@ -213,6 +216,11 @@ function _pmsgEnsureUserChat() {
   var ownerId   = ownerChar ? ownerChar.id : '__no_owner__';
   var userRealName = (state.userProfile && state.userProfile.name) || 'User';
 
+  // ★ 用户自己的头像（优先用面具头像）
+  var resolvedUserAvatar = (typeof getCurrentUserMaskAvatar === 'function')
+    ? getCurrentUserMaskAvatar()
+    : ((state.userProfile && state.userProfile.avatar) || null);
+
   // 找这个角色专属的 userChat
   var userChat = null;
   for (var i = 0; i < state.messageChats.length; i++) {
@@ -226,14 +234,14 @@ function _pmsgEnsureUserChat() {
   // ★★ 显示格式：有备注 → 只显示备注；无备注 → "我"
   var displayName = ownerCallsUser ? ownerCallsUser : '\u6211';
 
-  var userMessages = _pmsgPullUserMessages();
+    var userMessages = _pmsgPullUserMessages(ownerId);   // ★ 传 ownerId，走双向拉取
   var lastMsg = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
   var lastContent = lastMsg
     ? (lastMsg.content.length > 50 ? lastMsg.content.substring(0, 50) + '...' : lastMsg.content)
     : '';
   var lastTime = lastMsg ? lastMsg.timestamp : Date.now();
 
-  if (!userChat) {
+    if (!userChat) {
     state.messageChats.push({
       id: 'msgchat_user_self_' + ownerId,
       roleId: 'user',
@@ -242,7 +250,7 @@ function _pmsgEnsureUserChat() {
       npcName: userRealName,
       displayName: displayName,
       _ownerCallsUser: ownerCallsUser,
-      avatar: (ownerChar && ownerChar.avatar) || null,
+      avatar: resolvedUserAvatar,   // ★ 用用户自己的头像
       isUser: true,
       messages: userMessages,
       lastMessage: lastContent,
@@ -254,33 +262,35 @@ function _pmsgEnsureUserChat() {
     userChat.ownerCharId = ownerId;
     userChat.displayName = displayName;
     userChat.npcName = userRealName;
-    userChat.avatar = (ownerChar && ownerChar.avatar) || null;
+    userChat.avatar = resolvedUserAvatar;   // ★ 用用户自己的头像
     userChat.messages = userMessages;
     userChat.lastMessage = lastContent;
     userChat.lastTime = lastTime;
   }
 }
 
-  function _pmsgPullUserMessages() {
-    var allUserMsgs = [];
-    if (state.chats && typeof state.chats === 'object') {
-      var chatKeys = Object.keys(state.chats);
-      for (var ki = 0; ki < chatKeys.length; ki++) {
-        var chatArr = state.chats[chatKeys[ki]];
-        if (!Array.isArray(chatArr)) continue;
-        for (var mi = 0; mi < chatArr.length; mi++) {
-          var m = chatArr[mi];
-          if (m.role === 'user' || m.sender === 'user' || m.isUser === true) {
-            var content = (m.content || '').replace(/<[^>]*>/g, '').trim();
-            if (content.length > 0) {
-              allUserMsgs.push({ sender:'user', content:content, timestamp:m.ts||m.timestamp||Date.now() });
-            }
-          }
-        }
-      }
+    // ★ 双向拉取「当前角色 ↔ 用户」在 iMessage 里的最近 20 条（含双方）
+  function _pmsgPullUserMessages(ownerCharId) {
+    if (!ownerCharId || !state.chats || typeof state.chats !== 'object') return [];
+    var arr = state.chats[ownerCharId];
+    if (!Array.isArray(arr)) return [];
+    var msgs = [];
+    for (var i = 0; i < arr.length; i++) {
+      var m = arr[i];
+      if (!m) continue;
+      var isUser = (m.role === 'user' || m.sender === 'user' || m.isUser === true);
+      var content = (m.content || '').replace(/<[^>]*>/g, '').trim();
+      if (!content) continue;
+      msgs.push({
+        // ★ user → 'user'（会被 _pmsgNormSender 归到左侧）
+        //   assistant（角色）→ 'owner'（会被归到右侧）
+        sender: isUser ? 'user' : 'owner',
+        content: content,
+        timestamp: m.ts || m.timestamp || Date.now()
+      });
     }
-    allUserMsgs.sort(function(a,b){return a.timestamp-b.timestamp;});
-    return allUserMsgs.slice(-20);
+    msgs.sort(function(a,b){ return a.timestamp - b.timestamp; });
+    return msgs.slice(-20);
   }
 
   function _pmsgBuildListHTML() {
@@ -423,23 +433,20 @@ function _pmsgEnsureUserChat() {
       var selectedNpcs = [];
       var useGeneratedContacts = false;
 
-        if (state.npcs && state.npcs.length > 0) {
-        // 有 NPC 池 → 用 NPC 池（6~15 个）
+      if (state.npcs && state.npcs.length >= 6) {
+        // NPC 池够 6 个以上 → 从 NPC 池里选 6~15
         var pool = state.npcs.slice();
-        var pickCount;
-        if (pool.length <= 6) {
-          pickCount = pool.length;
-        } else {
-          var _maxN = Math.min(pool.length, 15);
-          var _minN = Math.min(pool.length, 6);
-          pickCount = _minN + Math.floor(Math.random() * (_maxN - _minN + 1));
-        }
+        var _maxN = Math.min(pool.length, 15);
+        var _minN = 6;
+        var pickCount = _minN + Math.floor(Math.random() * (_maxN - _minN + 1));
         _shuffle(pool);
         selectedNpcs = pool.slice(0, pickCount);
         console.log('[rollMessageChats] NPC 池选人:', pickCount, '/', pool.length);
       } else {
-        // 没 NPC 池 → 让 AI 现场生成虚拟人物（6~15 个，按人设决定）
+        // ★ NPC 池 < 6（含 0）→ 走 AI 生成模式，保证 ≥6 个
         useGeneratedContacts = true;
+        console.log('[rollMessageChats] NPC 池不足 6 个 (' +
+          (state.npcs ? state.npcs.length : 0) + ')，走 AI 生成模式（6~15 个）');
       }
 
       // ===== 2. API 检查 =====
@@ -475,7 +482,13 @@ function _pmsgEnsureUserChat() {
           '       → generate 6-8 contacts\n' +
           '   ★ MINIMUM 6, MAXIMUM 15. NEVER outside this range.\n' +
           '   ★ Reflect their personality through NUMBER of contacts, not just content.\n\n' +
-          'Each contact needs: Name, Nickname (optional), Personality, Background, Language.\n\n';
+                    'Each contact needs: Name, Nickname (optional), Personality, Background, Language,\n' +
+          'AND a "familiarity" field with one of:\n' +
+          '   - "close"        : family / lover / best friend / 家人 / 恋人 / 死党\n' +
+          '   - "friend"       : friend / colleague / 朋友 / 同事\n' +
+          '   - "acquaintance" : casual / 点头之交 / 不太熟\n' +
+          '   - "stranger"     : first-time / 陌生人 / 推销 / 客服\n' +
+          '★ Social characters → MANY close & friend. Cold/lonely → mostly acquaintance & stranger.\n\n';
       } else {
         var npcList = selectedNpcs.map(function(npc, idx){
           var name  = npc.name || ('NPC_'+idx);
@@ -536,7 +549,13 @@ function _pmsgEnsureUserChat() {
         contactsBlock +
 
         'RULES:\n' +
-        '1. Generate ONE separate conversation for EACH contact (3-8 messages each).\n' +
+        '1. Generate ONE chat thread per contact. Message count AND structure depend on familiarity:\n' +
+        '     - "close"        → 12-18 messages, 4-6 SEPARATE conversations at different times\n' +
+        '     - "friend"       → 8-12 messages, 3-4 separate conversations\n' +
+        '     - "acquaintance" → 5-8 messages, 2 separate conversations\n' +
+        '     - "stranger"     → 3-5 messages, ONLY 1 short conversation (long ago)\n' +
+        '   ★ "Separate conversations" means messages should NOT flow continuously — insert a natural\n' +
+        '     time gap and topic change between each group. Each group = 2-4 messages.\n' +
         '2. Tag every message with "sender": use "owner" for ' + ownerName + ', "contact" for the other side.\n' +
 
         // ★★★ 核心：owner 的讯息必须符合 owner 人设 ★★★
@@ -571,11 +590,12 @@ function _pmsgEnsureUserChat() {
         '   - If no special nickname, use the user\'s real name.\n' +
         '   - Only the FIRST object needs this field. Others can omit.\n\n' +
 
-        'Return ONLY a valid JSON array. One object per contact:\n' +
+                'Return ONLY a valid JSON array. One object per contact:\n' +
         (useGeneratedContacts
-          ? '[\n  {\n    "ownerCallsUser":"...",\n    "contact": { "name":"...", "nickname":"...", "personality":"...", "background":"...", "language":"ja" },\n    "messages": [ { "sender":"owner", "content":"..." }, { "sender":"contact", "content":"..." } ]\n  },\n  { "contact": {...}, "messages": [...] }\n]\n'
-          : '[\n  { "npcIndex": 0, "ownerCallsUser":"...", "messages": [ { "sender":"owner", "content":"..." }, { "sender":"contact", "content":"..." } ] },\n  { "npcIndex": 1, "messages": [...] }\n]\n');
-      console.log('[rollMessageChats] owner:', ownerName, '| lang:', ownerLang,
+      ? '[\n  {\n    "ownerCallsUser":"...",\n    "contact": { "name":"...", "nickname":"...", "personality":"...", "background":"...", "language":"ja", "familiarity":"close" },\n    "messages": [...]\n  },\n  { "contact": { ..., "familiarity":"stranger" }, "messages": [...] }\n]\n'
+                : '[\n  { "npcIndex": 0, "ownerCallsUser":"...", "familiarity":"close", "messages": [...] },\n  { "npcIndex": 1, "familiarity":"friend", "messages": [...] }\n]\n');   // ★★★ 加 );
+
+        console.log('[rollMessageChats] owner:', ownerName, '| lang:', ownerLang,
         '| generated:', useGeneratedContacts, '| npcs:', selectedNpcs.length);
 
       // ===== 5. system prompt =====
@@ -598,8 +618,9 @@ function _pmsgEnsureUserChat() {
         if (!convos || !Array.isArray(convos) || convos.length === 0) {
           showToast('Generation failed'); openPhoneApp('messages'); return;
         }
-                if (!state.messageChats) state.messageChats = [];
-        var now = Date.now();
+        if (!state.messageChats) state.messageChats = [];
+
+        var now = Date.now();   // ★ 加回这一行
 
         // ★ 先扫一遍，找 ownerCallsUser
         var ownerCallsUser = null;
@@ -631,19 +652,25 @@ function _pmsgEnsureUserChat() {
             npcId = npc.id || ('npc_' + npcIdx);
             npcName = npc.name || ('NPC_' + npcIdx);
             displayName = _pmsgMakeDisplayName(npc);
+            // ★ 把 AI 给的 familiarity 写回 npc，供后面判断段数
+            if (convo.familiarity) npc.familiarity = convo.familiarity;
           }
 
-          var msgs = convo.messages;
+                    var msgs = convo.messages;
           if (!Array.isArray(msgs) || msgs.length < 1) return;
 
-          var baseTime = now - (msgs.length * 240000) - (ci * 2400000);
-          var stamped = msgs.map(function(m, mi){
-            return {
-              sender: _pmsgNormSender(m),
-              content: (m.content || m.text || m.message || '').toString().trim(),
-              timestamp: baseTime + mi * (60000 + Math.floor(Math.random()*300000))
-            };
-          }).filter(function(m){ return m.content.length > 0; });
+                    // ★ 根据熟悉度决定会话段数
+          var fam = (npc && npc.familiarity) ? String(npc.familiarity).toLowerCase() : 'friend';
+          var sessRange;
+          if (fam === 'close')             sessRange = [4, 6];
+          else if (fam === 'friend')       sessRange = [3, 4];
+          else if (fam === 'acquaintance') sessRange = [2, 2];
+          else if (fam === 'stranger')     sessRange = [1, 1];
+          else                             sessRange = [2, 3];
+          var numSessions = sessRange[0] + Math.floor(Math.random() * (sessRange[1] - sessRange[0] + 1));
+          console.log('  contact=' + (npc.name || '?') + ' fam=' + fam + ' sessions=' + numSessions + ' msgs=' + msgs.length);
+
+          var stamped = _pmsgSegmentByTime(msgs, numSessions);
 
           if (stamped.length === 0) return;
           var lastMsg = stamped[stamped.length - 1];
@@ -692,6 +719,54 @@ function _pmsgEnsureUserChat() {
   function _pmsgBuildChatObj(npcId,npcName,displayName,messages,lastMsg){
     return {id:'msgchat_'+npcId+'_'+Date.now()+'_'+Math.random().toString(36).substr(2,4),roleId:'npc_'+npcId,npcId:npcId,npcName:npcName,displayName:displayName,isUser:false,messages:messages,lastMessage:lastMsg.content.length>50?lastMsg.content.substring(0,50)+'...':lastMsg.content,lastTime:lastMsg.timestamp};
   }
+    // ★ 把一组消息切成 N 个会话段，每段分配不同时间桶
+  function _pmsgSegmentByTime(rawMsgs, numSessions) {
+    numSessions = Math.max(1, numSessions || 1);
+    var MINUTE = 60 * 1000;
+    var HOUR   = 60 * MINUTE;
+    var DAY    = 24 * HOUR;
+
+    var allBuckets = [
+      { min: 5 * MINUTE,  max: 2 * HOUR,   w: 1 },  // 几十分钟前
+      { min: 2 * HOUR,    max: 12 * HOUR,  w: 1 },  // 几小时前
+      { min: 12 * HOUR,   max: 24 * HOUR,  w: 1 },  // 昨天
+      { min: 1 * DAY,     max: 3 * DAY,    w: 1 },  // 1~3 天前
+      { min: 3 * DAY,     max: 14 * DAY,   w: 1 },  // 3 天~2 周
+      { min: 14 * DAY,    max: 60 * DAY,   w: 1 }   // 2 周~2 月
+    ];
+
+    _shuffle(allBuckets);
+    var buckets = allBuckets.slice(0, Math.min(numSessions, allBuckets.length));
+    buckets.sort(function(a, b){ return b.min - a.min; });   // 旧 → 新
+
+    var segLen = Math.ceil(rawMsgs.length / buckets.length);
+    var segs = [];
+    for (var i = 0; i < rawMsgs.length; i += segLen) {
+      segs.push(rawMsgs.slice(i, i + segLen));
+    }
+
+    var now = Date.now();
+    var stamped = [];
+    for (var s = 0; s < segs.length; s++) {
+      var b = buckets[s];
+      var sessionLastTime = now - (b.min + Math.random() * (b.max - b.min));
+      var seg = segs[s];
+      var gap = (1 + Math.random() * 4) * MINUTE;   // 段内消息间隔 1~5 分钟
+      for (var mi = 0; mi < seg.length; mi++) {
+        var m = seg[mi];
+        var content = (m.content || m.text || m.message || '').toString().trim();
+        if (!content) continue;
+        stamped.push({
+          sender: _pmsgNormSender(m),
+          content: content,
+          timestamp: sessionLastTime - (seg.length - 1 - mi) * gap
+        });
+      }
+    }
+    stamped.sort(function(a, b){ return a.timestamp - b.timestamp; });
+    return stamped;
+  }
+
 
   function _shuffle(arr){for(var i=arr.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t;}}
   function _pmsgFindChat(chatId){if(!state.messageChats)return null;for(var i=0;i<state.messageChats.length;i++){if(state.messageChats[i].id===chatId)return state.messageChats[i];}return null;}
