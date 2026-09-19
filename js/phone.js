@@ -8,14 +8,10 @@ var APP_LIBRARY = {
     svg:'<rect x="6" y="3" width="14" height="20" rx="2"/><path d="M9 8h8M9 12h8M9 16h5"/>' },
   photos: { name:'Photos', desc:'Photo gallery and memories', css:'pi-photos',
     svg:'<rect x="3" y="5" width="20" height="16" rx="2"/><path d="M3 17l5-5 3 3 4-4 5 5"/><circle cx="18" cy="9" r="1.5"/>' },
-  camera: { name:'Camera', desc:'Take photos and videos', css:'pi-camera',
-    svg:'<path d="M3 9a1 1 0 011-1h3l2-3h8l2 3h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9z"/><circle cx="13" cy="14" r="3.5"/>' },
   calendar: { name:'Calendar', desc:'Schedule, events and dates', css:'pi-calendar',
     svg:'<rect x="4" y="5" width="18" height="17" rx="2"/><path d="M4 10h18M9 3v4M17 3v4"/>' },
   clock: { name:'Clock', desc:'Clock, timers and alarms', css:'pi-clock',
     svg:'<circle cx="13" cy="13" r="9"/><path d="M13 7v6l4 3"/>' },
-  weather: { name:'Weather', desc:'Weather forecast and conditions', css:'pi-weather',
-    svg:'<circle cx="13" cy="13" r="4"/><path d="M13 4v3M13 19v3M4 13h3M19 13h3M6.8 6.8l2.1 2.1M17.1 17.1l2.1 2.1M6.8 19.2l2.1-2.1M17.1 8.9l2.1-2.1"/>' },
   maps: { name:'Maps', desc:'Maps, navigation and directions', css:'pi-maps',
     svg:'<path d="M13 3C9 3 6 6 6 9.7c0 5.4 7 13.3 7 13.3s7-7.9 7-13.3C20 6 17 3 13 3z"/><circle cx="13" cy="10" r="2.5"/>' },
   music: { name:'Music', desc:'Music player and playlists', css:'pi-music',
@@ -32,8 +28,6 @@ var APP_LIBRARY = {
     svg:'<circle cx="13" cy="9" r="4"/><path d="M5 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/>' },
   settings: { name:'Settings', desc:'System settings and preferences', css:'pi-settings',
     svg:'<circle cx="11" cy="7" r="2"/><circle cx="15" cy="13" r="2"/><circle cx="9" cy="19" r="2"/><path d="M4 7h5M13 7h9M4 13h9M17 13h5M4 19h3M11 19h11"/>' },
-  calculator: { name:'Calculator', desc:'Math and calculations', css:'pi-wallet',
-    svg:'<rect x="5" y="3" width="16" height="20" rx="2"/><rect x="8" y="6" width="10" height="4" rx="1"/><path d="M8 14h3M15 14h3M8 18h3M15 18h3"/>' },
   files: { name:'Files', desc:'File manager and documents', css:'pi-files',
     svg:'<path d="M4 7h7l2 2h9v12a1 1 0 01-1 1H4a1 1 0 01-1-1V8a1 1 0 011-1z"/>' },
   recorder: { name:'Voice Memo', desc:'Audio and voice recording', css:'pi-recorder',
@@ -62,20 +56,12 @@ var APP_LIBRARY = {
     svg:'<rect x="5" y="9" width="16" height="12" rx="2"/><path d="M9 9V6a1 1 0 011-1h6a1 1 0 011 1v3M5 14h16"/>' },
   games: { name:'Games', desc:'Games and entertainment', css:'pi-music',
     svg:'<rect x="3" y="9" width="20" height="10" rx="5"/><circle cx="8" cy="14" r="1.5"/><path d="M16 12v4M14 14h4"/>' },
-  drawing: { name:'Drawing', desc:'Digital art, sketching and design', css:'pi-photos',
-    svg:'<path d="M4 21l2-6L18 3l3 3L9 18z"/><path d="M15 6l3 3"/>' },
-  coding: { name:'Code', desc:'Programming, development and terminal', css:'pi-files',
-    svg:'<path d="M8 7l-5 6 5 6M18 7l5 6-5 6"/><path d="M14 4l-3 18"/>' },
-  stocks: { name:'Stocks', desc:'Stock market, investments and finance', css:'pi-wallet',
-    svg:'<path d="M4 18l4-5 4 3 5-8 4 4"/><path d="M4 22h18"/>' },
   podcast: { name:'Podcast', desc:'Podcast listening and audio shows', css:'pi-recorder',
     svg:'<circle cx="13" cy="13" r="3"/><path d="M7 13a6 6 0 0112 0M4 13a9 9 0 0118 0M13 16v5M10 21h6"/>' },
   translator: { name:'Translator', desc:'Language translation and dictionary', css:'pi-browser',
     svg:'<path d="M4 5h10M9 3v2M6 9c1.5 3 3.5 5 4.5 6M13 9c-1.5 3-3.5 5-4.5 6"/><path d="M15 14l3 7 3-7M16 19h4"/>' },
   reminders: { name:'Reminders', desc:'To-do lists, tasks and checklists', css:'pi-calendar',
     svg:'<path d="M4 7h3v3H4zM4 13h3v3H4zM4 19h3v3H4z"/><path d="M10 8.5h12M10 14.5h12M10 20.5h8"/>' },
-  compass: { name:'Compass', desc:'Direction finding and orientation', css:'pi-maps',
-    svg:'<circle cx="13" cy="13" r="9"/><path d="M16.5 9.5l-2 5-5 2 2-5z"/>' },
   check_phone: { name:'Check Phone', desc:'View phone access log', css:'pi-check',
     svg:'<path d="M3 13s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="13" cy="13" r="3"/>' }
 };
@@ -1085,117 +1071,6 @@ function phonePageMaps(charName) {
   return h;
 }
 
-// ========== 25. COMPASS ==========
-function phonePageCompass(charName) {
-  var h = '';
-
-  h += '<div class="papp-compass-wrap">' +
-    '<div class="papp-compass-ring">' +
-      '<svg viewBox="0 0 260 260">' +
-        '<circle cx="130" cy="130" r="120" stroke="rgba(255,255,255,.06)" fill="none" stroke-width="1"/>' +
-        '<circle cx="130" cy="130" r="100" stroke="rgba(255,255,255,.04)" fill="none" stroke-width="0.5"/>';
-
-  for (var i = 0; i < 360; i += 5) {
-    var rad = i * Math.PI / 180;
-    var isMajor = (i % 30 === 0);
-    var r1 = isMajor ? 108 : 112;
-    var r2 = 118;
-    var sx = 130 + r1 * Math.sin(rad);
-    var sy = 130 - r1 * Math.cos(rad);
-    var ex = 130 + r2 * Math.sin(rad);
-    var ey = 130 - r2 * Math.cos(rad);
-    var sw = isMajor ? '1.5' : '0.8';
-    var op = isMajor ? '.3' : '.1';
-    h += '<line x1="' + sx.toFixed(1) + '" y1="' + sy.toFixed(1) + '" x2="' + ex.toFixed(1) + '" y2="' + ey.toFixed(1) + '" stroke="rgba(255,255,255,' + op + ')" stroke-width="' + sw + '"/>';
-  }
-
-  var cardinals = [
-    { label:'N', angle:0, color:'rgba(255,69,58,.7)' },
-    { label:'E', angle:90, color:'rgba(255,255,255,.35)' },
-    { label:'S', angle:180, color:'rgba(255,255,255,.35)' },
-    { label:'W', angle:270, color:'rgba(255,255,255,.35)' }
-  ];
-  cardinals.forEach(function(c) {
-    var crad = c.angle * Math.PI / 180;
-    var cx = 130 + 92 * Math.sin(crad);
-    var cy = 130 - 92 * Math.cos(crad);
-    h += '<text x="' + cx.toFixed(1) + '" y="' + (cy + 4).toFixed(1) + '" text-anchor="middle" fill="' + c.color + '" font-size="14" font-weight="600">' + c.label + '</text>';
-  });
-
-  h += '<g transform="translate(130,130)">' +
-    '<polygon points="0,-70 -7,0 0,-10 7,0" fill="rgba(255,69,58,.5)" stroke="rgba(255,69,58,.3)" stroke-width=".5"/>' +
-    '<polygon points="0,70 -7,0 0,10 7,0" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.08)" stroke-width=".5"/>' +
-    '<circle cx="0" cy="0" r="5" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.1)" stroke-width="1"/>' +
-    '</g>';
-
-  h += '</svg></div>';
-
-  h += '<div class="papp-compass-readout">' +
-    '<div class="papp-compass-degree">0</div>' +
-    '<div class="papp-compass-dir">North</div>' +
-    '</div>';
-
-  h += '</div>';
-
-  h += '<div class="papp-compass-coords">' +
-    '<div class="papp-compass-coord-row">' +
-      '<div class="papp-compass-coord-item"><div class="papp-compass-coord-label">Latitude</div><div class="papp-compass-coord-val">37.7749</div></div>' +
-      '<div class="papp-compass-coord-divider"></div>' +
-      '<div class="papp-compass-coord-item"><div class="papp-compass-coord-label">Longitude</div><div class="papp-compass-coord-val">-122.4194</div></div>' +
-    '</div>' +
-    '<div class="papp-compass-coord-row" style="margin-top:8px">' +
-      '<div class="papp-compass-coord-item"><div class="papp-compass-coord-label">Elevation</div><div class="papp-compass-coord-val">16 m</div></div>' +
-      '<div class="papp-compass-coord-divider"></div>' +
-      '<div class="papp-compass-coord-item"><div class="papp-compass-coord-label">Accuracy</div><div class="papp-compass-coord-val">+/- 5 m</div></div>' +
-    '</div>' +
-    '</div>';
-
-  return h;
-}
-
-// ========== 26. CALCULATOR ==========
-function phonePageCalculator(charName) {
-  var h = '';
-
-  h += '<div class="papp-calc-display">' +
-    '<div class="papp-calc-expr">384 + 216</div>' +
-    '<div class="papp-calc-result">600</div>' +
-    '</div>';
-
-  h += '<div class="papp-calc-history">';
-  [
-    { expr:'1024 / 4', res:'256' },
-    { expr:'99 x 12',  res:'1,188' },
-    { expr:'500 - 187', res:'313' }
-  ].forEach(function(item) {
-    h += '<div class="papp-calc-history-item"><div class="papp-calc-hist-expr">' + item.expr + '</div><div class="papp-calc-hist-res">= ' + item.res + '</div></div>';
-  });
-  h += '</div>';
-
-  h += '<div class="papp-calc-grid">';
-
-  var buttons = [
-    { label:'AC', type:'func' }, { label:'+/-', type:'func' }, { label:'%', type:'func' }, { label:'/', type:'op' },
-    { label:'7',  type:'num' }, { label:'8',  type:'num' }, { label:'9',  type:'num' }, { label:'x', type:'op' },
-    { label:'4',  type:'num' }, { label:'5',  type:'num' }, { label:'6',  type:'num' }, { label:'-', type:'op' },
-    { label:'1',  type:'num' }, { label:'2',  type:'num' }, { label:'3',  type:'num' }, { label:'+', type:'op' },
-    { label:'0',  type:'num zero' }, { label:'.',  type:'num' }, { label:'=', type:'op eq' }
-  ];
-
-  buttons.forEach(function(b) {
-    var cls = 'papp-calc-btn';
-    if (b.type === 'func') cls += ' papp-calc-func';
-    else if (b.type === 'op') cls += ' papp-calc-op';
-    else if (b.type === 'op eq') cls += ' papp-calc-op papp-calc-eq';
-    else if (b.type === 'num zero') cls += ' papp-calc-zero';
-    h += '<div class="' + cls + '">' + b.label + '</div>';
-  });
-
-  h += '</div>';
-
-  return h;
-}
-
 // ========== 27. REMINDERS ==========
 function phonePageReminders(charName) {
   var h = '';
@@ -1318,118 +1193,6 @@ function phonePageNews(charName) {
   return h;
 }
 
-// ========== 29. STOCKS ==========
-function phonePageStocks(charName) {
-  var h = '';
-
-  // Portfolio summary
-  h += '<div class="papp-stocks-summary">' +
-    '<div class="papp-stocks-portfolio-label">Portfolio Value</div>' +
-    '<div class="papp-stocks-portfolio-val">$24,831.56</div>' +
-    '<div class="papp-stocks-portfolio-change papp-stocks-up">+$342.18 (+1.40%) Today</div>' +
-    '</div>';
-
-  // Mini chart
-  h += '<div class="papp-stocks-chart"><svg viewBox="0 0 320 80" style="width:100%;height:80px">' +
-    '<path d="M0 60 L20 55 L40 58 L60 50 L80 45 L100 48 L120 40 L140 35 L160 38 L180 30 L200 28 L220 32 L240 25 L260 22 L280 20 L300 18 L320 15" stroke="rgba(48,209,88,.5)" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-    '<path d="M0 60 L20 55 L40 58 L60 50 L80 45 L100 48 L120 40 L140 35 L160 38 L180 30 L200 28 L220 32 L240 25 L260 22 L280 20 L300 18 L320 15 L320 80 L0 80 Z" fill="rgba(48,209,88,.06)"/>' +
-    '</svg></div>';
-
-  // Time range
-  h += '<div class="papp-stocks-range">';
-  ['1D','1W','1M','3M','6M','1Y','ALL'].forEach(function(r, i) {
-    h += '<div class="papp-stocks-range-btn' + (i === 0 ? ' papp-stocks-range-active' : '') + '">' + r + '</div>';
-  });
-  h += '</div>';
-
-  // Watchlist
-  h += '<div class="papp-section" style="padding-top:8px">Watchlist</div>';
-
-  var stocks = [
-    { sym:'AAPL', name:'Apple Inc.', price:'178.52', change:'+2.34', pct:'+1.33', up:true },
-    { sym:'GOOGL', name:'Alphabet Inc.', price:'141.80', change:'+1.12', pct:'+0.80', up:true },
-    { sym:'MSFT', name:'Microsoft Corp.', price:'378.91', change:'-3.20', pct:'-0.84', up:false },
-    { sym:'TSLA', name:'Tesla Inc.', price:'242.68', change:'+8.45', pct:'+3.61', up:true },
-    { sym:'AMZN', name:'Amazon.com', price:'178.25', change:'-1.56', pct:'-0.87', up:false },
-    { sym:'NVDA', name:'NVIDIA Corp.', price:'875.32', change:'+12.80', pct:'+1.48', up:true },
-    { sym:'META', name:'Meta Platforms', price:'504.18', change:'+4.22', pct:'+0.84', up:true },
-    { sym:'NFLX', name:'Netflix Inc.', price:'628.45', change:'-2.10', pct:'-0.33', up:false }
-  ];
-
-  stocks.forEach(function(s) {
-    h += '<div class="papp-item">' +
-      '<div class="papp-item-content">' +
-        '<div class="papp-item-top"><span class="papp-item-name">' + esc(s.sym) + '</span><span class="papp-stocks-price">$' + s.price + '</span></div>' +
-        '<div class="papp-item-top" style="margin-top:2px"><span class="papp-item-sub" style="margin-top:0">' + esc(s.name) + '</span><span class="papp-stocks-change' + (s.up ? ' papp-stocks-up' : ' papp-stocks-down') + '">' + s.change + ' (' + s.pct + '%)</span></div>' +
-      '</div>' +
-      '</div>';
-  });
-
-  return h;
-}
-
-// ========== 30. CODING ==========
-function phonePageCoding(charName) {
-  var h = '';
-
-  // Editor area
-  h += '<div class="papp-code-editor">' +
-    '<div class="papp-code-tabs">' +
-      '<div class="papp-code-tab papp-code-tab-active">main.js</div>' +
-      '<div class="papp-code-tab">utils.js</div>' +
-      '<div class="papp-code-tab">index.html</div>' +
-    '</div>' +
-    '<div class="papp-code-content">';
-
-  var lines = [
-    { num:1,  code:'<span class="papp-ck">const</span> <span class="papp-cv">app</span> = <span class="papp-cf">require</span>(<span class="papp-cs">\'express\'</span>);' },
-    { num:2,  code:'<span class="papp-ck">const</span> <span class="papp-cv">port</span> = <span class="papp-cn">3000</span>;' },
-    { num:3,  code:'' },
-    { num:4,  code:'<span class="papp-cv">app</span>.<span class="papp-cf">get</span>(<span class="papp-cs">\'/\'</span>, (<span class="papp-cv">req</span>, <span class="papp-cv">res</span>) => {' },
-    { num:5,  code:'  <span class="papp-cv">res</span>.<span class="papp-cf">json</span>({' },
-    { num:6,  code:'    <span class="papp-cv">status</span>: <span class="papp-cs">\'ok\'</span>,' },
-    { num:7,  code:'    <span class="papp-cv">time</span>: <span class="papp-ck">new</span> <span class="papp-cf">Date</span>()' },
-    { num:8,  code:'  });' },
-    { num:9,  code:'});' },
-    { num:10, code:'' },
-    { num:11, code:'<span class="papp-cv">app</span>.<span class="papp-cf">listen</span>(<span class="papp-cv">port</span>, () => {' },
-    { num:12, code:'  <span class="papp-cv">console</span>.<span class="papp-cf">log</span>(<span class="papp-cs">`Running on port ${<span class="papp-cv">port</span>}`</span>);' },
-    { num:13, code:'});' }
-  ];
-
-  lines.forEach(function(l) {
-    h += '<div class="papp-code-line"><span class="papp-code-num">' + l.num + '</span><span class="papp-code-text">' + (l.code || '&nbsp;') + '</span></div>';
-  });
-
-  h += '</div></div>';
-
-  // Terminal output
-  h += '<div class="papp-code-terminal">' +
-    '<div class="papp-code-term-header"><span class="papp-code-term-dot"></span><span class="papp-code-term-dot"></span><span class="papp-code-term-dot"></span><span class="papp-code-term-title">Terminal</span></div>' +
-    '<div class="papp-code-term-body">' +
-      '<div class="papp-code-term-line"><span class="papp-code-term-prompt">$</span> node main.js</div>' +
-      '<div class="papp-code-term-line papp-code-term-output">Running on port 3000</div>' +
-      '<div class="papp-code-term-line"><span class="papp-code-term-prompt">$</span> npm test</div>' +
-      '<div class="papp-code-term-line papp-code-term-success">All 12 tests passed</div>' +
-      '<div class="papp-code-term-line"><span class="papp-code-term-prompt">$</span> <span class="papp-code-term-cursor"></span></div>' +
-    '</div>' +
-    '</div>';
-
-  // Recent projects
-  h += '<div class="papp-section">Projects</div>';
-  [
-    { name:'web-app', lang:'JavaScript', files:24, modified:'Today' },
-    { name:'api-server', lang:'TypeScript', files:18, modified:'Yesterday' },
-    { name:'data-pipeline', lang:'Python', files:12, modified:'3 days ago' },
-    { name:'mobile-ui', lang:'Swift', files:32, modified:'Last week' }
-  ].forEach(function(p) {
-    h += '<div class="papp-item"><div class="papp-code-proj-icon"><svg viewBox="0 0 20 20"><path d="M3 6h5l2 2h7v9a1 1 0 01-1 1H3a1 1 0 01-1-1V7a1 1 0 011-1z"/></svg></div>' +
-      '<div class="papp-item-content"><div class="papp-item-top"><span class="papp-item-name">' + esc(p.name) + '</span><span class="papp-item-time">' + p.modified + '</span></div>' +
-      '<div class="papp-item-sub">' + esc(p.lang) + ' -- ' + p.files + ' files</div></div>' + _svgChevron + '</div>';
-  });
-
-  return h;
-}
 
 // ========== 31. HEALTH ==========
 function phonePageHealth(charName) {

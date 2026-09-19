@@ -133,17 +133,18 @@
 }
 
 /* ===== Dock（支持 3 個圖標） ===== */
-.home-dock {
+#screen-home .home-dock {
   display: flex;
   justify-content: center;
   gap: 20px;
-  padding: 0 20px calc(env(safe-area-inset-bottom, 4px) + 18px);
+  padding: 0 20px 5px;        /* ← 恢复：固定离底 5px，不再吃 env() */
   flex-shrink: 0;
   position: relative;
   margin-top: -10px;
+  margin-bottom: 0;
 }
 
-.home-dock::before {
+#screen-home .home-dock::before {
   content: '';
   position: absolute;
   top: -10px;
