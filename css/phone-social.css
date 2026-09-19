@@ -1,0 +1,459 @@
+/* ==========================================================
+   Phone Social — 全部样式
+   ========================================================== */
+
+/* ── 帖子容器 ── */
+.psoc-post {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+/* ── 头部 ── */
+.psoc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.psoc-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+.psoc-author {
+  flex: 1;
+  min-width: 0;
+}
+.psoc-author-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.psoc-author-handle {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.4);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.psoc-time {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.35);
+  flex-shrink: 0;
+}
+
+/* ── 正文 ── */
+.psoc-text {
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(255,255,255,.85);
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── 图片占位 ── */
+.psoc-image {
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(135deg, #1a1a1c 0%, #222224 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+.psoc-image:active {
+  background: linear-gradient(135deg, #202022 0%, #2a2a2c 100%);
+}
+.psoc-image-svg {
+  color: rgba(255,255,255,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── 互动栏 ── */
+.psoc-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 4px;
+}
+.psoc-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255,255,255,.4);
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+.psoc-action svg {
+  flex-shrink: 0;
+}
+.psoc-action-liked {
+  color: rgba(255,69,58,.85);
+}
+
+/* ==========================================================
+   Phone Social — 详情页（模块 4）
+   ========================================================== */
+
+.psoc-detail-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* 顶栏 */
+.psoc-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1c1c1e;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.psoc-detail-back {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #0a84ff;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.psoc-detail-back:active { background: rgba(10,132,255,.12); }
+.psoc-detail-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  flex: 1;
+  text-align: center;
+}
+.psoc-detail-header-right {
+  width: 38px;
+  flex-shrink: 0;
+}
+
+/* 可滚动区 */
+.psoc-detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 20px 20px 40px;
+}
+
+/* 作者区 */
+.psoc-detail-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.psoc-detail-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.psoc-detail-author-info {
+  flex: 1;
+  min-width: 0;
+}
+.psoc-detail-author-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.psoc-detail-author-handle {
+  font-size: 13px;
+  color: rgba(255,255,255,.4);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.psoc-detail-time {
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+  flex-shrink: 0;
+  letter-spacing: .2px;
+}
+
+/* 正文 */
+.psoc-detail-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.88);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 16px;
+}
+
+/* 图片 */
+.psoc-detail-image {
+  width: 100%;
+  height: 240px;
+  background: linear-gradient(135deg, #1a1a1c 0%, #222224 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+.psoc-detail-image:active {
+  background: linear-gradient(135deg, #202022 0%, #2a2a2c 100%);
+}
+
+/* 互动栏 */
+.psoc-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+/* ── 评论区 ── */
+.psoc-comments-section {
+  margin-bottom: 20px;
+}
+.psoc-comments-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 14px;
+}
+.psoc-comment {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.psoc-comment:last-child { border-bottom: none; }
+.psoc-comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+.psoc-comment-body {
+  flex: 1;
+  min-width: 0;
+}
+.psoc-comment-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 3px;
+  flex-wrap: wrap;
+}
+.psoc-comment-author {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+}
+.psoc-comment-handle {
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+}
+.psoc-comment-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255,255,255,.75);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── 角色反应区 ── */
+.psoc-reaction-section {
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+/* 反应标记 */
+.psoc-reaction-tag {
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  margin-bottom: 16px;
+}
+.psoc-tag-liked {
+  background: rgba(255,69,58,.12);
+  color: rgba(255,69,58,.85);
+}
+.psoc-tag-commented {
+  background: rgba(48,209,88,.12);
+  color: rgba(48,209,88,.9);
+}
+.psoc-tag-saw {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.5);
+}
+.psoc-tag-ignored {
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.35);
+}
+
+/* 角色自己的评论 */
+.psoc-owner-comment-card {
+  background: rgba(10,132,255,.05);
+  border: 1px solid rgba(10,132,255,.15);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.psoc-owner-comment-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(10,132,255,.85);
+  margin-bottom: 8px;
+  letter-spacing: .2px;
+}
+.psoc-owner-comment-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255,255,255,.82);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 想法 */
+.psoc-thoughts-block {
+  padding: 14px 16px;
+  background: rgba(255,255,255,.03);
+  border-left: 2px solid rgba(255,255,255,.15);
+  border-radius: 4px;
+}
+.psoc-thoughts-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 8px;
+}
+.psoc-thoughts-text {
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.7);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ==========================================================
+   图片点击切换（SVG ↔ 文字描述）
+   ========================================================== */
+
+/* 默认：SVG 显示，描述隐藏 */
+.psoc-image .psoc-image-desc,
+.psoc-detail-image .psoc-image-desc {
+  display: none;
+}
+.psoc-image .psoc-image-svg,
+.psoc-detail-image .psoc-image-svg {
+  display: flex;
+}
+
+/* 切换后：SVG 隐藏，描述显示 */
+.psoc-image.psoc-image-show-desc .psoc-image-svg,
+.psoc-detail-image.psoc-image-show-desc .psoc-image-svg {
+  display: none;
+}
+.psoc-image.psoc-image-show-desc .psoc-image-desc,
+.psoc-detail-image.psoc-image-show-desc .psoc-image-desc {
+  display: flex;
+}
+
+/* 描述文字样式 */
+.psoc-image-desc {
+  width: 100%;
+  height: 100%;
+  padding: 20px 24px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(255,255,255,.75);
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: .1px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-style: italic;
+}
+
+/* ===== 角色回复自己的帖子评论 ===== */
+.psoc-comment-owner-reply {
+  background: rgba(10,132,255,.04);
+  border-radius: 8px;
+  padding: 10px 12px !important;
+  margin: 6px 0;
+}
+.psoc-comment-owner-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(10,132,255,.85);
+  background: rgba(10,132,255,.12);
+  padding: 1px 6px;
+  border-radius: 8px;
+  letter-spacing: .2px;
+}

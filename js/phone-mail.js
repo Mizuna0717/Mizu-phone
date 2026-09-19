@@ -158,8 +158,8 @@
   // ══════════════════════════════════════════════
 
     // 头像颜色（基于名字 hash 到固定调色板）
-  function _pmailAvatarColor(name) {
-    var palette = ['#5e5ce6','#0a84ff','#30d158','#ff9f0a','#ff375f','#bf5af2','#32ade6','#5ac8fa'];
+   function _pmailAvatarColor(name) {
+    var palette = ['#4a4f5a','#5a4a5a','#4a5a55','#5a554a','#5a4a4f','#4a5a4a','#4a4a5a','#55555a'];
     var sum = 0;
     name = String(name || '?');
     for (var i = 0; i < name.length; i++) sum += name.charCodeAt(i);
