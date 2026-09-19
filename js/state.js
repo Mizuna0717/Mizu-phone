@@ -8,8 +8,8 @@ let state = {
   charEditFrom: 'screen-imessage', drawerFilter: 'all', drawerSort: 'recent',
   drawerSearch: '', lang: 'en', userProfile: { name: 'User', avatar: null },
   masks: [], memories: [], imsgTab: 'messages', replyPrompt: null, charConfig: {},
-  phoneData: {}, bookmarks: [], groups: [], moments: [],messageChats: [], 
-    meetings: [],
+  phoneData: {}, bookmarks: [], groups: [], moments: [],messageChats: [], callHistory: [],
+    meetings: [],mailData: [],
   npcs: [],
   wikiSchedule: [],
   home: { weather: { temperature: '--', condition: '--', humidity: '--', city: '', updatedAt: '' }, widget: { topLeftText: 'Mizu phone.com', topRightText: 'Mizu', avatar: { type: 'url', value: '' }, titleText: 'Mizu', description: ['🤍ineedu…^', '너에 대한 그리움은 사랑니처럼 은근히 아파 ⊹ '], images: [{ type: 'url', value: '' }, { type: 'url', value: '' }, { type: 'url', value: '' }] }, weatherWidget: { recordText: ['♡ㅠ ㅠ…？', 'i 🤍uuu so..'], image: { type: 'url', value: '' } } },
@@ -34,8 +34,8 @@ let tmp = {
 var SAVE_KEYS = [
   'apis', 'activeApiId', 'characters', 'chats', 'worldbooks', 'stickers',
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
-  'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks',
-  'groups', 'moments', 'imsgTab','messageChats' ,           
+  'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks','mailData' ,           
+    'groups', 'moments', 'imsgTab','messageChats', 'callHistory' ,           
     'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting', 'theme',
   'wikiSchedule', 'together', 'home', 'settings'
 ];
@@ -58,7 +58,7 @@ function _getStateDefaults() {
     masks: [], memories: [], imsgTab: 'messages',
     replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
-    npcs: [], messageChats: [],
+    npcs: [], messageChats: [], callHistory: [], mailData: [],
     wikiSchedule: [],
         together: { songs: [], videos: [], novels: [] },
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium', desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
@@ -102,6 +102,8 @@ function _validateState() {
   if (!Array.isArray(state.apis)) state.apis = [];
   if (!Array.isArray(state.meetings)) state.meetings = [];
   if (!Array.isArray(state.messageChats)) state.messageChats = [];
+    if (!Array.isArray(state.callHistory)) state.callHistory = [];
+  if (!Array.isArray(state.mailData)) state.mailData = [];
   if (!Array.isArray(state.npcs)) state.npcs = [];
   if (!Array.isArray(state.wikiSchedule)) state.wikiSchedule = [];
 

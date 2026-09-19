@@ -564,3 +564,4 @@
 /* 6. app 页打开时填满 */
 /* 6. app 页打开时填满，并建立 flex 列（Message 输入栏贴底依赖它） */
 #phoneAppPage{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden}
+
