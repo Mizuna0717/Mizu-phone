@@ -80,36 +80,50 @@ function _pmsgBuildOwnerBlock(ownerChar) {
   return { name: name, block: b, lang: lang, char: ownerChar };
 }
 
-// ★ 侦测角色母语（ja / ko / en / zh）
-// ★ 只判斷「是不是中文角色」；其他語言交給 AI 自己識別
+// ★ 侦测角色母语：只看角色卡字段，世界书仅兜底
 function _pmsgDetectOwnerLang(ownerChar) {
   if (!ownerChar) return 'zh';
-  var wbText = '';
-  try {
-    wbText = (state.worldbooks || []).map(function(w){
-      return (w.name || '') + ' ' + (w.content || w.description || '');
-    }).join(' ');
-  } catch(e) {}
+
+  // ⚠️ 只看角色卡字段（不看 worldbooks，避免被英文世界书污染）
   var blob = [
     ownerChar.name || '',
     ownerChar.nickname || '',
     ownerChar.systemPrompt || '',
     ownerChar.personality || '',
     ownerChar.background || '',
-    wbText
-  ].join(' ').toLowerCase();
+    ownerChar.description || '',
+    ownerChar.persona || ''
+  ].join(' ');
 
-  // 明確是中國背景 → zh
-  if (/中国|中國|北京|上海|廣州|广州|深圳|杭州|成都|中文|汉语|漢語|普通话|china|chinese|beijing|shanghai/.test(blob)) {
+  // ① 角色卡字段有外文脚本 → other
+  if (/[\u3040-\u309F\u30A0-\u30FF]/.test(blob)) return 'other'; // 日文假名
+  if (/[\uAC00-\uD7AF\u1100-\u11FF]/.test(blob)) return 'other'; // 韩文
+  if (/[\u0400-\u04FF]/.test(blob))              return 'other'; // 西里尔
+  if (/[\u0E00-\u0E7F]/.test(blob))              return 'other'; // 泰文
+  if (/[\u0600-\u06FF]/.test(blob))              return 'other'; // 阿拉伯
+  if (/[a-zA-ZÀ-ÿ]/.test(blob))                  return 'other'; // 拉丁
+
+  // ② 明确中国背景关键词 → zh
+  if (/中国|中國|北京|上海|廣州|广州|深圳|杭州|成都|中文|汉语|漢語|普通话/.test(blob)) {
     return 'zh';
   }
-  // 名字全中文 且 人設無任何外文跡象 → zh
-  var nm = (ownerChar.name || '').trim();
-  var hasChineseName = /^[\u4e00-\u9fa5·]+$/.test(nm);
-  var hasForeignHint = /日本|japan|korea|한국|russia|россия|spain|españa|france|français|germany|deutsch|thai|ไทย|vietnam|tiếng việt|[a-zA-Zа-яА-ЯёЁ]/.test(blob);
-  if (hasChineseName && !hasForeignHint) return 'zh';
 
-  return 'other'; // ★ 其他所有語言（日/韓/英/西/俄/法/德/泰/越...）
+  // ③ 名字纯 CJK（无外文脚本）→ zh
+  var nm = (ownerChar.name || '').trim();
+  if (/^[\u4e00-\u9fa5·]+$/.test(nm)) return 'zh';
+
+  // ④ 兜底：世界书里若有假名/韩文等，判定为 other
+  var wbText = '';
+  try {
+    wbText = (state.worldbooks || []).map(function(w){
+      return (w.name || '') + ' ' + (w.content || w.description || '');
+    }).join(' ');
+  } catch(e) {}
+  if (/[\u3040-\u309F\u30A0-\u30FF]/.test(wbText)) return 'other';
+  if (/[\uAC00-\uD7AF\u1100-\u11FF]/.test(wbText)) return 'other';
+  if (/[\u0400-\u04FF]/.test(wbText))              return 'other';
+
+  return 'other';
 }
 
 // —— 以下 ;(function(){ ... })(); 整个 IIFE 保持你当前文件不变 ——
@@ -126,6 +140,17 @@ function _pmsgDetectOwnerLang(ownerChar) {
     _pmsgEnsureUserChat();
     return _pmsgBuildListHTML();
   }
+
+  // ══════════════════════════════════════════════
+  //  ★ 测试辅助函数（仅用于 Console 验证，不影响生产）
+  // ══════════════════════════════════════════════
+  window.__pmsgTestRenderList = function() {
+    try { _pmsgEnsureUserChat(); } catch(e) {}
+    return _pmsgBuildListHTML();
+  };
+  window.__pmsgTestMakeDisplayName = function(npc) {
+    return _pmsgMakeDisplayName(npc || {});
+  };
 
   function _pmsgInjectDiceBtn() {
     var hr = document.querySelector('#phoneAppPage .papp-header-right');
