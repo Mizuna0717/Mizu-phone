@@ -305,6 +305,7 @@ var scripts = [
     'js/theme.js',
     'js/phone-message.js',
     'js/phone-call.js',
+    'js/phone-mail.js',
     'js/together.js',
     'js/shop.js',
     'js/mcp.js',

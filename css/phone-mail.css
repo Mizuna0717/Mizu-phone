@@ -1,0 +1,248 @@
+/* ==========================================================
+   Phone Mail — 列表页星标
+   ========================================================== */
+.papp-mail-star {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  vertical-align: middle;
+  color: rgba(255,255,255,.45);
+}
+
+/* ==========================================================
+   Phone Mail — 详情页
+   ========================================================== */
+
+.pmail-detail-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* 顶栏 */
+.pmail-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1c1c1e;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.pmail-detail-back {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #0a84ff;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.pmail-detail-back:active { background: rgba(10,132,255,.12); }
+.pmail-detail-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  flex: 1;
+  text-align: center;
+}
+.pmail-detail-header-right {
+  width: 38px;
+  flex-shrink: 0;
+}
+
+/* 可滚动区 */
+.pmail-detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 20px 20px 40px;
+}
+
+/* 发件人区 */
+.pmail-sender-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.pmail-sender-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.pmail-sender-info {
+  flex: 1;
+  min-width: 0;
+}
+.pmail-sender-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pmail-sender-email {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.4);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pmail-sender-time {
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+  flex-shrink: 0;
+  letter-spacing: .2px;
+}
+
+/* 收件人 */
+.pmail-recipient-line {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.35);
+  margin-bottom: 10px;
+  letter-spacing: .2px;
+}
+
+/* 主题 */
+.pmail-subject-line {
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+  letter-spacing: -.3px;
+  margin-bottom: 24px;
+  word-break: break-word;
+}
+
+/* 正文 */
+.pmail-body-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.82);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-feature-settings: "kern" 1;
+}
+
+/* ==========================================================
+   反应区
+   ========================================================== */
+.pmail-reaction-section {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+/* 反应标记 */
+.pmail-reaction-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  margin-bottom: 16px;
+}
+.pmail-tag-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.pmail-reaction-tag-replied {
+  background: rgba(48,209,88,.12);
+  color: rgba(48,209,88,.9);
+}
+.pmail-reaction-tag-read_no_reply {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.5);
+}
+.pmail-reaction-tag-unread {
+  background: rgba(255,69,58,.12);
+  color: rgba(255,69,58,.85);
+}
+.pmail-reaction-tag-starred_only {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.55);
+}
+
+/* 回信卡片 */
+.pmail-reply-card {
+  background: rgba(10,132,255,.05);
+  border: 1px solid rgba(10,132,255,.15);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.pmail-reply-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.pmail-reply-card-to {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(10,132,255,.85);
+  letter-spacing: .2px;
+}
+.pmail-reply-card-time {
+  font-size: 11.5px;
+  color: rgba(255,255,255,.3);
+}
+.pmail-reply-card-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255,255,255,.82);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 想法区 */
+.pmail-thoughts-block {
+  padding: 14px 16px;
+  background: rgba(255,255,255,.03);
+  border-left: 2px solid rgba(255,255,255,.15);
+  border-radius: 4px;
+}
+.pmail-thoughts-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 8px;
+}
+.pmail-thoughts-text {
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.7);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
