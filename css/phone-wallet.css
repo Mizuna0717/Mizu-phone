@@ -1,0 +1,454 @@
+/* ==========================================================
+   Phone Wallet — 全部样式
+   ========================================================== */
+
+/* ── 余额区 ── */
+.pwallet-balance-section {
+  padding: 20px 20px 16px;
+  text-align: center;
+}
+.pwallet-balance-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+.pwallet-balance-value {
+  font-size: 38px;
+  font-weight: 300;
+  color: #fff;
+  letter-spacing: -.8px;
+  margin-top: 6px;
+  line-height: 1.1;
+}
+.pwallet-balance-change {
+  font-size: 13px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+.pwallet-balance-up   { color: rgba(48,209,88,.8); }
+.pwallet-balance-down { color: rgba(255,255,255,.4); }
+
+/* ── Section 标题 ── */
+.pwallet-section-title {
+  padding: 16px 20px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.3);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+/* ── 账户区 ── */
+.pwallet-accounts {
+  padding: 0 16px;
+}
+
+/* ══════════════════════════════════════════════
+   大卡片：玻璃拟态
+   ══════════════════════════════════════════════ */
+.pwallet-card {
+  position: relative;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.02) 100%);
+  border: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.05);
+  overflow: hidden;
+}
+.pwallet-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+}
+.pwallet-card::after {
+  content: '';
+  position: absolute;
+  top: 18px; right: 18px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
+}
+.pwallet-card[data-type="card"]::after    { background: rgba(90,120,200,.7); }
+.pwallet-card[data-type="ewallet"]::after { background: rgba(80,180,140,.7); }
+.pwallet-card[data-type="balance"]::after { background: rgba(200,170,90,.7); }
+.pwallet-card[data-type="cash"]::after    { background: rgba(180,180,180,.7); }
+
+.pwallet-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.pwallet-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.7);
+  letter-spacing: .2px;
+}
+.pwallet-card-type-icon {
+  color: rgba(255,255,255,.3);
+  display: inline-flex;
+  align-items: center;
+}
+.pwallet-card-num {
+  font-size: 15px;
+  color: rgba(255,255,255,.5);
+  letter-spacing: 2px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.pwallet-card-footer {
+  margin-top: 10px;
+}
+.pwallet-card-type-label {
+  font-size: 11px;
+  color: rgba(255,255,255,.25);
+  letter-spacing: .5px;
+}
+
+/* ══════════════════════════════════════════════
+   小 pill（电子支付 / 现金）
+   ══════════════════════════════════════════════ */
+.pwallet-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+.pwallet-account-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.06);
+  font-size: 12.5px;
+  color: rgba(255,255,255,.65);
+}
+.pwallet-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(255,255,255,.35);
+}
+.pwallet-pill-name {
+  font-weight: 500;
+  letter-spacing: .2px;
+}
+
+/* ── 交易列表 ── */
+.pwallet-tx-list {
+  padding: 0 0 24px;
+}
+.pwallet-tx-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.pwallet-tx-item:last-child { border-bottom: none; }
+.pwallet-tx-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgba(255,255,255,.5);
+}
+.pwallet-tx-info {
+  flex: 1;
+  min-width: 0;
+}
+.pwallet-tx-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+.pwallet-tx-merchant {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pwallet-tx-amount {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.pwallet-tx-amount-expense { color: rgba(255,255,255,.8); }
+.pwallet-tx-amount-income  { color: rgba(48,209,88,.85); }
+.pwallet-tx-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,.3);
+}
+.pwallet-tx-account {
+  font-size: 11.5px;
+  color: rgba(255,255,255,.25);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== 账户大卡片 — 余额 ===== */
+.pwallet-card-balance {
+  font-size: 22px;
+  font-weight: 400;
+  color: #fff;
+  letter-spacing: -.3px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.pwallet-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+.pwallet-card-num {
+  font-size: 13px;
+  color: rgba(255,255,255,.35);
+  letter-spacing: 1.5px;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+.pwallet-card-type-label {
+  font-size: 11px;
+  color: rgba(255,255,255,.25);
+  letter-spacing: .4px;
+}
+
+/* 小 pill 已弃用，但保留样式防止旧数据渲染出错 */
+.pwallet-pills-row { display: none; }
+
+/* ==========================================================
+   Phone Wallet — 详情页（模块 4）
+   ========================================================== */
+
+.pwallet-detail-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* 顶栏 */
+.pwallet-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1c1c1e;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.pwallet-detail-back {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #0a84ff;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.pwallet-detail-back:active { background: rgba(10,132,255,.12); }
+.pwallet-detail-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  flex: 1;
+  text-align: center;
+}
+.pwallet-detail-header-right {
+  width: 38px;
+  flex-shrink: 0;
+}
+
+/* 可滚动区 */
+.pwallet-detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 20px 20px 40px;
+}
+
+/* ── Hero 区 ── */
+.pwallet-detail-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 32px;
+}
+.pwallet-detail-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.5);
+  margin-bottom: 20px;
+}
+.pwallet-detail-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.pwallet-detail-amount {
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: -.5px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.pwallet-detail-amount-expense { color: #fff; }
+.pwallet-detail-amount-income  { color: rgba(48,209,88,.9); }
+.pwallet-detail-merchant {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255,255,255,.85);
+  margin-bottom: 4px;
+  text-align: center;
+  word-break: break-word;
+}
+.pwallet-detail-time {
+  font-size: 13px;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .2px;
+}
+
+/* ── 字段区 ── */
+.pwallet-detail-fields {
+  padding: 16px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.pwallet-field-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+}
+.pwallet-field-label {
+  font-size: 13px;
+  color: rgba(255,255,255,.3);
+  flex-shrink: 0;
+  letter-spacing: .2px;
+}
+.pwallet-field-value {
+  font-size: 14px;
+  color: rgba(255,255,255,.8);
+  text-align: right;
+  word-break: break-word;
+  min-width: 0;
+}
+.pwallet-field-status {
+  color: rgba(48,209,88,.75);
+  font-weight: 500;
+}
+
+/* ── 想法区 ── */
+.pwallet-detail-thoughts {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.03);
+  border-left: 2px solid rgba(255,255,255,.15);
+  border-radius: 4px;
+}
+.pwallet-thoughts-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 8px;
+}
+.pwallet-thoughts-text {
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.7);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===== 交易明细区 ===== */
+.pwallet-items-section {
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.pwallet-items-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 12px;
+}
+.pwallet-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pwallet-item-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.pwallet-item-name {
+  color: rgba(255,255,255,.7);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.pwallet-item-price {
+  color: rgba(255,255,255,.5);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.pwallet-items-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255,255,255,.08);
+  font-size: 13px;
+  color: rgba(255,255,255,.45);
+}
+.pwallet-items-summary span:last-child {
+  font-variant-numeric: tabular-nums;
+}

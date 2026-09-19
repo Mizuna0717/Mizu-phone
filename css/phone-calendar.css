@@ -1,0 +1,190 @@
+/* ==========================================================
+   Phone Calendar — 全部样式
+   ========================================================== */
+
+/* ── 月历容器 ── */
+.pcal-month-wrap {
+  padding: 12px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.pcal-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 16px;
+}
+.pcal-month-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -.2px;
+}
+
+/* ── 星期头 ── */
+.pcal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.pcal-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.25);
+  padding: 4px 0;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* ── 日格 ── */
+.pcal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.pcal-cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+.pcal-cell-empty {
+  cursor: default;
+}
+.pcal-cell-num {
+  font-size: 14px;
+  color: rgba(255,255,255,.7);
+  line-height: 1;
+}
+.pcal-cell-today .pcal-cell-num {
+  color: #0a84ff;
+  font-weight: 700;
+}
+.pcal-cell-selected {
+  background: rgba(10,132,255,.15);
+}
+.pcal-cell-selected .pcal-cell-num {
+  color: #0a84ff;
+  font-weight: 700;
+}
+.pcal-cell-dot {
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.4);
+}
+.pcal-cell-selected .pcal-cell-dot {
+  background: rgba(10,132,255,.7);
+}
+
+/* ── 当天事件区 ── */
+.pcal-day-section {
+  padding: 16px 0 40px;
+}
+.pcal-day-header {
+  padding: 0 20px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  letter-spacing: .2px;
+}
+.pcal-day-empty {
+  padding: 20px;
+  text-align: center;
+  color: rgba(255,255,255,.25);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ── 事件行 ── */
+.pcal-event {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 8px 20px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.pcal-event:active {
+  background: rgba(255,255,255,.03);
+}
+.pcal-event-time {
+  flex-shrink: 0;
+  width: 64px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,.45);
+  padding-top: 3px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.pcal-event-allday {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .5px;
+}
+.pcal-event-bar {
+  width: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.pcal-event-info {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 0;
+}
+.pcal-event-title {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: rgba(255,255,255,.9);
+  line-height: 1.35;
+  margin-bottom: 3px;
+  word-break: break-word;
+}
+.pcal-event-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+  flex-wrap: wrap;
+}
+.pcal-event-dot {
+  color: rgba(255,255,255,.2);
+}
+
+/* 状态样式 */
+.pcal-event-completed .pcal-event-title {
+  color: rgba(255,255,255,.4);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255,255,255,.2);
+}
+.pcal-event-completed .pcal-event-bar {
+  opacity: .35;
+}
+.pcal-event-cancelled .pcal-event-title {
+  color: rgba(255,255,255,.25);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255,69,58,.4);
+}
+.pcal-event-cancelled .pcal-event-bar {
+  background: rgba(255,69,58,.35) !important;
+}
+.pcal-event-ongoing .pcal-event-title {
+  color: #fff;
+  font-weight: 600;
+}
+.pcal-event-ongoing .pcal-event-time {
+  color: rgba(10,132,255,.85);
+  font-weight: 600;
+}

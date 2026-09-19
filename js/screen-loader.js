@@ -307,6 +307,8 @@ var scripts = [
     'js/phone-call.js',
     'js/phone-mail.js',
     'js/phone-social.js',
+    'js/phone-wallet.js',
+    'js/phone-calendar.js',
     'js/together.js',
     'js/shop.js',
     'js/mcp.js',
