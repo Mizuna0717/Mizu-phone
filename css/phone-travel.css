@@ -1,0 +1,287 @@
+/* ==========================================================
+   Phone Travel — 完整样式
+   灰调 / 低饱和 / 半透明白（参考 phone-music.css）
+   列表页 + 详情页 + 空状态 + 加载态
+   ========================================================== */
+
+/* ──────────────────────────────────────────
+   列表页
+   ────────────────────────────────────────── */
+
+/* 卡片点击反馈 */
+.papp-travel-upcoming {
+  transition: transform .12s ease, opacity .15s ease;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+.papp-travel-upcoming:active {
+  transform: scale(.985);
+  opacity: .85;
+}
+
+/* ──────────────────────────────────────────
+   空状态 / 加载态
+   ────────────────────────────────────────── */
+
+.ptravel-empty-state {
+  padding: 60px 20px;
+  text-align: center;
+}
+.ptravel-empty-state svg {
+  display: block;
+  margin: 0 auto 12px;
+}
+.ptravel-empty-title {
+  color: rgba(255,255,255,.5);
+  font-size: 15px;
+}
+.ptravel-empty-hint {
+  color: rgba(255,255,255,.3);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.ptravel-loading {
+  padding: 80px 20px;
+  text-align: center;
+}
+.ptravel-loading-dots {
+  display: inline-flex;
+  gap: 5px;
+  margin-bottom: 16px;
+}
+.ptravel-loading-dots span {
+  width: 8px;
+  height: 8px;
+  background: rgba(255,255,255,.4);
+  border-radius: 50%;
+  animation: blink 1.4s infinite both;
+}
+.ptravel-loading-dots span:nth-child(2) { animation-delay: .2s; }
+.ptravel-loading-dots span:nth-child(3) { animation-delay: .4s; }
+.ptravel-loading-text {
+  font-size: 14px;
+  color: rgba(255,255,255,.5);
+}
+
+/* ──────────────────────────────────────────
+   详情页
+   ────────────────────────────────────────── */
+
+.ptravel-detail-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* 顶栏 */
+.ptravel-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1c1c1e;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.ptravel-detail-back {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #0a84ff;
+  font-size: 14px;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: background .15s;
+  font-family: inherit;
+}
+.ptravel-detail-back:active { background: rgba(10,132,255,.12); }
+.ptravel-detail-back span { font-weight: 500; }
+.ptravel-detail-title {
+  flex: 1;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+}
+.ptravel-detail-header-right { width: 60px; flex-shrink: 0; }
+
+/* 滚动区 */
+.ptravel-detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 20px 16px 40px;
+  scrollbar-width: none;
+}
+.ptravel-detail-scroll::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Hero 卡片：清掉列表卡片自带 margin */
+.ptravel-hero-card .papp-travel-upcoming { margin: 0; }
+.ptravel-hero-card .papp-travel-upcoming:active { transform: none; opacity: 1; }
+
+/* Section 标题 */
+.ptravel-section-title {
+  padding: 24px 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+/* 无内容提示（行程 / 打包清单为空时） */
+.ptravel-empty-row {
+  padding: 12px 4px;
+  color: rgba(255,255,255,.25);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ── 行程 ── */
+.ptravel-day-group { margin-bottom: 18px; }
+.ptravel-day-header {
+  padding: 10px 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.6);
+  letter-spacing: .2px;
+  border-bottom: 1px dashed rgba(255,255,255,.06);
+  margin-bottom: 6px;
+}
+.ptravel-activity {
+  display: flex;
+  gap: 12px;
+  padding: 8px 4px;
+  align-items: flex-start;
+}
+.ptravel-activity-time {
+  flex-shrink: 0;
+  width: 46px;
+  font-size: 12px;
+  color: rgba(255,255,255,.4);
+  font-variant-numeric: tabular-nums;
+  padding-top: 1px;
+}
+.ptravel-activity-body { flex: 1; min-width: 0; }
+.ptravel-activity-text {
+  font-size: 14px;
+  color: rgba(255,255,255,.85);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.ptravel-activity-loc {
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+/* ── 打包清单 ── */
+.ptravel-packing-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+}
+.ptravel-packing-item svg { flex-shrink: 0; }
+.ptravel-packing-text {
+  font-size: 14px;
+  color: rgba(255,255,255,.85);
+  word-break: break-word;
+}
+.ptravel-packing-item.done .ptravel-packing-text {
+  color: rgba(255,255,255,.4);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255,255,255,.15);
+}
+
+/* ── 同行人 ── */
+.ptravel-companion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+}
+.ptravel-companion-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.5);
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.ptravel-companion-name {
+  font-size: 14px;
+  color: rgba(255,255,255,.85);
+}
+
+/* ── 酒店 ── */
+.ptravel-hotel {
+  padding: 14px 4px 4px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  margin-top: 16px;
+}
+.ptravel-hotel-label {
+  font-size: 11px;
+  color: rgba(255,255,255,.3);
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.ptravel-hotel-name {
+  font-size: 14px;
+  color: rgba(255,255,255,.85);
+  word-break: break-word;
+}
+.ptravel-hotel-type {
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+/* ── 内心想法（斜体衬线） ── */
+.ptravel-thoughts {
+  margin-top: 8px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.03);
+  border-left: 2px solid rgba(255,255,255,.15);
+  border-radius: 4px;
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', serif;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.7);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ──────────────────────────────────────────
+   窄屏适配（< 360px）
+   ────────────────────────────────────────── */
+@media (max-width: 360px) {
+  .ptravel-detail-scroll { padding: 16px 12px 32px; }
+  .ptravel-detail-title { font-size: 14px; }
+  .ptravel-activity-time { width: 40px; font-size: 11px; }
+  .ptravel-activity-text { font-size: 13px; }
+  .ptravel-section-title { padding: 20px 4px 8px; }
+}

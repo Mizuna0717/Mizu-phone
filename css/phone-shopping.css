@@ -1,0 +1,623 @@
+/* ==========================================================
+   Phone Shopping — 全部样式
+   ========================================================== */
+
+/* ── 顶部 Tab ── */
+.pshop-tabs {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px 8px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  gap: 4px;
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.pshop-tab {
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,.45);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, color .15s;
+  letter-spacing: .2px;
+}
+.pshop-tab:active { background: rgba(255,255,255,.05); }
+.pshop-tab-active {
+  background: rgba(10,132,255,.15);
+  color: rgba(10,132,255,.9);
+}
+/* Tab 里的锁图标 */
+.pshop-tab-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin-right: 4px;
+  margin-top: -2px;
+}
+.pshop-tab-lock svg {
+  width: 11px;
+  height: 11px;
+}
+.pshop-tab-active .pshop-tab-lock {
+  color: rgba(10,132,255,.9);
+}
+/* ── 搜索栏 & 分类 chips ── */
+.pshop-chips {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pshop-chips::-webkit-scrollbar { display: none; }
+.pshop-chip {
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.05);
+  font-size: 12.5px;
+  color: rgba(255,255,255,.55);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: default;
+}
+.pshop-chip-active {
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.9);
+}
+
+/* ── Section 标题 ── */
+.pshop-section-title {
+  padding: 14px 20px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.3);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+/* ── 商品行 ── */
+.pshop-product {
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.pshop-product:active { background: rgba(255,255,255,.02); }
+
+.pshop-product-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1a1a1c, #222224);
+  border: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  transition: background .15s;
+}
+.pshop-product-img-svg {
+  color: rgba(255,255,255,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pshop-product-img-desc {
+  display: none;
+  padding: 4px 6px;
+  font-size: 9.5px;
+  line-height: 1.3;
+  color: rgba(255,255,255,.6);
+  font-style: italic;
+  text-align: center;
+  overflow: hidden;
+}
+.pshop-product-img.pshop-img-show-desc .pshop-product-img-svg { display: none; }
+.pshop-product-img.pshop-img-show-desc .pshop-product-img-desc { display: block; }
+
+.pshop-product-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.pshop-product-name {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: rgba(255,255,255,.9);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pshop-product-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: rgba(255,255,255,.4);
+  margin-bottom: 6px;
+}
+.pshop-product-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.pshop-product-sep {
+  color: rgba(255,255,255,.2);
+}
+.pshop-product-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pshop-product-price {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: .2px;
+}
+.pshop-product-tag {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 7px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: rgba(255,255,255,.85);
+  letter-spacing: .2px;
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+.pshop-product-store {
+  font-size: 11px;
+  color: rgba(255,255,255,.3);
+  margin-top: 4px;
+}
+
+/* ── 购物车 ── */
+.pshop-cart-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  align-items: center;
+}
+.pshop-cart-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pshop-cart-info {
+  flex: 1;
+  min-width: 0;
+}
+.pshop-cart-name {
+  font-size: 14px;
+  color: rgba(255,255,255,.85);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pshop-cart-meta {
+  font-size: 12px;
+  color: rgba(255,255,255,.4);
+}
+.pshop-cart-price {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  flex-shrink: 0;
+}
+.pshop-cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  border-top: 2px solid rgba(255,255,255,.08);
+  margin-top: 8px;
+}
+
+/* ── 订单 ── */
+.pshop-order {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.pshop-order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.pshop-order-merchant {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #fff;
+}
+.pshop-order-time {
+  font-size: 12px;
+  color: rgba(255,255,255,.35);
+}
+.pshop-order-items {
+  font-size: 13px;
+  color: rgba(255,255,255,.55);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pshop-order-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pshop-order-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+.pshop-order-status {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.pshop-order-status-delivered  { color: rgba(48,209,88,.8); background: rgba(48,209,88,.1); }
+.pshop-order-status-shipped    { color: rgba(10,132,255,.85); background: rgba(10,132,255,.1); }
+.pshop-order-status-processing { color: rgba(255,159,10,.8); background: rgba(255,159,10,.1); }
+.pshop-order-status-cancelled  { color: rgba(255,69,58,.75); background: rgba(255,69,58,.1); }
+
+/* ── Header 锁按钮 ── */
+.pshop-lock-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  margin-right: 4px;
+  cursor: pointer;
+  color: #0a84ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.pshop-lock-btn:active { opacity: .6; }
+
+/* ==========================================================
+   Phone Shopping — 商品详情页（模块 4）
+   ========================================================== */
+
+.pshop-detail-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* 顶栏 */
+.pshop-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1c1c1e;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.pshop-detail-back {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #0a84ff;
+  font-size: 14px;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.pshop-detail-back:active { background: rgba(10,132,255,.12); }
+.pshop-detail-back span { font-weight: 500; }
+.pshop-detail-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  flex: 1;
+  text-align: center;
+}
+.pshop-detail-header-right {
+  width: 60px;
+  flex-shrink: 0;
+}
+
+/* 滚动区 */
+.pshop-detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 20px 20px 40px;
+}
+
+/* Hero 大图 */
+.pshop-detail-hero {
+  width: 100%;
+  height: 240px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1a1a1c, #222224);
+  border: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+  position: relative;
+  transition: background .15s;
+}
+.pshop-detail-hero:active {
+  background: linear-gradient(135deg, #202022, #2a2a2c);
+}
+.pshop-detail-hero-svg {
+  color: rgba(255,255,255,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pshop-detail-hero-svg svg {
+  width: 64px;
+  height: 64px;
+}
+.pshop-detail-hero-desc {
+  display: none;
+  padding: 24px 28px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.7);
+  text-align: center;
+  font-style: italic;
+}
+.pshop-detail-hero.pshop-detail-img-show-desc .pshop-detail-hero-svg { display: none; }
+.pshop-detail-hero.pshop-detail-img-show-desc .pshop-detail-hero-desc { display: block; }
+
+/* 商品名 */
+.pshop-detail-name {
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+  letter-spacing: -.3px;
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+
+/* 评分 */
+.pshop-detail-rating {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: rgba(255,255,255,.45);
+  margin-bottom: 12px;
+}
+.pshop-detail-rating-star {
+  display: inline-flex;
+  align-items: center;
+}
+.pshop-detail-rating-val {
+  color: rgba(255,214,10,.85);
+  font-weight: 600;
+}
+.pshop-detail-rating-sep {
+  color: rgba(255,255,255,.2);
+}
+
+/* 价格 */
+.pshop-detail-price {
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -.3px;
+  margin-bottom: 14px;
+}
+
+/* 标签行 */
+.pshop-detail-tags {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.pshop-detail-store {
+  font-size: 13px;
+  color: rgba(255,255,255,.4);
+}
+
+/* 分隔线 */
+.pshop-detail-divider {
+  height: 1px;
+  background: rgba(255,255,255,.06);
+  margin-bottom: 20px;
+}
+
+/* 想法区 */
+.pshop-detail-thoughts {
+  padding: 14px 16px;
+  background: rgba(255,255,255,.03);
+  border-left: 2px solid rgba(255,255,255,.15);
+  border-radius: 4px;
+}
+.pshop-thoughts-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 8px;
+}
+.pshop-thoughts-text {
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.7);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ==========================================================
+   Phone Shopping — Private 密码模态框（模块 7）
+   ========================================================== */
+
+.pshop-pw-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pshopOverlayIn .18s ease-out;
+  padding: 20px;
+}
+@keyframes pshopOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pshop-pw-modal {
+  width: 100%;
+  max-width: 300px;
+  background: #2c2c2e;
+  border-radius: 18px;
+  padding: 28px 22px 18px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,.5);
+  animation: pshopModalIn .22s cubic-bezier(.34, 1.3, .64, 1);
+}
+@keyframes pshopModalIn {
+  from { opacity: 0; transform: scale(.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.pshop-pw-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.55);
+}
+.pshop-pw-icon svg { width: 22px; height: 22px; }
+
+.pshop-pw-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.pshop-pw-sub {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.4);
+  margin-bottom: 18px;
+}
+
+.pshop-pw-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 6px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  color: #fff;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+.pshop-pw-input:focus {
+  border-color: rgba(10,132,255,.5);
+  box-shadow: 0 0 0 3px rgba(10,132,255,.12);
+}
+.pshop-pw-input-error {
+  border-color: rgba(255,69,58,.6) !important;
+  animation: pshopShake .35s;
+}
+@keyframes pshopShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.pshop-pw-error {
+  font-size: 12px;
+  color: rgba(255,69,58,.85);
+  margin-top: 10px;
+  min-height: 16px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.pshop-pw-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.pshop-pw-btn {
+  flex: 1;
+  padding: 11px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+.pshop-pw-cancel {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.7);
+}
+.pshop-pw-cancel:active { background: rgba(255,255,255,.12); }
+.pshop-pw-confirm {
+  background: rgba(10,132,255,.85);
+  color: #fff;
+}
+.pshop-pw-confirm:active { background: rgba(10,132,255,1); }

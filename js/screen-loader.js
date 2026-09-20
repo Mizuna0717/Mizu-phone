@@ -311,6 +311,8 @@ var scripts = [
     'js/phone-calendar.js',
     'js/phone-notes.js',
     'js/phone-music.js',
+    'js/phone-travel.js',
+    'js/phone-shopping.js',
     'js/together.js',
     'js/shop.js',
     'js/mcp.js',
