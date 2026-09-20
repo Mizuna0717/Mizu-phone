@@ -163,7 +163,7 @@
   gap: 4px;
 }
 .pmus-row-fav {
-  color: rgba(255,100,140,.7);
+  color: rgba(255,255,255,.55);
   display: inline-flex;
   flex-shrink: 0;
 }
@@ -213,4 +213,258 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+}
+
+/* ==========================================================
+   Phone Music — 详情页（模块 4）
+   ========================================================== */
+
+.pmus-detail-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+.pmus-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1c1c1e;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.pmus-detail-back {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #0a84ff;
+  font-size: 14px;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.pmus-detail-back:active { background: rgba(10,132,255,.12); }
+.pmus-detail-back span { font-weight: 500; }
+.pmus-detail-title { flex: 1; text-align: center; font-size: 15px; font-weight: 600; color: #fff; }
+.pmus-detail-header-right { width: 60px; flex-shrink: 0; }
+
+.pmus-detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 24px 20px 40px;
+}
+
+/* Hero 区：大封面 + 标题 */
+.pmus-detail-hero {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.pmus-detail-cover {
+  width: 160px;
+  height: 160px;
+  border-radius: 16px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.55);
+  box-shadow: 0 12px 32px rgba(0,0,0,.5);
+}
+.pmus-detail-cover svg { width: 48px; height: 48px; }
+.pmus-detail-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+  letter-spacing: -.3px;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+.pmus-detail-artist {
+  font-size: 14px;
+  color: rgba(255,255,255,.65);
+  margin-bottom: 4px;
+}
+.pmus-detail-album {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.35);
+}
+
+/* 歌词卡片 */
+.pmus-lyric-card {
+  padding: 20px;
+  margin-bottom: 20px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  position: relative;
+}
+.pmus-lyric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.pmus-lyric-text {
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', serif;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.85);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.pmus-lyric-thoughts {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(255,255,255,.08);
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', serif;
+  font-style: italic;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.5);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 字段区 */
+.pmus-detail-fields {
+  padding: 16px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.pmus-field-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+}
+.pmus-field-label {
+  font-size: 13px;
+  color: rgba(255,255,255,.3);
+  flex-shrink: 0;
+  letter-spacing: .2px;
+}
+.pmus-field-value {
+  font-size: 14px;
+  color: rgba(255,255,255,.8);
+  text-align: right;
+  word-break: break-word;
+  min-width: 0;
+}
+.pmus-field-played {
+  color: rgba(10,132,255,.85);
+  font-weight: 500;
+}
+
+/* 整首歌想法 */
+.pmus-detail-thoughts {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.03);
+  border-left: 2px solid rgba(255,255,255,.15);
+  border-radius: 4px;
+  font-family: Georgia, 'Times New Roman', 'Songti SC', 'STSong', serif;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255,255,255,.7);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===== 歌曲行整行点击区（覆盖全行）===== */
+.pmus-row {
+  position: relative;
+}
+.pmus-row-tap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  cursor: pointer;
+}
+.pmus-row > .pmus-row-index,
+.pmus-row > .pmus-row-cover,
+.pmus-row > .pmus-row-info,
+.pmus-row > .pmus-row-time,
+.pmus-row > .pmus-row-duration,
+.pmus-row > .pmus-row-more {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.pmus-row > .pmus-row-more {
+  pointer-events: auto;
+}
+
+/* ===== ⋯ 按钮 ===== */
+.pmus-row-more {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 6px 4px 6px 8px;
+  cursor: pointer;
+  color: rgba(255,255,255,.25);
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .15s;
+}
+.pmus-row-more:active {
+  color: rgba(255,255,255,.6);
+}
+
+/* ===== 歌单视图头部 ===== */
+.pmus-playlist-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: rgba(28,28,30,.6);
+}
+.pmus-playlist-back {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #0a84ff;
+  font-size: 14px;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.pmus-playlist-back:active { background: rgba(10,132,255,.12); }
+.pmus-playlist-back span { font-weight: 500; }
+.pmus-playlist-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+}
+.pmus-playlist-header-right {
+  width: 60px;
+  flex-shrink: 0;
+}
+.pmus-empty-row {
+  text-align: center;
+  color: rgba(255,255,255,.25);
+  font-size: 13px;
+  font-style: italic;
 }
