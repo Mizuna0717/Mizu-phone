@@ -81,7 +81,9 @@
     }
     if (preview.length > 60) preview = preview.slice(0, 60) + '…';
 
-    var h = '<div class="pnote-row" data-note-id="' + _pnoteEscape(note.id) + '">';
+    var h = '<div class="pnote-row" data-note-id="' + _pnoteEscape(note.id) + '" ' +
+            'onclick="openNoteDetail(\'' + _pnoteEscape(note.id) + '\')" ' +
+            'style="cursor:pointer;-webkit-tap-highlight-color:transparent">';
     h += '<div class="pnote-row-icon">' + _pnoteTypeIcon(note) + '</div>';
     h += '<div class="pnote-row-info">';
     h += '<div class="pnote-row-title">' +
@@ -223,6 +225,170 @@
       '</button>';
   }
 
+    // ══════════════════════════════════════════════
+  //  9.5 详情页（模块 4）
+  // ══════════════════════════════════════════════
+
+  function _pnoteFindNoteById(noteId) {
+    var arr = state.notesData || [];
+    for (var i = 0; i < arr.length; i++) {
+      if (arr[i] && arr[i].id === noteId) return arr[i];
+    }
+    return null;
+  }
+
+  function _pnoteFormatFullDate(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() +
+           ' ' + ('' + d.getHours()).padStart(2,'0') + ':' + ('' + d.getMinutes()).padStart(2,'0');
+  }
+
+  function _pnoteBuildDetailHTML(note) {
+    var h = '<div class="pnote-detail-page">';
+
+    // 顶栏
+    h += '<div class="pnote-detail-header">' +
+      '<button class="pnote-detail-back" onclick="backToNotesList()">' +
+        _pnoteIconBack + '<span>Notes</span>' +
+      '</button>' +
+      '<div class="pnote-detail-title"></div>' +
+      '<div class="pnote-detail-header-right"></div>' +
+    '</div>';
+
+    // 可滚动内容
+    h += '<div class="pnote-detail-scroll">';
+
+    // 标题 + 日期
+    h += '<div class="pnote-detail-title-block">';
+    h += '<div class="pnote-detail-name">' + _pnoteEscape(note.title) + '</div>';
+    h += '<div class="pnote-detail-date">' + _pnoteFormatFullDate(note.updatedAt) + '</div>';
+    h += '</div>';
+
+    // 正文
+    if (note.contentType === 'checklist' && note.checklistItems && note.checklistItems.length > 0) {
+      h += '<div class="pnote-detail-checklist">';
+      note.checklistItems.forEach(function(it){
+        h += '<div class="pnote-checkitem' + (it.done ? ' pnote-checkitem-done' : '') + '">';
+        h += '<span class="pnote-checkmark">' + (it.done ? '✓' : '○') + '</span>';
+        h += '<span class="pnote-checktext">' + _pnoteEscape(it.text) + '</span>';
+        h += '</div>';
+      });
+      h += '</div>';
+    } else {
+      h += '<div class="pnote-detail-body">' + _pnoteEscape(note.content || '(Empty)') + '</div>';
+    }
+
+    // 底部文件夹标签
+    if (note.folder) {
+      h += '<div class="pnote-detail-footer">';
+      h += '<span class="pnote-detail-folder">' + _pnoteEscape(note.folder) + '</span>';
+      h += '</div>';
+    }
+
+    h += '</div>'; // /scroll
+    h += '</div>'; // /detail-page
+
+    return h;
+  }
+
+  window.openNoteDetail = function(noteId) {
+    var note = _pnoteFindNoteById(noteId);
+    if (!note) { showToast('Note not found'); return; }
+    var pageEl = document.getElementById('phoneAppPage');
+    if (!pageEl) return;
+    pageEl.innerHTML = _pnoteBuildDetailHTML(note);
+    pageEl.scrollTop = 0;
+    var scrollEl = pageEl.querySelector('.pnote-detail-scroll');
+    if (scrollEl) scrollEl.scrollTop = 0;
+    console.log('[openNoteDetail]', note.title);
+  };
+
+  window.backToNotesList = function() {
+    if (typeof openPhoneApp === 'function') openPhoneApp('notes');
+  };
+
+  // ══════════════════════════════════════════════
+  //  9.6 私密文件夹解锁（模块 5）
+  // ══════════════════════════════════════════════
+
+  function _pnoteBuildPasswordModalHTML() {
+    return '<div class="pnote-pw-overlay" id="pnotePwOverlay" onclick="pnoteClosePasswordModal()">' +
+      '<div class="pnote-pw-modal" onclick="event.stopPropagation()">' +
+        '<div class="pnote-pw-icon">' + _pnoteIconLock + '</div>' +
+        '<div class="pnote-pw-title">Private Folder</div>' +
+        '<div class="pnote-pw-sub">Enter 4-digit password</div>' +
+        '<input type="password" inputmode="numeric" maxlength="4" class="pnote-pw-input" id="pnotePwInput" onkeydown="if(event.key===\'Enter\')pnoteSubmitPassword()" />' +
+        '<div class="pnote-pw-error" id="pnotePwError"></div>' +
+        '<div class="pnote-pw-actions">' +
+          '<button class="pnote-pw-btn pnote-pw-cancel" onclick="pnoteClosePasswordModal()">Cancel</button>' +
+          '<button class="pnote-pw-btn pnote-pw-confirm" onclick="pnoteSubmitPassword()">Unlock</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  window.pnoteOpenPrivate = function() {
+    // 已解锁 → 直接进
+    if (_pnotePrivateUnlocked) {
+      _pnoteView = 'folder:Private';
+      _pnoteRerender();
+      return;
+    }
+    // 未解锁 → 弹密码框
+    var pageEl = document.getElementById('phoneAppPage');
+    if (!pageEl) return;
+    // 避免重复插入
+    if (document.getElementById('pnotePwOverlay')) return;
+    pageEl.insertAdjacentHTML('beforeend', _pnoteBuildPasswordModalHTML());
+    setTimeout(function(){
+      var input = document.getElementById('pnotePwInput');
+      if (input) input.focus();
+    }, 100);
+  };
+
+  window.pnoteClosePasswordModal = function() {
+    var overlay = document.getElementById('pnotePwOverlay');
+    if (overlay) overlay.remove();
+  };
+
+  window.pnoteSubmitPassword = function() {
+    var input = document.getElementById('pnotePwInput');
+    var errEl = document.getElementById('pnotePwError');
+    if (!input) return;
+
+    var entered = String(input.value || '').trim();
+    var ownerCharId = (typeof _pmsgOwnerCharId === 'function') ? _pmsgOwnerCharId() : '__no_owner__';
+    var meta = _pnoteFindMeta(ownerCharId);
+    var correctPass = (meta && meta.privatePassword) ? meta.privatePassword : '1234';
+
+    if (entered === correctPass) {
+      // 解锁成功
+      _pnotePrivateUnlocked = true;
+      window.pnoteClosePasswordModal();
+      _pnoteView = 'folder:Private';
+      _pnoteRerender();
+      console.log('[pnoteSubmitPassword] 解锁成功');
+      if (typeof showToast === 'function') showToast('Unlocked');
+    } else {
+      // 密码错误
+      if (errEl) {
+        errEl.textContent = 'Wrong password';
+        errEl.style.opacity = '1';
+      }
+      input.value = '';
+      input.classList.add('pnote-pw-input-error');
+      setTimeout(function(){ input.classList.remove('pnote-pw-input-error'); }, 400);
+      input.focus();
+    }
+  };
+
+  // ══════════════════════════════════════════════
+  //  9.7 重渲染
+  // ══════════════════════════════════════════════
+
+
   // ══════════════════════════════════════════════
   //  9. 交互
   // ══════════════════════════════════════════════
@@ -244,10 +410,6 @@
     _pnoteView = 'all';
     _pnoteRerender();
   };
-  window.pnoteOpenPrivate = function() {
-    // 模块 5 会实现密码弹窗
-    if (typeof showToast === 'function') showToast('Private folder is locked');
-  };
 
   // ══════════════════════════════════════════════
   //  10. Prompt 构建
@@ -266,7 +428,10 @@
       '=== STEP 1: ANALYZE THE OWNER ===\n' +
       'Determine:\n' +
       '  - ORGANIZATION: high / medium / low (high = uses folders, pins, plans)\n' +
-      '  - NOTE COUNT: high-org → 15-25 / medium → 8-15 / low → 4-10\n' +
+      '  - NOTE COUNT: 15-30 notes total (regardless of organization level)\n' +
+      '    * High organization → closer to 25-30 (more folders, more pinned)\n' +
+      '    * Medium → 18-25\n' +
+      '    * Low → 15-20 (but still at least 15)\n' +
       '  - LANGUAGE: owner\'s native language\n' +
       '  - TOPICS: what they\'d note (work / study / life / ideas / diary)\n\n' +
 
@@ -290,9 +455,9 @@
       '=== STEP 4: NOTES CONTENT ===\n' +
       'Generate notes across all folders.\n\n' +
 
-      'Distribution:\n' +
-      '  - 40-60% in main folders (personal / work / ideas)\n' +
-      '  - 15-25% in Private folder (3-8 notes)\n' +
+            'Distribution (across 15-30 notes total):\n' +
+      '  - 60-70% in main folders (personal / work / ideas / others)\n' +
+      '  - 20-30% in Private folder (4-8 notes)\n' +
       '  - The rest distributed naturally\n\n' +
 
       'NOTE TYPES (choose only these two):\n' +

@@ -166,3 +166,257 @@
   width: 60px;
   flex-shrink: 0;
 }
+
+/* ==========================================================
+   Phone Notes — 详情页（模块 4）
+   ========================================================== */
+
+.pnote-detail-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+.pnote-detail-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1c1c1e;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.pnote-detail-back {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #0a84ff;
+  font-size: 14px;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.pnote-detail-back:active { background: rgba(10,132,255,.12); }
+.pnote-detail-back span { font-weight: 500; }
+.pnote-detail-title { flex: 1; text-align: center; font-size: 15px; font-weight: 600; color: #fff; }
+.pnote-detail-header-right { width: 60px; flex-shrink: 0; }
+
+.pnote-detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  padding: 20px 20px 40px;
+}
+
+.pnote-detail-title-block {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  margin-bottom: 16px;
+}
+.pnote-detail-name {
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+  letter-spacing: -.3px;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+.pnote-detail-date {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.35);
+}
+
+.pnote-detail-body {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.82);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* checklist */
+.pnote-detail-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pnote-checkitem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.pnote-checkmark {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+  color: rgba(255,214,10,.65);
+  font-size: 14px;
+  padding-top: 1px;
+}
+.pnote-checktext {
+  color: rgba(255,255,255,.82);
+  word-break: break-word;
+}
+.pnote-checkitem-done .pnote-checktext {
+  color: rgba(255,255,255,.35);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255,255,255,.2);
+}
+.pnote-checkitem-done .pnote-checkmark {
+  color: rgba(48,209,88,.75);
+}
+
+.pnote-detail-footer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.pnote-detail-folder {
+  display: inline-block;
+  font-size: 11.5px;
+  color: rgba(255,255,255,.4);
+  background: rgba(255,255,255,.05);
+  padding: 4px 10px;
+  border-radius: 8px;
+  letter-spacing: .2px;
+}
+
+/* ==========================================================
+   Phone Notes — 密码模态框（模块 5）
+   ========================================================== */
+
+.pnote-pw-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pnoteOverlayIn .18s ease-out;
+  padding: 20px;
+}
+@keyframes pnoteOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pnote-pw-modal {
+  width: 100%;
+  max-width: 300px;
+  background: #2c2c2e;
+  border-radius: 18px;
+  padding: 28px 22px 18px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,.5);
+  animation: pnoteModalIn .22s cubic-bezier(.34, 1.3, .64, 1);
+}
+@keyframes pnoteModalIn {
+  from { opacity: 0; transform: scale(.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.pnote-pw-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.55);
+}
+.pnote-pw-icon svg { width: 22px; height: 22px; }
+
+.pnote-pw-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.pnote-pw-sub {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.4);
+  margin-bottom: 18px;
+}
+
+.pnote-pw-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 6px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  color: #fff;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+.pnote-pw-input:focus {
+  border-color: rgba(10,132,255,.5);
+  box-shadow: 0 0 0 3px rgba(10,132,255,.12);
+}
+.pnote-pw-input-error {
+  border-color: rgba(255,69,58,.6) !important;
+  animation: pnoteShake .35s;
+}
+@keyframes pnoteShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.pnote-pw-error {
+  font-size: 12px;
+  color: rgba(255,69,58,.85);
+  margin-top: 10px;
+  min-height: 16px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.pnote-pw-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.pnote-pw-btn {
+  flex: 1;
+  padding: 11px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+.pnote-pw-cancel {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.7);
+}
+.pnote-pw-cancel:active { background: rgba(255,255,255,.12); }
+.pnote-pw-confirm {
+  background: rgba(10,132,255,.85);
+  color: #fff;
+}
+.pnote-pw-confirm:active { background: rgba(10,132,255,1); }
