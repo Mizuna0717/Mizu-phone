@@ -328,13 +328,26 @@ function _getGreetingWidget() {
   if (!state.home) state.home = {};
   if (!state.home.greetingWidget) {
     state.home.greetingWidget = {
-      bubbles: ['o•ᴗ•o', 'ᴗ ∧ ᴗ'],
-      names: ['Janice', 'James'],
-      tags: ['infp | Aries', 'entp | Capricorn'],
+      bubbles: ['₍^_ ‸ _ ^₎⟆ ', '>^•-•^<'],
+      names: ['Mio', 'Ryo'],
+      tags: ['infp | Aries', 'entp | Cancer'],
       avatars: ['', '']
     };
   }
-  return state.home.greetingWidget;
+
+    // 👇 新增：左右头像默认图
+  const gw = state.home.greetingWidget;
+  if (!gw.avatars) gw.avatars = ['', ''];
+  if (!gw.avatars[0]) {
+    gw.avatars[0] = 'images/greeting-1.jpg';
+    saveState(true);
+  }
+  if (!gw.avatars[1]) {
+    gw.avatars[1] = 'images/greeting-2.jpg';
+    saveState(true);
+  }
+
+  return gw;
 }
 
 function updateGreeting() {
@@ -442,12 +455,19 @@ function setMusicCover(inp) {
 
 function _renderMusicWidget() {
   const u = state.userProfile;
+
+  // 👇 新增：Music 封面默认图
+  if (!u.musicCover) {
+    u.musicCover = 'images/music.jpg';
+    saveState(true);
+  }
+
   const song   = document.getElementById('musicSong');
   const artist = document.getElementById('musicArtist');
   const img    = document.getElementById('musicCoverImg');
   const ph     = document.getElementById('musicCoverPh');
-  if (song)   song.textContent   = u.musicSong   || 'Collect,';
-  if (artist) artist.textContent = u.musicArtist || 'My album.';
+  if (song)   song.textContent   = u.musicSong   || 'ㅎㅇ＞𐋣＜🤍';
+  if (artist) artist.textContent = u.musicArtist || ': 보고 싶어...ㅠㅠ';
   if (img && ph) {
     if (u.musicCover) {
       img.src = u.musicCover; img.style.display = 'block'; ph.style.display = 'none';
@@ -694,7 +714,16 @@ function renderCalEvent() {
 // ========== CAPTCHA WIDGET IMAGE ==========
 function _getCalCaptchaImage() {
   if (!state.home) state.home = {};
-  if (!state.home.calCaptchaImage) state.home.calCaptchaImage = { type: 'url', value: '' };
+  if (!state.home.calCaptchaImage) {
+    state.home.calCaptchaImage = { type: 'url', value: '' };
+  }
+
+  // 👇 新增：Captcha 默认图
+  if (!state.home.calCaptchaImage.value) {
+    state.home.calCaptchaImage = { type: 'url', value: 'images/captcha.jpg' };
+    saveState(true);
+  }
+
   return state.home.calCaptchaImage;
 }
 
