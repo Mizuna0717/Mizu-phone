@@ -63,7 +63,6 @@ function _getEffectivePromptMeeting() {
 function renderSettings() {
   renderApiListInline();
   renderSettingsHero();
-  renderHelpAccordion();
 
   _ensurePromptsInState();
 
