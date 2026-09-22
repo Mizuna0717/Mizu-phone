@@ -17,6 +17,8 @@ let state = {
     theme: { fontSize: 'medium', chatBubble: '', chatInterface: '', meetingStyle: '', heartPanel: '', meetingArchive: '', chatTopBar: '', chatInput: '', chatCards: '', callScreen: '', general: { fontSize: 'medium',homeIcons: {}, desktopBackground: { type: 'url', value: '' }, desktopIcon: { type: 'url', value: '' }, iconNames: {}, iconSettings: {}, chatBackground: { type: 'url', value: '' } } },
           systemPromptIM: '',
   systemPromptMeeting: '',
+  imPromptMode: 'default_no_punc',
+  meetingPromptMode: 'default',
   user: null
 };
 
@@ -36,7 +38,7 @@ var SAVE_KEYS = [
   'unread', 'drawerFilter', 'drawerSort', 'lang', 'userProfile', 'masks',
   'memories', 'replyPrompt', 'charConfig', 'phoneData', 'bookmarks','mailData' , 'calendarData' ,          
     'groups', 'moments', 'imsgTab','messageChats', 'callHistory' ,'socialData' , 'walletData' ,            
-    'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting', 'theme',
+    'meetings', 'npcs', 'allowQuote', 'systemPromptIM', 'systemPromptMeeting', 'theme','imPromptMode', 'meetingPromptMode',
   'wikiSchedule', 'together', 'home', 'settings','notesData' ,'musicData','travelData','shoppingData'
 ];
 
@@ -56,7 +58,8 @@ function _getStateDefaults() {
     charEditFrom: 'screen-imessage', drawerFilter: 'all', drawerSort: 'recent',
     drawerSearch: '', lang: 'en', userProfile: { name: 'User', avatar: null },
     masks: [], memories: [], imsgTab: 'messages',
-    replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,
+    replyPrompt: (typeof DEFAULT_REPLY_PROMPT !== 'undefined') ? DEFAULT_REPLY_PROMPT : null,    imPromptMode: 'default_no_punc',
+    meetingPromptMode: 'default',
     charConfig: {}, phoneData: {}, bookmarks: [], groups: [], moments: [], meetings: [],
     npcs: [], messageChats: [], callHistory: [], mailData: [], socialData: [],
       wikiSchedule: [],walletData: [],calendarData: [], notesData: [],musicData: [],travelData: [],shoppingData: [],
@@ -113,6 +116,8 @@ function _validateState() {
   if (!Array.isArray(state.shoppingData)) state.shoppingData = [];
   if (!Array.isArray(state.npcs)) state.npcs = [];
   if (!Array.isArray(state.wikiSchedule)) state.wikiSchedule = [];
+    if (!state.imPromptMode) state.imPromptMode = 'default_no_punc';
+  if (!state.meetingPromptMode) state.meetingPromptMode = 'default';
 
 
 

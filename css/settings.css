@@ -365,3 +365,74 @@
   margin-top: 4px;
   text-align: center;
 }
+
+/* ===== Prompt Mode Selector (segmented) ===== */
+.prompt-mode-seg {
+  display: flex;
+  margin: 12px 16px 8px;
+  background: #e5e5ea;
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.prompt-mode-opt {
+  flex: 1;
+  padding: 9px 6px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8e8e93;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.prompt-mode-opt.active {
+  background: #fff;
+  color: #1d1d1f;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+
+.prompt-mode-opt:active {
+  opacity: .7;
+}
+
+/* ===== Custom Prompt 内联展开 ===== */
+.prompt-custom-wrap {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .28s ease;
+  border-top: 1px solid transparent;
+}
+
+.prompt-custom-wrap.open {
+  max-height: 240px;
+  border-top-color: #f2f2f7;
+}
+
+.prompt-custom-wrap textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #1d1d1f;
+  resize: none;
+  min-height: 120px;
+  max-height: 200px;
+  font-family: inherit;
+  line-height: 1.5;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.prompt-custom-wrap textarea::placeholder {
+  color: #c7c7cc;
+}

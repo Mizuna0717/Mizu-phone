@@ -13,16 +13,16 @@ function initSystemPrompts() {
 
   var needSave = false;
 
-  if (!state.systemPromptIM) {
+  if (state.systemPromptIM == null) {
     if (state.replyPrompt && state.replyPrompt !== (typeof DEFAULT_REPLY_PROMPT !== 'undefined' ? DEFAULT_REPLY_PROMPT : '')) {
       state.systemPromptIM = state.replyPrompt;
     } else {
-      state.systemPromptIM = (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM : '';
+      state.systemPromptIM = (typeof DEFAULT_SYSTEM_PROMPT_IM_NO_PUNC !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_IM_NO_PUNC : '';
     }
     needSave = true;
   }
 
-  if (!state.systemPromptMeeting) {
+  if (state.systemPromptMeeting == null) {
     state.systemPromptMeeting = (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
     needSave = true;
   }
@@ -66,10 +66,7 @@ function renderSettings() {
 
   _ensurePromptsInState();
 
-  var imArea = document.getElementById('promptIMArea');
-  var mtArea = document.getElementById('promptMeetingArea');
-  if (imArea) imArea.value = _getEffectivePromptIM();
-  if (mtArea) mtArea.value = _getEffectivePromptMeeting();
+  _restorePromptModeUI();
 
   if (!state.memories) state.memories = [];
 
@@ -91,12 +88,12 @@ function renderSettings() {
 function _ensurePromptsInState() {
   var needSave = false;
 
-  if (!state.systemPromptIM) {
+  if (state.systemPromptIM == null) {
     state.systemPromptIM = _getEffectivePromptIM();
     if (state.systemPromptIM) needSave = true;
   }
 
-  if (!state.systemPromptMeeting) {
+  if (state.systemPromptMeeting == null) {
     state.systemPromptMeeting = _getEffectivePromptMeeting();
     if (state.systemPromptMeeting) needSave = true;
   }
@@ -264,3 +261,200 @@ function deleteApi() {
   nav('screen-settings');
   showSnackbar(T('deleted'), () => { state.apis.push(a); saveState(); renderSettings(); });
 }
+
+// ========== 提示词模式选择（阶段3：切换 + 覆盖 state） ==========
+
+function _getImPromptByMode(mode) {
+  var noPunc = (typeof DEFAULT_SYSTEM_PROMPT_IM_NO_PUNC !== 'undefined')
+    ? DEFAULT_SYSTEM_PROMPT_IM_NO_PUNC
+    : (typeof DEFAULT_SYSTEM_PROMPT_IM !== 'undefined' ? DEFAULT_SYSTEM_PROMPT_IM : '');
+  var punc = (typeof DEFAULT_SYSTEM_PROMPT_IM_PUNC !== 'undefined')
+    ? DEFAULT_SYSTEM_PROMPT_IM_PUNC
+    : noPunc;
+  if (mode === 'default_no_punc') return noPunc;
+  if (mode === 'default_punc') return punc;
+  return null; // custom
+}
+
+function _getMeetingPromptByMode(mode) {
+  if (mode === 'default') {
+    return (typeof DEFAULT_SYSTEM_PROMPT_MEETING !== 'undefined') ? DEFAULT_SYSTEM_PROMPT_MEETING : '';
+  }
+  return null; // custom
+}
+
+function _setPromptModeActive(groupId, mode) {
+  var group = document.getElementById(groupId);
+  if (!group) return;
+  group.querySelectorAll('.prompt-mode-opt').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+}
+
+function _toggleCustomWrap(wrapId, open) {
+  var wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  wrap.classList.toggle('open', !!open);
+}
+
+function selectImPromptMode(mode) {
+  var prevMode = state.imPromptMode;
+  _setPromptModeActive('imPromptModeGroup', mode);
+  state.imPromptMode = mode;
+
+  var area = document.getElementById('promptIMArea');
+
+  if (mode === 'custom') {
+    _toggleCustomWrap('imPromptCustomWrap', true);
+    if (prevMode !== 'custom') {
+      // 从别的模式切过来 → 弹出空输入框
+      if (area) area.value = '';
+      state.systemPromptIM = '';
+    } else {
+      // 本来就是 custom（程序性调用）→ 保留
+      if (area) area.value = state.systemPromptIM || '';
+    }
+  } else {
+    _toggleCustomWrap('imPromptCustomWrap', false);
+    var val = _getImPromptByMode(mode);
+    if (val != null) {
+      state.systemPromptIM = val;
+      if (area) area.value = val;
+    }
+  }
+
+  saveState();
+  console.log('[selectImPromptMode]', mode,
+    '| state.systemPromptIM length:', (state.systemPromptIM || '').length);
+}
+
+function selectMeetingPromptMode(mode) {
+  var prevMode = state.meetingPromptMode;
+  _setPromptModeActive('meetingPromptModeGroup', mode);
+  state.meetingPromptMode = mode;
+
+  var area = document.getElementById('promptMeetingArea');
+
+  if (mode === 'custom') {
+    _toggleCustomWrap('meetingPromptCustomWrap', true);
+    if (prevMode !== 'custom') {
+      if (area) area.value = '';
+      state.systemPromptMeeting = '';
+    } else {
+      if (area) area.value = state.systemPromptMeeting || '';
+    }
+  } else {
+    _toggleCustomWrap('meetingPromptCustomWrap', false);
+    var val = _getMeetingPromptByMode(mode);
+    if (val != null) {
+      state.systemPromptMeeting = val;
+      if (area) area.value = val;
+    }
+  }
+
+  saveState();
+  console.log('[selectMeetingPromptMode]', mode,
+    '| state.systemPromptMeeting length:', (state.systemPromptMeeting || '').length);
+}
+
+// 恢复 UI（进设置页时调用）
+function _restorePromptModeUI() {
+  var imMode = state.imPromptMode || 'default_no_punc';
+  var mtMode = state.meetingPromptMode || 'default';
+  var needSave = false;
+
+  // ★ 非 custom 模式：强制 state 对齐常量（清理历史遗留）
+  if (imMode !== 'custom') {
+    var v1 = _getImPromptByMode(imMode);
+    if (v1 != null && state.systemPromptIM !== v1) {
+      console.log('[restore] IM mode=' + imMode + '，state 与常量不一致，自动对齐 | 旧长度=' +
+        (state.systemPromptIM || '').length + ' → 新长度=' + v1.length);
+      state.systemPromptIM = v1;
+      needSave = true;
+    }
+  }
+  if (mtMode !== 'custom') {
+    var v2 = _getMeetingPromptByMode(mtMode);
+    if (v2 != null && state.systemPromptMeeting !== v2) {
+      console.log('[restore] Meeting mode=' + mtMode + '，state 与常量不一致，自动对齐 | 旧长度=' +
+        (state.systemPromptMeeting || '').length + ' → 新长度=' + v2.length);
+      state.systemPromptMeeting = v2;
+      needSave = true;
+    }
+  }
+
+  if (needSave) saveState();
+
+  // UI 状态
+  _setPromptModeActive('imPromptModeGroup', imMode);
+  _toggleCustomWrap('imPromptCustomWrap', imMode === 'custom');
+  _setPromptModeActive('meetingPromptModeGroup', mtMode);
+  _toggleCustomWrap('meetingPromptCustomWrap', mtMode === 'custom');
+
+  var imArea = document.getElementById('promptIMArea');
+  var mtArea = document.getElementById('promptMeetingArea');
+  if (imArea) imArea.value = (imMode === 'custom') ? (state.systemPromptIM || '') : _getEffectivePromptIM();
+  if (mtArea) mtArea.value = (mtMode === 'custom') ? (state.systemPromptMeeting || '') : _getEffectivePromptMeeting();
+}
+
+// ========== 控制台验证函数 ==========
+window.__checkPromptSettings = function() {
+  var imMode = state.imPromptMode;
+  var mtMode = state.meetingPromptMode;
+
+  var imGroup = document.getElementById('imPromptModeGroup');
+  var imActive = imGroup ? imGroup.querySelector('.prompt-mode-opt.active') : null;
+  var imActiveMode = imActive ? imActive.dataset.mode : 'NONE';
+
+  var mtGroup = document.getElementById('meetingPromptModeGroup');
+  var mtActive = mtGroup ? mtGroup.querySelector('.prompt-mode-opt.active') : null;
+  var mtActiveMode = mtActive ? mtActive.dataset.mode : 'NONE';
+
+  var imWrap = document.getElementById('imPromptCustomWrap');
+  var mtWrap = document.getElementById('meetingPromptCustomWrap');
+
+  console.log('%c=== Prompt Settings Check ===', 'color:#0a84ff;font-weight:bold;font-size:14px');
+
+  console.log('%c[State]', 'color:#30d158;font-weight:bold');
+  console.table({
+    'imPromptMode': imMode,
+    'meetingPromptMode': mtMode,
+    'systemPromptIM 长度': (state.systemPromptIM || '').length,
+    'systemPromptMeeting 长度': (state.systemPromptMeeting || '').length,
+  });
+
+  console.log('%c[UI]', 'color:#ff9f0a;font-weight:bold');
+  console.table({
+    'IM 按钮 active': imActiveMode,
+    'Meeting 按钮 active': mtActiveMode,
+    'IM 自定义框展开': imWrap ? imWrap.classList.contains('open') : 'N/A',
+    'Meeting 自定义框展开': mtWrap ? mtWrap.classList.contains('open') : 'N/A',
+  });
+
+  var errors = [];
+  if (imMode !== imActiveMode)
+    errors.push('⚠ IM 按钮 active 与 state 不一致: state=' + imMode + ' UI=' + imActiveMode);
+  if (mtMode !== mtActiveMode)
+    errors.push('⚠ Meeting 按钮 active 与 state 不一致: state=' + mtMode + ' UI=' + mtActiveMode);
+  if (imMode === 'custom' && imWrap && !imWrap.classList.contains('open'))
+    errors.push('⚠ IM custom 模式但输入框未展开');
+  if (imMode !== 'custom' && imWrap && imWrap.classList.contains('open'))
+    errors.push('⚠ IM 非 custom 模式但输入框还展开着');
+  if (mtMode === 'custom' && mtWrap && !mtWrap.classList.contains('open'))
+    errors.push('⚠ Meeting custom 模式但输入框未展开');
+  if (mtMode !== 'custom' && mtWrap && mtWrap.classList.contains('open'))
+    errors.push('⚠ Meeting 非 custom 模式但输入框还展开着');
+  if (!state.systemPromptIM)
+    errors.push('⚠ systemPromptIM 为空');
+  if (!state.systemPromptMeeting)
+    errors.push('⚠ systemPromptMeeting 为空');
+
+  if (errors.length) {
+    console.log('%c[问题]', 'color:#ff453a;font-weight:bold');
+    errors.forEach(function(e) { console.log(e); });
+  } else {
+    console.log('%c✓ 所有检查通过', 'color:#30d158;font-weight:bold;font-size:14px');
+  }
+
+  return { imMode: imMode, mtMode: mtMode, imActiveMode: imActiveMode, mtActiveMode: mtActiveMode };
+};

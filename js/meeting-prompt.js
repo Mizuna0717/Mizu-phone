@@ -57,7 +57,7 @@ function mtgBuildSystemPrompt(session, ch) {
   p += '--- COLLABORATIVE WRITING SESSION RULES ---\n';
   p += '1. Write your response using ' + (cpDesc[session.charPerson] || cpDesc.first) + ' narration.\n';
   p += '2. The user writes in ' + (upDesc[session.userPerson] || upDesc.first) + '.\n';
-  p += '3. Your response MUST be between ' + session.wc.min + ' and ' + session.wc.max + ' words. Count carefully.\n';
+  p += '3. 你的回复长度必须在 ' + session.wc.min + ' 到 ' + session.wc.max + ' 个中文字符之间（含标点）。请严格计数，不要少于下限，不要超过上限。Your response MUST be between ' + session.wc.min + ' and ' + session.wc.max + ' Chinese characters (including punctuation). Count carefully.\n';
   p += '4. Stay completely in character.\n';
   p += '5. Advance the story naturally. Do not repeat the user\'s content.\n';
   p += '6. Output only narrative prose. No meta-commentary, no character name prefix.\n';
