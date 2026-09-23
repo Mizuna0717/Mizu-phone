@@ -20,27 +20,41 @@ function initHome() {
 function initHomeSwipe() {
   const pages = document.getElementById('homePages');
   if (!pages) return;
-  let startX = 0, startY = 0, diffX = 0, moving = false;
-  pages.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; moving = true; diffX = 0; });
-  pages.addEventListener('touchmove', e => {
-    if (!moving) return;
-    diffX = e.touches[0].clientX - startX;
-    const diffY = e.touches[0].clientY - startY;
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) e.preventDefault();
-  }, { passive: false });
-  pages.addEventListener('touchend', () => {
-    if (!moving) return;
-    moving = false;
-    if (diffX < -50 && homePageIndex < 1) { homePageIndex = 1; updateHomePages(); }
-    else if (diffX > 50 && homePageIndex > 0) { homePageIndex = 0; updateHomePages(); }
+
+  // 初始位置
+  requestAnimationFrame(() => {
+    pages.scrollLeft = homePageIndex * pages.clientWidth;
   });
+
+  // 滚动结束（或停下）后同步 index 和小圆点
+  let scrollEndTimer = null;
+  pages.addEventListener('scroll', () => {
+    clearTimeout(scrollEndTimer);
+    scrollEndTimer = setTimeout(() => {
+      const w = pages.clientWidth || 1;
+      const idx = Math.round(pages.scrollLeft / w);
+      if (idx >= 0 && idx <= 1 && idx !== homePageIndex) {
+        homePageIndex = idx;
+        updateHomeDots();
+      }
+    }, 60);
+  }, { passive: true });
 }
 
+function updateHomeDots() {
+  const d0 = document.getElementById('homeDot0');
+  const d1 = document.getElementById('homeDot1');
+  if (d0) d0.classList.toggle('active', homePageIndex === 0);
+  if (d1) d1.classList.toggle('active', homePageIndex === 1);
+}
+
+// 保留这个函数名，因为可能别的地方也在调用
 function updateHomePages() {
-  document.getElementById('homePage1').style.transform = `translateX(${-homePageIndex * 100}%)`;
-  document.getElementById('homePage2').style.transform = `translateX(${-homePageIndex * 100}%)`;
-  document.getElementById('homeDot0').classList.toggle('active', homePageIndex === 0);
-  document.getElementById('homeDot1').classList.toggle('active', homePageIndex === 1);
+  const pages = document.getElementById('homePages');
+  if (!pages) return;
+  const w = pages.clientWidth || 1;
+  pages.scrollTo({ left: homePageIndex * w, behavior: 'smooth' });
+  updateHomeDots();
 }
 
 // ========== Together 入口 ==========
