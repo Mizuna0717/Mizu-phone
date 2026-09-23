@@ -1,6 +1,60 @@
 ﻿// ========== 15-home.js ==========
 // 依賴：02-state.js, 03-utils.js
 
+// ========== 未完成软件清单 ==========
+const WIP_APPS = {
+  'screen-game':     'Game',
+  'screen-shop':     'Shop',
+  'screen-ao3':      'AO3',
+  'screen-couple':   'Couple',
+  'screen-together': 'Together',
+  'screen-mcp':      'MCP',
+  'screen-forum':    'Forum',
+};
+
+function navOrWarn(screen, onEnter) {
+  const name = WIP_APPS[screen];
+  if (name) {
+    _showWipModal(name, () => {
+      nav(screen);
+      if (typeof onEnter === 'function') onEnter();
+    });
+  } else {
+    nav(screen);
+    if (typeof onEnter === 'function') onEnter();
+  }
+}
+
+function _showWipModal(appName, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modern-modal-overlay';
+  overlay.innerHTML = `
+    <div class="modern-modal">
+      <div class="modern-modal-header">
+        <div class="modern-modal-title">${appName}</div>
+        <div class="modern-modal-subtitle">此软件功能暂未开发完成，确定要进入吗？</div>
+      </div>
+      <div class="modern-modal-buttons" style="padding-top:20px;">
+        <button class="modern-modal-btn modern-modal-btn-primary" id="_wipConfirm">确定进入</button>
+        <button class="modern-modal-btn modern-modal-btn-secondary" id="_wipCancel">取消</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.classList.add('show'), 10);
+
+  const close = () => {
+    overlay.classList.remove('show');
+    setTimeout(() => overlay.remove(), 250);
+  };
+
+  overlay.querySelector('#_wipConfirm').onclick = () => {
+    close();
+    if (typeof onConfirm === 'function') onConfirm();
+  };
+  overlay.querySelector('#_wipCancel').onclick = close;
+  overlay.onclick = e => { if (e.target === overlay) close(); };
+}
+
 let homePageIndex = 0;
 
 function initHome() {
@@ -59,8 +113,7 @@ function updateHomePages() {
 
 // ========== Together 入口 ==========
 function openTogether() {
-  console.log('[Together] Opening Together app');
-  nav('screen-together');
+  navOrWarn('screen-together');
 }
 
 // ========== HOME WIDGETS ==========

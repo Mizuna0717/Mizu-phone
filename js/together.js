@@ -319,8 +319,9 @@ function switchTogetherTab(tab) {
 }
 
 function openTogether() {
-  nav('screen-together');
-  switchTogetherTab('listen');
+  navOrWarn('screen-together', () => {
+    if (typeof switchTogetherTab === 'function') switchTogetherTab('listen');
+  });
 }
 
 function initTogether() {
