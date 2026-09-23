@@ -25,14 +25,14 @@ function navOrWarn(screen, onEnter) {
   }
 }
 
-function _showWipModal(appName, onConfirm) {
+function _showWipModal(appName, onConfirm, customMsg) {
   const overlay = document.createElement('div');
   overlay.className = 'modern-modal-overlay';
   overlay.innerHTML = `
     <div class="modern-modal">
       <div class="modern-modal-header">
         <div class="modern-modal-title">${appName}</div>
-        <div class="modern-modal-subtitle">此软件功能暂未开发完成，确定要进入吗？</div>
+        <div class="modern-modal-subtitle">${customMsg || '此软件功能暂未开发完成，确定要进入吗？'}</div>
       </div>
       <div class="modern-modal-buttons" style="padding-top:20px;">
         <button class="modern-modal-btn modern-modal-btn-primary" id="_wipConfirm">确定进入</button>
@@ -109,6 +109,14 @@ function updateHomePages() {
   const w = pages.clientWidth || 1;
   pages.scrollTo({ left: homePageIndex * w, behavior: 'smooth' });
   updateHomeDots();
+}
+
+function enterPhoneScreenWithWarn() {
+  _showWipModal(
+    'Phone',
+    () => enterPhoneScreen(),
+    '查手机内部分软件已完成开发，其余软件仅有页面。确定要进入吗？'
+  );
 }
 
 // ========== Together 入口 ==========
