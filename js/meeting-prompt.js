@@ -42,25 +42,59 @@ function mtgBuildSystemPrompt(session, ch) {
     }
   }
 
-  // ★ 4. 协作写作规则
+    // ★ 4. 协作写作规则
+  var charPersonKey = session.charPerson || 'first';
+  var userPersonKey = session.userPerson || 'first';
+
   var cpDesc = {
-    first: 'first person (I, me, my)',
-    second: 'second person (you, your)',
-    third: 'third person (' + ch.name + ', he/she/they)'
+    first:  '第一人称（我 / 我的）',
+    second: '第二人称（你 / 你的）',
+    third:  '第三人称（用角色名「' + ch.name + '」+ 他/她）'
   };
   var upDesc = {
-    first: 'first person (I, me, my)',
-    second: 'second person (you, your)',
-    third: 'third person'
+    first:  '第一人称（我）',
+    second: '第二人称（你）',
+    third:  '第三人称（他/她）'
+  };
+
+  var cpExample = {
+    first:  '我抬头看向窗外，雨还在下。我伸手拉上窗帘，心里想起刚才那句话。',
+    second: '你抬头看向窗外，雨还在下。你伸手拉上窗帘，心里想起刚才那句话。',
+    third:  ch.name + '抬头看向窗外，雨还在下。' + ch.name + '伸手拉上窗帘，心里想起刚才那句话。'
+  };
+  var cpAntiExample = {
+    first:  '你抬头看向窗外（错！你不是"你"，你是"我"）',
+    second: '我抬头看向窗外（错！你要用"你"描述）',
+    third:  '我抬头看向窗外（错！要用「' + ch.name + '」）'
   };
 
   p += '--- COLLABORATIVE WRITING SESSION RULES ---\n';
-  p += '1. Write your response using ' + (cpDesc[session.charPerson] || cpDesc.first) + ' narration.\n';
-  p += '2. The user writes in ' + (upDesc[session.userPerson] || upDesc.first) + '.\n';
-  p += '3. 你的回复长度必须在 ' + session.wc.min + ' 到 ' + session.wc.max + ' 个中文字符之间（含标点）。请严格计数，不要少于下限，不要超过上限。Your response MUST be between ' + session.wc.min + ' and ' + session.wc.max + ' Chinese characters (including punctuation). Count carefully.\n';
-  p += '4. Stay completely in character.\n';
-  p += '5. Advance the story naturally. Do not repeat the user\'s content.\n';
-  p += '6. Output only narrative prose. No meta-commentary, no character name prefix.\n';
+  p += '\n';
+  p += '【规则 1 — 人称硬性要求（最重要，违反视为无效）】\n';
+  p += '你（AI）必须以【' + cpDesc[charPersonKey] + '】来写作。\n';
+  p += '用户以【' + upDesc[userPersonKey] + '】写作，这与你无关，不要模仿用户的人称。\n';
+  p += '\n';
+  p += '正确示例：' + cpExample[charPersonKey] + '\n';
+  p += '错误示例：' + cpAntiExample[charPersonKey] + '\n';
+  p += '\n';
+  p += '每次输出前，请检查你的第一句话是否使用了正确的人称。如果错了，重写。\n';
+  p += 'You MUST write in ' + charPersonKey.replace('first','FIRST').replace('second','SECOND').replace('third','THIRD') + ' PERSON (' + (charPersonKey === 'first' ? 'I/me/my' : charPersonKey === 'second' ? 'you/your' : ch.name + '/he/she/they') + ') narration. Do NOT switch person mid-response.\n';
+  p += '\n';
+  p += '【规则 2】保持角色一致性。不要脱离 ' + ch.name + ' 的人设。\n';
+  p += '【规则 3】自然推进剧情，不要重复用户写过的内容。\n';
+  p += '【规则 4】只输出叙事正文。不要有任何元评论、不要带角色名前缀、不要写"（旁白）"之类。\n';
+  p += '\n';
+  p += '【字数硬性要求 — 违反视为无效】\n';
+  p += '   - 你的回复长度必须在 ' + session.wc.min + ' 到 ' + session.wc.max + ' 个中文字符之间（含标点）。\n';
+  p += '   - 下限 ' + session.wc.min + ' 字是绝对红线，无论剧情是否结束、对话是否简短，都不能低于此数。\n';
+  p += '   - 如果情节已经讲完但字数不够，请通过以下方式补足：\n';
+  p += '     · 增加角色的动作细节（肢体语言、表情、眼神）\n';
+  p += '     · 增加环境描写（光线、声响、气温、气味）\n';
+  p += '     · 增加角色的心理活动（内心独白、情绪波动）\n';
+  p += '     · 增加对话间的停顿、沉默、气氛渲染\n';
+  p += '     · 扩展已有的描写而不是重复用户内容\n';
+  p += '   - 输出前请在心中默数字数，确认 ≥ ' + session.wc.min + ' 后再输出。\n';
+  p += '   - Your response MUST be between ' + session.wc.min + ' and ' + session.wc.max + ' Chinese characters (including punctuation). The lower bound of ' + session.wc.min + ' is a HARD minimum — NEVER go below it.\n';
   p += '---\n';
 
   // ★ 5. 多角色场景上下文
