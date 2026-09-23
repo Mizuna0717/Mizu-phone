@@ -389,12 +389,17 @@ async function regenerateLastTurn(bubbleId) {
   /* 上下文：取移除后、turnStart 之前的消息（最多 30 条） */
   var ctxEnd = Math.min(turnStart, msgs.length);
   var ctxSlice = msgs.slice(Math.max(0, ctxEnd - 30), ctxEnd);
-  var apiCtx = ctxSlice.map(function(m) {
-    return {
-      role: m.role === 'user' ? 'user' : 'assistant',
-      content: m.recalled ? '[已撤回]' : (m.content || '')
-    };
-  });
+var apiCtx = ctxSlice.map(function(m) {
+  var _role = m.role === 'user' ? 'user' : 'assistant';
+  if (m.recalled) return { role: _role, content: '[已撤回]' };
+  if (m.type === 'sticker') {
+    var _stk = (state.stickers || []).find(function(x){ return x.dataUrl === m.content || x.id === m.content; });
+    return { role: _role, content: (_stk && _stk.name) ? '[用户发送贴纸: ' + _stk.name + ']' : '[用户发送了一个贴纸]' };
+  }
+  if (m.type === 'image') return { role: _role, content: m.content || '[图片]' };
+  if (m.type === 'simImage') return { role: _role, content: '[图片: ' + m.content + ']' };
+  return { role: _role, content: m.content || '' };
+});
 
   var sysPrompt = '';
   if (typeof buildSystemPrompt === 'function') {

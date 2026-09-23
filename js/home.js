@@ -215,8 +215,8 @@ function _showBlogMediaPicker(onLocalFile, onUrlInput) {
   overlay.innerHTML = `
     <div class="modern-modal">
       <div class="modern-modal-header">
-        <div class="modern-modal-title">Choose Image Source</div>
-        <div class="modern-modal-subtitle">Select how you want to add an image</div>
+        <div class="modern-modal-title">${T('mediaPickerTitle')}</div>
+        <div class="modern-modal-subtitle">${T('mediaPickerSub')}</div>
       </div>
       <div class="modern-modal-body">
         <div class="modern-modal-option" id="_mmpFile">
@@ -224,8 +224,8 @@ function _showBlogMediaPicker(onLocalFile, onUrlInput) {
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
           </div>
           <div class="modern-modal-option-text">
-            <div class="modern-modal-option-title">Upload from Device</div>
-            <div class="modern-modal-option-desc">Choose a photo from your gallery</div>
+            <div class="modern-modal-option-title">${T('mediaPickerDevice')}</div>
+            <div class="modern-modal-option-desc">${T('mediaPickerDeviceD')}</div>
           </div>
         </div>
         <div class="modern-modal-option" id="_mmpUrl">
@@ -233,13 +233,13 @@ function _showBlogMediaPicker(onLocalFile, onUrlInput) {
             <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
           </div>
           <div class="modern-modal-option-text">
-            <div class="modern-modal-option-title">Enter Image URL</div>
-            <div class="modern-modal-option-desc">Paste a link from the web</div>
+            <div class="modern-modal-option-title">${T('mediaPickerUrl')}</div>
+            <div class="modern-modal-option-desc">${T('mediaPickerUrlD')}</div>
           </div>
         </div>
       </div>
       <div class="modern-modal-buttons">
-        <button class="modern-modal-btn modern-modal-btn-secondary" id="_mmpCancel">Cancel</button>
+        <button class="modern-modal-btn modern-modal-btn-secondary" id="_mmpCancel">${T('cancel')}</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -271,8 +271,8 @@ function _showTextInputModal(title, placeholder, defaultValue, onConfirm) {
         <input type="text" class="modern-modal-input" id="_timInput" placeholder="${placeholder}" value="${defaultValue}">
       </div>
       <div class="modern-modal-buttons">
-        <button class="modern-modal-btn modern-modal-btn-primary" id="_timConfirm">Confirm</button>
-        <button class="modern-modal-btn modern-modal-btn-secondary" id="_timCancel">Cancel</button>
+<button class="modern-modal-btn modern-modal-btn-primary" id="_timConfirm">${T('save')}</button>
+<button class="modern-modal-btn modern-modal-btn-secondary" id="_timCancel">${T('cancel')}</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);

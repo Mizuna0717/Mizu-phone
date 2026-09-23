@@ -984,3 +984,21 @@
   color: #8e8e93;
   font-weight: 500;
 }
+
+.profile-hero-edit {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 2;
+}
+.profile-hero { position: relative; }

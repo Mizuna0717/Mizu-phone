@@ -657,7 +657,10 @@ async function _triggerSingleResponse(api) {
     var allChatMsgs = (state.chats[state.currentCharId]||[]).map(function(m) {
       if (m.recalled) return { role: m.role, content: '[Message recalled]' };
       if (m.type === 'voice') return { role: m.role, content: '[Voice]: ' + m.content };
-      if (m.type === 'sticker') return { role: m.role, content: '[Sent sticker]' };
+      if (m.type === 'sticker') {
+  var _stk = (state.stickers || []).find(function(x){ return x.dataUrl === m.content || x.id === m.content; });
+  return { role: m.role, content: (_stk && _stk.name) ? '[用户发送贴纸: ' + _stk.name + ']' : '[用户发送了一个贴纸]' };
+}
       if (m.type === 'transfer') { var d2 = typeof m.content === 'string' && m.content.startsWith('{') ? JSON.parse(m.content) : m.content; var statusLabel = m.transferStatus === 'accepted' ? ' (Accepted)' : m.transferStatus === 'declined' ? ' (Declined)' : ' (Pending)'; return { role: m.role, content: '[Transfer $' + (d2.amount||d2) + ']' + statusLabel }; }
       if (m.type === 'image') return { role: m.role, content: m.content };
       if (m.type === 'simImage') return { role: m.role, content: '[Image: ' + m.content + ']' };

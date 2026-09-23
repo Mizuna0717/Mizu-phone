@@ -139,7 +139,10 @@ function _buildGroupChatMsgsForChar(groupId, targetCharId, contextCount) {
     var content = m.content;
     if (m.recalled) content = '[Message recalled]';
     else if (m.type === 'voice') content = '[Voice]: ' + m.content;
-    else if (m.type === 'sticker') content = '[Sent sticker]';
+    else if (m.type === 'sticker') {
+  var _stk = (state.stickers || []).find(function(x){ return x.dataUrl === m.content || x.id === m.content; });
+  content = (_stk && _stk.name) ? '[用户发送贴纸: ' + _stk.name + ']' : '[用户发送了一个贴纸]';
+}
     else if (m.type === 'transfer') {
       var d;
       try {

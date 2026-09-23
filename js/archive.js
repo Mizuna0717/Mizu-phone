@@ -20,13 +20,20 @@ function _downloadJSON(data, filename) {
 }
 
 // ★ 统一维护导出/导入的 key 列表 ★
-var _ALL_STATE_KEYS = [
-  'apis','activeApiId','characters','chats','worldbooks','stickers',
-  'unread','userProfile','masks','memories','meetings','replyPrompt',
-  'charConfig','phoneData','bookmarks','groups','moments','lang',
-  'drawerFilter','drawerSort','imsgTab',
-  'allowQuote','systemPromptIM','systemPromptMeeting'
-];
+// ★ 统一维护导出/导入的 key 列表 ★
+// 直接从 SAVE_KEYS 派生，保证永远一致
+var _ALL_STATE_KEYS = (typeof SAVE_KEYS !== 'undefined' && Array.isArray(SAVE_KEYS))
+  ? SAVE_KEYS.slice()
+  : [
+      'apis','activeApiId','characters','chats','worldbooks','stickers',
+      'unread','drawerFilter','drawerSort','lang','userProfile','masks',
+      'memories','replyPrompt','charConfig','phoneData','bookmarks','mailData',
+      'calendarData','groups','moments','imsgTab','messageChats','callHistory',
+      'socialData','walletData','meetings','npcs','allowQuote',
+      'systemPromptIM','systemPromptMeeting','theme','imPromptMode',
+      'meetingPromptMode','wikiSchedule','together','home','settings',
+      'notesData','musicData','travelData','shoppingData'
+    ];
 
 function _reloadAllUI() {
   try { applyLang(); } catch(e) {}

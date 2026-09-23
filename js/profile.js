@@ -17,7 +17,7 @@ function renderProfileInfo() {
     ph.style.display = 'block';
   }
   document.getElementById('userNameDisplay').textContent = u.name || 'User';
-  renderAcctInfoCard();
+  renderAcctInfoCard();  renderProfileHero();
 }
 
 function renderAcctInfoCard() {
@@ -170,41 +170,89 @@ function openUrlImportModal() {
 
 async function startUrlImport() {
   var text = document.getElementById('urlImportText').value.trim();
-  if (!text) return;
-  var urls = text.split('\n').map(function (u) { return u.trim(); }).filter(function (u) { return u.startsWith('http'); });
-  if (!urls.length) return;
-  document.getElementById('urlImportBtn').textContent = T('importing');
-  var prog = document.getElementById('urlProgress');
-  prog.style.display = 'block';
-  var bar = document.getElementById('urlProgressBar');
-  bar.style.width = '0%';
-  var st = document.getElementById('urlStatusText');
-  st.style.display = 'block';
-  var ok = 0, fail = 0;
-  for (var i = 0; i < urls.length; i += 3) {
-    var chunk = urls.slice(i, i + 3);
-    var results = await Promise.allSettled(chunk.map(async function (url) {
-      var r = await fetch(url);
-      if (!r.ok) throw 0;
-      var blob = await r.blob();
-      return new Promise(function (res, rej) {
-        var rd = new FileReader();
-        rd.onload = function () { res({ dataUrl: rd.result, name: url.split('/').pop().replace(/\.[^.]+$/, '') || 'sticker' }); };
-        rd.onerror = rej;
-        rd.readAsDataURL(blob);
-      });
-    }));
-    results.forEach(function (r) {
-      if (r.status === 'fulfilled') { state.stickers.push({ id: uid(), name: r.value.name, dataUrl: r.value.dataUrl }); ok++; }
-      else fail++;
-    });
-    bar.style.width = Math.round(((i + chunk.length) / urls.length) * 100) + '%';
-    st.textContent = ok + ' ' + T('imported') + (fail ? ' · ' + fail + ' ' + T('failed') : '');
+  if (!text) {
+    alert('请输入 URL');
+    return;
   }
+
+  // ★ 关键修复：从文本里「提取」URL，不要求行首
+  var urlRegex = /https?:\/\/[^\s<>"']+/gi;
+  var matches = text.match(urlRegex) || [];
+  var urls = matches
+    .map(function(u) { return u.replace(/[.,;:!?）】]+$/, ''); })  // 去掉尾部标点
+    .filter(function(u, i, arr) { return arr.indexOf(u) === i; }); // 去重
+
+  if (!urls.length) {
+    alert('没有找到有效的 URL\n\n请确保每行都包含 http:// 或 https:// 开头的链接\n' +
+          '示例：\nhttps://example.com/1.png\nhttps://example.com/2.png');
+    return;
+  }
+
+  var btn = document.getElementById('urlImportBtn');
+  var prog = document.getElementById('urlProgress');
+  var bar = document.getElementById('urlProgressBar');
+  var st = document.getElementById('urlStatusText');
+
+  btn.textContent = '导入中...';
+  btn.disabled = true;
+  prog.style.display = 'block';
+  bar.style.width = '0%';
+  st.style.display = 'block';
+
+  var ok = 0, fail = 0;
+  var failReasons = [];
+  var seen = new Set(state.stickers.map(function(s){ return s.dataUrl; }));
+
+  for (var i = 0; i < urls.length; i++) {
+    var url = urls[i];
+
+    if (seen.has(url)) {
+      fail++;
+      failReasons.push(url + ' → 重复');
+      continue;
+    }
+
+    // 只接受图片后缀
+    var isImg = /\.(jpg|jpeg|png|gif|webp|svg|bmp|avif)(\?|#|$)/i.test(url);
+    if (!isImg) {
+      fail++;
+      failReasons.push(url + ' → 不是图片链接（需 .jpg/.png 等结尾）');
+      continue;
+    }
+
+    // ★ 关键修复：直接存 URL，不 fetch
+    state.stickers.push({
+      id: uid(),
+      name: url.split('/').pop().split('?')[0].replace(/\.[^.]+$/, '') || 'sticker',
+      dataUrl: url,
+      _isUrl: true
+    });
+    seen.add(url);
+    ok++;
+
+    bar.style.width = Math.round(((i + 1) / urls.length) * 100) + '%';
+    st.textContent = ok + ' 已导入' + (fail ? ' · ' + fail + ' 失败' : '');
+    await new Promise(function(r){ setTimeout(r, 0); });
+  }
+
   saveState();
-  renderProfileStickers();
-  document.getElementById('urlImportBtn').textContent = T('import_');
-  setTimeout(function () { closeModal('urlImportModal'); }, 1000);
+  if (typeof renderProfileStickers === 'function') renderProfileStickers();
+  if (typeof renderStickerGrid === 'function') renderStickerGrid();
+
+  btn.textContent = '导入';
+  btn.disabled = false;
+
+  if (fail > 0) {
+    console.warn('%c导入完成', 'font-weight:bold;');
+    console.log('成功:', ok, '| 失败:', fail);
+    failReasons.slice(0, 20).forEach(function(r){ console.log('  ❌', r); });
+    st.innerHTML = ok + ' 成功 · <span style="color:#ff3b30">' + fail +
+                   ' 失败</span>（详情看 F12 Console）';
+  } else {
+    st.textContent = ok + ' 已导入';
+  }
+
+  setTimeout(function () { closeModal('urlImportModal'); }, 1200);
 }
 
 // =============================================
@@ -460,4 +508,82 @@ function handleDeleteAccount(id) {
   reloadUI(false);
   switchImsgTab('profile');
   showToast('已删除: ' + wasName);
+}
+
+// =============================================
+//  Profile Hero — 背景 + 身份文字
+// =============================================
+
+function renderProfileHero() {
+  // 背景
+  var hero = document.getElementById('profileHero');
+  if (hero) {
+    var bg = state.userProfile.heroBg;
+    if (bg) {
+      hero.style.backgroundImage = 'url("' + bg + '")';
+      hero.style.backgroundSize = 'cover';
+      hero.style.backgroundPosition = 'center';
+      hero.style.backgroundColor = '';
+    } else {
+      hero.style.backgroundImage = '';
+      hero.style.backgroundSize = '';
+      hero.style.backgroundPosition = '';
+      hero.style.backgroundColor = '#1d1d1f';
+    }
+  }
+
+  // 身份文字
+  var sub = document.getElementById('profileSubText');
+  if (sub) {
+    sub.textContent = state.userProfile.subText || '你在对话中的身份';
+  }
+}
+
+function startEditProfileSub() {
+  var cur = state.userProfile.subText || '你在对话中的身份';
+  _showTextInputModal(
+    '编辑身份文字',
+    '例如：你在对话中的身份',
+    cur,
+    function (v) {
+      if (v === null || v === undefined) return;
+      state.userProfile.subText = v;
+      saveState();
+      renderProfileHero();
+      showToast('已保存');
+    }
+  );
+}
+
+function editProfileHeroBg(event) {
+  // 只处理点击 hero 空白区域（自己），子元素已被 stopPropagation 拦下
+  if (event && event.target !== event.currentTarget) return;
+
+  _showBlogMediaPicker(
+    // 本地文件
+    function () {
+      var inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'image/*';
+      inp.onchange = function () {
+        if (!inp.files || !inp.files[0]) return;
+        var r = new FileReader();
+        r.onload = function (e) {
+          state.userProfile.heroBg = e.target.result;
+          saveState();
+          renderProfileHero();
+          showToast('背景已更新');
+        };
+        r.readAsDataURL(inp.files[0]);
+      };
+      inp.click();
+    },
+    // URL
+    function (url) {
+      state.userProfile.heroBg = url;
+      saveState();
+      renderProfileHero();
+      showToast('背景已更新');
+    }
+  );
 }

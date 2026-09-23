@@ -54,26 +54,91 @@ function previewRealImage(inp) {
   }
 }
 
-function sendImage() {
+async function sendImage() {
   if (!state.currentCharId) return;
+
   if (tmp.imgType === 'real') {
     if (!tmp.realImageData) return;
-    state.chats[state.currentCharId].push({
-      id: uid(), role: 'user', content: '[User sent a real photo]',
-      type: 'image', dataUrl: tmp.realImageData, timestamp: Date.now()
-    });
+    await _sendRealImageWithVision(tmp.realImageData);
   } else {
-    const text = document.getElementById('simImageText').value.trim();
+    var text = document.getElementById('simImageText').value.trim();
     if (!text) return;
     state.chats[state.currentCharId].push({
       id: uid(), role: 'user', content: text, type: 'simImage', timestamp: Date.now()
     });
+    saveState();
+    closeModal('imageModal');
+    renderChat();
   }
-  saveState();
-  closeModal('imageModal');
-  renderChat();
 }
 
+async function _sendRealImageWithVision(dataUrl) {
+  var charId = state.currentCharId;
+  closeModal('imageModal');
+
+  // 先插入一条 "识别中" 的消息
+  var msg = {
+    id: uid(), role: 'user',
+    content: '[图片识别中...]',
+    type: 'image',
+    dataUrl: dataUrl,
+    timestamp: Date.now(),
+    _visionLoading: true
+  };
+  state.chats[charId].push(msg);
+  saveState();
+  renderChat();
+
+  try {
+    var desc = await _describeImage(dataUrl);
+    msg.content = desc ? '[图片: ' + desc + ']' : '[图片]';
+    delete msg._visionLoading;
+    saveState();
+    renderChat();
+    showToast('图片识别完成');
+  } catch (e) {
+    console.error('[vision] 失败:', e);
+    msg.content = '[图片（识别失败）]';
+    delete msg._visionLoading;
+    saveState();
+    renderChat();
+    showToast('图片识别失败');
+  }
+}
+
+async function _describeImage(dataUrl) {
+  var api = state.apis.find(function(a){ return a.id === state.activeApiId; });
+  if (!api || !api.url || !api.model) throw new Error('无可用 API');
+
+  var base = api._resolvedBase || api.url;
+  var endpoint = base.replace(/\/$/, '') + '/chat/completions';
+  var apiKey = api.key || api.apiKey || api.token || '';
+
+  var resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    },
+    body: JSON.stringify({
+      model: api.model,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: '请详细描述这张图片：主体、场景、人物表情、氛围、图中文字。用中文，一段话，不要前言，不要markdown。' },
+          { type: 'image_url', image_url: { url: dataUrl } }
+        ]
+      }],
+      max_tokens: 300
+    })
+  });
+
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  var data = await resp.json();
+  var text = data && data.choices && data.choices[0] && data.choices[0].message
+           ? data.choices[0].message.content : '';
+  return String(text || '').trim();
+}
 // ========== PLUS MENU ==========
 function togglePlusMenu() {
   document.getElementById('plusMenu').classList.toggle('show');

@@ -40,20 +40,20 @@
 
 	<div class="imsg-tab-content" id="imsgTabProfile">
 		<div style="flex:1;overflow-y:auto">
-			<div class="profile-hero">
-				<div class="profile-avatar-lg" onclick="document.getElementById('userAvatarInput').click()">
-					<svg viewBox="0 0 32 32" id="userAvatarPh"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10"/></svg>
-					<img id="userAvatarPv" style="display:none"/>
-					<input type="file" id="userAvatarInput" accept="image/*" onchange="previewUserAvatar(this)" style="display:none"/>
-					<div class="profile-avatar-edit">
-						<svg viewBox="0 0 12 12"><path d="M8.5 1.5l2 2M1 8.5V11h2.5L10 4.5l-2-2L1 8.5z"/></svg>
-					</div>
-				</div>
-				<div class="profile-name-area">
-					<div class="profile-name-display" id="userNameDisplay" onclick="startEditUserName()">User</div>
-				</div>
-				<div class="profile-sub">你在对话中的身份</div>
-			</div>
+			<div class="profile-hero" id="profileHero" onclick="editProfileHeroBg(event)">
+	<div class="profile-avatar-lg" onclick="event.stopPropagation();document.getElementById('userAvatarInput').click()">
+		<svg viewBox="0 0 32 32" id="userAvatarPh"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-6 4-10 10-10s10 4 10 10"/></svg>
+		<img id="userAvatarPv" style="display:none"/>
+		<input type="file" id="userAvatarInput" accept="image/*" onchange="previewUserAvatar(this)" style="display:none"/>
+		<div class="profile-avatar-edit">
+			<svg viewBox="0 0 12 12"><path d="M8.5 1.5l2 2M1 8.5V11h2.5L10 4.5l-2-2L1 8.5z"/></svg>
+		</div>
+	</div>
+	<div class="profile-name-area">
+		<div class="profile-name-display" id="userNameDisplay" onclick="event.stopPropagation();startEditUserName()">User</div>
+	</div>
+	<div class="profile-sub" id="profileSubText" onclick="event.stopPropagation();startEditProfileSub()">你在对话中的身份</div>
+</div>
 
 			<div class="acct-info-card" id="acctInfoCard"></div>
 

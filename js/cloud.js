@@ -101,11 +101,43 @@
     return null;
   }
 
+    // ═══════════════════════════════════════════
+  //  3. Storage 文件路径（★ 用账号名，实现跨设备同步）
   // ═══════════════════════════════════════════
-  //  3. Storage 文件路径
-  // ═══════════════════════════════════════════
+  function _nameToSafeFolder(name) {
+    // 保留 ASCII 字母数字和 _-.
+    // 中文、空格、特殊字符统一转成 _XXXX 形式
+    var raw = String(name || '').trim();
+    if (!raw) return '';
+    var encoded;
+    try {
+      encoded = encodeURIComponent(raw);
+    } catch (e) {
+      encoded = raw;
+    }
+    // encodeURIComponent 会输出 %XX，把 % 换成 _ 让路径安全
+    return encoded.replace(/%/g, '_').replace(/[^A-Za-z0-9_.\-]/g, '_');
+  }
+
   function _getFilePath(accountId) {
-    return 'accounts/' + accountId + '/data.json';
+    // 优先用「账号名」作为云端文件夹，这样多设备只要账号名一样就能互通
+    var acct = null;
+    try {
+      if (typeof accountStore !== 'undefined' && Array.isArray(accountStore.accounts)) {
+        acct = accountStore.accounts.find(function (a) { return a.id === accountId; });
+      }
+    } catch (e) {}
+
+    var name = (acct && acct.name) ? String(acct.name) : '';
+
+    // 账号名无效时，退回到 accountId（保证至少不会报错）
+    if (!name.trim()) {
+      console.warn('[Cloud] 账号名为空，fallback 到 accountId:', accountId);
+      return 'accounts/' + accountId + '/data.json';
+    }
+
+    var folder = _nameToSafeFolder(name);
+    return 'accounts/' + folder + '/data.json';
   }
 
   // ═══════════════════════════════════════════
