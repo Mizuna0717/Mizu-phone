@@ -246,27 +246,6 @@
   stroke-width: 2;
 }
 
-/* ===== 引用樣式（氣泡內） ===== */
-.msg-bubble .msg-quote {
-  padding: 6px 10px;
-  margin-bottom: 6px;
-  background: rgba(0, 0, 0, .04);
-  border-radius: 8px;
-  border-left: 3px solid #8e8e93;
-  font-size: 11px;
-  color: #8e8e93;
-  line-height: 1.3;
-}
-
-.msg-bubble .msg-quote .mq-name {
-  font-weight: 600;
-  color: #6e6e73;
-}
-
-.msg-row.sent .msg-bubble .msg-quote {
-  background: rgba(0, 0, 0, .06);
-}
-
 /* ===== Bookmark List ===== */
 .bookmark-list-item {
   display: flex;
