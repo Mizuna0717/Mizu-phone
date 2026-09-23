@@ -150,3 +150,321 @@ window._shortTime        = _shortTime;
 window._applyImportData  = _applyImportData;
 window._ALL_STATE_KEYS   = _ALL_STATE_KEYS;
 window._showArchiveConfirm = _showArchiveConfirm;
+
+// ═══════════════════════════════════════════
+//  选择性导出 — 分组定义
+// ═══════════════════════════════════════════
+var ARCHIVE_GROUPS = [
+  {
+    id: 'characters',
+    label: '角色',
+    desc: '角色本体、人设、聊天设置、面具、分组',
+    keys: ['characters','charConfig','groups','masks']
+  },
+  {
+    id: 'chats',
+    label: '聊天记录',
+    desc: '聊天消息、记忆、收藏、未读状态',
+    keys: ['chats','memories','bookmarks','unread']
+  },
+  {
+    id: 'worldbooks',
+    label: '世界书',
+    desc: '所有世界书条目',
+    keys: ['worldbooks']
+  },
+  {
+    id: 'api',
+    label: 'API 与提示词',
+    desc: 'API 配置、系统提示词、模式',
+    keys: ['apis','activeApiId','replyPrompt','systemPromptIM','systemPromptMeeting','imPromptMode','meetingPromptMode']
+  },
+  {
+    id: 'theme',
+    label: '主题与美化',
+    desc: '主题、桌面、图标、背景、CSS',
+    keys: ['theme','home']
+  },
+  {
+    id: 'stickers',
+    label: '表情包',
+    desc: '所有表情包',
+    keys: ['stickers']
+  },
+  {
+    id: 'profile',
+    label: '用户资料',
+    desc: '头像、昵称、个性签名',
+    keys: ['userProfile']
+  },
+  {
+    id: 'moments',
+    label: '社交动态',
+    desc: 'Moments 动态',
+    keys: ['moments','imsgTab']
+  },
+  {
+    id: 'meeting',
+    label: 'Meeting 存档',
+    desc: 'Meeting 对话存档',
+    keys: ['meetings']
+  },
+  {
+    id: 'phone',
+    label: '手机数据',
+    desc: '邮件、日历、钱包、便签、音乐等',
+    keys: ['phoneData','messageChats','callHistory','mailData','calendarData','socialData','walletData','notesData','musicData','travelData','shoppingData']
+  },
+  {
+    id: 'wiki',
+    label: 'NPC 与 Wiki',
+    desc: 'NPC、日程表',
+    keys: ['npcs','wikiSchedule']
+  },
+  {
+    id: 'together',
+    label: 'Together',
+    desc: '一起听 / 看 / 读的数据',
+    keys: ['together']
+  },
+  {
+    id: 'settings',
+    label: '设置与偏好',
+    desc: '语言、排序、引用设置',
+    keys: ['settings','lang','drawerFilter','drawerSort','allowQuote']
+  }
+];
+
+// ═══════════════════════════════════════════
+//  关联解析 — 根据勾选的组决定实际导出内容
+// ═══════════════════════════════════════════
+function _resolveExportData(selectedGroupIds) {
+  var hasGroup = function(id) { return selectedGroupIds.indexOf(id) !== -1; };
+
+  // ① 收集基础 key
+  var keys = [];
+  selectedGroupIds.forEach(function(gid) {
+    var g = ARCHIVE_GROUPS.find(function(x) { return x.id === gid; });
+    if (g) keys = keys.concat(g.keys);
+  });
+  keys = keys.filter(function(k, i, arr) { return arr.indexOf(k) === i; });
+
+  var data = {};
+  keys.forEach(function(k) {
+    if (state[k] !== undefined) data[k] = state[k];
+  });
+
+  var autoAdded = [];
+
+  // ② 规则 1：用户资料单独导出 → 带当前面具
+  if (hasGroup('profile') && !hasGroup('characters')) {
+    var curMaskId = state.userProfile && state.userProfile.currentMaskId;
+    if (curMaskId) {
+      var curMask = (state.masks || []).find(function(m) { return m.id === curMaskId; });
+      if (curMask) {
+        data.masks = [curMask];
+        autoAdded.push('当前面具 ' + curMask.name);
+      }
+    }
+  }
+
+  // ③ 规则 2：聊天记录单独导出 → 带角色骨架 + 用到的贴纸
+  if (hasGroup('chats') && !hasGroup('characters')) {
+    var chatCharIds = Object.keys(state.chats || {});
+    var minimalChars = (state.characters || [])
+      .filter(function(c) { return chatCharIds.indexOf(c.id) !== -1; })
+      .map(function(c) {
+        return { id: c.id, name: c.name, avatar: c.avatar };
+      });
+    if (minimalChars.length > 0) {
+      data.characters = minimalChars;
+      autoAdded.push('角色骨架 ' + minimalChars.length + ' 个');
+    }
+  }
+
+  if (hasGroup('chats') && !hasGroup('stickers')) {
+    var usedStickerUrls = {};
+    Object.keys(state.chats || {}).forEach(function(cid) {
+      (state.chats[cid] || []).forEach(function(m) {
+        if (m.type === 'sticker' && m.content) {
+          usedStickerUrls[m.content] = true;
+        }
+      });
+    });
+    var usedStickers = (state.stickers || []).filter(function(s) {
+      return usedStickerUrls[s.dataUrl];
+    });
+    if (usedStickers.length > 0) {
+      data.stickers = usedStickers;
+      autoAdded.push('用到的贴纸 ' + usedStickers.length + ' 个');
+    }
+  }
+
+  // ④ 元信息
+  data._exportType = 'partial';
+  data._exportTime = new Date().toISOString();
+  data._version = 1;
+  data._groups = selectedGroupIds;
+  data._keys = Object.keys(data).filter(function(k) { return k.indexOf('_') !== 0; });
+  data._autoAdded = autoAdded;
+
+  return { data: data, autoAdded: autoAdded };
+}
+
+// ═══════════════════════════════════════════
+//  选择性导出 — 弹窗
+// ═══════════════════════════════════════════
+function openPartialExportModal() {
+  var existing = document.getElementById('partialExportModal');
+  if (existing) existing.remove();
+
+  function getGroupStat(g) {
+    var total = 0;
+    g.keys.forEach(function(k) {
+      var v = state[k];
+      if (Array.isArray(v)) total += v.length;
+      else if (v && typeof v === 'object') total += Object.keys(v).length;
+    });
+    return total;
+  }
+
+  var overlay = document.createElement('div');
+  overlay.id = 'partialExportModal';
+  overlay.style.cssText =
+    'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;' +
+    'background:rgba(0,0,0,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
+
+  var listHtml = ARCHIVE_GROUPS.map(function(g) {
+    var n = getGroupStat(g);
+    return '' +
+      '<label style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;' +
+        'border-bottom:1px solid #f2f2f7;cursor:pointer">' +
+        '<input type="checkbox" data-group="' + g.id + '" checked ' +
+          'style="width:20px;height:20px;margin-top:2px;flex-shrink:0;accent-color:#1d1d1f;cursor:pointer">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+            '<span style="font-size:15px;font-weight:600;color:#1d1d1f">' + g.label + '</span>' +
+            '<span style="font-size:11px;color:#8e8e93;background:#f2f2f7;' +
+              'padding:2px 8px;border-radius:8px;font-weight:500">' + n + ' 项</span>' +
+          '</div>' +
+          '<div style="font-size:12px;color:#8e8e93;margin-top:3px">' + g.desc + '</div>' +
+        '</div>' +
+      '</label>';
+  }).join('');
+
+  overlay.innerHTML =
+    '<div style="background:#fff;border-radius:16px;' +
+      'width:calc(100% - 40px);max-width:420px;max-height:80vh;display:flex;flex-direction:column;' +
+      'box-shadow:0 8px 40px rgba(0,0,0,.15)">' +
+
+      // 标题栏 + 全选按钮
+      '<div style="padding:18px 20px 12px;border-bottom:1px solid #f2f2f7;flex-shrink:0">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between">' +
+          '<span style="font-size:17px;font-weight:700;color:#1d1d1f">选择性导出</span>' +
+          '<button id="partialExportClose" ' +
+            'style="width:28px;height:28px;border:none;background:#f2f2f7;border-radius:50%;' +
+            'display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">' +
+            '<svg viewBox="0 0 14 14" style="width:12px;height:12px" fill="none" stroke="#888" stroke-width="2">' +
+              '<path d="M2 2l10 10M12 2L2 12"/></svg>' +
+          '</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:12px">' +
+          '<button id="partialSelectAll" ' +
+            'style="flex:1;padding:6px 0;border:1px solid #e0e0e0;background:#fff;border-radius:8px;' +
+            'font-size:12px;color:#333;cursor:pointer;font-weight:500">全选</button>' +
+          '<button id="partialSelectNone" ' +
+            'style="flex:1;padding:6px 0;border:1px solid #e0e0e0;background:#fff;border-radius:8px;' +
+            'font-size:12px;color:#333;cursor:pointer;font-weight:500">全不选</button>' +
+          '<button id="partialInvert" ' +
+            'style="flex:1;padding:6px 0;border:1px solid #e0e0e0;background:#fff;border-radius:8px;' +
+            'font-size:12px;color:#333;cursor:pointer;font-weight:500">反选</button>' +
+        '</div>' +
+      '</div>' +
+
+      // 列表
+      '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">' + listHtml + '</div>' +
+
+      // 底部按钮
+      '<div style="padding:14px 20px;border-top:1px solid #f2f2f7;display:flex;gap:10px;flex-shrink:0">' +
+        '<button id="partialCancelBtn" ' +
+          'style="flex:1;padding:12px;border:none;background:#f2f2f7;border-radius:10px;' +
+          'font-size:15px;color:#333;cursor:pointer;font-weight:500">取消</button>' +
+        '<button id="partialConfirmBtn" ' +
+          'style="flex:2;padding:12px;border:none;background:#1d1d1f;color:#fff;border-radius:10px;' +
+          'font-size:15px;cursor:pointer;font-weight:600">导出选中</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  var close = function() { overlay.remove(); };
+
+  document.getElementById('partialExportClose').onclick = close;
+  document.getElementById('partialCancelBtn').onclick = close;
+  overlay.onclick = function(e) { if (e.target === overlay) close(); };
+
+  function setAll(v) {
+    overlay.querySelectorAll('input[data-group]').forEach(function(cb) { cb.checked = v; });
+  }
+  document.getElementById('partialSelectAll').onclick = function() { setAll(true); };
+  document.getElementById('partialSelectNone').onclick = function() { setAll(false); };
+  document.getElementById('partialInvert').onclick = function() {
+    overlay.querySelectorAll('input[data-group]').forEach(function(cb) { cb.checked = !cb.checked; });
+  };
+
+  document.getElementById('partialConfirmBtn').onclick = function() {
+    var selected = [];
+    overlay.querySelectorAll('input[data-group]:checked').forEach(function(cb) {
+      selected.push(cb.getAttribute('data-group'));
+    });
+    if (selected.length === 0) {
+      if (typeof showToast === 'function') showToast('请至少勾选一项');
+      return;
+    }
+    close();
+    doPartialExport(selected);
+  };
+}
+
+// ═══════════════════════════════════════════
+//  执行选择性导出
+// ═══════════════════════════════════════════
+function doPartialExport(selectedGroupIds) {
+  var result = _resolveExportData(selectedGroupIds);
+  var data = result.data;
+  var autoAdded = result.autoAdded;
+
+  var size = JSON.stringify(data).length;
+  var sizeStr = size < 1024 ? size + ' B' :
+                size < 1048576 ? (size/1024).toFixed(1) + ' KB' :
+                (size/1048576).toFixed(2) + ' MB';
+
+  var filename = 'mizu_partial_' + selectedGroupIds.join('-') + '_' + _archiveTimestamp() + '.json';
+
+  try {
+    _downloadJSON(data, filename);
+    if (typeof showToast === 'function') {
+      var msg = '已导出 ' + selectedGroupIds.length + ' 组 · ' + sizeStr;
+      if (autoAdded.length) msg += '（附带 ' + autoAdded.length + ' 项）';
+      showToast(msg);
+    }
+    console.log('[Partial Export]', {
+      勾选组: selectedGroupIds,
+      导出key: data._keys,
+      自动附带: autoAdded,
+      大小: sizeStr,
+      文件名: filename
+    });
+  } catch (e) {
+    if (typeof showErrorModal === 'function') {
+      showErrorModal('导出失败：' + e.message);
+    } else {
+      alert('导出失败：' + e.message);
+    }
+  }
+}
+
+// 全局导出
+window.ARCHIVE_GROUPS = ARCHIVE_GROUPS;
+window.openPartialExportModal = openPartialExportModal;
+window.doPartialExport = doPartialExport;

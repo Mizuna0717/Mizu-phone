@@ -171,10 +171,10 @@
 			</div>
 			<div class="te-param-row">
 				<label class="te-param-label">Local Upload</label>
-				<label class="te-upload-btn">
-					<input type="file" id="desktopBgFile" accept="image/jpeg,image/png,image/webp" onchange="onGeneralFileUpload('desktopBackground', this)">
-					Choose Image
-				</label>
+				<button type="button" class="te-upload-btn" onclick="document.getElementById('desktopBgFile').click()">
+  Choose Image
+</button>
+<input type="file" id="desktopBgFile" accept="image/jpeg,image/png,image/webp" onchange="onGeneralFileUpload('desktopBackground', this)" style="display:none">
 			</div>
 			<div class="te-param-row">
 				<label class="te-param-label">Image URL</label>
