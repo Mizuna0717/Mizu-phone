@@ -26,6 +26,54 @@
             <div class="range-row"><span class="form-label" data-i18n="messages">Messages</span><input type="range" id="cfgContextCount" min="10" max="200" step="10" value="50" oninput="updateCfgContextCount(this.value)"><span class="range-val" id="cfgContextCountVal">50</span></div>
         </div>
         <div class="form-hint" data-i18n="contextHint">Number of recent messages sent to AI as context.</div>
+        <!-- MEMORY LOAD -->
+<div class="cs-section-header">
+    <div class="cs-section-icon"><svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 011 1v11l-6-3.5L2 14V3a1 1 0 011-1z" stroke-linejoin="round"/><path d="M5 6h6M5 9h4" stroke-linecap="round"/></svg></div>
+    <div class="cs-section-text">
+        <span class="cs-section-title" data-i18n="memLoadTitle">Memory Load</span>
+        <span class="cs-section-sub" data-i18n="memLoadSub">How many memories to inject into chat context</span>
+    </div>
+</div>
+<div class="cs-card">
+    <div class="cs-row">
+        <div class="cs-row-label-col">
+            <span class="cs-row-label" data-i18n="memLoadStm">Short-term Memory</span>
+            <span class="cs-row-sublabel" data-i18n="memLoadStmSub">Recent STM entries to include</span>
+        </div>
+        <div class="cs-select-wrap">
+            <select class="cs-select" id="cfgStmLoadCount" onchange="updateCfgStmLoad(this.value)">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="all">All</option>
+            </select>
+            <svg class="cs-select-arrow" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+    </div>
+    <div class="cs-row cs-row-last">
+        <div class="cs-row-label-col">
+            <span class="cs-row-label" data-i18n="memLoadLtm">Long-term Memory</span>
+            <span class="cs-row-sublabel" data-i18n="memLoadLtmSub">Recent LTM entries to include</span>
+        </div>
+        <div class="cs-select-wrap">
+            <select class="cs-select" id="cfgLtmLoadCount" onchange="updateCfgLtmLoad(this.value)">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="all">All</option>
+            </select>
+            <svg class="cs-select-arrow" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+    </div>
+</div>
         <div class="section-header-fancy"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2.5"/><path d="M5 6h6M5 9h4M5 12h3"/></svg><span data-i18n="charMemories">CHARACTER MEMORIES</span></div>
         <div class="cfg-mem-type-tabs" id="cfgMemTypeTabs">
             <div class="cfg-mem-type-tab active" data-memtype="all" onclick="setCfgMemTypeFilter('all',this)">All</div>

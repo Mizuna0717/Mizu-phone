@@ -370,9 +370,16 @@ async function rebuildEmbeddings(charId) {
 }
 window.rebuildEmbeddings = rebuildEmbeddings;
 
+// ★ 把 charConfig 的值解析成 slice 上限
+function _memLoadLimit(v, fallback) {
+  if (v === 'all') return Infinity;
+  if (typeof v === 'number' && v >= 0) return v;
+  return fallback;
+}
+
 // ========== buildMemoryContext ==========
 // 供 prompt 构建器调用：返回注入到 system prompt 的记忆文本块
-async function buildMemoryContext(charId, queryOverride) {
+function buildMemoryContext(charId, queryOverride) {
   if (!charId) return '';
 
   // 核心记忆：isCore === true，全量注入，不限条数
@@ -381,8 +388,11 @@ async function buildMemoryContext(charId, queryOverride) {
   }).sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
 
     // LTM: 最近 3 条长期记忆（按时间倒序）
+  // LTM: 按设置注入
+  var _charCfg = (typeof getCharConfig === 'function') ? getCharConfig(charId) : {};
+  var _ltmLimit = _memLoadLimit(_charCfg.ltmLoadCount, 3);
   var _allLtm = getCharMemoriesByType(charId, 'ltm').filter(function(m) { return !m.isCore; });
-  var ltmList = _allLtm.slice(0, 3);
+  var ltmList = _allLtm.slice(0, _ltmLimit);
 
   // TF-IDF 检索：额外召回相关 LTM（去重后追加到 [相关回忆]）
   var _recentLtmIds = new Set(ltmList.map(function(m) { return m.id; }));
@@ -416,10 +426,11 @@ async function buildMemoryContext(charId, queryOverride) {
     });
   }
 
-  // STM: 最近 5 条短期记忆（未合并的优先）
+    // STM: 按设置注入
+  var _stmLimit = _memLoadLimit(_charCfg.stmLoadCount, 5);
   var stmAll = getCharMemoriesByType(charId, 'stm');
   var stmUnconsolidated = stmAll.filter(function(m) { return !m.consolidated; });
-  var stmList = (stmUnconsolidated.length > 0 ? stmUnconsolidated : stmAll).slice(0, 5);
+  var stmList = (stmUnconsolidated.length > 0 ? stmUnconsolidated : stmAll).slice(0, _stmLimit);
 
     // FTM: 最近 3 条模糊/可遗忘记忆（仅取未过期的）
   var _nowTs = Date.now();

@@ -39,6 +39,9 @@ function getCharConfig(cid) {
 
   // ★★★ 新增：日程感知 ★★★
   if (cfg.scheduleAware === undefined) cfg.scheduleAware = false;
+    // ★★★ 新增：记忆挂载条数 ★★★
+  if (cfg.stmLoadCount === undefined) cfg.stmLoadCount = 5;   // 0 / 数字 / 'all'
+  if (cfg.ltmLoadCount === undefined) cfg.ltmLoadCount = 3;
 
   return cfg;
 }
@@ -55,6 +58,11 @@ function openChatConfig() {
   document.getElementById('cfgContextCountVal').textContent = cfg.contextCount || 50;
   document.getElementById('cfgConsolidateInterval').value = cfg.consolidateInterval || 5;
   document.getElementById('cfgConsolidateIntervalVal').textContent = cfg.consolidateInterval || 5;
+    // ★ 记忆挂载条数
+  var stmEl = document.getElementById('cfgStmLoadCount');
+  if (stmEl) stmEl.value = String(cfg.stmLoadCount);
+  var ltmEl = document.getElementById('cfgLtmLoadCount');
+  if (ltmEl) ltmEl.value = String(cfg.ltmLoadCount);
   cfgMemTypeFilter = 'all';
   document.querySelectorAll('#cfgMemTypeTabs .cfg-mem-type-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.memtype === 'all')
@@ -96,6 +104,25 @@ function setCfgMemTypeFilter(type, el) {
   el.classList.add('active');
   renderCfgCharMemories();
 }
+
+// ★★★ 记忆挂载条数保存 ★★★
+function updateCfgStmLoad(v) {
+  if (!state.currentCharId) return;
+  var cfg = getCharConfig(state.currentCharId);
+  cfg.stmLoadCount = (v === 'all') ? 'all' : parseInt(v, 10);
+  saveCharConfig();
+  console.log('[Memory Load] STM →', cfg.stmLoadCount);
+}
+
+function updateCfgLtmLoad(v) {
+  if (!state.currentCharId) return;
+  var cfg = getCharConfig(state.currentCharId);
+  cfg.ltmLoadCount = (v === 'all') ? 'all' : parseInt(v, 10);
+  saveCharConfig();
+  console.log('[Memory Load] LTM →', cfg.ltmLoadCount);
+}
+window.updateCfgStmLoad = updateCfgStmLoad;
+window.updateCfgLtmLoad = updateCfgLtmLoad;
 
 function renderCfgCharMemories() {
   const el = document.getElementById('cfgCharMemList');

@@ -1,6 +1,257 @@
 ﻿// ============================================================
 //  Theme Editor — Navigation
 // ============================================================
+// ═══════════════════════════════════════════
+//  移动端 click 修复：全局代理
+// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  移动端 click 修复：全局代理
+//  - 处理 <button onclick="...">
+//  - 处理 <label> 内嵌 file input
+// ═══════════════════════════════════════════
+(function fixTeBtnMobile(){
+  var _lastTouch = 0;
+
+  document.addEventListener('touchend', function(e) {
+    var btn = e.target.closest('.te-btn, .te-upload-btn, .te-general-apply-btn');
+    if (!btn) return;
+
+    // ★ 防抖
+    var now = Date.now();
+    if (now - _lastTouch < 300) return;
+    _lastTouch = now;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    var onclickAttr = btn.getAttribute('onclick');
+
+    // ★ 情况 1：有 onclick，直接执行
+    if (onclickAttr) {
+      console.log('[Mobile] touchend → onclick:', onclickAttr);
+      try {
+        var fn = new Function('event', onclickAttr);
+        fn.call(btn, e);
+      } catch(err) {
+        console.error('[Mobile] 执行失败:', err);
+      }
+      return;
+    }
+
+    // ★ 情况 2：没 onclick，但里面包着 file input（label 场景）
+    var fileInput = btn.querySelector('input[type="file"]');
+    if (fileInput) {
+      console.log('[Mobile] touchend → 触发内部 file input:', fileInput.id);
+      fileInput.click();
+      return;
+    }
+
+    console.log('[Mobile] 按钮无 onclick 也无 file input，忽略:', btn.className);
+  }, { passive: false });
+
+  console.log('[Mobile]  theme 按钮代理已安装');
+})();
+
+// ═══════════════════════════════════════════
+//  Apply All 移动端安全版（防止 touch 后不触发 click）
+// ═══════════════════════════════════════════
+function applyAllGeneralSettingsSafe() {
+  var now = Date.now();
+  if (applyAllGeneralSettingsSafe._lastCall && 
+      (now - applyAllGeneralSettingsSafe._lastCall) < 500) {
+    return;
+  }
+  applyAllGeneralSettingsSafe._lastCall = now;
+
+  try {
+    if (typeof applyAllGeneralSettings === 'function') {
+      applyAllGeneralSettings();
+      console.log('[ApplyAll] ✅ 执行成功');
+    } else {
+      console.error('[ApplyAll] applyAllGeneralSettings 不存在');
+    }
+  } catch (e) {
+    console.error('[ApplyAll] ❌ 报错:', e);
+    alert('应用失败: ' + e.message);
+  }
+}
+window.applyAllGeneralSettingsSafe = applyAllGeneralSettingsSafe;
+
+// ============================================================
+//  Call Interface Module
+// ============================================================
+const CALL_CSS_FILES = ['css/call.css', 'css/chat-extras.css'];
+
+function extractCallCSS(src, fileLabel) {
+	var blocks = [];
+	var re = /([^{}]+)\{([^{}]*)\}/g;
+	var m;
+	while ((m = re.exec(src)) !== null) {
+		var sel = m[1].trim();
+		if (!sel || sel.charAt(0) === '@') continue;
+		if (/call/i.test(sel)) {
+			blocks.push(sel + ' {\n' + m[2].trim() + '\n}');
+		}
+	}
+	if (!blocks.length) return '';
+	return '/* === From ' + fileLabel + ' === */\n' + blocks.join('\n\n');
+}
+
+function loadCallSourceCSS() {
+	return Promise.all(CALL_CSS_FILES.map(function(f) {
+		return fetch(f).then(function(r) { return r.text(); }).catch(function() { return ''; });
+	})).then(function(contents) {
+		var parts = [];
+		contents.forEach(function(txt, i) {
+			if (!txt) return;
+			var extracted = extractCallCSS(txt, CALL_CSS_FILES[i]);
+			if (extracted) parts.push(extracted);
+		});
+		return parts.join('\n\n');
+	});
+}
+
+function initCallInterfaceEditor() {
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+	}
+
+	var textarea = document.getElementById('te-css-call');
+	if (!textarea) return;
+
+	var saved = (window.state && window.state.theme && window.state.theme.callScreen)
+		|| localStorage.getItem('theme-css-call');
+
+	if (saved) {
+		textarea.value = saved;
+		if (window.state) window.state.theme.callScreen = saved;
+		renderCallAfter(saved);
+	} else {
+		loadCallSourceCSS().then(function(css) {
+			if (!textarea.value) {
+				textarea.value = css;
+				if (window.state) window.state.theme.callScreen = css;
+			}
+			renderCallAfter(textarea.value);
+		}).catch(function() {
+			renderCallAfter('');
+		});
+	}
+
+	textarea.removeEventListener('input', _onCallCSSChange);
+	textarea.addEventListener('input', _onCallCSSChange);
+}
+
+function _onCallCSSChange() {
+	var textarea = document.getElementById('te-css-call');
+	if (!textarea) return;
+	if (window.state) {
+		if (!window.state.theme) window.state.theme = {};
+		window.state.theme.callScreen = textarea.value;
+	}
+	renderCallAfter(textarea.value);
+}
+
+function renderCallAfter(css) {
+	var styleEl = document.getElementById('call-after-style');
+	if (!styleEl) {
+		styleEl = document.createElement('style');
+		styleEl.id = 'call-after-style';
+		document.head.appendChild(styleEl);
+	}
+
+	// ① 预览容器样式 —— 对齐其他预览框
+	var override = [
+		// 外层容器：透明、无 padding、圆角归零
+		'#call-mock-after {',
+		'  position: relative;',
+		'  width: calc(100% - 40px);',
+		'  margin: 0 20px;',
+		'  padding: 0;',
+		'  background: transparent;',
+		'  border: none;',
+		'  border-radius: 0;',
+		'  overflow: visible;',
+		'}',
+
+		// 内层 call-screen：卡片样式
+		'#call-mock-after .call-screen {',
+		'  position: relative !important;',
+		'  inset: auto !important;',
+		'  width: 100% !important;',
+		'  height: auto !important;',
+		'  aspect-ratio: 9 / 14;',
+		'  max-height: 500px;',
+		'  border-radius: 14px !important;',
+		'  overflow: hidden !important;',
+		'  opacity: 1 !important;',
+		'  display: block !important;',
+		'  pointer-events: auto !important;',
+		'  transform: none !important;',
+		'  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);',
+		'}',
+
+		// 内层容器布局
+		'#call-mock-after .call-container {',
+		'  position: absolute !important;',
+		'  inset: 0 !important;',
+		'  display: flex !important;',
+		'  flex-direction: column !important;',
+		'}',
+
+		// messages 区自适应
+		'#call-mock-after .call-messages {',
+		'  flex: 1 !important;',
+		'  overflow-y: auto !important;',
+		'  min-height: 0 !important;',
+		'}',
+
+		// 强制显示 thought-bar / input-bar（真实默认 display:none）
+		'#call-mock-after .call-thought-bar.show {',
+		'  display: flex !important;',
+		'}',
+		'#call-mock-after .call-input-bar.show {',
+		'  display: flex !important;',
+		'}',
+
+		// 预览背景（替代真实头像背景）
+		'#call-mock-after .call-bg {',
+		'  background-image: linear-gradient(135deg, #e8e8ed 0%, #d4d4da 100%) !important;',
+		'}',
+	].join('\n');
+
+	// ② 用户 CSS 作用域限定到 #call-mock-after
+	var userScoped = scopeCSS(css || '', '#call-mock-after');
+
+	styleEl.textContent = override + '\n\n' + userScoped;
+}
+
+function copyCallSource() {
+	loadCallSourceCSS().then(function(css) {
+		return navigator.clipboard.writeText(css);
+	}).then(function() {
+		showThemeFeedback('Copied!');
+	}).catch(function(err) {
+		console.error('copyCallSource error:', err);
+		showThemeFeedback('Copy failed');
+	});
+}
+
+function resetCallCSS() {
+	var textarea = document.getElementById('te-css-call');
+	localStorage.removeItem('theme-css-call');
+	var styleEl = document.getElementById('custom-theme-call');
+	if (styleEl) styleEl.remove();
+	if (window.state && window.state.theme) window.state.theme.callScreen = '';
+	loadCallSourceCSS().then(function(css) {
+		if (textarea) {
+			textarea.value = css;
+			if (window.state) window.state.theme.callScreen = css;
+		}
+		renderCallAfter(textarea ? textarea.value : '');
+	});
+	showThemeFeedback('Reset');
+}
 
 function openThemeEditor(type) {
 	document.getElementById('screen-theme').classList.remove('active');
@@ -19,10 +270,12 @@ function openThemeEditor(type) {
 								} else if (type === 'heart') {
 					initHeartPanelEditor();
 				} else if (type === 'archive') {
-					initMeetingArchiveEditor();
-				} else {
-					loadThemeCSS(type);
-				}
+    initMeetingArchiveEditor();
+} else if (type === 'call') {
+    initCallInterfaceEditor();
+} else {
+    loadThemeCSS(type);
+}
 	}
 }
 

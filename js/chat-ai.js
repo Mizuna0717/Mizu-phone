@@ -3,6 +3,72 @@
 // ★★★ Top Priority + Force Control 情绪检测 ★★★
 // ★★★ + FTM 记忆写入 ★★★
 
+// ═══════════════════════════════════════════
+//  收集该角色参与的所有已结束 Meeting 历史
+//  ★ 每个 meeting 卡片算作「一条消息」
+//  ★ 单条最多保留 3000 字，超出截断
+// ═══════════════════════════════════════════
+function _collectMeetingHistoryForChar(charId) {
+  var result = [];
+  var ch = state.characters.find(function(c) { return c.id === charId; });
+  var chName = ch ? ch.name : '角色';
+  var MAX_CHARS = 3000;   // ★ 每个 meeting 最多保留的字数
+
+   var sessions = (state.meetings || []).filter(function(s) {
+    return s.status === 'ended'
+        && s._memoryWritten === true        // ★ 新增：只取已写入记忆库的
+        && s.charIds
+        && s.charIds.indexOf(charId) >= 0;
+  });
+
+  sessions.forEach(function(s) {
+    var sName = s.name || '未命名见面';
+    var lines = [];
+    var lastTs = 0;
+    var firstTs = 0;
+
+    (s.history || []).forEach(function(e) {
+      if (e.role === 'system') return;
+      var ts = e.timestamp || 0;
+      if (ts > 0) {
+        if (firstTs === 0) firstTs = ts;
+        if (ts > lastTs) lastTs = ts;
+      }
+
+      if (e.role === 'user') {
+        lines.push('用户：' + (e.content || ''));
+      } else if (e.role === 'char') {
+        if (e.charId === charId) {
+          lines.push(chName + '：' + (e.content || ''));
+        } else {
+          lines.push('[' + (e.charName || '其他角色') + ']：' + (e.content || ''));
+        }
+      }
+    });
+
+    if (lines.length === 0) return;
+
+    // ★ 合并整个 session 为一条文本
+    var fullText = lines.join('\n');
+
+    // ★ 超出截断
+    if (fullText.length > MAX_CHARS) {
+      fullText = fullText.slice(0, MAX_CHARS) +
+        '\n\n...（此见面记录共 ' + lines.length + ' 条对话，' +
+        (lines.join('\n').length) + ' 字，此处已截断，只展示前 ' +
+        MAX_CHARS + ' 字）';
+    }
+
+    result.push({
+      role: 'system',
+      content: '[见面「' + sName + '」的记录]\n' + fullText,
+      timestamp: lastTs || firstTs || Date.now()
+    });
+  });
+
+  return result;
+}
+
 /* ══════════════════════════════════════════
    TOP PRIORITY — 情绪解析 & 评估 & 执行
    ══════════════════════════════════════════ */
@@ -668,7 +734,28 @@ async function _triggerSingleResponse(api) {
       if (m.role === 'system' || m.type === 'call-summary') return { role: 'system', content: m.content };
       return { role: m.role, content: m.content };
     });
-    var chatMsgs = allChatMsgs.slice(-contextCount);
+            // ★ 合并 Meeting 历史 + iMessage 历史
+    var _meetingMsgs = _collectMeetingHistoryForChar(state.currentCharId);
+    var chatMsgs;
+    if (_meetingMsgs.length > 0) {
+      allChatMsgs.forEach(function(m, i) {
+        if (!m.timestamp) {
+          var src = (state.chats[state.currentCharId] || [])[i];
+          m.timestamp = (src && src.timestamp) || 0;
+        }
+      });
+      var combined = allChatMsgs.concat(_meetingMsgs);
+      combined.sort(function(a, b) {
+        return (a.timestamp || 0) - (b.timestamp || 0);
+      });
+      chatMsgs = combined.slice(-contextCount);
+      console.log('[Chat] 上下文合并 | iMessage:', allChatMsgs.length,
+        '| Meeting:', _meetingMsgs.length,
+        '| 合并后:', combined.length,
+        '| 实际发送:', chatMsgs.length);
+    } else {
+      chatMsgs = allChatMsgs.slice(-contextCount);
+    }
     var reply = await sendChat(api, [{ role: 'system', content: sysPrompt }, ...chatMsgs]);
     var rawReply = reply || ''; _tpRawReply = rawReply;
     processTransferDecision(state.currentCharId, rawReply);
