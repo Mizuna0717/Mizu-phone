@@ -18,17 +18,19 @@
 			</div>
 			<div class="settings-hero-dot off" id="heroApiDot"></div>
 		</div>
+
 		<div class="section-header-fancy">
 			<svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
 			<span>API 配置</span>
 		</div>
 		<div id="apiListInline"></div>
+
 		<div class="section-header-fancy">
 			<svg viewBox="0 0 16 16"><path d="M2 4l6 3 6-3M2 8l6 3 6-3M2 12l6 3 6-3"/></svg>
 			<span>回复提示词</span>
 		</div>
 
-			<!-- ====== iMessage 系统提示词 ====== -->
+		<!-- ====== iMessage 系统提示词 ====== -->
 		<div class="prompt-card">
 			<div class="prompt-card-header">
 				<span>iMessage Prompt</span>
@@ -76,6 +78,66 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- ====== 系统 ====== -->
+		<div class="section-header-fancy">
+			<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1" stroke-linecap="round"/></svg>
+			<span>系统</span>
+		</div>
+		<div class="settings-section-card">
+			<div class="settings-row" onclick="nav('screen-version')" style="cursor:pointer">
+				<div class="settings-row-icon dark">
+					<svg viewBox="0 0 18 18"><path d="M9 2v2M9 14v2M2 9h2M14 9h2" stroke-linecap="round"/><circle cx="9" cy="9" r="3.5"/></svg>
+				</div>
+				<span class="settings-row-label">版本管理</span>
+				<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="#c7c7cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+			</div>
+			<div class="settings-row">
+				<span class="settings-row-label" style="color:#8e8e93;font-size:13px">当前版本</span>
+				<span id="currentVersionLabel" style="font-size:13px;color:#8e8e93;font-family:ui-monospace,Menlo,monospace">v—</span>
+			</div>
+		</div>
+
 		<div style="height:40px"></div>
 	</div>
+</div>
+
+<!-- VERSION MANAGEMENT -->
+<div class="screen" id="screen-version">
+    <div class="nav-bar">
+        <button class="nav-btn" onclick="nav('screen-settings')">
+            <svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <span class="nav-title">版本管理</span>
+        <div class="nav-group-right">
+            <button class="nav-btn" onclick="initVersionPage(true)">
+                <svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 10a6 6 0 0110.5-4M16 10a6 6 0 01-10.5 4"/>
+                    <path d="M14 4v2.5h-2.5M6 16v-2.5h2.5"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="screen-body" style="padding-top:8px">
+        <div class="ver-hero">
+            <div class="ver-hero-label">当前已安装版本</div>
+            <div class="ver-hero-version" id="versionHeroCurrent">v—</div>
+            <div class="ver-hero-status" id="versionHeroStatus">正在检查更新…</div>
+        </div>
+
+        <div class="cs-section-header">
+            <div class="cs-section-icon">
+                <svg viewBox="0 0 16 16"><path d="M8 2v6l4 2" stroke-linecap="round"/><circle cx="8" cy="8" r="6"/></svg>
+            </div>
+            <div class="cs-section-text">
+                <span class="cs-section-title">版本历史</span>
+                <span class="cs-section-sub">选择要更新的版本</span>
+            </div>
+        </div>
+
+        <div id="versionListBody"></div>
+
+        <div style="height:48px"></div>
+    </div>
 </div>

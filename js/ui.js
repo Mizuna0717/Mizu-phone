@@ -58,7 +58,6 @@ function nav(id) {
 
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
-
   try { closePlusMenu(); }    catch (e) {}
   try { closeStickerPanel(); } catch (e) {}
   try { closeBubbleMenu(); }  catch (e) {}
@@ -66,10 +65,15 @@ function nav(id) {
   try { closeGroupMenu(); }   catch (e) {}
 
   if (id === 'screen-settings') try { renderSettings(); } catch(e) {}
+  if (id === 'screen-version') try { initVersionPage(); } catch(e) {}
   if (id === 'screen-imessage') switchImsgTab(state.imsgTab || 'messages', true);
   if (id === 'screen-worldbook') try { renderWbList(); } catch(e) {}
   if (id === 'screen-chat') try { renderChat(); } catch(e) {}
-  if (id === 'screen-home') try { updateHomeBadge(); } catch(e) {}
+  if (id === 'screen-home') {
+    try { updateHomeBadge(); } catch(e) {}
+    // ★ 进入 Home 时重新应用图标（等 DOM 就绪后重试）
+    try { if (window.__reapplyHomeIcons) window.__reapplyHomeIcons(); } catch(e) {}
+}
   if (id === 'screen-memory') try { renderMemoryList(); } catch(e) {}
   if (id === 'screen-chat-config') try { openChatConfig(); } catch(e) {}
   if (id === 'screen-bookmarks') try { renderBookmarkList(); } catch(e) {}
@@ -81,6 +85,8 @@ function nav(id) {
     if (id === 'screen-theme') try { onThemeScreenOpen(); } catch(e) {}
   if (id === 'screen-shop') try { initShop(); } catch(e) {}
   if (id === 'screen-mcp') try { initMcp(); } catch(e) {}
+    if (id === 'screen-group-manage') try { renderGroupMemberList(); } catch(e) {}
+    if (id === 'screen-wiki') try { renderWikiCharacterList(); } catch(e) {}
 }
 
 
@@ -488,4 +494,22 @@ function _fcConfirmForceRelease() {
       forceUnlockForceControl();
     }
   };
+}
+
+var _lastChatsSnapshot = {};
+
+function _findDirtyChats() {
+  var dirty = new Set();
+  var currentChats = state.chats || {};
+  for (var charId in currentChats) {
+    var currentStr = JSON.stringify(currentChats[charId]);
+    if (_lastChatsSnapshot[charId] !== currentStr) {
+      dirty.add(charId);
+    }
+  }
+  _lastChatsSnapshot = {};
+  for (var cid in currentChats) {
+    _lastChatsSnapshot[cid] = JSON.stringify(currentChats[cid]);
+  }
+  return dirty;
 }

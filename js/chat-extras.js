@@ -30,6 +30,8 @@ function openImageModal() {
   setImgType('real');
   document.getElementById('realImagePreview').style.display = 'none';
   document.getElementById('simImageText').value = '';
+  var hintEl = document.getElementById('realImageHint');
+  if (hintEl) hintEl.value = '';
   tmp.realImageData = null;
   document.getElementById('imageModal').classList.add('show');
 }
@@ -40,6 +42,9 @@ function setImgType(t) {
   document.getElementById('imgTypeSim').classList.toggle('active', t === 'sim');
   document.getElementById('imgRealArea').style.display = t === 'real' ? 'block' : 'none';
   document.getElementById('imgSimArea').style.display = t === 'sim' ? 'block' : 'none';
+  // ★ 底部按钮文字随 tab 切换
+  var btn = document.getElementById('imageModalSendBtn');
+  if (btn) btn.textContent = (t === 'real') ? '解析图片' : '发送';
 }
 
 function previewRealImage(inp) {
@@ -59,7 +64,9 @@ async function sendImage() {
 
   if (tmp.imgType === 'real') {
     if (!tmp.realImageData) return;
-    await _sendRealImageWithVision(tmp.realImageData);
+    var hintEl = document.getElementById('realImageHint');
+    var hint = hintEl ? hintEl.value.trim() : '';
+    await _sendRealImageWithVision(tmp.realImageData, hint);
   } else {
     var text = document.getElementById('simImageText').value.trim();
     if (!text) return;
@@ -72,32 +79,54 @@ async function sendImage() {
   }
 }
 
-async function _sendRealImageWithVision(dataUrl) {
+async function sendImage() {
+  if (!state.currentCharId) return;
+
+  if (tmp.imgType === 'real') {
+    if (!tmp.realImageData) return;
+    var hintEl = document.getElementById('realImageHint');
+    var hint = hintEl ? hintEl.value.trim() : '';
+    await _sendRealImageWithVision(tmp.realImageData, hint);
+  } else {
+    var text = document.getElementById('simImageText').value.trim();
+    if (!text) return;
+    state.chats[state.currentCharId].push({
+      id: uid(), role: 'user', content: text, type: 'simImage', timestamp: Date.now()
+    });
+    saveState();
+    closeModal('imageModal');
+    renderChat();
+  }
+}
+
+async function _sendRealImageWithVision(dataUrl, hint) {
   var charId = state.currentCharId;
   closeModal('imageModal');
 
-  // 先插入一条 "识别中" 的消息
   var msg = {
     id: uid(), role: 'user',
     content: '[图片识别中...]',
     type: 'image',
     dataUrl: dataUrl,
     timestamp: Date.now(),
-    _visionLoading: true
+    _visionLoading: true,
+    desc: ''                    // ★ 新增：纯文本描述
   };
   state.chats[charId].push(msg);
   saveState();
   renderChat();
 
   try {
-    var desc = await _describeImage(dataUrl);
+    var desc = await _describeImage(dataUrl, hint);
+    msg.desc = desc || '';
     msg.content = desc ? '[图片: ' + desc + ']' : '[图片]';
     delete msg._visionLoading;
     saveState();
     renderChat();
-    showToast('图片识别完成');
+    showToast(desc ? '图片识别完成' : '图片识别完成（无文字内容）');
   } catch (e) {
     console.error('[vision] 失败:', e);
+    msg.desc = '';
     msg.content = '[图片（识别失败）]';
     delete msg._visionLoading;
     saveState();
@@ -106,13 +135,19 @@ async function _sendRealImageWithVision(dataUrl) {
   }
 }
 
-async function _describeImage(dataUrl) {
+async function _describeImage(dataUrl, hint) {
   var api = state.apis.find(function(a){ return a.id === state.activeApiId; });
   if (!api || !api.url || !api.model) throw new Error('无可用 API');
 
   var base = api._resolvedBase || api.url;
   var endpoint = base.replace(/\/$/, '') + '/chat/completions';
   var apiKey = api.key || api.apiKey || api.token || '';
+
+  var basePrompt = '请详细描述这张图片：主体、场景、人物表情、氛围、图中文字。用中文，一段话，不要前言，不要markdown。';
+  // ★ 用户填的提示词附加在后面，帮助 AI 更准确识别
+  var finalPrompt = hint
+    ? basePrompt + '\n\n（用户补充说明：' + hint + '）'
+    : basePrompt;
 
   var resp = await fetch(endpoint, {
     method: 'POST',
@@ -125,7 +160,7 @@ async function _describeImage(dataUrl) {
       messages: [{
         role: 'user',
         content: [
-          { type: 'text', text: '请详细描述这张图片：主体、场景、人物表情、氛围、图中文字。用中文，一段话，不要前言，不要markdown。' },
+          { type: 'text', text: finalPrompt },
           { type: 'image_url', image_url: { url: dataUrl } }
         ]
       }],
@@ -139,6 +174,7 @@ async function _describeImage(dataUrl) {
            ? data.choices[0].message.content : '';
   return String(text || '').trim();
 }
+
 // ========== PLUS MENU ==========
 function togglePlusMenu() {
   document.getElementById('plusMenu').classList.toggle('show');
@@ -312,8 +348,18 @@ function confirmReturn() {
 
 // ========== HEART VOICE PANEL (Single Chat) ==========
 function openHeartVoicePanel() {
+  // ★ 防御：打开心声弹窗前，强制关闭聊天菜单，避免层级冲突
+  try { if (typeof closeChatMenu === 'function') closeChatMenu(); } catch (_) {}
+  try {
+    var _m = document.getElementById('chatMenu');
+    var _o = document.getElementById('chatMenuOverlay');
+    if (_m) { _m.classList.remove('show'); _m.style.display = 'none'; _m.style.pointerEvents = 'none'; }
+    if (_o) { _o.classList.remove('show'); }
+  } catch (_) {}
+
   const charId = state.currentCharId;
   if (!charId) return;
+  // ... 后面保持原样
 
   if (isGroupChat(charId)) {
     openGroupManagePanel();
@@ -362,15 +408,28 @@ function openHeartVoicePanel() {
   document.getElementById('hvWannaDoText').textContent    = latestWannaDo  || '(Nothing special right now)';
 
   document.getElementById('heartVoiceOverlay').classList.add('show');
+    // ★ 渲染情绪区（只有开了强控/顶号且有情绪数据才显示）
+  _renderHeartEmotions(charId);
+
   requestAnimationFrame(() => {
     document.getElementById('heartVoicePanel').classList.add('show');
   });
 }
 
 function closeHeartVoicePanel() {
-  document.getElementById('heartVoicePanel').classList.remove('show');
-  setTimeout(() => {
-    document.getElementById('heartVoiceOverlay').classList.remove('show');
+  var panel   = document.getElementById('heartVoicePanel');
+  var overlay = document.getElementById('heartVoiceOverlay');
+
+  if (panel)   panel.classList.remove('show');
+
+  // ★ 立即禁止 overlay 接收点击，避免 250ms 动画期间误触下层元素
+  if (overlay) overlay.style.pointerEvents = 'none';
+
+  setTimeout(function() {
+    if (overlay) {
+      overlay.classList.remove('show');
+      overlay.style.pointerEvents = '';   // 恢复默认，下次打开能正常点
+    }
     var affSection = document.getElementById('hvAffectionSection');
     var affDivider = document.getElementById('hvAffectionDivider');
     if (affSection) affSection.style.display = '';
@@ -410,35 +469,57 @@ function openGroupMsgHeartVoice(msgId) {
   document.getElementById('hvWannaDoText').textContent = msg.wannaDo      || '(Nothing special right now)';
 
   document.getElementById('heartVoiceOverlay').classList.add('show');
+    var emSection = document.getElementById('hvEmotionSection');
+  if (emSection) emSection.classList.remove('visible');
+
   requestAnimationFrame(() => {
     document.getElementById('heartVoicePanel').classList.add('show');
   });
 }
 
+
+
 // ========== GROUP MANAGEMENT PANEL ==========
 function openGroupManagePanel() {
-  const grp = getGroupById(state.currentCharId);
+  var grp = getGroupById(state.currentCharId);
   if (!grp) { showToast('Group not found'); return; }
 
-  const avatarEl = document.getElementById('gmGroupAvatar');
+    // 头像（★ 不再用 innerHTML，避免删掉 file input）
+  var avatarEl = document.getElementById('gmGroupAvatar');
+  var avatarSvg = document.getElementById('gmAvatarSvg');
   if (grp.avatar) {
     avatarEl.style.backgroundImage = 'url(' + grp.avatar + ')';
-    avatarEl.innerHTML = '';
+    if (avatarSvg) avatarSvg.style.display = 'none';
   } else {
     avatarEl.style.backgroundImage = 'none';
-    avatarEl.innerHTML = _defaultGroupHeaderAvatar();
+    if (avatarSvg) avatarSvg.style.display = '';
   }
+  // 重置 file input（允许再次选同一张）
+  var avatarInput = document.getElementById('gmAvatarInput');
+  if (avatarInput) avatarInput.value = '';
 
+  // 表单
   document.getElementById('gmGroupName').value = grp.name || '';
   document.getElementById('gmNickname').value = grp.userNickname || state.userProfile.name || '';
   tmp.groupAvatarData = null;
+
+  // 成员列表
   renderGroupMemberList();
 
-  const addView = document.getElementById('gmAddMemberView');
+  // 收起添加成员
+  var addView = document.getElementById('gmAddMemberView');
   if (addView) addView.style.display = 'none';
+  var addBtn = document.getElementById('gmAddMemberBtn');
+  if (addBtn) addBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg> 添加成员';
 
-  document.getElementById('groupManageModal').classList.add('show');
+  // ★ 用 nav 切页，不是弹窗
+  nav('screen-group-manage');
 }
+
+function closeGroupManagePanel() {
+  nav('screen-chat');
+}
+window.closeGroupManagePanel = closeGroupManagePanel;
 
 function renderGroupMemberList() {
   const grp = getGroupById(state.currentCharId);
@@ -451,16 +532,25 @@ function renderGroupMemberList() {
     const avSrc = mc.avatar
       ? '<img src="' + mc.avatar + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover">'
       : '<div style="width:36px;height:36px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 32 32" style="width:20px;height:20px"><circle cx="16" cy="12" r="5" stroke="#aaa" stroke-width="1.5" fill="none"/><path d="M6 28c0-5.5 4.5-10 10-10s10 4.5 10 10" stroke="#aaa" stroke-width="1.5" fill="none"/></svg></div>';
+    // ★ 优先显示群昵称
+    const groupNick = (grp.nicknames && grp.nicknames[mid]) || '';
+    const displayName = groupNick || mc.name;
     html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f2f2f7">';
     html += '<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0">' + avSrc + '</div>';
-    html += '<div style="flex:1;font-size:15px;color:#1d1d1f">' + esc(mc.name) + '</div>';
-    html += '<button onclick="removeMemberFromGroup(\'' + mid + '\')" style="background:none;border:1px solid #ff3b30;border-radius:6px;padding:4px 10px;cursor:pointer;color:#ff3b30;font-size:12px;font-family:inherit">移除</button>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="font-size:15px;color:#1d1d1f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(displayName) + '</div>';
+    if (groupNick && groupNick !== mc.name) {
+      html += '<div style="font-size:11px;color:#8e8e93;margin-top:1px">' + esc(mc.name) + '</div>';
+    }
+    html += '</div>';
+    // ★ 改成"管理"
+    html += '<button onclick="openMemberManageModal(\'' + mid + '\')" style="background:none;border:1px solid #d1d1d6;border-radius:6px;padding:4px 10px;cursor:pointer;color:#3a3a3c;font-size:12px;font-family:inherit">管理</button>';
     html += '</div>';
   });
 
   document.getElementById('gmMemberList').innerHTML = html;
   const countEl = document.getElementById('gmMemberCount');
-  if (countEl) countEl.textContent = (grp.members || []).length;
+  if (countEl) countEl.textContent = ((grp.members || []).length + 1);   // ★ +1 是自己
 }
 
 function toggleAddMemberView() {
@@ -516,16 +606,67 @@ function addMemberToGroup(charId) {
 function removeMemberFromGroup(charId) {
   const grp = getGroupById(state.currentCharId);
   if (!grp) return;
-  if ((grp.members || []).length <= 2) {
-    showToast('群组至少需要2名成员');
+  // ★ 现在成员数包含自己，所以最少 3 个（2 个角色 + 我），移除后剩 2（1 角色 + 我）就报错
+  if ((grp.members || []).length <= 1) {
+    showToast('群组至少需要1名其他成员');
     return;
   }
   grp.members = (grp.members || []).filter(m => m !== charId);
+  if (grp.nicknames) delete grp.nicknames[charId];
   saveState();
   renderGroupMemberList();
   renderAvailableCharList();
   renderChat();
   showToast('成员已移除');
+}
+
+// ========== 成员管理弹窗 ==========
+function openMemberManageModal(charId) {
+  var grp = getGroupById(state.currentCharId);
+  if (!grp) return;
+  var mc = state.characters.find(c => c.id === charId);
+  if (!mc) return;
+
+  tmp.memberManageCharId = charId;
+
+  var nameEl = document.getElementById('gmMemberManageName');
+  if (nameEl) nameEl.textContent = mc.name;
+
+  var nickInput = document.getElementById('gmMemberNicknameInput');
+  if (nickInput) {
+    var existing = (grp.nicknames && grp.nicknames[charId]) || '';
+    nickInput.value = existing;
+    nickInput.placeholder = '默认：' + mc.name;
+  }
+
+  document.getElementById('gmMemberManageModal').classList.add('show');
+}
+
+function saveMemberGroupNickname() {
+  var grp = getGroupById(state.currentCharId);
+  var cid = tmp.memberManageCharId;
+  if (!grp || !cid) return;
+
+  if (!grp.nicknames) grp.nicknames = {};
+  var input = document.getElementById('gmMemberNicknameInput');
+  var val = input ? input.value.trim() : '';
+  if (val) {
+    grp.nicknames[cid] = val;
+  } else {
+    delete grp.nicknames[cid];
+  }
+  saveState();
+  closeModal('gmMemberManageModal');
+  renderGroupMemberList();
+  renderChat();
+  showToast(val ? '群昵称已保存' : '已恢复默认名称');
+}
+
+function removeMemberFromGroupFromManage() {
+  var cid = tmp.memberManageCharId;
+  if (!cid) return;
+  closeModal('gmMemberManageModal');
+  removeMemberFromGroup(cid);
 }
 
 function previewGroupAvatar(inp) {
@@ -565,14 +706,13 @@ function saveGroupNickname() {
 }
 
 function confirmLeaveGroup() {
-  document.getElementById('leaveGroupConfirmModal').classList.add('show');
+  if (!confirm('退出群聊？\n\n退出后该群聊的所有消息将从你的列表移除，且无法恢复。')) return;
+  leaveGroup();
 }
 
 function leaveGroup() {
-  closeModal('leaveGroupConfirmModal');
-  closeModal('groupManageModal');
-  const groupId = state.currentCharId;
-  state.groups = (state.groups || []).filter(g => g.id !== groupId);
+  var groupId = state.currentCharId;
+  state.groups = (state.groups || []).filter(function(g) { return g.id !== groupId; });
   delete state.chats[groupId];
   delete state.unread[groupId];
   state.currentCharId = null;
@@ -581,3 +721,115 @@ function leaveGroup() {
   renderCharList();
   showToast('已退出群组');
 }
+
+// ============================================================
+//  心声面板 — 情绪显示
+// ============================================================
+
+function _renderHeartEmotions(charId) {
+  if (!charId) return;
+
+  var section = document.getElementById('hvEmotionSection');
+  if (!section) {
+    var content = document.querySelector('#heartVoicePanel .hv-content');
+    if (!content) return;
+    section = document.createElement('div');
+    section.id = 'hvEmotionSection';
+    section.className = 'hv-emotion-section';
+    section.innerHTML =
+      '<div class="hv-emotion-header">' +
+        '<span class="hv-emotion-title">Emotions</span>' +
+      '</div>' +
+      '<div class="hv-emotion-list">' +
+        _buildEmotionRow('anger', '愤怒') +
+        _buildEmotionRow('suspicion', '怀疑') +
+        _buildEmotionRow('trust', '信任') +
+        _buildEmotionRow('patience', '耐心') +
+      '</div>';
+    content.appendChild(section);
+  }
+
+  // 判断是否开启强控/顶号
+  var cfg = getCharConfig(charId);
+  var hasTp = !!(cfg && cfg.topPriority);
+  var hasFc = !!(cfg && cfg.forceControl);
+
+  if (!hasTp && !hasFc) {
+    section.classList.remove('visible');
+    return;
+  }
+
+  // 读情绪数据
+  var emotions = null;
+  try {
+    if (hasTp && typeof getTpLock === 'function') {
+      var tpLock = getTpLock(charId);
+      if (tpLock && tpLock.emotions) emotions = tpLock.emotions;
+    }
+    if (!emotions && hasFc && typeof getFcLock === 'function') {
+      var fcLock = getFcLock(charId);
+      if (fcLock && fcLock.emotions) emotions = fcLock.emotions;
+    }
+  } catch (e) { console.warn('[HeartEmotions] 读取失败:', e); }
+
+  if (!emotions) {
+    section.classList.remove('visible');
+    return;
+  }
+
+  section.classList.add('visible');
+
+  ['anger', 'suspicion', 'trust', 'patience'].forEach(function (key) {
+    var val = parseInt(emotions[key], 10);
+    if (isNaN(val)) val = 0;
+    val = Math.max(0, Math.min(10, val));
+    var item = section.querySelector('.hv-emotion-item[data-emotion="' + key + '"]');
+    if (!item) return;
+    var fill = item.querySelector('.hv-emotion-fill');
+    var num  = item.querySelector('.hv-emotion-num');
+    if (fill) fill.style.width = (val * 10) + '%';
+    if (num)  num.textContent  = val;
+  });
+}
+
+function _buildEmotionRow(key, label) {
+  return '<div class="hv-emotion-item" data-emotion="' + key + '">' +
+    '<span class="hv-emotion-label">' + label + '</span>' +
+    '<div class="hv-emotion-track">' +
+      '<div class="hv-emotion-fill"></div>' +
+    '</div>' +
+    '<span class="hv-emotion-num">0</span>' +
+  '</div>';
+}
+
+// ========== 群信息自动保存（防 onchange 不触发） ==========
+var _saveGroupInfoTimer = null;
+var _saveGroupNicknameTimer = null;
+
+function debouncedSaveGroupInfo() {
+  if (_saveGroupInfoTimer) clearTimeout(_saveGroupInfoTimer);
+  _saveGroupInfoTimer = setTimeout(function() {
+    var grp = getGroupById(state.currentCharId);
+    if (!grp) return;
+    var el = document.getElementById('gmGroupName');
+    if (!el) return;
+    var name = el.value.trim();
+    if (name) grp.name = name;
+    saveState();
+  }, 500);
+}
+
+function debouncedSaveGroupNickname() {
+  if (_saveGroupNicknameTimer) clearTimeout(_saveGroupNicknameTimer);
+  _saveGroupNicknameTimer = setTimeout(function() {
+    var grp = getGroupById(state.currentCharId);
+    if (!grp) return;
+    var el = document.getElementById('gmNickname');
+    if (!el) return;
+    grp.userNickname = el.value.trim();
+    saveState();
+  }, 500);
+}
+
+window.debouncedSaveGroupInfo = debouncedSaveGroupInfo;
+window.debouncedSaveGroupNickname = debouncedSaveGroupNickname;

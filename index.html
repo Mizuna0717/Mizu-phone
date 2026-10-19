@@ -2,20 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mizu Phone</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mizu Phone</title>
 
-    <!-- ★★★ 图标设置 ★★★ -->
-    <!-- iPhone / iOS 主屏幕图标 -->
-    <link rel="apple-touch-icon" sizes="180x180" href="images/mizuphonemain.jpg">
-    
-    <!-- 安卓 / 浏览器图标 -->
-    <link rel="icon" type="image/jpeg" sizes="192x192" href="images/mizuphonemain.jpg">
-    <link rel="icon" type="image/jpeg" sizes="512x512" href="images/mizuphonemain.jpg">
-    
-    <!-- 安卓主屏幕图标清单 -->
-    <link rel="manifest" href="manifest.json">
-    <!-- ★★★ 图标设置结束 ★★★ -->
+<link rel="apple-touch-icon" sizes="180x180" href="images/mizuphonemain.jpg">
+<link rel="icon" type="image/jpeg" sizes="192x192" href="images/mizuphonemain.jpg">
+<link rel="icon" type="image/jpeg" sizes="512x512" href="images/mizuphonemain.jpg">
+<link rel="manifest" href="manifest.json">
 
 
     <!-- 关键 CSS -->
@@ -29,6 +22,7 @@
 
     <!-- 非首屏 CSS（异步） -->
     <link rel="stylesheet" href="css/settings.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/forum.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/wiki.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/profile.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/bubble-menu.css" media="print" onload="this.media='all'">
@@ -38,6 +32,7 @@
     <link rel="stylesheet" href="css/memory.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/together.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/phone-message.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/char-import.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/phone-call.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/phone-mail.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/phone-social.css" media="print" onload="this.media='all'">
@@ -243,6 +238,38 @@
         #loadingIndicator.mizu-fadeout .mizu-progress-track { animation: mizuContentExit .7s cubic-bezier(.4,0,.15,1) forwards !important; }
         @keyframes mizuContentExit { to { opacity: 0; transform: translateY(14px); } }
         #loadingIndicator.mizu-fadeout .mizu-shimmer { opacity: 0 !important; transition: opacity .5s ease; animation-play-state: paused; }
+
+        /* ===== iPhone 全屏 / 安全区适配 ===== */
+html, body {
+    height: var(--app-height, 100dvh);
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+}
+body {
+    overflow: hidden;
+    background: #f2f2f7; 
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    box-sizing: border-box;
+}
+.app, #app {
+    height: 100%;
+    min-height: 0;
+}
+/* 顶部安全区黑色背景，避免状态栏下露白 */
+@supports (padding: env(safe-area-inset-top)) {
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: env(safe-area-inset-top);
+        background: #f2f2f7;
+        z-index: 99998;
+        pointer-events: none;
+    }
+}
     </style>
 
     <script>
@@ -281,6 +308,19 @@
                 clearTimeout(_loadingTimeout);
             });
         })();
+        (function () {
+    function setAppHeight() {
+        var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+        document.documentElement.style.setProperty('--app-height', h + 'px');
+    }
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setAppHeight);
+        window.visualViewport.addEventListener('scroll', setAppHeight);
+    }
+    window.addEventListener('resize', setAppHeight);
+    window.addEventListener('orientationchange', setAppHeight);
+    setAppHeight();
+})();
     </script>
 </head>
 <body>
@@ -439,7 +479,26 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dexie@4.0.8/dist/dexie.min.js"></script>   <!-- ★ 新增这一行 -->
+    <script src="js/db.js"></script> 
     <script src="js/auth.js"></script>
     <script src="js/screen-loader.js"></script>
+    <script src="js/persist.js"></script>   <!-- ★ 新增这一行 -->
+    <script src="js/cross-tab.js"></script>   <!-- ★ 新增 -->
+    <script src="js/cloud-sync.js"></script>   <!-- ★ 新增 -->
+    <script src="js/version.js"></script>
+    <script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+            .then(function(reg) {
+                console.log('[SW] registered, scope:', reg.scope);
+            })
+            .catch(function(err) {
+                console.warn('[SW] register failed:', err);
+            });
+    });
+}
+</script>
 </body>
 </html>

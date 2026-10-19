@@ -30,8 +30,11 @@ function getCharConfig(cid) {
   if (cfg.autoMessageInterval === undefined) cfg.autoMessageInterval = 10;
   if (cfg.useStickers === undefined) cfg.useStickers = false;
   if (cfg.forceControl === undefined) cfg.forceControl = false;
-  if (cfg.topPriority === undefined) cfg.topPriority = false;
-
+    if (cfg.topPriority === undefined) cfg.topPriority = false;
+    // ★★★ CoT 思维链 ★★★
+  if (cfg.enableCoT === undefined) cfg.enableCoT = false;
+  if (cfg.cotLang === undefined) cfg.cotLang = 'zh';
+  if (cfg.cotPrompt === undefined) cfg.cotPrompt = '';
 
 
     // ★★★ 新增：回复语言 ★★★

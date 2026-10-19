@@ -1575,4 +1575,656 @@
   }
 }
 
+/* ═══ Group Manage Modal ═══ */
+.gm-modal {
+    max-width: 400px;
+    width: 92%;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    animation: modalZoomIn .22s ease;
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+}
 
+.gm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid #f2f2f7;
+    flex-shrink: 0;
+}
+
+.gm-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1d1d1f;
+    letter-spacing: -.2px;
+}
+
+.gm-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.gm-avatar-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.gm-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #f2f2f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #ececec;
+    position: relative;
+}
+
+.gm-avatar:active {
+    opacity: .8;
+}
+
+.gm-avatar svg {
+    width: 36px;
+    height: 36px;
+    stroke: #c7c7cc;
+    fill: none;
+    stroke-width: 1.5;
+}
+
+.gm-avatar-hint {
+    font-size: 12px;
+    color: #8e8e93;
+}
+
+.gm-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.gm-field-label {
+    font-size: 12px;
+    color: #8e8e93;
+    font-weight: 500;
+    letter-spacing: .2px;
+}
+
+.gm-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: #f9f9fb;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    font-size: 15px;
+    color: #1d1d1f;
+    outline: none;
+    font-family: inherit;
+    transition: border-color .15s, background .15s;
+    box-sizing: border-box;
+}
+
+.gm-input:focus {
+    border-color: #1d1d1f;
+    background: #fff;
+}
+
+.gm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gm-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2px;
+}
+
+.gm-section-title {
+    font-size: 13px;
+    color: #8e8e93;
+    font-weight: 600;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+}
+
+.gm-section-count {
+    font-size: 12px;
+    color: #8e8e93;
+}
+
+.gm-member-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.gm-member-list > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f2f2f7;
+}
+
+.gm-member-list > div:last-child {
+    border-bottom: none;
+}
+
+.gm-add-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gm-add-btn {
+    width: 100%;
+    padding: 10px;
+    background: #f2f2f7;
+    border: 1px dashed #d1d1d6;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #3a3a3c;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+}
+
+.gm-add-btn:active {
+    background: #e5e5ea;
+}
+
+.gm-add-view {
+    background: #f9f9fb;
+    border-radius: 10px;
+    padding: 8px 12px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.gm-available-list > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f2f2f7;
+    cursor: pointer;
+}
+
+.gm-available-list > div:last-child {
+    border-bottom: none;
+}
+
+.gm-footer {
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px 18px;
+    border-top: 1px solid #f2f2f7;
+    flex-shrink: 0;
+}
+
+.gm-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform .1s, background .15s;
+}
+
+.gm-btn:active {
+    transform: scale(.97);
+}
+
+.gm-btn-save {
+    background: #1d1d1f;
+    color: #fff;
+}
+
+.gm-btn-save:active {
+    background: #000;
+}
+
+.gm-btn-danger {
+    background: #fff5f5;
+    color: #ff3b30;
+    border: 1px solid #ffe0de;
+}
+
+.gm-btn-danger:active {
+    background: #ffe0de;
+}
+
+.gm-btn-cancel {
+    background: #f2f2f7;
+    color: #3a3a3c;
+}
+
+/* Group Leave Confirm */
+.gm-confirm-modal {
+    max-width: 320px;
+    width: 88%;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    text-align: center;
+    animation: modalZoomIn .22s ease;
+}
+
+.gm-confirm-title {
+    padding: 22px 20px 8px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1d1d1f;
+}
+
+.gm-confirm-body {
+    padding: 0 22px 20px;
+    font-size: 14px;
+    color: #6e6e73;
+    line-height: 1.5;
+}
+
+.gm-confirm-actions {
+    display: flex;
+    gap: 10px;
+    padding: 0 16px 16px;
+}
+
+.gm-confirm-actions .gm-btn {
+    flex: 1;
+}
+
+/* ═══════════════════════════════════════════
+   Group Manage — 群管理页面（对齐 Chat Settings）
+   ═══════════════════════════════════════════ */
+
+/* 群头像区域 */
+.gm-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 20px 24px;
+    gap: 10px;
+}
+
+.gm-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #f2f2f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #ececec;
+    transition: transform .15s, opacity .15s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+}
+
+.gm-avatar:active {
+    transform: scale(.95);
+    opacity: .85;
+}
+
+.gm-avatar svg {
+    width: 40px;
+    height: 40px;
+    stroke: #c7c7cc;
+    fill: none;
+    stroke-width: 1.4;
+}
+
+.gm-avatar-hint {
+    font-size: 12px;
+    color: #8e8e93;
+    letter-spacing: .1px;
+}
+
+/* 群信息输入框（在 cs-row 里右对齐） */
+.cs-input {
+    flex: 1;
+    min-width: 0;
+    max-width: 200px;
+    text-align: right;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 0;
+    transition: color .15s;
+}
+
+.cs-input:focus {
+    color: #000;
+}
+
+.cs-input::placeholder {
+    color: #c7c7cc;
+    font-weight: 400;
+}
+
+/* 群成员列表 */
+.gm-member-list {
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px;
+}
+
+.gm-member-list > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    min-height: 48px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #f2f2f7;
+}
+
+.gm-member-list > div:last-child {
+    border-bottom: none;
+}
+
+/* 移除按钮 */
+.gm-member-list > div > button {
+    background: none;
+    border: 1px solid #ff3b30;
+    border-radius: 8px;
+    padding: 5px 12px;
+    color: #ff3b30;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s, transform .1s;
+}
+
+.gm-member-list > div > button:active {
+    background: #fff5f5;
+    transform: scale(.96);
+}
+
+/* 添加成员展开区 */
+.gm-add-view {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #ececec;
+    margin: 4px 16px 4px;
+    padding: 0 16px;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
+    animation: gmAddViewIn .2s ease;
+}
+
+@keyframes gmAddViewIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.gm-available-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.gm-available-list > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    min-height: 48px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #f2f2f7;
+    cursor: pointer;
+    transition: background .12s;
+}
+
+.gm-available-list > div:last-child {
+    border-bottom: none;
+}
+
+.gm-available-list > div:active {
+    background: #f9f9fb;
+}
+
+/* ============================================================
+   ★ 图片消息 — 文字模式（点击切换后的灰底卡片）
+   ============================================================ */
+.msg-bubble.image-msg.image-msg-text {
+  padding: 14px 16px !important;
+  background: #E9E9EA !important;
+  color: #1d1d1f !important;
+  min-width: 160px;
+  max-width: 240px;
+  max-height: 220px;
+  overflow-y: auto;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  cursor: pointer;
+  white-space: normal;
+}
+
+.msg-row.sent .msg-bubble.image-msg.image-msg-text {
+  background: #A0A0A0 !important;
+  color: #ffffff !important;
+}
+
+.msg-bubble.image-msg .image-text-content {
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* 图片本身保持原样，仅去掉 padding，让点击区域完整 */
+.msg-bubble.image-msg {
+  cursor: pointer;
+}
+
+/* ============================================================
+   Heart Panel — Emotions Display
+   ============================================================ */
+
+/* 隐藏 section label 的旧 SVG 图标 */
+.hv-section-label svg {
+  display: none !important;
+}
+
+/* 情绪区容器 */
+.hv-emotion-section {
+  padding: 8px 0 0;
+  display: none;
+}
+.hv-emotion-section.visible {
+  display: block;
+}
+
+.hv-emotion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.hv-emotion-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.hv-emotion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hv-emotion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hv-emotion-label {
+  width: 44px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6a6a6a;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.hv-emotion-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.hv-emotion-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: #6a6a6a;
+  transition: width .35s ease;
+}
+
+.hv-emotion-item[data-emotion="anger"]     .hv-emotion-fill { background: #cbcbcb; }
+.hv-emotion-item[data-emotion="suspicion"] .hv-emotion-fill { background: #cbcbcb; }
+.hv-emotion-item[data-emotion="trust"]     .hv-emotion-fill { background: #cbcbcb; }
+.hv-emotion-item[data-emotion="patience"]  .hv-emotion-fill { background: #cbcbcb; }
+
+.hv-emotion-num {
+  min-width: 24px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  color: #3a3a3c;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Member Manage Modal
+   ============================================================ */
+.gmm-header {
+  padding: 18px 20px 12px;
+  text-align: center;
+  border-bottom: 1px solid #f2f2f7;
+}
+
+.gmm-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1d1d1f;
+  letter-spacing: -.2px;
+}
+
+.gmm-sub {
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 4px;
+}
+
+.gmm-body {
+  padding: 16px 20px 8px;
+}
+
+.gmm-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8e8e93;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.gmm-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ececec;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
+  color: #1d1d1f;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color .15s;
+}
+
+.gmm-input:focus {
+  border-color: #c7c7cc;
+}
+
+.gmm-input::placeholder {
+  color: #c7c7cc;
+}
+
+.gmm-actions {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #f2f2f7;
+}
+
+.gmm-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  background: none;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .12s;
+}
+
+.gmm-btn:active {
+  background: rgba(0, 0, 0, .04);
+}
+
+.gmm-btn + .gmm-btn {
+  border-top: 1px solid #f2f2f7;
+}
+
+.gmm-btn-primary {
+  color: #1d1d1f;
+  font-weight: 600;
+}
+
+.gmm-btn-danger {
+  color: #ff3b30;
+}
+
+.gmm-btn-cancel {
+  color: #8e8e93;
+}

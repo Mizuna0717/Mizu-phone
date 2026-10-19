@@ -120,12 +120,39 @@ function renderApiListInline() {
   } else {
     state.apis.forEach(a => {
       const isA = state.activeApiId === a.id;
-      h += `<div class="api-card-item" onclick="editApi('${a.id}')"><div class="aci-indicator ${isA ? 'active' : 'inactive'}"></div><div class="aci-info"><div class="aci-name">${esc(a.name || 'Unnamed')}</div><div class="aci-model">${esc(a.model || 'No model')}</div></div><span class="aci-badge ${isA ? 'on' : 'off'}">${isA ? T('active') : ''}</span><span class="aci-arrow">›</span></div>`;
+      h += `<div class="api-card-item">`
+        + `<div class="aci-indicator ${isA ? 'active' : 'inactive'}"></div>`
+        + `<div class="aci-info" onclick="setActiveApi('${a.id}')">`
+        +   `<div class="aci-name">${esc(a.name || 'Unnamed')}</div>`
+        +   `<div class="aci-model">${esc(a.model || 'No model')}</div>`
+        + `</div>`
+        + `<span class="aci-badge ${isA ? 'on' : 'off'}">${isA ? T('active') : ''}</span>`
+        + `<button class="aci-edit-btn" onclick="event.stopPropagation();editApi('${a.id}')" title="Edit">`
+        +   `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">`
+        +     `<path d="M10 2l4 4-9 9H1v-4z"/>`
+        +   `</svg>`
+        + `</button>`
+        + `</div>`;
     });
   }
   h += `<div class="api-card-add" onclick="editApi(null)"><svg viewBox="0 0 18 18"><path d="M9 3v12M3 9h12" stroke-linecap="round"/></svg><span>${T('addApi')}</span></div></div>`;
   b.innerHTML = h;
 }
+
+function setActiveApi(id) {
+  if (!id || state.activeApiId === id) return;
+  var a = state.apis.find(function(x) { return x.id === id; });
+  if (!a) return;
+  state.activeApiId = id;
+  saveState();
+  renderApiListInline();
+  try { renderSettings(); } catch (e) {}
+  if (typeof showToast === 'function') {
+    showToast('已切换到: ' + (a.name || 'API'));
+  }
+  console.log('[API] 切换活跃 →', a.name, '(' + id + ')');
+}
+window.setActiveApi = setActiveApi;
 
 // ========== iMessage 提示词 ==========
 function savePromptIM() {

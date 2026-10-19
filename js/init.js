@@ -7,7 +7,7 @@
   //  — 首次加载时直接执行
   //  — 认证成功后由 auth.js 通过 window.__runAppInit() 再次调用
   // ═══════════════════════════════════════════════
-  function runAppInit() {
+  async function runAppInit() {
 
     var _initStart = performance.now();
 
@@ -22,7 +22,7 @@
     // ═══════════════════════════════════════════════
     //  1. 加载多账号数据
     // ═══════════════════════════════════════════════
-    try { loadState(); } catch(e) { console.error('loadState failed:', e); }
+   try { await loadState(); } catch(e) { console.error('loadState failed:', e); }
 
     // 认证成功后同步 state.user
     if (window.__user && typeof state !== 'undefined') {
@@ -168,23 +168,7 @@
       }
     } catch(e) {}
 
-    // ═══════════════════════════════════════════════
-    //  6. 数据持久化保障
-    // ═══════════════════════════════════════════════
-
-    window.addEventListener('beforeunload', function() {
-      try { saveState(); } catch(e) { console.error('beforeunload save failed:', e); }
-    });
-
-    document.addEventListener('visibilitychange', function() {
-      if (document.visibilityState === 'hidden') {
-        try { saveState(); } catch(e) { console.error('visibilitychange save failed:', e); }
-      }
-    });
-
-    window.addEventListener('pagehide', function() {
-      try { saveState(); } catch(e) { console.error('pagehide save failed:', e); }
-    });
+    
 
     // ═══════════════════════════════════════════════
     //  7. 延迟数据完整性终检

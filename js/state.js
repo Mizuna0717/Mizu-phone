@@ -1,4 +1,97 @@
 ﻿// ========== 02-state.js ==========
+// ========== 图标专用 IndexedDB（与 AI_DB 无关，独立库）==========
+var _iconDB = null;
+function _getIconDB() {
+  if (_iconDB) return Promise.resolve(_iconDB);
+  return new Promise(function(resolve, reject) {
+    var req = indexedDB.open('ai_app_icons_db', 1);
+    req.onupgradeneeded = function() {
+      var db = req.result;
+      if (!db.objectStoreNames.contains('icons')) {
+        db.createObjectStore('icons', { keyPath: 'k' });
+      }
+    };
+    req.onsuccess = function() { _iconDB = req.result; resolve(_iconDB); };
+    req.onerror = function() { reject(req.error); };
+  });
+}
+
+async function _saveIconsToIDB(accountId, iconsObj) {
+  try {
+    var db = await _getIconDB();
+    await new Promise(function(resolve, reject) {
+      var tx = db.transaction('icons', 'readwrite');
+      var store = tx.objectStore('icons');
+
+      // ★ 先删掉该账号所有旧图标，再写新的
+      //   这样 Reset 后传空对象时，旧图标会被清掉
+      var range = IDBKeyRange.bound(accountId + '::', accountId + '::~');
+      var deleteCursor = store.openCursor(range);
+      deleteCursor.onsuccess = function(e) {
+        var c = e.target.result;
+        if (c) {
+          store.delete(c.key);
+          c.continue();
+        } else {
+          // 旧图标清空完毕，开始写新的
+          Object.keys(iconsObj).forEach(function(k) {
+            store.put({ k: accountId + '::' + k, accountId: accountId, key: k, data: iconsObj[k] });
+          });
+        }
+      };
+      deleteCursor.onerror = function(e) { reject(e.target.error); };
+
+      tx.oncomplete = function() { resolve(); };
+      tx.onerror = function() { reject(tx.error); };
+      tx.onabort = function() { reject(tx.error); };
+    });
+    return true;
+  } catch (e) {
+    console.error('[icons] IDB 保存失败:', e);
+    return false;
+  }
+}
+
+async function _loadIconsFromIDB(accountId) {
+  try {
+    var db = await _getIconDB();
+    return await new Promise(function(resolve) {
+      var tx = db.transaction('icons', 'readonly');
+      var store = tx.objectStore('icons');
+      var result = {};
+      var range = IDBKeyRange.bound(accountId + '::', accountId + '::~');
+      var req = store.openCursor(range);
+      req.onsuccess = function() {
+        var c = req.result;
+        if (c) { result[c.value.key] = c.value.data; c.continue(); }
+        else { resolve(result); }
+      };
+      req.onerror = function() { resolve({}); };
+    });
+  } catch (e) {
+    console.error('[icons] IDB 加载失败:', e);
+    return {};
+  }
+}
+
+async function _deleteIconsFromIDB(accountId) {
+  try {
+    var db = await _getIconDB();
+    await new Promise(function(resolve) {
+      var tx = db.transaction('icons', 'readwrite');
+      var store = tx.objectStore('icons');
+      var range = IDBKeyRange.bound(accountId + '::', accountId + '::~');
+      store.openCursor(range).onsuccess = function(e) {
+        var c = e.target.result;
+        if (c) { store.delete(c.key); c.continue(); }
+      };
+      tx.oncomplete = function() { resolve(); };
+      tx.onerror = function() { resolve(); };
+    });
+  } catch (e) {}
+}
+// ========== 图标专用 IDB 结束 ==========
+
 let accountStore = { accounts: [], currentAccountId: null };
 
 let state = {
@@ -45,6 +138,7 @@ var SAVE_KEYS = [
 var _stateLoaded = false;
 var _forceNextSave = false;
 var _saveGeneration = 0;
+window.__dirtyChats = window.__dirtyChats || new Set();   // ← 加这一行
 
 function _generateAccountId() {
   return 'acct_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -200,17 +294,46 @@ function _resetTransientState() {
   tmp.momentVirtualText = ''; tmp.acctAvatar = null; tmp.importCharList = null;
 }
 
-function _saveAccountMeta() {
-  try {
-    var meta = accountStore.accounts.map(function(a) {
+async function _saveAccountMeta() {
+  var meta = {
+    accounts: accountStore.accounts.map(function(a) {
       return { id: a.id, name: a.name, avatar: a.avatar };
-    });
-    localStorage.setItem('ai_app_all_accounts', JSON.stringify(meta));
-    localStorage.setItem('ai_app_current_id', accountStore.currentAccountId || '');
-  } catch (e) { console.warn('_saveAccountMeta failed', e); }
+    }),
+    currentId: accountStore.currentAccountId || null,
+    savedAt: Date.now()
+  };
+
+  // 主：IDB
+  try {
+    await window.AI_DB.saveMeta(meta);
+  } catch (e) {
+    console.warn('[_saveAccountMeta] IDB 失败:', e);
+  }
+
+  // 备：LS（保留原有兼容）
+  try {
+    localStorage.setItem('ai_app_all_accounts', JSON.stringify(meta.accounts));
+    localStorage.setItem('ai_app_current_id', meta.currentId || '');
+  } catch (e) {
+    console.warn('[_saveAccountMeta] LS 失败:', e);
+  }
 }
 
-function _loadAccountMeta() {
+async function _loadAccountMeta() {
+  // 主：IDB
+  var idbMeta = null;
+  try {
+    idbMeta = await window.AI_DB.loadMeta();
+  } catch (e) {}
+
+  if (idbMeta && Array.isArray(idbMeta.accounts)) {
+    accountStore.accounts = idbMeta.accounts;
+    accountStore.currentAccountId = idbMeta.currentId || null;
+    console.log('[_loadAccountMeta] 从 IDB 加载:', accountStore.accounts.length, '个账号');
+    return;
+  }
+
+  // 备：LS（首次迁移或 IDB 为空）
   try {
     var raw = localStorage.getItem('ai_app_all_accounts');
     if (raw) {
@@ -225,6 +348,12 @@ function _loadAccountMeta() {
     }
     var cid = localStorage.getItem('ai_app_current_id');
     accountStore.currentAccountId = (cid && cid.length > 0) ? cid : null;
+
+    // 迁移到 IDB
+    if (accountStore.accounts.length > 0) {
+      await _saveAccountMeta();
+      console.log('[_loadAccountMeta] LS → IDB 迁移完成');
+    }
   } catch (e) {
     console.error('[_loadAccountMeta] 解析失败:', e);
     accountStore.accounts = [];
@@ -232,86 +361,239 @@ function _loadAccountMeta() {
   }
 }
 
-function _saveAccountData(accountId) {
+async function _saveAccountData(accountId) {
+  if (!accountId) return;
+
   var s = {};
   SAVE_KEYS.forEach(function(k) { s[k] = state[k]; });
+    // ★ 把 homeIcons 从主 JSON 里剥离，单独存 IDB
+  var _homeIconsToSave = undefined;
+if (s.theme && s.theme.general && s.theme.general.homeIcons !== undefined) {
+    _homeIconsToSave = s.theme.general.homeIcons;
+    s.theme = JSON.parse(JSON.stringify(s.theme));
+    var _namesOnly = {};
+    Object.keys(_homeIconsToSave).forEach(function(k) {
+      _namesOnly[k] = { name: _homeIconsToSave[k].name };
+    });
+    s.theme.general.homeIcons = _namesOnly;
+  }
 
+  var _localForce = _forceNextSave;
+
+  // ── 同步部分：序列化 ──
+  var json;
   try {
-    var json = JSON.stringify(s);
-    var usedKB = Math.round(json.length / 1024);
-
-    if (!_forceNextSave) {
-      var newChars = (s.characters || []).length;
-      var newChats = Object.keys(s.chats || {}).length;
-      var newMasks = (s.masks || []).length;
-      var newDataScore = newChars + newChats + newMasks;
-
-      if (newDataScore === 0) {
-        var existingRaw = null;
-        try { existingRaw = localStorage.getItem('ai_app_account_' + accountId); } catch(e) {}
-
-        if (existingRaw) {
-          try {
-            var existing = JSON.parse(existingRaw);
-            var oldChars = (existing.characters || []).length;
-            var oldChats = Object.keys(existing.chats || {}).length;
-            var oldMasks = (existing.masks || []).length;
-            var oldDataScore = oldChars + oldChats + oldMasks;
-
-            if (oldDataScore > 0) {
-              console.error('[save] 防空覆写！阻止空数据覆盖有效数据。',
-                '| 现有: chars=' + oldChars + ' chats=' + oldChats + ' masks=' + oldMasks,
-                '| 试图写入: chars=' + newChars + ' chats=' + newChats + ' masks=' + newMasks);
-              try {
-                localStorage.setItem('ai_app_backup_' + accountId, existingRaw);
-              } catch(be) {}
-              return;
-            }
-          } catch (pe) {}
-        }
-      }
-    }
-
-    if (json.length > 4.5 * 1024 * 1024) {
-      console.warn('[save] 数据量过大 (' + usedKB + 'KB)，可能超出 localStorage 5MB 限制');
-    }
-
-    localStorage.setItem('ai_app_account_' + accountId, json);
-    _saveGeneration++;
-
-    console.log('[save] #' + _saveGeneration, '账号', accountId,
-      '| chars:', (s.characters||[]).length,
-      '| chats:', Object.keys(s.chats||{}).length,
-      '| masks:', (s.masks||[]).length,
-      '| npcs:', (s.npcs||[]).length,
-      '| size:', usedKB + 'KB');
-
-    var verify = localStorage.getItem('ai_app_account_' + accountId);
-    if (!verify) {
-      console.error('[save] 写入后读回失败！');
-    } else if (verify.length !== json.length) {
-      console.error('[save] 长度不匹配！写入:', json.length, '读回:', verify.length);
-    }
+    json = JSON.stringify(s);
   } catch (e) {
-    console.error('[save] FAILED for', accountId, e);
-    if (e.name === 'QuotaExceededError' || e.code === 22) {
-      console.error('[save] localStorage 已满！');
-      try {
-        localStorage.removeItem('aiphone8');
-        for (var i = localStorage.length - 1; i >= 0; i--) {
-          var key = localStorage.key(i);
-          if (key && key.indexOf('_backup') > -1) localStorage.removeItem(key);
+    console.error('[save] 序列化失败:', e);
+    return;
+  }
+  var usedKB = Math.round(json.length / 1024);
+
+  // ── 防空覆写检查 ──
+  if (!_localForce) {
+    var newChars = (s.characters || []).length;
+    var newChats = Object.keys(s.chats || {}).length;
+    var newMasks = (s.masks || []).length;
+    var newDataScore = newChars + newChats + newMasks;
+
+    if (newDataScore === 0) {
+      var existing = null;
+      try { existing = await window.AI_DB.loadAccount(accountId); } catch(e) {}
+      if (!existing) {
+        try {
+          var existingRaw = localStorage.getItem('ai_app_account_' + accountId);
+          if (existingRaw) existing = JSON.parse(existingRaw);
+        } catch(e) {}
+      }
+      if (existing) {
+        var oldChars = (existing.characters || []).length;
+        var oldChats = Object.keys(existing.chats || {}).length;
+        var oldMasks = (existing.masks || []).length;
+        var oldDataScore = oldChars + oldChats + oldMasks;
+
+        if (oldDataScore > 0) {
+          console.error('[save] 防空覆写！阻止空数据覆盖有效数据。',
+            '| 现有: chars=' + oldChars + ' chats=' + oldChats + ' masks=' + oldMasks,
+            '| 试图写入: chars=' + newChars + ' chats=' + newChats + ' masks=' + newMasks);
+          try {
+            localStorage.setItem('ai_app_backup_' + accountId, JSON.stringify(existing));
+          } catch(be) {}
+          return;
         }
-        localStorage.setItem('ai_app_account_' + accountId, json);
-        console.log('[save] 清理后重试成功');
-      } catch(e2) {
-        console.error('[save] 清理后仍然失败', e2);
       }
     }
   }
+
+// ── IDB 写入：主数据 + chat 分片 ──
+var idbOk = false;
+var chatWritesFailed = [];
+try {
+  // 1. 主数据（不含 chats，或者 chats 只存摘要）
+  var sForIdb = Object.assign({}, s);
+  var chatsSnapshot = sForIdb.chats || {};
+  sForIdb.chats = {};  // 主记录里不存完整 chats
+  sForIdb._chatIds = Object.keys(chatsSnapshot);  // 只存 charId 列表
+
+  idbOk = await window.AI_DB.saveAccount(accountId, sForIdb);
+
+  // 2. chat 分片：只写变化的（★ 必须 await，写成功才清 dirty）
+  var changedChatIds = window.__dirtyChats || new Set();
+  if (changedChatIds.size === 0) {
+    // 没有标记变化，全量写（兼容旧逻辑）
+    for (var charId in chatsSnapshot) {
+      try {
+        await window.AI_DB.saveChat(accountId, charId, chatsSnapshot[charId]);
+      } catch (e) {
+        chatWritesFailed.push(charId);
+        console.error('[save] chat 写入失败:', charId, e);
+      }
+    }
+  } else {
+    var _chatIdsArr = Array.from(changedChatIds);
+    for (var _i = 0; _i < _chatIdsArr.length; _i++) {
+      var _cid = _chatIdsArr[_i];
+      if (!chatsSnapshot[_cid]) {
+        if (window.__dirtyChats) window.__dirtyChats.delete(_cid);
+        continue;
+      }
+      try {
+        await window.AI_DB.saveChat(accountId, _cid, chatsSnapshot[_cid]);
+        if (window.__dirtyChats) window.__dirtyChats.delete(_cid);  // ★ 写成功才清
+      } catch (e) {
+        chatWritesFailed.push(_cid);
+        console.error('[save] chat 写入失败，保留 dirty:', _cid, e);
+      }
+    }
+  }
+} catch (e) {
+  console.error('[save] IDB 写入异常:', e);
 }
 
-function _loadAccountData(accountId) {
+if (chatWritesFailed.length > 0) {
+  console.warn('[save] ⚠️ ' + chatWritesFailed.length + ' 条聊天写入失败，下次保存会重试');
+}
+
+  // ★ 单独保存图标到 IDB
+if (_homeIconsToSave !== undefined) {
+  var _iconPayload = {};
+  Object.keys(_homeIconsToSave).forEach(function(k) {
+    var v = _homeIconsToSave[k];
+    var payload = (v && (v.icon || v.data)) ? (v.icon || v.data) : v;
+    if (payload && typeof payload === 'object' && payload.value !== undefined) {
+      payload = payload.value;
+    }
+    _iconPayload[k] = payload;
+  });
+  console.log('[save] 写入 IDB 图标 | 数量:', Object.keys(_iconPayload).length, '（0 = 清空所有）');
+  try {
+    var _iconOk = await _saveIconsToIDB(accountId, _iconPayload);
+    console.log('[save] IDB 图标写入:', _iconOk ? '✅' : '❌');
+  } catch (e) {
+    console.error('[save] IDB 图标写入异常:', e);
+  }
+}
+
+  // ── 异步 2：写 localStorage（备用，超 4.5MB 跳过）──
+  var lsOk = false;
+    if (json.length > 500 * 1024) {
+    console.warn('[save] 数据 ' + usedKB + 'KB 超过 500KB，跳过 localStorage 备份（IDB 已保存）');
+  } else {
+    try {
+      localStorage.setItem('ai_app_account_' + accountId, json);
+      lsOk = true;
+    } catch (e) {
+      console.error('[save] localStorage 写入失败（IDB 已保存）', e);
+      if (e.name === 'QuotaExceededError' || e.code === 22) {
+        try {
+          localStorage.removeItem('aiphone8');
+          for (var i = localStorage.length - 1; i >= 0; i--) {
+            var key = localStorage.key(i);
+            if (key && key.indexOf('_backup') > -1) localStorage.removeItem(key);
+          }
+          localStorage.setItem('ai_app_account_' + accountId, json);
+          lsOk = true;
+        } catch(e2) {
+          console.error('[save] 清理后仍失败', e2);
+        }
+      }
+    }
+  }
+
+  _saveGeneration++;
+  console.log('[save] #' + _saveGeneration, '账号', accountId,
+    '| chars:', (s.characters||[]).length,
+    '| chats:', Object.keys(s.chats||{}).length,
+    '| masks:', (s.masks||[]).length,
+    '| npcs:', (s.npcs||[]).length,
+    '| size:', usedKB + 'KB',
+    '| IDB:', idbOk ? '✓' : '✗',
+    '| LS:', lsOk ? '✓' : '⏭');
+
+  if (lsOk) {
+    try {
+      var verify = localStorage.getItem('ai_app_account_' + accountId);
+      if (!verify) {
+        console.error('[save] LS 写入后读回失败！');
+      } else if (verify.length !== json.length) {
+        console.error('[save] LS 长度不匹配！写入:', json.length, '读回:', verify.length);
+      }
+    } catch(e) {}
+  }
+}
+
+async function _loadAccountData(accountId) {
+  if (!accountId) return null;
+
+  // ── 1. 优先从 IDB 读主数据 ──
+  var idbData = null;
+  try {
+    idbData = await window.AI_DB.loadAccount(accountId);
+  } catch (e) {
+    console.warn('[load] IDB 读取异常:', e);
+  }
+
+  if (idbData && typeof idbData === 'object') {
+    // 2. 如果有 chat 分片，优先用分片
+    if (Array.isArray(idbData._chatIds) && idbData._chatIds.length > 0) {
+      try {
+        var chats = await window.AI_DB.loadAllChats(accountId);
+        if (Object.keys(chats).length > 0) {
+          idbData.chats = chats;
+          console.log('[load] 从 IDB 加载（chat 分片模式）:',
+            Object.keys(chats).length, '个会话');
+        }
+      } catch (e) {
+        console.warn('[load] chat 分片读取失败，使用主数据 chats:', e);
+      }
+    }
+        // ★ 从 IDB 单独加载图标，合并回 theme.general.homeIcons
+    try {
+      var _iconsFromIDB = await _loadIconsFromIDB(accountId);
+      var _iconCount = Object.keys(_iconsFromIDB).length;
+      if (_iconCount > 0) {
+        idbData.theme = idbData.theme || {};
+        idbData.theme.general = idbData.theme.general || {};
+        idbData.theme.general.homeIcons = idbData.theme.general.homeIcons || {};
+        Object.keys(_iconsFromIDB).forEach(function(k) {
+          if (idbData.theme.general.homeIcons[k]) {
+            idbData.theme.general.homeIcons[k].icon = _iconsFromIDB[k];
+          } else {
+            idbData.theme.general.homeIcons[k] = { icon: _iconsFromIDB[k] };
+          }
+        });
+        console.log('[load] ✅ 从 IDB 加载图标:', _iconCount, '个');
+      }
+    } catch (e) {
+      console.warn('[load] 图标加载失败:', e);
+    }
+    console.log('[load] 从 IDB 加载:', accountId,
+      '| chars:', (idbData.characters||[]).length,
+      '| chats:', Object.keys(idbData.chats||{}).length);
+    return idbData;
+  }
+
+  // ── 2. 回退 localStorage，并异步迁移到 IDB ──
   try {
     var raw = localStorage.getItem('ai_app_account_' + accountId);
     if (!raw) {
@@ -323,12 +605,14 @@ function _loadAccountData(accountId) {
           var backupData = JSON.parse(backupRaw);
           if (backupData && typeof backupData === 'object') {
             localStorage.setItem('ai_app_account_' + accountId, backupRaw);
+            if (window.AI_DB) await window.AI_DB.saveAccount(accountId, backupData);
             return backupData;
           }
         } catch(be) { console.error('[load] 备份解析失败', be); }
       }
       return null;
     }
+
     var data;
     try {
       data = JSON.parse(raw);
@@ -337,15 +621,25 @@ function _loadAccountData(accountId) {
       try { localStorage.setItem('ai_app_account_' + accountId + '_corrupt_backup', raw); } catch(e) {}
       return null;
     }
+
     if (!data || typeof data !== 'object') {
       console.error('[load] 数据格式无效:', accountId);
       return null;
     }
-    console.log('[load] 账号', accountId,
+
+    console.log('[load] 从 localStorage 加载并迁移到 IDB:', accountId,
       '| chars:', (data.characters||[]).length,
-      '| chats:', Object.keys(data.chats||{}).length,
-      '| masks:', (data.masks||[]).length,
-      '| npcs:', (data.npcs||[]).length);
+      '| chats:', Object.keys(data.chats||{}).length);
+
+    // 后台迁移到 IDB，不阻塞返回
+    if (window.AI_DB) {
+      window.AI_DB.saveAccount(accountId, data).then(function(ok) {
+        if (ok) console.log('[load] ✅ 已迁移到 IDB:', accountId);
+      }).catch(function(e) {
+        console.warn('[load] 迁移到 IDB 失败（不影响使用）:', e);
+      });
+    }
+
     return data;
   } catch (e) {
     console.error('[load] FAILED:', accountId, e);
@@ -385,14 +679,20 @@ function _scanOrphanedAccounts() {
           try {
             var data = JSON.parse(localStorage.getItem(key));
             if (data && typeof data === 'object') {
-              var charCount = (data.characters || []).length;
+                            var charCount = (data.characters || []).length;
               var chatCount = Object.keys(data.chats || {}).length;
-              if (charCount > 0 || chatCount > 0) {
+              var maskCount = (data.masks || []).length;
+              var iconCount = (data.theme && data.theme.general && data.theme.general.homeIcons)
+                                ? Object.keys(data.theme.general.homeIcons).length : 0;
+              // ★ 放宽：只要有任何数据就算孤儿，不再要求 chars/chats>0
+              if (charCount > 0 || chatCount > 0 || maskCount > 0 || iconCount > 0 ||
+                  data.userProfile || data.theme) {
                 found.push({
                   id: accountId,
                   name: (data.userProfile && data.userProfile.name) || 'Recovered',
                   avatar: (data.userProfile && data.userProfile.avatar) || null,
-                  chars: charCount, chats: chatCount
+                  chars: charCount, chats: chatCount,
+                  masks: maskCount, icons: iconCount
                 });
               }
             }
@@ -405,6 +705,45 @@ function _scanOrphanedAccounts() {
 }
 
 function _migrateFromLegacy() {
+  // ★ 优先：LS 里已有的账号元数据 + 对应数据都在 → 直接恢复，不新建
+  try {
+    var metaRaw = localStorage.getItem('ai_app_all_accounts');
+    var cidRaw  = localStorage.getItem('ai_app_current_id');
+    if (metaRaw) {
+      var savedMeta = JSON.parse(metaRaw);
+      if (Array.isArray(savedMeta) && savedMeta.length > 0) {
+        var cid = cidRaw || savedMeta[0].id;
+        var hasData = false;
+        for (var mi = 0; mi < savedMeta.length; mi++) {
+          if (localStorage.getItem('ai_app_account_' + savedMeta[mi].id)) {
+            hasData = true; break;
+          }
+        }
+        if (hasData) {
+          accountStore.accounts = savedMeta;
+          // 选 currentId：优先 cid，其次有数据的
+          var pick = null;
+          for (var mj = 0; mj < savedMeta.length; mj++) {
+            if (savedMeta[mj].id === cid &&
+                localStorage.getItem('ai_app_account_' + cid)) {
+              pick = cid; break;
+            }
+          }
+          if (!pick) {
+            for (var mk = 0; mk < savedMeta.length; mk++) {
+              if (localStorage.getItem('ai_app_account_' + savedMeta[mk].id)) {
+                pick = savedMeta[mk].id; break;
+              }
+            }
+          }
+          accountStore.currentAccountId = pick;
+          console.log('[migrate] ✅ 从 LS 元数据恢复:', pick);
+          return;
+        }
+      }
+    }
+  } catch(e) { console.warn('[migrate] LS 元数据恢复失败:', e); }
+
   var oldData = null;
   try { oldData = JSON.parse(localStorage.getItem('aiphone8')); } catch (e) {}
 
@@ -451,16 +790,21 @@ function createAccount(name, avatar) {
   return account;
 }
 
-function deleteAccount(id) {
-  if (accountStore.accounts.length <= 1) { try { showToast('Cannot delete the last account'); } catch (e) {} return false; }
+async function deleteAccount(id) {
+    await _deleteIconsFromIDB(id);
+  if (accountStore.accounts.length <= 1) {
+    try { showToast('Cannot delete the last account'); } catch (e) {}
+    return false;
+  }
   var wasCurrent = (accountStore.currentAccountId === id);
   accountStore.accounts = accountStore.accounts.filter(function(a) { return a.id !== id; });
+  await window.AI_DB.deleteAccount(id);
   _deleteAccountData(id);
   if (wasCurrent) {
     var first = accountStore.accounts[0];
     accountStore.currentAccountId = first.id;
     _resetStateToDefaults();
-    var data = _loadAccountData(first.id);
+    var data = await _loadAccountData(first.id);
     if (data) _applyDataToState(data);
     _resetTransientState(); _validateState();
   }
@@ -468,19 +812,20 @@ function deleteAccount(id) {
   return true;
 }
 
-function switchAccount(id) {
+async function switchAccount(id) {
   var target = null;
   for (var i = 0; i < accountStore.accounts.length; i++) {
     if (accountStore.accounts[i].id === id) { target = accountStore.accounts[i]; break; }
   }
   if (!target) { console.error('[switch] 目标账号不存在:', id); return false; }
   if (id === accountStore.currentAccountId) return true;
+
   var oldId = accountStore.currentAccountId;
   console.log('[switch] 保存当前账号:', oldId);
-  _saveAccountData(oldId);
+  await _saveAccountData(oldId);
   accountStore.currentAccountId = id;
   _resetStateToDefaults();
-  var data = _loadAccountData(id);
+  var data = await _loadAccountData(id);
   if (data) {
     _applyDataToState(data);
     console.log('[switch] 已加载账号:', id, '| chars:', state.characters.length);
@@ -501,22 +846,74 @@ function getCurrentAccount() {
 
 function getAllAccounts() { return accountStore.accounts.slice(); }
 
+// ── 串行保存队列（保证多次 saveState 按顺序执行，不并发覆盖）──
+var _saveQueue = Promise.resolve();
+var _saveQueueDepth = 0;
+window.__saveQueueDepth = 0;   // 暴露给控制台观察
+
 function saveState(force) {
-  if (force) _forceNextSave = true;
-  if (!accountStore.currentAccountId) {
+  var _force = !!force;
+  var _acctId = accountStore.currentAccountId;
+
+  if (!_acctId) {
     console.warn('[saveState] 无当前账号ID');
-    _forceNextSave = false;
-    return;
+    return Promise.resolve();
   }
-  _saveAccountData(accountStore.currentAccountId);
-  _saveAccountMeta();
-  _forceNextSave = false;
+
+  _saveQueueDepth++;
+  window.__saveQueueDepth = _saveQueueDepth;
+
+  _saveQueue = _saveQueue.then(function () {
+    _forceNextSave = _force;   // 只在轮到本任务时才生效
+    return _saveAccountData(_acctId).then(function () {
+      _saveAccountMeta();
+      _forceNextSave = false;
+      _saveQueueDepth--;
+      window.__saveQueueDepth = _saveQueueDepth;
+    });
+  }).catch(function (e) {
+    console.error('[saveState] 队列任务失败:', e);
+    _forceNextSave = false;
+    _saveQueueDepth--;
+    window.__saveQueueDepth = _saveQueueDepth;
+  });
+
+  return _saveQueue;
 }
 
-function loadState() {
+// ★ 强制立即写入所有待保存聊天（页面隐藏时调用，不经过队列）
+window.__flushPendingSaves = async function () {
+  var aid = accountStore.currentAccountId;
+  if (!aid) return;
+
+  var dirty = window.__dirtyChats;
+  if (!dirty || dirty.size === 0) return;
+
+  var chats = state.chats || {};
+  var ids = Array.from(dirty);
+  console.log('[flush] 强制写入 ' + ids.length + ' 条脏聊天…');
+
+  for (var i = 0; i < ids.length; i++) {
+    var cid = ids[i];
+    if (!chats[cid]) {
+      if (window.__dirtyChats) window.__dirtyChats.delete(cid);
+      continue;
+    }
+    try {
+      await window.AI_DB.saveChat(aid, cid, chats[cid]);
+      if (window.__dirtyChats) window.__dirtyChats.delete(cid);
+      console.log('[flush] ✓ ' + cid);
+    } catch (e) {
+      console.error('[flush] ✗ ' + cid, e);
+    }
+  }
+  console.log('[flush] 完成，剩余 dirty:', window.__dirtyChats ? window.__dirtyChats.size : 0);
+};
+
+async function loadState() {
   _stateLoaded = false;
   console.log('[loadState] 开始加载...');
-  _loadAccountMeta();
+  await _loadAccountMeta();          // ← 加 await
   console.log('[loadState] meta | accounts:', accountStore.accounts.length,
     '| currentId:', accountStore.currentAccountId);
 
@@ -534,7 +931,7 @@ function loadState() {
     _saveAccountMeta();
   }
 
-  var data = _loadAccountData(accountStore.currentAccountId);
+  var data = await _loadAccountData(accountStore.currentAccountId);
   if (data) _applyDataToState(data);
   _validateState();
 

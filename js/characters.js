@@ -22,6 +22,15 @@ function getCharacterById(id) {
   return null;
 }
 
+/**
+ * 角色的“显示名”：有备注用备注，没有备注用名称
+ */
+function getCharDisplayName(ch) {
+  if (!ch) return '';
+  var n = (ch.notes && String(ch.notes).trim()) ? String(ch.notes).trim() : '';
+  return n || ch.name || '';
+}
+
 // =============================================
 //  跨账号角色查询 — 直接读 localStorage，零依赖 state.js 内部函数
 // =============================================
@@ -139,7 +148,8 @@ function isGroupChat(id) {
 }
 
 function getGroupById(id) {
-  return (state.groups || []).find(function(g) { return g.id === id && g.isGroup === true; });
+  var grp = (state.groups || []).find(function(g) { return g.id === id && g.isGroup === true; });
+  return grp || null;   // ★ 找不到统一返回 null
 }
 
 function groupAvatarHtml(g) {
@@ -157,14 +167,17 @@ function groupAvatarHtml(g) {
 // ========== CHARACTERS ==========
 function getFilteredChars() {
   var c = state.characters.slice();
-  if (state.drawerSearch) c = c.filter(function(x) { return x.name.toLowerCase().includes(state.drawerSearch); });
+  if (state.drawerSearch) c = c.filter(function(x) { return getCharDisplayName(x).toLowerCase().includes(state.drawerSearch); });
   if (state.drawerFilter === 'unread') c = c.filter(function(x) { return (state.unread[x.id] || 0) > 0; });
   if (state.drawerFilter === 'hasChat') c = c.filter(function(x) { return (state.chats[x.id] || []).length > 0; });
-  if (state.drawerSort === 'name') c.sort(function(a, b) { return a.name.localeCompare(b.name); });
-  else c.sort(function(a, b) {
-    var ma = state.chats[a.id] || [], mb = state.chats[b.id] || [];
-    return (mb.length ? mb[mb.length - 1].timestamp : 0) - (ma.length ? ma[ma.length - 1].timestamp : 0);
-  });
+  if (state.drawerSort === 'name') {
+    c.sort(function(a, b) { return getCharDisplayName(a).localeCompare(getCharDisplayName(b)); });
+  } else {
+    c.sort(function(a, b) {
+      var ma = state.chats[a.id] || [], mb = state.chats[b.id] || [];
+      return (mb.length ? mb[mb.length - 1].timestamp : 0) - (ma.length ? ma[ma.length - 1].timestamp : 0);
+    });
+  }
   return c;
 }
 
@@ -186,7 +199,7 @@ function renderCharList() {
     var msgs = state.chats[ch.id] || [];
     var last = msgs.length ? msgs[msgs.length - 1] : null;
     items.push({
-      id: ch.id, isGroupItem: false, name: ch.name,
+            id: ch.id, isGroupItem: false, name: getCharDisplayName(ch),
       lastMsg: last, lastTime: last ? last.timestamp : 0,
       unread: state.unread[ch.id] || 0, char: ch
     });
@@ -221,11 +234,11 @@ function renderCharList() {
     if (item.isGroupItem) {
       var g = item.group;
       var last = item.lastMsg;
-      var memberCount = (g.members || []).length;
+      var memberCount = (g.members || []).length + 1;
       var lt = '';
       if (last) {
         var senderChar = last.senderId ? state.characters.find(function(c) { return c.id === last.senderId; }) : null;
-        var senderPrefix = senderChar ? senderChar.name + ': ' : '';
+        var senderPrefix = senderChar ? getCharDisplayName(senderChar) + ': ' : '';
         lt = senderPrefix + (last.content || '').slice(0, 25);
       } else {
         lt = memberCount + ' members';
@@ -241,13 +254,12 @@ function renderCharList() {
       var last2 = item.lastMsg;
       var prefix = last2 ? ({ voice: '[Voice] ', sticker: '[Sticker] ', transfer: '[Transfer] ', image: '[Image] ', simImage: '[Image] ' }[last2.type] || '') : '';
       var lt2;
-      if (ch.notes && ch.notes.trim()) { lt2 = ch.notes.trim(); }
-      else if (last2) { lt2 = prefix + (last2.content || '').slice(0, 25); }
+      if (last2) { lt2 = prefix + (last2.content || '').slice(0, 25); }
       else { lt2 = T('startConversation'); }
       var ur2 = state.unread[ch.id] || 0;
       h += '<div class="list-item" onclick="openChat(\'' + ch.id + '\')">';
       h += '<div class="li-avatar">' + charAvatarImg(ch) + '</div>';
-      h += '<div class="li-info"><div class="li-title">' + esc(ch.name) + '</div><div class="li-sub">' + esc(lt2) + '</div></div>';
+            h += '<div class="li-info"><div class="li-title">' + esc(getCharDisplayName(ch)) + '</div><div class="li-sub">' + esc(lt2) + '</div></div>';
       if (ur2 > 0) h += '<div class="num-badge">' + ur2 + '</div>';
       h += '<span class="li-arrow">&rsaquo;</span></div>';
     }

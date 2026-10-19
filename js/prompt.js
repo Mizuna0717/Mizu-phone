@@ -291,6 +291,8 @@ Be HONEST based on the actual conversation dynamics. If the user is being rude, 
     formatInstr += ` You MUST always include 【情绪】 in every reply.`;
   }
   p += formatInstr;
+    // ★ CoT 思维链
+  p += buildCoTBlock(charCfg);
 
   if (_tpActive && typeof getTpLock === 'function') {
     const _tpLock = getTpLock(ch.id);
@@ -390,6 +392,109 @@ ${stickerNames.map(n => `• ${n}`).join('\n')}
   return p;
 }
 
+// ==========================================================
+//  CoT 思维链构建器
+// ==========================================================
+function buildCoTBlock(charCfg) {
+  if (!charCfg || !charCfg.enableCoT) return '';
+
+  var custom = (charCfg.cotPrompt || '').trim();
+  if (custom) {
+    return '\n\n' + custom;
+  }
+
+  return `\n\n【思维链要求】
+在正式回复前，请先用 <thinking>...</thinking> 标签写出你的内部推理过程：
+- 用户这句话的真实意图是什么？
+- 结合历史对话，你现在的心情、立场、态度是什么？
+- 有哪些可能的回应方向？为什么选这个？
+- 这个回应是否符合你的性格设定？
+
+推理完成后，在 <thinking> 标签之后输出正式回复（【回复】/【动作】/【心声】等），不要重复 thinking 里的内容。`;
+}
+window.buildCoTBlock = buildCoTBlock;
+
+// ==========================================================
+//  自动消息 — 上下文感知块（让 AI 自己推断用户为什么没回）
+// ==========================================================
+function buildAutoMessageContextBlock(charId, charCfg) {
+  var msgs = (state.chats[charId] || []);
+  if (!msgs.length) return '';
+
+  var now = Date.now();
+
+  // 找最后一条用户消息
+  var lastUserMsg = null;
+  for (var i = msgs.length - 1; i >= 0; i--) {
+    if (msgs[i].role === 'user') { lastUserMsg = msgs[i]; break; }
+  }
+
+  // 找最后一条 AI 消息
+  var lastAiMsg = null;
+  for (var i = msgs.length - 1; i >= 0; i--) {
+    if (msgs[i].role === 'assistant') { lastAiMsg = msgs[i]; break; }
+  }
+
+  var nowDate = new Date(now);
+  var pad = function(n) { return String(n).padStart(2, '0'); };
+  var timeStr = nowDate.getFullYear() + '-' + pad(nowDate.getMonth() + 1) + '-' + pad(nowDate.getDate()) +
+    ' ' + pad(nowDate.getHours()) + ':' + pad(nowDate.getMinutes());
+
+  // 时段推断
+  var hour = nowDate.getHours();
+  var periodHint = '';
+  if (hour >= 0 && hour < 6)        periodHint = '凌晨深夜时段，一般人在睡觉';
+  else if (hour >= 6 && hour < 9)   periodHint = '清晨时段，一般人在准备起床或上班';
+  else if (hour >= 9 && hour < 12)  periodHint = '上午时段，一般人在工作或上课';
+  else if (hour >= 12 && hour < 14) periodHint = '午间时段，一般人在吃饭或午休';
+  else if (hour >= 14 && hour < 18) periodHint = '下午时段，一般人在工作或上课';
+  else if (hour >= 18 && hour < 20) periodHint = '傍晚时段，一般在吃饭或下班路上';
+  else if (hour >= 20 && hour < 23) periodHint = '晚间时段，一般人在休息或娱乐';
+  else                              periodHint = '深夜时段，一般人准备睡觉';
+
+  // 距离最后一条消息多久
+  function fmtGap(ts) {
+    if (!ts) return '很久（无记录）';
+    var gap = now - ts;
+    var min = Math.floor(gap / 60000);
+    if (min < 1) return '刚刚';
+    if (min < 60) return min + ' 分钟前';
+    var hr = Math.floor(min / 60);
+    if (hr < 24) return hr + ' 小时前（约 ' + hr + ' 小时 ' + (min % 60) + ' 分钟）';
+    var day = Math.floor(hr / 24);
+    return day + ' 天前';
+  }
+
+  var lines = ['[主动发起消息的上下文]'];
+  lines.push('当前时间：' + timeStr + '（' + periodHint + '）');
+
+  if (lastUserMsg) {
+    lines.push('距离用户上一次发消息：' + fmtGap(lastUserMsg.timestamp));
+  } else {
+    lines.push('用户从未发过消息（第一次对话）');
+  }
+  if (lastAiMsg) {
+    lines.push('距离你上一次发消息：' + fmtGap(lastAiMsg.timestamp));
+  }
+
+  lines.push('');
+  lines.push('[本轮任务]');
+  lines.push('这是**你主动发起**的一条消息，用户并没有先说话。');
+  lines.push('请根据你自己的角色性格、当前时间、以及最近的对话内容，自然地主动给用户发一条消息。');
+  lines.push('');
+  lines.push('[重要规则]');
+  lines.push('- **不要问"你怎么还不回"或"为什么不理我"这种抱怨/质问式的话**');
+  lines.push('- 也不要重复你上一条已经说过的话题，要**自然地开一个新的小话题**或者延续但变化角度');
+  lines.push('- 结合当前时间和对话历史，**自己推断**用户可能在做什么（比如凌晨可能在睡觉、白天可能在忙、刚聊过要说开会那可能在忙、没有明显线索就说点日常小事）');
+  lines.push('- **不要主动说出推断的内容**（例如不要写"你大概在睡觉吧"这种话），而是自然地表现出符合该推断的态度（比如凌晨关心"早点睡"、白天聊闲事、或者不打扰式地留一句话）');
+  lines.push('- 就像真实的人偶尔会主动发一条消息，没有特别理由，符合人设即可');
+  lines.push('- 长度简短自然，不要长篇大论');
+
+  return '\n\n' + lines.join('\n');
+}
+
+window.buildAutoMessageContextBlock = buildAutoMessageContextBlock;
+
 // ========== Group Chat System Prompt ==========
 function buildGroupSystemPrompt(targetChar, grp, wbs, stickers) {
   let p = '';
@@ -449,6 +554,8 @@ You MUST structure EVERY reply using EXACTLY this format with Chinese brackets:
 
 All sections above are MANDATORY. Never omit any section.
 You are ONLY ${targetChar.name}. Do NOT generate responses for other characters. Do NOT use ---SPLIT---.`;
+  // ★ CoT 思维链
+  p += buildCoTBlock(charCfg);
 
   if (charCfg.timeAwareness) {
     const now = new Date();

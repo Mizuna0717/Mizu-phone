@@ -1,68 +1,179 @@
-<!-- FORUM -->
-<div class="screen" id="screen-forum">
+<!-- ============ FORUM HOME ============ -->
+<div class="screen" id="screen-forum-home">
 	<div class="nav-bar">
 		<button class="nav-btn" onclick="nav('screen-home')">
-			<svg viewBox="0 0 20 20"><path d="M12 4l-6 6 6 6" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
 		</button>
-		<span class="nav-title" data-i18n="forum">Forum</span>
-		<button class="nav-btn nav-right" onclick="">
-			<svg viewBox="0 0 20 20"><path d="M10 4v12M4 10h12" stroke="#1d1d1f" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+		<span class="nav-title">Home</span>
+		<div class="nav-group-right">
+			<button class="nav-btn" onclick="openForumSearch()" aria-label="Search">
+				<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M13.5 13.5l3.5 3.5"/></svg>
+			</button>
+			<button class="nav-btn" onclick="nav('screen-forum-new')" aria-label="New Post">
+				<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="1.7" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+			</button>
+		</div>
+	</div>
+	<div class="screen-body">
+		<div id="forumHomeList" class="forum-list"></div>
+	</div>
+	<div class="forum-tab-bar">
+		<div class="forum-tab active" data-tab="home" onclick="navForumTab('home')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>
+			<span>首页</span>
+		</div>
+		<div class="forum-tab" data-tab="forum" onclick="navForumTab('forum')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 11-3.5-6.5"/><path d="M3 21l3-3"/><path d="M8 11h8M8 15h5"/></svg>
+			<span>论坛</span>
+		</div>
+		<div class="forum-tab" data-tab="me" onclick="navForumTab('me')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+			<span>我的</span>
+		</div>
+	</div>
+</div>
+
+<!-- ============ FORUM (ALL POSTS) ============ -->
+<div class="screen" id="screen-forum">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-forum-home')">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Forum</span>
+		<div class="nav-group-right">
+			<button class="nav-btn" onclick="openForumSearch()" aria-label="Search">
+				<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><path d="M13.5 13.5l3.5 3.5"/></svg>
+			</button>
+			<button class="nav-btn" onclick="nav('screen-forum-new')" aria-label="New Post">
+				<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="1.7" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+			</button>
+		</div>
+	</div>
+	<div class="screen-body">
+		<div class="forum-cat-bar" id="forumCatBar">
+			<div class="forum-cat active" data-cat="all" onclick="setForumCat('all')">全部</div>
+			<div class="forum-cat" data-cat="Character Share" onclick="setForumCat('Character Share')">角色分享</div>
+			<div class="forum-cat" data-cat="Tips" onclick="setForumCat('Tips')">技巧</div>
+			<div class="forum-cat" data-cat="Help" onclick="setForumCat('Help')">求助</div>
+			<div class="forum-cat" data-cat="Off-Topic" onclick="setForumCat('Off-Topic')">闲聊</div>
+		</div>
+		<div id="forumAllList" class="forum-list"></div>
+	</div>
+	<div class="forum-tab-bar">
+		<div class="forum-tab" data-tab="home" onclick="navForumTab('home')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>
+			<span>首页</span>
+		</div>
+		<div class="forum-tab active" data-tab="forum" onclick="navForumTab('forum')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 11-3.5-6.5"/><path d="M3 21l3-3"/><path d="M8 11h8M8 15h5"/></svg>
+			<span>论坛</span>
+		</div>
+		<div class="forum-tab" data-tab="me" onclick="navForumTab('me')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+			<span>我的</span>
+		</div>
+	</div>
+</div>
+
+<!-- ============ FORUM ME ============ -->
+<div class="screen" id="screen-forum-me">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="nav('screen-forum-home')">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Me</span>
+		<button class="nav-btn nav-right" onclick="openForumMeSettings()" aria-label="Settings">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.9 4.9l1.4 1.4M13.7 13.7l1.4 1.4M4.9 15.1l1.4-1.4M13.7 6.3l1.4-1.4"/></svg>
 		</button>
 	</div>
-	<div class="large-title" data-i18n="forum">Forum</div>
 	<div class="screen-body">
-		<div style="margin:0 16px 16px;position:relative">
-			<svg viewBox="0 0 18 18" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="8" r="5.5"/><path d="M12 12l4 4"/></svg>
-			<input placeholder="Search topics..." data-i18n="searchTopics" style="width:100%;padding:10px 14px 10px 36px;border:none;border-radius:10px;background:#fff;font-size:15px;outline:none;color:#1d1d1f;border:1px solid #ececec">
-		</div>
-		<div style="display:flex;gap:8px;padding:0 16px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch">
-			<div style="padding:6px 14px;background:#1d1d1f;color:#fff;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0">All</div>
-			<div style="padding:6px 14px;background:#fff;color:#3a3a3c;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0;border:1px solid #e5e5ea">Character Share</div>
-			<div style="padding:6px 14px;background:#fff;color:#3a3a3c;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0;border:1px solid #e5e5ea">Tips</div>
-			<div style="padding:6px 14px;background:#fff;color:#3a3a3c;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0;border:1px solid #e5e5ea">Help</div>
-			<div style="padding:6px 14px;background:#fff;color:#3a3a3c;border-radius:20px;font-size:13px;font-weight:500;white-space:nowrap;flex-shrink:0;border:1px solid #e5e5ea">Off-Topic</div>
-		</div>
-		<div style="margin:0 16px 12px;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #ececec">
-			<div style="padding:16px;border-bottom:1px solid #f2f2f7;cursor:pointer">
-				<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-					<div style="width:32px;height:32px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="6" r="3"/><path d="M3 14c0-3 2-5 5-5s5 2 5 5"/></svg></div>
-					<span style="font-size:13px;color:#8e8e93">Anonymous</span>
-					<span style="font-size:11px;color:#c7c7cc;margin-left:auto">2h ago</span>
-				</div>
-				<div style="font-size:16px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Best practices for character prompts?</div>
-				<div style="font-size:13px;color:#8e8e93;line-height:1.4">Looking for tips on writing more engaging character prompts. How do you make them feel more alive</div>
-				<div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:#8e8e93">
-					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M7 12C7 12 2 9 2 6a3 3 0 016 0 3 3 0 016 0c0 3-5 6-5 6h-2z"/></svg>24</span>
-					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H6l-3 2V10H2a1 1 0 01-1-1V3a1 1 0 011-1z"/></svg>8</span>
-				</div>
+		<div class="forum-profile-hero">
+			<div class="forum-profile-avatar" id="forumMeAvatar">
+				<svg viewBox="0 0 32 32" fill="none" stroke="#c7c7cc" stroke-width="1.5"><circle cx="16" cy="12" r="5"/><path d="M6 28c0-5.5 4.5-10 10-10s10 4.5 10 10"/></svg>
 			</div>
-			<div style="padding:16px;border-bottom:1px solid #f2f2f7;cursor:pointer">
-				<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-					<div style="width:32px;height:32px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="6" r="3"/><path d="M3 14c0-3 2-5 5-5s5 2 5 5"/></svg></div>
-					<span style="font-size:13px;color:#8e8e93">Anonymous</span>
-					<span style="font-size:11px;color:#c7c7cc;margin-left:auto">5h ago</span>
+			<div class="forum-profile-name" id="forumMeName">You</div>
+			<div class="forum-profile-bio" id="forumMeBio">Tap to edit your bio</div>
+			<div class="forum-profile-stats">
+				<div class="forum-stat">
+					<div class="forum-stat-num" id="forumStatPosts">3</div>
+					<div class="forum-stat-label">帖子</div>
 				</div>
-				<div style="font-size:16px;font-weight:600;color:#1d1d1f;margin-bottom:4px">Sharing my OC — Yuki, the quiet artist</div>
-				<div style="font-size:13px;color:#8e8e93;line-height:1.4">Created a character who's a shy art student. Spent a lot of time on the world book</div>
-				<div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:#8e8e93">
-					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M7 12C7 12 2 9 2 6a3 3 0 016 0 3 3 0 016 0c0 3-5 6-5 6h-2z"/></svg>42</span>
-					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H6l-3 2V10H2a1 1 0 01-1-1V3a1 1 0 011-1z"/></svg>15</span>
+				<div class="forum-stat">
+					<div class="forum-stat-num" id="forumStatFollowers">0</div>
+					<div class="forum-stat-label">粉丝</div>
 				</div>
-			</div>
-			<div style="padding:16px;cursor:pointer">
-				<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-					<div style="width:32px;height:32px;border-radius:50%;background:#e5e5ea;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 16 16" style="width:14px;height:14px;stroke:#8e8e93;fill:none;stroke-width:1.5"><circle cx="8" cy="6" r="3"/><path d="M3 14c0-3 2-5 5-5s5 2 5 5"/></svg></div>
-					<span style="font-size:13px;color:#8e8e93">Anonymous</span>
-					<span style="font-size:11px;color:#c7c7cc;margin-left:auto">1d ago</span>
-				</div>
-				<div style="font-size:16px;font-weight:600;color:#1d1d1f;margin-bottom:4px">How to use worldbooks effectively?</div>
-				<div style="font-size:13px;color:#8e8e93;line-height:1.4">I have trouble understanding when to use global vs local worldbooks...</div>
-				<div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:#8e8e93">
-					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M7 12C7 12 2 9 2 6a3 3 0 016 0 3 3 0 016 0c0 3-5 6-5 6h-2z"/></svg>18</span>
-					<span style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 14 14" style="width:13px;height:13px;stroke:#8e8e93;fill:none;stroke-width:1.5"><path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H6l-3 2V10H2a1 1 0 01-1-1V3a1 1 0 011-1z"/></svg>6</span>
+				<div class="forum-stat">
+					<div class="forum-stat-num" id="forumStatFollowing">0</div>
+					<div class="forum-stat-label">关注</div>
 				</div>
 			</div>
 		</div>
-		<div style="height:40px"></div>
+		<div class="section-header">我的帖子</div>
+		<div id="forumMeList" class="forum-list"></div>
+	</div>
+	<div class="forum-tab-bar">
+		<div class="forum-tab" data-tab="home" onclick="navForumTab('home')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>
+			<span>首页</span>
+		</div>
+		<div class="forum-tab" data-tab="forum" onclick="navForumTab('forum')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 11-3.5-6.5"/><path d="M3 21l3-3"/><path d="M8 11h8M8 15h5"/></svg>
+			<span>论坛</span>
+		</div>
+		<div class="forum-tab active" data-tab="me" onclick="navForumTab('me')">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+			<span>我的</span>
+		</div>
+	</div>
+</div>
+
+<!-- ============ FORUM POST (DETAIL) ============ -->
+<div class="screen" id="screen-forum-post">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="closeForumPost()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">Post</span>
+		<div style="width:36px"></div>
+	</div>
+	<div class="screen-body" id="forumPostBody"></div>
+	<div class="forum-comment-bar">
+		<input type="text" id="forumCommentInput" class="forum-comment-input" placeholder="说点什么…" onkeydown="if(event.key==='Enter')submitForumComment()">
+		<button class="forum-comment-send" onclick="submitForumComment()" aria-label="Send">
+			<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l14-7-5 14-2.5-6z"/></svg>
+		</button>
+	</div>
+</div>
+
+<!-- ============ FORUM NEW ============ -->
+<div class="screen" id="screen-forum-new">
+	<div class="nav-bar">
+		<button class="nav-btn" onclick="cancelForumNew()">
+			<svg viewBox="0 0 20 20" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round"><path d="M12 4l-6 6 6 6"/></svg>
+		</button>
+		<span class="nav-title">New Post</span>
+		<button class="nav-btn nav-right" onclick="submitForumPost()" id="forumPostSubmitBtn" disabled>
+			<span style="font-size:15px;font-weight:600;color:#8e8e93">发布</span>
+		</button>
+	</div>
+	<div class="screen-body">
+		<div class="forum-new-section">
+			<div class="forum-new-label">分类</div>
+			<div class="forum-cat-bar" id="forumNewCatBar">
+				<div class="forum-cat active" data-cat="Character Share" onclick="setNewPostCat('Character Share')">角色分享</div>
+				<div class="forum-cat" data-cat="Tips" onclick="setNewPostCat('Tips')">技巧</div>
+				<div class="forum-cat" data-cat="Help" onclick="setNewPostCat('Help')">求助</div>
+				<div class="forum-cat" data-cat="Off-Topic" onclick="setNewPostCat('Off-Topic')">闲聊</div>
+			</div>
+		</div>
+		<div class="forum-new-section">
+			<div class="forum-new-label">标题</div>
+			<input type="text" class="forum-new-input" id="forumNewTitle" placeholder="给帖子起个标题…" oninput="onForumNewInput()">
+		</div>
+		<div class="forum-new-section">
+			<div class="forum-new-label">内容</div>
+			<textarea class="forum-new-textarea" id="forumNewContent" placeholder="分享你的想法…" rows="8" oninput="onForumNewInput()"></textarea>
+		</div>
+		<div style="height:32px"></div>
 	</div>
 </div>

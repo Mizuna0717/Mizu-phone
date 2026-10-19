@@ -44,8 +44,28 @@ function buildSimImageBubble(content) {
     '<div class="sim-desc">' + esc(content) + '</div></div></div>';
 }
 
-function buildImageBubble(src) {
-  return '<div class="msg-bubble image-msg"><img src="' + src + '"></div>';
+function buildImageBubble(msg) {
+  // 兼容旧调用（传字符串）
+  if (typeof msg === 'string') {
+    return '<div class="msg-bubble image-msg"><img src="' + msg + '"></div>';
+  }
+
+  var src = msg.dataUrl || msg.content;
+  var desc = _getImageDesc(msg);
+  var msgId = msg.id;
+
+  // ★ 有描述且处于"文字模式"→ 显示文字卡片
+  if (msg._showText && desc) {
+    return '<div class="msg-bubble image-msg image-msg-text" data-msgid="' + msgId + '"' +
+      ' onclick="toggleImageText(event,\'' + msgId + '\')">' +
+      '<div class="image-text-content">' + esc(desc) + '</div>' +
+    '</div>';
+  }
+
+  return '<div class="msg-bubble image-msg" data-msgid="' + msgId + '"' +
+    ' onclick="toggleImageText(event,\'' + msgId + '\')">' +
+    '<img src="' + src + '">' +
+  '</div>';
 }
 
 function buildTextBubble(content, msgId) {
@@ -91,3 +111,46 @@ function buildCallBubble(callType, msgId, isSent, callStatus, callDuration, extr
 function buildMsgExtraActions(msgId, isReceived, isRecalled) {
   return '';
 }
+
+// ═══════════════════════════════════════
+//  ★ 图片消息：描述读取 / 点击切换 / 长按保护
+// ═══════════════════════════════════════
+
+// 从消息里提取纯文本描述（兼容新旧格式）
+function _getImageDesc(msg) {
+  if (!msg) return '';
+  if (typeof msg.desc === 'string' && msg.desc.trim()) return msg.desc.trim();
+  var c = (msg.content || '').trim();
+  if (!c) return '';
+  var m = c.match(/^\[图片[:：]\s*([\s\S]*?)\]$/);
+  if (m) return m[1].trim();
+  if (c === '[图片]' || /^\[图片（识别失败）\]$/.test(c) || /^\[图片识别中\.\.\.\]$/.test(c)) {
+    return '';
+  }
+  return c;
+}
+
+// ★ 点击图片 ↔ 文字切换
+function toggleImageText(event, msgId) {
+  // 多选模式下不切换
+  if (typeof bubbleState !== 'undefined' && bubbleState.multiMode) return;
+  // 长按刚触发过，忽略这次 click（避免长按后误触）
+  if (Date.now() - (window._lastLongPressTs || 0) < 800) return;
+  if (event) event.stopPropagation();
+
+  var msg = (state.chats[state.currentCharId] || []).find(function(m) { return m.id === msgId; });
+  if (!msg) return;
+  if (msg.type !== 'image') return;
+
+  var desc = _getImageDesc(msg);
+  if (!desc) {
+    showToast('暂无图片描述');
+    return;
+  }
+  msg._showText = !msg._showText;
+  saveState();
+  renderChat();
+}
+
+// ★ 记录长按时间（供 toggleImageText 检测）
+window._lastLongPressTs = 0;

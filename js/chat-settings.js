@@ -305,7 +305,7 @@ function updateForceControlSettingsUI() {
   var cfg = (typeof getCharConfig === 'function') ? getCharConfig(targetCharId) : null;
   var fcEnabled = cfg && cfg.forceControl;
 
-  cfgPanel.style.display = fcEnabled ? '' : 'none';
+  cfgPanel.style.display = fcEnabled ? 'block' : 'none';
   if (fcEnabled) {
     var lock = getFcLock(targetCharId);
     var switchAcct = (lock && lock.allowSwitchAccount !== undefined) ? lock.allowSwitchAccount : true;
@@ -419,12 +419,17 @@ function openChatSettings() {
   document.getElementById('csAutoMsgInterval').value = cfg.autoMessageInterval;
   document.getElementById('csAutoMsgIntervalVal').textContent = cfg.autoMessageInterval;
   document.getElementById('csChatLang').value = cfg.chatLang || 'zh-CN';
+
+  // ★ CoT
+  var cotToggle = document.getElementById('csCoTToggle');
+  if (cotToggle) cotToggle.classList.toggle('on', !!cfg.enableCoT);
+
   document.getElementById('csStickersToggle').classList.toggle('on', !!cfg.useStickers);
   document.getElementById('csForceControlToggle').classList.toggle('on', !!cfg.forceControl);
   document.getElementById('csTopPriorityToggle').classList.toggle('on', !!cfg.topPriority);
 
   // ★ NEW: 引用信息开关（读取 state 级别，默认 true）
-    document.getElementById('csAllowQuoteToggle').classList.toggle('on', state.allowQuote !== false);
+  document.getElementById('csAllowQuoteToggle').classList.toggle('on', state.allowQuote !== false);
 
   // Schedule Awareness — depends on Time Awareness being on
   var timeOn = !!cfg.timeAwareness;
@@ -482,7 +487,7 @@ function toggleCsToggle(field, toggleId) {
   if (field === 'autoMoments') {
     cfg.autoMoments ? startAutoMoments(state.currentCharId) : stopAutoMoments(state.currentCharId);
   }
-    if (field === 'translation' || field === 'charRecall') {
+  if (field === 'translation' || field === 'charRecall') {
     if (typeof renderChat === 'function') renderChat();
   }
 
@@ -529,12 +534,16 @@ function toggleCsToggle(field, toggleId) {
     }
     setTimeout(function () { updateTopPrioritySettingsUI(); }, 50);
   }
+
+  if (field === 'enableCoT') {
+    showToast(cfg.enableCoT ? T('cotEnabledToast') : T('cotDisabledToast'));
+  }
 }
 
 function updateCsSetting(field, value) {
   if (!state.currentCharId) return;
   var cfg = getCharConfig(state.currentCharId);
-  var stringFields = ['chatLang'];
+  var stringFields = ['chatLang', 'cotLang'];
   if (stringFields.indexOf(field) >= 0) { cfg[field] = value; }
   else { cfg[field] = parseInt(value) || 1; }
   if (field === 'replyMin' && cfg.replyMin > cfg.replyMax) {
@@ -577,9 +586,23 @@ function startAutoMessage(charId) {
   var intervalMs = (cfg.autoMessageInterval || 10) * 60 * 1000;
   _autoMsgTimers[charId] = setInterval(function () {
     if (state.currentCharId !== charId) return;
-    if (typeof triggerResponse === 'function') triggerResponse();
+    if (typeof triggerResponse !== 'function') return;
+    window.__autoMessageTrigger = true;
+    try {
+      var p = triggerResponse();
+      if (p && typeof p.finally === 'function') {
+        p.finally(function () {
+          setTimeout(function () { window.__autoMessageTrigger = false; }, 2000);
+        });
+      } else {
+        setTimeout(function () { window.__autoMessageTrigger = false; }, 60000);
+      }
+    } catch (e) {
+      window.__autoMessageTrigger = false;
+    }
   }, intervalMs);
 }
+
 function stopAutoMessage(charId) {
   if (_autoMsgTimers[charId]) { clearInterval(_autoMsgTimers[charId]); delete _autoMsgTimers[charId]; }
 }
@@ -616,6 +639,54 @@ function restartAllAutoMoments() {
     if (cfg.autoMoments) startAutoMoments(ch.id);
   });
 }
+
+/* ══════════════════════════════════════════
+   CoT 自定义思维提示词编辑
+   ══════════════════════════════════════════ */
+function editCotPrompt() {
+  if (!state.currentCharId) return;
+  var cfg = getCharConfig(state.currentCharId);
+  var current = cfg.cotPrompt || '';
+
+  var overlay = document.createElement('div');
+  overlay.className = 'modern-modal-overlay';
+  overlay.innerHTML =
+    '<div class="modern-modal">' +
+      '<div class="modern-modal-header">' +
+        '<div class="modern-modal-title">' + T('cotPromptModalTitle') + '</div>' +
+        '<div class="modern-modal-subtitle">' + T('cotPromptModalSub') + '</div>' +
+      '</div>' +
+      '<div class="modern-modal-body">' +
+        '<textarea class="modern-modal-input modern-modal-textarea" id="_cotPromptInput" placeholder="' + T('cotPromptPlaceholder') + '" style="min-height:160px"></textarea>' +
+      '</div>' +
+      '<div class="modern-modal-buttons">' +
+        '<button class="modern-modal-btn modern-modal-btn-primary" id="_cotPromptSave">' + T('save') + '</button>' +
+        '<button class="modern-modal-btn modern-modal-btn-secondary" id="_cotPromptCancel">' + T('cancel') + '</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  setTimeout(function () { overlay.classList.add('show'); }, 10);
+
+  var input = overlay.querySelector('#_cotPromptInput');
+  input.value = current;
+  setTimeout(function () { input.focus(); }, 300);
+
+  function close() {
+    overlay.classList.remove('show');
+    setTimeout(function () { overlay.remove(); }, 250);
+  }
+
+  overlay.querySelector('#_cotPromptSave').onclick = function () {
+    cfg.cotPrompt = input.value.trim();
+    saveCharConfig();
+    close();
+    showToast(cfg.cotPrompt ? T('cotPromptSaved') : T('cotPromptReset'));
+  };
+  overlay.querySelector('#_cotPromptCancel').onclick = close;
+  overlay.onclick = function (e) { if (e.target === overlay) close(); };
+}
+
+window.editCotPrompt = editCotPrompt;
 
 // ═══════ 全局导出 ═══════
 window.openChatSettings = openChatSettings;

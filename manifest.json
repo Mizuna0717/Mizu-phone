@@ -2,9 +2,10 @@
   "name": "Mizu Phone",
   "short_name": "Mizu",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#f2f2f7",
+  "background_color": "#f2f2f7",
   "icons": [
     {
       "src": "images/mizuphonemain.jpg",

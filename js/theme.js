@@ -1,6 +1,77 @@
 ﻿// ============================================================
 //  Theme Editor — Navigation
 // ============================================================
+
+// ═══════════════════════════════════════════
+//  Theme Apply 成功提示弹窗
+// ═══════════════════════════════════════════
+function showThemeSuccessDialog(title, subtitle, onClose) {
+  var existing = document.getElementById('themeSuccessDialog');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'themeSuccessDialog';
+  overlay.style.cssText =
+    'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;' +
+    'background:rgba(0,0,0,.32);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);' +
+    'opacity:0;transition:opacity .22s ease;padding:20px;';
+
+  overlay.innerHTML =
+    '<div style="background:#fff;border-radius:20px;width:100%;max-width:300px;overflow:hidden;' +
+      'box-shadow:0 20px 60px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.06);' +
+      'transform:scale(.92);transition:transform .22s cubic-bezier(.2,.9,.3,1);text-align:center;">' +
+      '<div style="padding:28px 24px 0">' +
+        '<div style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;' +
+          'background:#f2f2f7;display:flex;align-items:center;justify-content:center;">' +
+          '<svg viewBox="0 0 24 24" style="width:26px;height:26px;stroke:#1d1d1f;fill:none;' +
+            'stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;">' +
+            '<path d="M5 12.5l4.5 4.5L19 7"/>' +
+          '</svg>' +
+        '</div>' +
+        '<div style="font-size:17px;font-weight:700;color:#1d1d1f;letter-spacing:-.3px;margin-bottom:6px;">' +
+          (title || '已应用') +
+        '</div>' +
+        '<div style="font-size:13px;color:#8e8e93;line-height:1.5;margin-bottom:24px;">' +
+          (subtitle || '设置已保存') +
+        '</div>' +
+      '</div>' +
+      '<div style="padding:0 20px 20px;">' +
+        '<button id="themeSuccessOk" style="width:100%;padding:13px;border:none;' +
+          'background:#1d1d1f;color:#fff;border-radius:12px;font-size:15px;font-weight:600;' +
+          'cursor:pointer;font-family:inherit;transition:transform .1s,opacity .1s;">' +
+          '完成' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  requestAnimationFrame(function() {
+    overlay.style.opacity = '1';
+    var card = overlay.firstElementChild;
+    if (card) card.style.transform = 'scale(1)';
+  });
+
+  var close = function() {
+    overlay.style.opacity = '0';
+    var card = overlay.firstElementChild;
+    if (card) card.style.transform = 'scale(.92)';
+    setTimeout(function() {
+      overlay.remove();
+      if (typeof onClose === 'function') onClose();
+    }, 220);
+  };
+
+  document.getElementById('themeSuccessOk').onclick = close;
+  overlay.onclick = function(e) { if (e.target === overlay) close(); };
+
+  // 3 秒后自动关闭
+  setTimeout(function() {
+    if (document.getElementById('themeSuccessDialog')) close();
+  }, 3000);
+}
+window.showThemeSuccessDialog = showThemeSuccessDialog;
+
 // ═══════════════════════════════════════════
 //  移动端 click 修复：全局代理
 // ═══════════════════════════════════════════
@@ -1150,6 +1221,57 @@ function resetThemeCSS(type) {
 //  Feedback
 // ============================================================
 
+// ─── 页面 → 标签 ───
+var _THEME_APPLY_LABELS = {
+  'screen-theme-fontsize': '通用设置',
+  'screen-theme-bubble':   '气泡样式',
+  'screen-theme-chat':     '聊天界面',
+  'screen-theme-meeting':  'Meeting 样式',
+  'screen-theme-heart':    '心声面板',
+  'screen-theme-archive':  '存档卡片',
+  'screen-theme-call':     '通话界面'
+};
+
+// ─── 验证 Apply 是否真的写入了东西 ───
+function _validateThemeApply(screenId) {
+  function styleHasContent(id) {
+    var el = document.getElementById(id);
+    return !!(el && el.textContent && el.textContent.trim().length > 0);
+  }
+  function stateHasContent(key) {
+    if (!window.state || !window.state.theme) return false;
+    var v = window.state.theme[key];
+    return !!(v && String(v).trim().length > 0);
+  }
+
+  switch (screenId) {
+    case 'screen-theme-fontsize': {
+      // 字体大小 或 任意 general 设置
+      var hasFont = stateHasContent('fontSize');
+      var hasDesktopBg   = styleHasContent('custom-desktop-bg-style');
+      var hasDesktopIcon = styleHasContent('custom-desktop-icon-style');
+      var hasChatBg      = styleHasContent('custom-chat-bg-style');
+      var g = (typeof _getGeneralState === 'function') ? _getGeneralState() : null;
+      var hasHomeIcons = !!(g && g.homeIcons && Object.keys(g.homeIcons).length > 0);
+      return hasFont || hasDesktopBg || hasDesktopIcon || hasChatBg || hasHomeIcons;
+    }
+    case 'screen-theme-bubble':
+      return styleHasContent('custom-theme-bubble') && stateHasContent('chatBubble');
+    case 'screen-theme-chat':
+      return styleHasContent('custom-theme-chat') && stateHasContent('chatInterface');
+    case 'screen-theme-meeting':
+      return styleHasContent('custom-theme-meeting') && stateHasContent('meetingStyle');
+    case 'screen-theme-heart':
+      return styleHasContent('custom-theme-heart') && stateHasContent('heartPanel');
+    case 'screen-theme-archive':
+      return styleHasContent('custom-theme-archive') && stateHasContent('meetingArchive');
+    case 'screen-theme-call':
+      return styleHasContent('custom-theme-call') && stateHasContent('callScreen');
+    default:
+      return null;   // 不在映射中 → 不弹窗
+  }
+}
+
 function showThemeFeedback(message) {
 	console.log('Theme: ' + message);
 	var navTitle = document.querySelector('.screen.active .nav-title');
@@ -1157,6 +1279,25 @@ function showThemeFeedback(message) {
 		var original = navTitle.textContent;
 		navTitle.textContent = message;
 		setTimeout(function() { navTitle.textContent = original; }, 800);
+	}
+
+	// ★ 只在 'Applied' 时做验证 + 弹窗
+	if (message !== 'Applied') return;
+
+	var activeScreen = document.querySelector('.screen.active');
+	if (!activeScreen) return;
+	var sid = activeScreen.id;
+
+	var ok = _validateThemeApply(sid);
+
+	if (ok === true) {
+		var label = _THEME_APPLY_LABELS[sid] || '设置';
+		console.log('[Theme] Apply 验证通过 |', label);
+		showThemeSuccessDialog('已应用', label + ' 已保存 · 可退出查看效果');
+	} else if (ok === false) {
+		console.warn('[Theme] Apply 验证失败 | screen:', sid, '（style 或 state 没写入）');
+	} else {
+		console.log('[Theme] 当前页面不在 Apply 映射中，不弹窗');
 	}
 }
 
@@ -1757,36 +1898,88 @@ function _getGeneralState() {
      homeIcons:         {},
      chatBackground:    { type: 'url', value: '' }
 	};
+	var result = null;
 	try {
 		var raw = localStorage.getItem('theme-general');
 		if (raw) {
 			var parsed = JSON.parse(raw);
-			var result = Object.assign({}, defaults, parsed);
-			// Ensure nested objects are proper
+			result = Object.assign({}, defaults, parsed);
 			if (!result.desktopBackground || typeof result.desktopBackground !== 'object') result.desktopBackground = defaults.desktopBackground;
 			if (!result.chatBackground || typeof result.chatBackground !== 'object') result.chatBackground = defaults.chatBackground;
 			if (!result.desktopIcon || typeof result.desktopIcon !== 'object') result.desktopIcon = defaults.desktopIcon;
-			return result;
 		}
 	} catch(e) { console.warn('[General] Failed to parse theme-general:', e); }
-	return defaults;
+	if (!result) result = defaults;
+
+	// ★★★ 关键：从 state 合并图标图片（LS 里现在只有 name/type，图片在 state）
+	if (window.state && window.state.theme && window.state.theme.general &&
+	    window.state.theme.general.homeIcons) {
+		var stateIcons = window.state.theme.general.homeIcons;
+		if (!result.homeIcons) result.homeIcons = {};
+		Object.keys(stateIcons).forEach(function(k) {
+			var si = stateIcons[k];
+			if (!si) return;
+			if (!result.homeIcons[k]) result.homeIcons[k] = {};
+			// name 从 state 补
+			if (!result.homeIcons[k].name && si.name) {
+				result.homeIcons[k].name = si.name;
+			}
+			// icon.value 从 state 补（LS 里是空的）
+			if (si.icon && si.icon.value) {
+    result.homeIcons[k].icon = {
+        type: si.icon.type,
+        value: si.icon.value
+    };
+}
+		});
+	}
+	return result;
 }
 
 function _saveGeneralState(g) {
-	try {
-		localStorage.setItem('theme-general', JSON.stringify(g));
-	} catch(e) {
-		console.warn('[General] Failed to save to localStorage (may be quota exceeded for large images):', e);
+	// ★ 不再深拷贝整个 g（16 个 8KB 图标 = 128KB × 2 份），
+	//   改为手动构造只含 name + type 的 LS 版
+	var gLS;
+	if (g.homeIcons) {
+		gLS = {
+			desktopBackground: g.desktopBackground,
+			desktopIcon:       g.desktopIcon,
+			chatBackground:    g.chatBackground,
+			iconNames:         g.iconNames || {},
+			homeIcons: {}
+		};
+		Object.keys(g.homeIcons).forEach(function(k) {
+			var item = g.homeIcons[k];
+			gLS.homeIcons[k] = {
+				name: item.name,
+				icon: {
+					type: (item.icon && item.icon.type) || 'default',
+					value: ''
+				}
+			};
+		});
+	} else {
+		gLS = g;
 	}
+
+	try {
+		localStorage.setItem('theme-general', JSON.stringify(gLS));
+	} catch(e) {
+		console.warn('[General] LS 写入失败（已忽略）:', e.name);
+	}
+
 	if (window.state) {
 		if (!window.state.theme) window.state.theme = {};
-		window.state.theme.general = Object.assign({}, g);
-		if (g.desktopBackground) window.state.theme.general.desktopBackground = Object.assign({}, g.desktopBackground);
-		if (g.chatBackground) window.state.theme.general.chatBackground = Object.assign({}, g.chatBackground);
-		if (g.desktopIcon) window.state.theme.general.desktopIcon = Object.assign({}, g.desktopIcon);
+		window.state.theme.general = g;
 	}
+
+	if (typeof window.saveState === 'function') {
+		try { window.saveState(); } catch(e) {}
+	}
+
 	console.log('[General] State saved | desktopBg:', !!(g.desktopBackground && g.desktopBackground.value),
-		'| chatBg:', !!(g.chatBackground && g.chatBackground.value));
+		'| chatBg:', !!(g.chatBackground && g.chatBackground.value),
+		'| homeIcons:', g.homeIcons ? Object.keys(g.homeIcons).length : 0);
 }
 
 function _setGeneralThumbAndUrl(setting, data) {
@@ -1977,13 +2170,18 @@ function applyAllGeneralSettings() {
 	var cbg = g.chatBackground;
 	_applyGeneralSetting('chatBackground', (cbg && cbg.value) ? cbg.value : '');
 
-	// 5. Apply home icon names + images
-	_applyHomeIconsToDOM(g.homeIcons);
+	// 5. Apply home icon names + images（先同步应用一次）
+_applyHomeIconsToDOM(g.homeIcons);
 
-	// 6. Persist everything
-	_saveGeneralState(g);
+// 6. Persist everything
+_saveGeneralState(g);
 
-	showThemeFeedback('Applied');
+// 7. ★ 200ms 后再用重试版应用一次（保险，防止 DOM 未就绪）
+setTimeout(function () {
+    if (window.__reapplyHomeIcons) window.__reapplyHomeIcons();
+}, 200);
+
+showThemeFeedback('Applied');
 }
 
 // ============================================================
@@ -2117,21 +2315,137 @@ if (!hasCustomIcon) {
 function onHomeIconFileUpload(key, inputEl) {
 	var file = inputEl.files && inputEl.files[0];
 	if (!file) return;
+
+	console.log('[IconUpload] 开始 | key:', key,
+		'| 文件名:', file.name,
+		'| 原始大小:', (file.size / 1024).toFixed(1) + ' KB',
+		'| MIME:', file.type);
+
+	// ★ 小文件或 SVG 直接读；大图走压缩
+	if (file.type === 'image/svg+xml' || file.size < 200 * 1024) {
+		_readIconAsDataURL(file, function(dataUrl) {
+			_finishIconUpload(key, dataUrl, inputEl);
+		}, function(err) {
+			_showIconUploadError(key, err);
+		});
+		return;
+	}
+
+	console.log('[IconUpload] 大图片，启用压缩 →');
+	_compressImageFile(file, 256, 0.85, function(dataUrl) {
+		console.log('[IconUpload] 压缩完成 | 新长度:', (dataUrl.length / 1024).toFixed(1) + ' KB');
+		_finishIconUpload(key, dataUrl, inputEl);
+	}, function(err) {
+		console.error('[IconUpload] 压缩失败，退回原图:', err);
+		_readIconAsDataURL(file, function(dataUrl) {
+			_finishIconUpload(key, dataUrl, inputEl);
+		}, function(err2) {
+			_showIconUploadError(key, err2);
+		});
+	});
+}
+
+function _readIconAsDataURL(file, onOk, onErr) {
 	var reader = new FileReader();
+	var timeout = setTimeout(function() {
+		try { reader.abort(); } catch(e) {}
+		onErr(new Error('FileReader 超时（文件可能太大）'));
+	}, 15000);
 	reader.onload = function(e) {
-		var dataUrl = e.target.result;
+		clearTimeout(timeout);
+		onOk(e.target.result);
+	};
+	reader.onerror = function(e) {
+		clearTimeout(timeout);
+		onErr(new Error('FileReader 读取失败: ' + (e.target.error && e.target.error.message || 'unknown')));
+	};
+	reader.readAsDataURL(file);
+}
+
+function _compressImageFile(file, maxDim, quality, onOk, onErr) {
+	var url = URL.createObjectURL(file);
+	var img = new Image();
+	var done = false;
+
+	var timeout = setTimeout(function() {
+		if (done) return;
+		done = true;
+		URL.revokeObjectURL(url);
+		onErr(new Error('图片加载超时'));
+	}, 20000);
+
+	img.onload = function() {
+		if (done) return;
+		done = true;
+		clearTimeout(timeout);
+		try {
+			var w = img.naturalWidth || img.width;
+			var h = img.naturalHeight || img.height;
+			var scale = Math.min(1, maxDim / Math.max(w, h));
+			var tw = Math.round(w * scale);
+			var th = Math.round(h * scale);
+
+			var canvas = document.createElement('canvas');
+			canvas.width = tw;
+			canvas.height = th;
+			var ctx = canvas.getContext('2d');
+			ctx.imageSmoothingEnabled = true;
+			ctx.imageSmoothingQuality = 'high';
+			ctx.drawImage(img, 0, 0, tw, th);
+
+			var outType = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+			var dataUrl = canvas.toDataURL(outType, quality);
+
+			URL.revokeObjectURL(url);
+			canvas.width = 0;
+			canvas.height = 0;
+
+			if (!dataUrl || dataUrl.length < 50) {
+				onErr(new Error('canvas 输出为空'));
+				return;
+			}
+			onOk(dataUrl);
+		} catch (e) {
+			URL.revokeObjectURL(url);
+			onErr(e);
+		}
+	};
+	img.onerror = function() {
+		if (done) return;
+		done = true;
+		clearTimeout(timeout);
+		URL.revokeObjectURL(url);
+		onErr(new Error('图片解码失败'));
+	};
+	img.src = url;
+}
+
+function _finishIconUpload(key, dataUrl, inputEl) {
+	try {
 		var g = _getGeneralState();
 		if (!g.homeIcons) g.homeIcons = {};
 		if (!g.homeIcons[key]) g.homeIcons[key] = {};
 		g.homeIcons[key].icon = { type: 'local', value: dataUrl };
 		_saveGeneralState(g);
 		_updateIconPreview(key, dataUrl);
-		// Clear url input
+
 		var safeId = _keyToSafeId(key);
 		var urlEl = document.getElementById('iconUrl_' + safeId);
 		if (urlEl) urlEl.value = '';
-	};
-	reader.readAsDataURL(file);
+
+		if (inputEl) inputEl.value = '';
+
+		console.log('[IconUpload] ✅ 完成 | key:', key, '| dataUrl 长度:', dataUrl.length);
+	} catch (e) {
+		console.error('[IconUpload] 完成阶段异常:', e);
+		_showIconUploadError(key, e);
+	}
+}
+
+function _showIconUploadError(key, err) {
+	var msg = (err && err.message) || String(err);
+	console.error('[IconUpload] ❌ 失败 | key:', key, '| error:', msg);
+	try { showToast('上传失败: ' + msg); } catch(e) {}
 }
 
 function onHomeIconUrlInput(key, value) {
@@ -2227,14 +2541,55 @@ function resetAllHomeIcons() {
 	showThemeFeedback('Reset All');
 }
 
+// ★ 安全版：DOM 未就绪时自动重试
+window.__reapplyHomeIcons = function (maxAttempts) {
+	maxAttempts = maxAttempts || 15;
+	var attempt = 0;
+
+	function tryOnce() {
+		attempt++;
+		var defs = _getDesktopIconDefs();
+
+		if (defs.length === 0) {
+			if (attempt < maxAttempts) {
+				console.log('[HomeIcons] 第 ' + attempt + ' 次尝试：图标元素还没就绪，150ms 后重试');
+				setTimeout(tryOnce, 150);
+			} else {
+				console.warn('[HomeIcons] ⚠️ 重试 ' + maxAttempts + ' 次仍没找到图标元素');
+			}
+			return;
+		}
+
+		var g = _getGeneralState();
+		var iconCount = g.homeIcons ? Object.keys(g.homeIcons).length : 0;
+		console.log('[HomeIcons] ✅ 第 ' + attempt + ' 次尝试成功 | 图标元素:', defs.length,
+			'| 已存图标:', iconCount);
+
+		_applyHomeIconsToDOM(g.homeIcons || {});
+	}
+
+	tryOnce();
+};
+
 function _applyHomeIconsToDOM(homeIcons) {
 	var defs = _getDesktopIconDefs();
-	defs.forEach(function(def) {
+	if (!defs.length) {
+		console.warn('[HomeIcons] _getDesktopIconDefs 返回空，跳过');
+		return;
+	}
+
+	console.log('[HomeIcons] 开始应用 | defs 数量:', defs.length,
+		'| homeIcons keys:', homeIcons ? Object.keys(homeIcons).length : 0);
+
+	// ★ 先同步处理名称和"恢复默认图标"的部分（不需要 img，无渲染压力）
+	var imgQueue = [];   // 待加载的 img 任务
+
+	defs.forEach(function (def) {
 		var labelEl = def.el.querySelector('.app-label');
 		var iconEl = def.el.querySelector('.app-icon');
 		var config = homeIcons[def.key];
 
-		// Apply name
+		// Apply name（同步）
 		if (labelEl) {
 			if (config && config.name !== undefined && config.name !== '') {
 				labelEl.textContent = config.name;
@@ -2243,29 +2598,75 @@ function _applyHomeIconsToDOM(homeIcons) {
 			}
 		}
 
-		// Apply icon image
-		if (iconEl) {
-			var existingOverlay = iconEl.querySelector('.home-icon-custom-img');
-			if (config && config.icon && config.icon.type !== 'default' && config.icon.value) {
-				// Hide original SVG
-				var svgEl = iconEl.querySelector('svg');
-				if (svgEl) svgEl.style.display = 'none';
-				// Show custom image
-				if (!existingOverlay) {
-					existingOverlay = document.createElement('img');
-					existingOverlay.className = 'home-icon-custom-img';
-					iconEl.appendChild(existingOverlay);
-				}
-				existingOverlay.src = config.icon.value;
-				existingOverlay.style.display = 'block';
-			} else {
-				// Restore original SVG
-				var svgEl = iconEl.querySelector('svg');
-				if (svgEl) svgEl.style.display = '';
-				if (existingOverlay) existingOverlay.style.display = 'none';
+		if (!iconEl) return;
+
+		var existingOverlay = iconEl.querySelector('.home-icon-custom-img');
+		var hasCustom = config && config.icon && config.icon.type !== 'default' && config.icon.value;
+
+		if (hasCustom) {
+			// 先把原 SVG 隐藏
+			var svgEl = iconEl.querySelector('svg');
+			if (svgEl) svgEl.style.display = 'none';
+
+			// 创建/取出 img 元素
+			if (!existingOverlay) {
+				existingOverlay = document.createElement('img');
+				existingOverlay.className = 'home-icon-custom-img';
+				existingOverlay.style.display = 'none';   // 先隐藏，等 src 加载完再显示
+				iconEl.appendChild(existingOverlay);
+			}
+			// 加入队列，后面分批异步加载
+			imgQueue.push({ img: existingOverlay, src: config.icon.value });
+		} else {
+			// 恢复默认
+			var svgEl2 = iconEl.querySelector('svg');
+			if (svgEl2) svgEl2.style.display = '';
+			if (existingOverlay) {
+				existingOverlay.style.display = 'none';
+				existingOverlay.removeAttribute('src');
 			}
 		}
 	});
+
+	if (imgQueue.length === 0) {
+		console.log('[HomeIcons] 没有自定义图片需要加载');
+		return;
+	}
+
+	console.log('[HomeIcons] 准备加载 ' + imgQueue.length + ' 个自定义图片（分批）');
+
+	// ★ 分批加载，每批间隔 50ms，避免 iOS 批量渲染 bug
+	var idx = 0;
+	function loadNext() {
+		if (idx >= imgQueue.length) {
+			console.log('[HomeIcons] ✅ 全部图片加载完成');
+			return;
+		}
+		var task = imgQueue[idx];
+		idx++;
+
+		var img = task.img;
+
+		// 用 onload 保证真正加载完再显示
+		img.onload = function () {
+			img.style.display = 'block';
+			// 加载完就释放 onload，避免下次赋值时旧回调触发
+			img.onload = null;
+			img.onerror = null;
+		};
+		img.onerror = function () {
+			console.error('[HomeIcons] 图片加载失败:', task.src.slice(0, 60));
+			img.onload = null;
+			img.onerror = null;
+			img.style.display = 'none';
+		};
+
+		img.src = task.src;
+
+		// 50ms 后再加载下一个
+		setTimeout(loadNext, 50);
+	}
+	loadNext();
 }
 
 // ============================================================
@@ -2287,8 +2688,18 @@ function restoreGeneralSettings() {
 		if ((!g.desktopIcon || !g.desktopIcon.value) && stateG.desktopIcon && stateG.desktopIcon.value) {
 			g.desktopIcon = stateG.desktopIcon;
 		}
-		if ((!g.homeIcons || !Object.keys(g.homeIcons).length) && stateG.homeIcons && Object.keys(stateG.homeIcons).length) {
-			g.homeIcons = stateG.homeIcons;
+				// ★ 从 state 恢复完整 homeIcons（含图标图片，state 已经过 IDB 加载）
+		if (stateG.homeIcons && Object.keys(stateG.homeIcons).length) {
+			g.homeIcons = g.homeIcons || {};
+			Object.keys(stateG.homeIcons).forEach(function(k) {
+				var si = stateG.homeIcons[k];
+				if (!si) return;
+				if (!g.homeIcons[k]) g.homeIcons[k] = {};
+				if (si.name) g.homeIcons[k].name = si.name;
+				if (si.icon && si.icon.value) {
+					g.homeIcons[k].icon = si.icon;   // ★ 图片从 state 拿
+				}
+			});
 		}
 	}
 
@@ -2307,14 +2718,14 @@ function restoreGeneralSettings() {
 		_applyGeneralSetting('chatBackground', g.chatBackground.value);
 	}
 	if (g.homeIcons && Object.keys(g.homeIcons).length) {
-		setTimeout(function() { _applyHomeIconsToDOM(g.homeIcons); }, 150);
-	} else if (g.iconNames && Object.keys(g.iconNames).length) {
-		setTimeout(function() {
-			_migrateIconNamesToHomeIcons();
-			var migrated = _getGeneralState();
-			if (migrated.homeIcons && Object.keys(migrated.homeIcons).length) {
-				_applyHomeIconsToDOM(migrated.homeIcons);
-			}
-		}, 150);
-	}
+    setTimeout(function () {
+        if (window.__reapplyHomeIcons) window.__reapplyHomeIcons();
+        else _applyHomeIconsToDOM(g.homeIcons);
+    }, 300);
+} else if (g.iconNames && Object.keys(g.iconNames).length) {
+    setTimeout(function () {
+        _migrateIconNamesToHomeIcons();
+        if (window.__reapplyHomeIcons) window.__reapplyHomeIcons();
+    }, 300);
+}
 }

@@ -2,6 +2,18 @@
 // renderChat() & renderGroupChat()
 // ★★★ 情绪指示条已隐藏（后台正常记录，前端不渲染） ★★★
 
+// ★ CoT 思维链卡片
+function _buildCotCardHtml(reasoning, compact) {
+  if (!reasoning) return '';
+  return '<div class="msg-cot-card collapsed' + (compact ? ' compact' : '') + '" onclick="this.classList.toggle(\'collapsed\')">' +
+    '<div class="msg-cot-head">' +
+      '<svg viewBox="0 0 14 14"><path d="M4 5l3 4 3-4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '<span class="msg-cot-title">' + T('cotTitle') + '</span>' +
+    '</div>' +
+    '<div class="msg-cot-body">' + esc(reasoning) + '</div>' +
+  '</div>';
+}
+
 function renderGroupChat(grp) {
   document.getElementById('chatName').textContent = grp.name;
   var avatarEl = document.getElementById('chatAvatar');
@@ -29,6 +41,27 @@ function renderGroupChat(grp) {
   if (fcBar) { fcBar.style.display = 'none'; fcBar.innerHTML = ''; }
 
   var groupPos = _computeGroupChatPositions(msgs);
+
+    // ★ CoT reasoning 上移预处理（群聊）
+  var _reasoningMap = {};
+  msgs.forEach(function(m, idx) {
+    if (m.role !== 'assistant' || !m.reasoning) return;
+    var startIdx = idx;
+    while (startIdx > 0) {
+      var prev = msgs[startIdx - 1];
+      var prevSender = prev.senderId || '';
+      var curSender  = m.senderId || '';
+      if (prev.role === 'assistant'
+          && prevSender === curSender
+          && (m.timestamp - prev.timestamp) < 3000) {
+        startIdx--;
+      } else {
+        break;
+      }
+    }
+    _reasoningMap[msgs[startIdx].id] = m.reasoning;
+  });
+
   var multiClass = bubbleState.multiMode ? ' multi-mode' : '';
 
   var h = '';
@@ -79,7 +112,7 @@ function renderGroupChat(grp) {
     } else if (msg.type === 'sticker') {
       h += rowOpen + buildStickerBubble(msg.content) + rowClose;
     } else if (msg.type === 'image') {
-      h += rowOpen + buildImageBubble(msg.dataUrl || msg.content) + rowClose;
+      h += rowOpen + buildImageBubble(msg) + rowClose;
     } else if (msg.type === 'simImage') {
       h += rowOpen + buildSimImageBubble(msg.content) + rowClose;
     } else if (msg.type === 'transfer') {
@@ -95,6 +128,13 @@ function renderGroupChat(grp) {
 
       if (!sent) {
         var segs = parseReplySegments(msg.content, state.stickers);
+
+                // ★ 群聊 CoT 卡片（用预处理 map）
+        var _thisReasoning = _reasoningMap[msg.id];
+        if (_thisReasoning) {
+          h += _buildCotCardHtml(_thisReasoning, true);
+        }
+
         segs.forEach(function (seg, segIdx) {
           var segBubbleId = msg.id + '__seg' + segIdx;
           var segGpClass = gpClass;
@@ -116,8 +156,18 @@ function renderGroupChat(grp) {
           } else if (seg.type === 'call') {
             h += segRowOpen + buildCallBubble(seg.callType, msg.id, false, msg.callStatus) + segRowClose;
           } else {
-            h += segRowOpen + '<div class="msg-bubble" data-bubbleid="' + segBubbleId + '">' +
-              fmtMsg(seg.content) + editedMark + '</div>' + segRowClose;
+            // ★ 群聊也支持翻译显示
+            var senderCfg = msg.senderId ? getCharConfig(msg.senderId) : null;
+            var hasGroupTranslation = senderCfg && senderCfg.translation && msg.translation;
+            var transHtml = hasGroupTranslation
+              ? '<div class="msg-translation">' + esc(msg.translation) + '</div>'
+              : '';
+            var bubbleClick = hasGroupTranslation
+              ? 'onclick="toggleMsgTranslation(event,\'' + msg.id + '\')"'
+              : '';
+            h += segRowOpen + '<div class="msg-bubble" ' + bubbleClick +
+              ' data-bubbleid="' + segBubbleId + '">' +
+              fmtMsg(seg.content) + editedMark + transHtml + '</div>' + segRowClose;
           }
         });
       } else {
@@ -183,7 +233,6 @@ function renderChat() {
       ct.parentElement.insertBefore(tpBar, ct);
     }
   }
-  // ★★★ 始终隐藏，不渲染任何内容 ★★★
   tpBar.style.display = 'none';
   tpBar.innerHTML = '';
 
@@ -195,7 +244,6 @@ function renderChat() {
       ct.parentElement.insertBefore(fcBar, ct);
     }
   }
-  // ★★★ 始终隐藏，不渲染任何内容 ★★★
   fcBar.style.display = 'none';
   fcBar.innerHTML = '';
   // ══════════════════════════════════════════
@@ -210,6 +258,30 @@ function renderChat() {
   var charCfg = getCharConfig(state.currentCharId);
 
   var groupPos = _computeGroupPositions(msgs);
+
+    // ★ CoT reasoning 上移预处理
+  //   多段 AI 消息时，reasoning 通常存在最后一段
+  //   渲染时需要挪到同组第一条上方
+  var _reasoningMap = {};
+  msgs.forEach(function(m, idx) {
+    if (m.role !== 'assistant' || !m.reasoning) return;
+
+    // 向前找同组起点（连续 assistant + 同 senderId + 3 秒内）
+    var startIdx = idx;
+    while (startIdx > 0) {
+      var prev = msgs[startIdx - 1];
+      var prevSender = prev.senderId || '';
+      var curSender  = m.senderId || '';
+      if (prev.role === 'assistant'
+          && prevSender === curSender
+          && (m.timestamp - prev.timestamp) < 3000) {
+        startIdx--;
+      } else {
+        break;
+      }
+    }
+    _reasoningMap[msgs[startIdx].id] = m.reasoning;
+  });
 
   var h = '';
 
@@ -262,7 +334,7 @@ function renderChat() {
       return;
     }
 
-        var quoteHtml = '';
+    var quoteHtml = '';
     if (msg.quoteRef) {
       var qm = msgs.find(function (m) { return m.id === msg.quoteRef.id; });
       var qText = qm
@@ -298,7 +370,7 @@ function renderChat() {
           ? JSON.parse(msg.content) : msg.content;
         h += rowOpen + buildTransferBubble(d.amount || d, d.note || '', msg.id, true, msg.transferStatus) + rowClose;
       } else if (msg.type === 'image') {
-        h += rowOpen + buildImageBubble(msg.dataUrl || msg.content) + rowClose;
+        h += rowOpen + buildImageBubble(msg) + rowClose;
       } else if (msg.type === 'simImage') {
         h += rowOpen + buildSimImageBubble(msg.content) + rowClose;
       } else if (msg.type === 'call') {
@@ -316,6 +388,12 @@ function renderChat() {
       var lastTextIdx = segs.reduce(function (acc, seg, idx) {
         return seg.type === 'text' ? idx : acc;
       }, -1);
+
+            // ★ 单聊 CoT 卡片（用预处理后的 map 判断，确保在多段消息第一条上方）
+      var _thisReasoning = _reasoningMap[msg.id];
+      if (_thisReasoning && charCfg && charCfg.enableCoT) {
+        h += _buildCotCardHtml(_thisReasoning, false);
+      }
 
       segs.forEach(function (seg, segIdx) {
         var segBubbleId = msg.id + '__seg' + segIdx;
@@ -368,3 +446,9 @@ function renderChat() {
 
   setTimeout(function () { ct.scrollTop = ct.scrollHeight; }, 50);
 }
+
+
+// ========== 全局导出 ==========
+window.renderChat        = renderChat;
+window.renderGroupChat   = renderGroupChat;
+window._buildCotCardHtml = _buildCotCardHtml;

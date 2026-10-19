@@ -685,21 +685,261 @@ async function _triggerGroupResponse(api) {
   var grp = getGroupById(state.currentCharId);
   if (!grp || !grp.members || !grp.members.length) { showToast('No members'); return; }
   var memberChars = [];
-  (grp.members||[]).forEach(function(mid) { var mc = state.characters.find(function(c) { return c.id === mid; }); if (mc) memberChars.push(mc); });
+  (grp.members || []).forEach(function(mid) {
+    var mc = state.characters.find(function(c) { return c.id === mid; });
+    if (mc) memberChars.push(mc);
+  });
   if (!memberChars.length) { showToast('No valid members'); return; }
-  var btn = document.getElementById('respondBtn'); btn.classList.add('loading'); btn.disabled = true;
+
+  var btn = document.getElementById('respondBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
   var ct = document.getElementById('chatMessages');
-  var typWrap = document.createElement('div'); typWrap.id = 'typingInd';
-  var nameLabel = document.createElement('div'); nameLabel.style.cssText = 'font-size:11px;color:#8e8e93;margin-left:44px;margin-bottom:2px;margin-top:8px'; nameLabel.textContent = memberChars.map(function(c) { return c.name; }).join(', ') + ' typing...'; typWrap.appendChild(nameLabel);
-  var typRow = document.createElement('div'); typRow.className = 'msg-row received group-solo'; typRow.innerHTML = '<div class="msg-avatar">' + _chatMsgAvatarHtml(memberChars[0].avatar) + '</div><div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>'; typWrap.appendChild(typRow); ct.appendChild(typWrap); ct.scrollTop = ct.scrollHeight;
+  var typWrap = document.createElement('div');
+  typWrap.id = 'typingInd';
+  var nameLabel = document.createElement('div');
+  nameLabel.style.cssText = 'font-size:11px;color:#8e8e93;margin-left:44px;margin-bottom:2px;margin-top:8px';
+  nameLabel.textContent = memberChars.map(function(c) { return c.name; }).join(', ') + ' typing...';
+  typWrap.appendChild(nameLabel);
+  var typRow = document.createElement('div');
+  typRow.className = 'msg-row received group-solo';
+  typRow.innerHTML = '<div class="msg-avatar">' + _chatMsgAvatarHtml(memberChars[0].avatar) + '</div><div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+  typWrap.appendChild(typRow);
+  ct.appendChild(typWrap);
+  ct.scrollTop = ct.scrollHeight;
+
   try {
-    var contextCount = 50;
-    var charPrompts = memberChars.map(function(mc) { var sysPrompt = buildGroupSystemPrompt(mc, grp, state.worldbooks, state.stickers); var chatMsgs = _buildGroupChatMsgsForChar(state.currentCharId, mc.id, contextCount); return { charId: mc.id, messages: [{ role: 'system', content: sysPrompt }].concat(chatMsgs) }; });
-    var results = await sendGroupChats(api, charPrompts); var baseTime = Date.now();
-    results.forEach(function(result, idx) { if (!result || !result.reply) return; var parsed = parseThreePartReply(result.reply); var content = parsed.content.replace(/---SPLIT---/g, '\n').trim(); content = stripTransferTags(content); state.chats[state.currentCharId].push({ id: uid(), role: 'assistant', content: content, type: 'text', timestamp: baseTime + (idx+1)*500, senderId: result.charId, innerAction: parsed.innerAction||'', innerThought: parsed.innerThought||'', wannaDo: parsed.wannaDo||'' }); });
-    if (!results.length) showToast('All API calls failed'); saveState();
-  } catch (e) { showErrorModal(friendlyError(e)); }
-  finally { var ti = document.getElementById('typingInd'); if (ti) ti.remove(); btn.classList.remove('loading'); btn.disabled = false; renderChat(); }
+    // ★ 80% 全部回复 / 20% 相关回复
+    var allRespond = Math.random() < 0.8;
+    console.log('[group] 回复模式:', allRespond ? '全部回复 (80%)' : '相关回复 (20%)');
+
+    var sysPrompt = _buildMultiCharacterGroupPrompt(memberChars, grp, allRespond);
+    var chatMsgs  = _buildMultiCharGroupContext(state.currentCharId, 50);
+
+    // ★ 一次 API 调用
+    var reply = await sendChat(api, [{ role: 'system', content: sysPrompt }].concat(chatMsgs));
+
+    if (!reply || !reply.trim()) {
+      showToast('AI 返回为空');
+      return;
+    }
+
+    var replies = _parseMultiCharacterReplies(reply, memberChars);
+    if (!replies || !replies.length) {
+      console.error('[group] 解析失败，原始返回:', reply.slice(0, 800));
+      showToast('AI 返回格式有误');
+      return;
+    }
+
+    console.log('[group] 解析到 ' + replies.length + ' 个角色回复');
+
+    var baseTime = Date.now();
+replies.forEach(function(r, idx) {
+  var parsed = parseThreePartReply(r.content);
+  var content = parsed.content.replace(/---SPLIT---/g, '\n').trim();
+  content = stripTransferTags(content);
+  if (!content) return;
+
+  var newMsg = {
+    id: uid(),
+    role: 'assistant',
+    content: content,
+    type: 'text',
+    timestamp: baseTime + (idx + 1) * 500,
+    senderId: r.charId,
+    innerAction: parsed.innerAction || '',
+    innerThought: parsed.innerThought || '',
+    wannaDo: parsed.wannaDo || ''
+  };
+
+  // ★ 保存翻译（跟单聊一致）
+  if (parsed.translation) {
+    newMsg.translation = parsed.translation.replace(/---SPLIT---/g, '\n').trim();
+  }
+
+        // ★ 保存 CoT 思维链
+      if (parsed.reasoning) {
+        newMsg.reasoning = parsed.reasoning;
+      }
+
+  state.chats[state.currentCharId].push(newMsg);
+});
+
+    saveState();
+  } catch (e) {
+    showErrorModal(friendlyError(e));
+  } finally {
+    var ti = document.getElementById('typingInd');
+    if (ti) ti.remove();
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    renderChat();
+  }
+}
+
+// ============================================================
+//  多角色群聊 — 一次调用
+// ============================================================
+
+function _buildMultiCharacterGroupPrompt(memberChars, grp, allRespond) {
+    var charList = memberChars.map(function(c, idx) {
+    var persona = (c.systemPrompt || '').slice(0, 400);
+    var cfg = (typeof getCharConfig === 'function') ? getCharConfig(c.id) : null;
+    var lang = (cfg && cfg.chatLang) ? cfg.chatLang : 'zh-CN';
+    var needTranslation = !!(cfg && cfg.translation);
+    var enableCoT = !!(cfg && cfg.enableCoT);
+
+    var langInstruction = '  说话语言: ' + lang;
+    if (needTranslation && lang !== 'zh-CN') {
+      langInstruction += '\n  翻译要求: **必须**在回复后用【翻译】标记提供中文翻译';
+    }
+
+    var cotInstruction = '';
+    if (enableCoT) {
+      cotInstruction = '\n  思维链要求: 在 content 的最开头用 <thinking>...</thinking> 写出简短内部推理（用户意图、你的心情、为什么这样回），然后再写【回复】...';
+    }
+
+    return '【角色 ' + (idx + 1) + '】\n' +
+      '  charId: ' + c.id + '\n' +
+      '  名称: ' + (c.name || '未知') + '\n' +
+      (c.notes ? '  备注: ' + c.notes + '\n' : '') +
+      '  人设: ' + (persona || '(未设置)') + '\n' +
+      langInstruction + cotInstruction + '\n';
+  }).join('\n');
+
+  var userName = (grp && grp.userNickname) ? grp.userNickname : (state.userProfile.name || 'User');
+
+  var replyMode = allRespond
+    ? '**全部回复模式**：请让**所有角色**都回复用户，每个角色 1-2 句话。'
+    : '**相关回复模式**：根据用户最新消息的内容，只让**最相关的 2-3 个角色**回复，其他角色选择不回。';
+
+  var worldCtx = '';
+  if (state.worldbooks && state.worldbooks.length) {
+    var globalWbs = state.worldbooks.filter(function(w) { return w.isGlobal; });
+    if (globalWbs.length) {
+      worldCtx = '\n**世界设定背景**：\n' +
+        globalWbs.map(function(w) { return '【' + (w.name || '世界') + '】' + (w.content || '').slice(0, 300); }).join('\n') +
+        '\n';
+    }
+  }
+
+  return (
+    '你正在扮演一个群聊里的多个角色。用户「' + userName + '」发送消息后，多个角色依次回复。\n\n' +
+    '**核心规则**：\n' +
+'- 后回复的角色可以看到前面角色说的话，要自然接上、有互动、有呼应\n' +
+'- 每个角色严格保持自己的人设、说话风格、语气\n' +
+'- **每个角色必须严格用自己配置的「说话语言」说话**（比如日语角色说日语、英语角色说英语，绝不能用其他语言代替）\n' +
+'- **配置了翻译要求的角色，回复后必须附上【翻译】标记**，把内容翻译成中文\n' +
+'- 角色之间可以附和、反驳、打趣，**不要复读、不要重复**\n' +
+'- 回复要像真实群聊，简短自然\n' +
+    worldCtx + '\n' +
+    '**角色列表**：\n' + charList + '\n' +
+    replyMode + '\n\n' +
+    '**输出格式**（严格 JSON 数组，不要 markdown 代码块，不要任何解释）：\n' +
+'[\n' +
+'  {"charId": "角色的真实 id", "content": "该角色说的话"},\n' +
+'  {"charId": "另一个角色的 id", "content": "..."}\n' +
+']\n\n' +
+'**关于 content**：\n' +
+'- 如果该角色配置了【翻译】要求，content 里必须包含【回复】xxx【翻译】yyy 两段\n' +
+'- 如果没配置翻译，content 就是纯回复文本\n' +
+'- 支持【动作】【心声】【想要】等其他标记（照常加在 content 里）\n\n' +
+    '**注意**：\n' +
+    '- charId 必须**严格**使用上面角色列表里给出的 id（不要编造）\n' +
+    '- 数组顺序 = 回复顺序\n' +
+    '- 相关回复模式里，不回复的角色**不要出现在数组里**\n' +
+    '- content 是纯文本（可以带 emoji）\n' +
+    '- 如果支持【动作】【心声】标记就照常加在 content 里'
+  );
+}
+
+function _buildMultiCharGroupContext(groupId, contextCount) {
+  var grp = getGroupById(groupId);
+  var userName = (grp && grp.userNickname) ? grp.userNickname : (state.userProfile.name || 'User');
+  var rawMsgs = (state.chats[groupId] || []);
+
+  // ★ 统一用 role:'user' + 说话人前缀，AI 输出 assistant 就是所有新角色回复
+  var transformed = rawMsgs.map(function(m) {
+    var content = m.content || '';
+
+    if (m.recalled) return { role: 'user', content: '[' + userName + ']: [撤回的消息]' };
+
+    if (m.role === 'system' || m.type === 'call-summary') {
+      return { role: 'user', content: '[系统]: ' + content };
+    }
+
+    var senderName;
+    if (m.role === 'user') {
+      senderName = userName;
+    } else if (m.senderId) {
+      var sc = state.characters.find(function(c) { return c.id === m.senderId; });
+      senderName = sc ? (sc.notes || sc.name) : '角色';
+    } else {
+      senderName = '角色';
+    }
+
+    // 消息类型前缀
+    var prefix = '';
+    if (m.type === 'voice')         content = '[语音] ' + content;
+    else if (m.type === 'sticker')  content = '[表情] ' + (content ? '(' + content.slice(0, 30) + ')' : '');
+    else if (m.type === 'image')    content = '[图片] ' + (m.desc || m.content || '');
+    else if (m.type === 'simImage') content = '[图片] ' + content;
+    else if (m.type === 'transfer') {
+      try {
+        var d = typeof content === 'string' && content.startsWith('{') ? JSON.parse(content) : content;
+        content = '[转账 ¥' + (d.amount || d) + ']';
+      } catch (e) { content = '[转账]'; }
+    }
+    else if (m.type === 'call')     content = '[' + (m.callType === 'video' ? '视频' : '语音') + '通话]';
+
+    return { role: 'user', content: '[' + senderName + ']: ' + content };
+  });
+
+  return transformed.slice(-(contextCount || 50));
+}
+
+function _parseMultiCharacterReplies(raw, memberChars) {
+  var str = (raw || '').trim();
+
+  // 去 markdown 代码块
+  var fence = str.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) str = fence[1].trim();
+
+  // 找 JSON 数组
+  var arrMatch = str.match(/\[[\s\S]*\]/);
+  if (!arrMatch) {
+    console.warn('[group] 没找到 JSON 数组');
+    return null;
+  }
+  str = arrMatch[0];
+
+  var arr;
+  try { arr = JSON.parse(str); }
+  catch (e) {
+    console.error('[group] JSON.parse 失败:', e.message, '\nRaw:', str.slice(0, 500));
+    return null;
+  }
+
+  if (!Array.isArray(arr) || !arr.length) return null;
+
+  var validIds = {};
+  memberChars.forEach(function(c) { validIds[c.id] = true; });
+
+  var out = [];
+  arr.forEach(function(item, idx) {
+    if (!item || typeof item !== 'object') return;
+    var cid = String(item.charId || '').trim();
+    var content = String(item.content || '').trim();
+    if (!cid || !content) return;
+    if (!validIds[cid]) {
+      console.warn('[group] charId 无效，跳过:', cid);
+      return;
+    }
+    out.push({ charId: cid, content: content });
+  });
+
+  return out;
 }
 
 async function _triggerSingleResponse(api) {
@@ -712,21 +952,30 @@ async function _triggerSingleResponse(api) {
   ct.appendChild(typ); ct.scrollTop = ct.scrollHeight;
   var _tpRawReply = null;
   try {
-        var sysPrompt = buildSystemPrompt(ch, state.worldbooks, state.stickers);
+    var sysPrompt = buildSystemPrompt(ch, state.worldbooks, state.stickers);
     var charCfg = getCharConfig(state.currentCharId); var contextCount = charCfg.contextCount || 50;
 
-    // ── Schedule Awareness: inject busy-mode instruction if enabled ──
     if (charCfg.timeAwareness && charCfg.scheduleAware) {
       var _saBlock = _buildScheduleAwareBlock(state.currentCharId, ch);
       if (_saBlock) sysPrompt = sysPrompt + '\n\n' + _saBlock;
     }
+
+        // ★ 自动消息触发时，注入上下文感知块（让 AI 自己推断用户为什么没回）
+    if (window.__autoMessageTrigger && typeof buildAutoMessageContextBlock === 'function') {
+      var _autoMsgBlock = buildAutoMessageContextBlock(state.currentCharId, charCfg);
+      if (_autoMsgBlock) {
+        sysPrompt = sysPrompt + _autoMsgBlock;
+        console.log('[autoMessage] 已注入上下文感知块');
+      }
+    }
+
     var allChatMsgs = (state.chats[state.currentCharId]||[]).map(function(m) {
       if (m.recalled) return { role: m.role, content: '[Message recalled]' };
       if (m.type === 'voice') return { role: m.role, content: '[Voice]: ' + m.content };
       if (m.type === 'sticker') {
-  var _stk = (state.stickers || []).find(function(x){ return x.dataUrl === m.content || x.id === m.content; });
-  return { role: m.role, content: (_stk && _stk.name) ? '[用户发送贴纸: ' + _stk.name + ']' : '[用户发送了一个贴纸]' };
-}
+        var _stk = (state.stickers || []).find(function(x){ return x.dataUrl === m.content || x.id === m.content; });
+        return { role: m.role, content: (_stk && _stk.name) ? '[用户发送贴纸: ' + _stk.name + ']' : '[用户发送了一个贴纸]' };
+      }
       if (m.type === 'transfer') { var d2 = typeof m.content === 'string' && m.content.startsWith('{') ? JSON.parse(m.content) : m.content; var statusLabel = m.transferStatus === 'accepted' ? ' (Accepted)' : m.transferStatus === 'declined' ? ' (Declined)' : ' (Pending)'; return { role: m.role, content: '[Transfer $' + (d2.amount||d2) + ']' + statusLabel }; }
       if (m.type === 'image') return { role: m.role, content: m.content };
       if (m.type === 'simImage') return { role: m.role, content: '[Image: ' + m.content + ']' };
@@ -734,7 +983,7 @@ async function _triggerSingleResponse(api) {
       if (m.role === 'system' || m.type === 'call-summary') return { role: 'system', content: m.content };
       return { role: m.role, content: m.content };
     });
-            // ★ 合并 Meeting 历史 + iMessage 历史
+
     var _meetingMsgs = _collectMeetingHistoryForChar(state.currentCharId);
     var chatMsgs;
     if (_meetingMsgs.length > 0) {
@@ -745,30 +994,104 @@ async function _triggerSingleResponse(api) {
         }
       });
       var combined = allChatMsgs.concat(_meetingMsgs);
-      combined.sort(function(a, b) {
-        return (a.timestamp || 0) - (b.timestamp || 0);
-      });
+      combined.sort(function(a, b) { return (a.timestamp || 0) - (b.timestamp || 0); });
       chatMsgs = combined.slice(-contextCount);
-      console.log('[Chat] 上下文合并 | iMessage:', allChatMsgs.length,
-        '| Meeting:', _meetingMsgs.length,
-        '| 合并后:', combined.length,
-        '| 实际发送:', chatMsgs.length);
+      console.log('[Chat] 上下文合并 | iMessage:', allChatMsgs.length, '| Meeting:', _meetingMsgs.length, '| 合并后:', combined.length, '| 实际发送:', chatMsgs.length);
     } else {
       chatMsgs = allChatMsgs.slice(-contextCount);
     }
-    var reply = await sendChat(api, [{ role: 'system', content: sysPrompt }, ...chatMsgs]);
+
+        // ★ 修复 B：autoMessage 触发时，最后一条不是 user 就注入虚拟 user
+    if (window.__autoMessageTrigger) {
+      var _lastMsg = chatMsgs[chatMsgs.length - 1];
+      if (!_lastMsg || _lastMsg.role !== 'user') {
+        var _userName = (state.userProfile && state.userProfile.name) ? state.userProfile.name : 'User';
+        chatMsgs.push({
+          role: 'user',
+          content: '[' + _userName + ' 暂时没有回复 - 可能正在忙、睡觉或没看手机]'
+        });
+        console.log('[autoMessage] 已注入虚拟 user 消息，让 AI 主动发起');
+      }
+    }
+
+    var reply = await sendChat(api, [{ role: 'system', content: sysPrompt }].concat(chatMsgs));
     var rawReply = reply || ''; _tpRawReply = rawReply;
     processTransferDecision(state.currentCharId, rawReply);
-    var parsed = parseThreePartReply(rawReply); parsed.content = stripTransferTags(parsed.content);
-    if (parsed.affection) { var affNum = parseInt(parsed.affection, 10); if (!isNaN(affNum)) { charCfg.affection = Math.max(0, Math.min(100, affNum)); saveCharConfig(); } }
+
+    var parsed = parseThreePartReply(rawReply);
+    parsed.content = stripTransferTags(parsed.content);
+
+    if (parsed.affection) {
+      var affNum = parseInt(parsed.affection, 10);
+      if (!isNaN(affNum)) { charCfg.affection = Math.max(0, Math.min(100, affNum)); saveCharConfig(); }
+    }
+
     var splitParts = parsed.content.split('---SPLIT---').map(function(s) { return s.trim(); }).filter(Boolean);
     var translationParts = parsed.translation ? parsed.translation.split('---SPLIT---').map(function(s) { return s.trim(); }).filter(Boolean) : [];
-    if (splitParts.length > 1) { splitParts.forEach(function(part, idx) { var newMsg = { id: uid(), role: 'assistant', content: part, type: 'text', timestamp: Date.now() + idx*800 }; if (idx === splitParts.length-1) { if (parsed.innerAction) newMsg.innerAction = parsed.innerAction; if (parsed.innerThought) newMsg.innerThought = parsed.innerThought; if (parsed.wannaDo) newMsg.wannaDo = parsed.wannaDo; } if (translationParts.length >= splitParts.length) newMsg.translation = translationParts[idx]; else if (translationParts.length > 0 && idx < translationParts.length) newMsg.translation = translationParts[idx]; else if (parsed.translation && idx === splitParts.length-1 && translationParts.length === 0) newMsg.translation = parsed.translation; state.chats[state.currentCharId].push(newMsg); }); }
-    else { var newMsg = { id: uid(), role: 'assistant', content: parsed.content, type: 'text', timestamp: Date.now() }; if (parsed.innerAction) newMsg.innerAction = parsed.innerAction; if (parsed.innerThought) newMsg.innerThought = parsed.innerThought; if (parsed.wannaDo) newMsg.wannaDo = parsed.wannaDo; if (parsed.translation) newMsg.translation = parsed.translation; state.chats[state.currentCharId].push(newMsg); }
-    if (charCfg.charRecall && Math.random() < 0.15) { var allMsgs = state.chats[state.currentCharId]; var newCount = splitParts.length > 1 ? splitParts.length : 1; var batchMsgs = allMsgs.slice(-newCount); var target = batchMsgs[Math.floor(Math.random() * batchMsgs.length)]; if (target) { target.recalled = true; target.originalContent = target.content; target.content = 'Message recalled'; delete target.translation; } }
-    saveState(); checkAutoSummarize();
-  } catch (e) { showErrorModal(friendlyError(e)); }
-  finally {
+
+    if (splitParts.length > 1) {
+      // ── 多段消息 ──
+      splitParts.forEach(function(part, idx) {
+        var newMsg = {
+          id: uid(),
+          role: 'assistant',
+          content: part,
+          type: 'text',
+          timestamp: Date.now() + idx * 800
+        };
+        if (idx === 0) {
+          if (parsed.reasoning)    newMsg.reasoning    = parsed.reasoning;
+        }
+        if (idx === splitParts.length - 1) {
+          if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
+          if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
+          if (parsed.wannaDo)      newMsg.wannaDo      = parsed.wannaDo;
+        }
+        if (translationParts.length >= splitParts.length) {
+          newMsg.translation = translationParts[idx];
+        } else if (translationParts.length > 0 && idx < translationParts.length) {
+          newMsg.translation = translationParts[idx];
+        } else if (parsed.translation && idx === splitParts.length - 1 && translationParts.length === 0) {
+          newMsg.translation = parsed.translation;
+        }
+        state.chats[state.currentCharId].push(newMsg);
+      });
+    } else {
+      // ── 单段消息 ──
+      var newMsg = {
+        id: uid(),
+        role: 'assistant',
+        content: parsed.content,
+        type: 'text',
+        timestamp: Date.now()
+      };
+      if (parsed.innerAction)  newMsg.innerAction  = parsed.innerAction;
+      if (parsed.innerThought) newMsg.innerThought = parsed.innerThought;
+      if (parsed.wannaDo)      newMsg.wannaDo      = parsed.wannaDo;
+      if (parsed.translation)  newMsg.translation  = parsed.translation;
+      if (parsed.reasoning)    newMsg.reasoning    = parsed.reasoning;
+      state.chats[state.currentCharId].push(newMsg);
+    }
+
+// ★ 修复 A：自动消息触发时不撤回
+if (!window.__autoMessageTrigger && charCfg.charRecall && Math.random() < 0.15) {
+  var allMsgs = state.chats[state.currentCharId];
+  var newCount = splitParts.length > 1 ? splitParts.length : 1;
+  var batchMsgs = allMsgs.slice(-newCount);
+  var target = batchMsgs[Math.floor(Math.random() * batchMsgs.length)];
+  if (target) {
+    target.recalled = true;
+    target.originalContent = target.content;
+    target.content = 'Message recalled';
+    delete target.translation;
+  }
+}
+
+    saveState();
+    checkAutoSummarize();
+  } catch (e) {
+    showErrorModal(friendlyError(e));
+  } finally {
     var ti = document.getElementById('typingInd'); if (ti) ti.remove();
     btn.classList.remove('loading'); btn.disabled = false; renderChat();
     if (_tpRawReply && _snapCharId) {
@@ -800,3 +1123,6 @@ window._executeForceControl = _executeForceControl;
 window.fcStartEngine = fcStartEngine;
 window.fcStopEngine = fcStopEngine;
 window._fcUnlockedNav = _fcUnlockedNav;
+window._buildMultiCharacterGroupPrompt = _buildMultiCharacterGroupPrompt;
+window._buildMultiCharGroupContext     = _buildMultiCharGroupContext;
+window._parseMultiCharacterReplies     = _parseMultiCharacterReplies;

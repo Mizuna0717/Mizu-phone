@@ -8,20 +8,34 @@ function parseThreePartReply(raw) {
     innerThought: '',
     translation: '',
     affection: '',
-    wannaDo: ''
+    wannaDo: '',
+    reasoning: '',   // ★ CoT 思维链
+    emotions: ''     // ★ 情绪段（避免污染其他字段）
   };
 
-  var tags = ['回复','动作','心声','翻译','好感','想要'];
+  // ★ 先提取 <thinking>...</thinking>
+  var thinkingMatch = raw.match(/<thinking>([\s\S]*?)<\/thinking>/i);
+  if (thinkingMatch) {
+    result.reasoning = thinkingMatch[1].trim();
+    raw = raw.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+    result.content = raw;
+  }
+
+  var tags = ['回复', '动作', '心声', '翻译', '好感', '想要', '情绪'];
   var tagPattern = tags.map(function(t) { return '【' + t + '】'; }).join('|');
   var hasAny = new RegExp(tagPattern).test(raw);
   if (!hasAny) return result;
 
-  var replyMatch       = raw.match(/【回复】\s*([\s\S]*?)(?=【动作】|【心声】|【翻译】|【好感】|【想要】|$)/);
-  var actionMatch      = raw.match(/【动作】\s*([\s\S]*?)(?=【回复】|【心声】|【翻译】|【好感】|【想要】|$)/);
-  var thoughtMatch     = raw.match(/【心声】\s*([\s\S]*?)(?=【回复】|【动作】|【翻译】|【好感】|【想要】|$)/);
-  var translationMatch = raw.match(/【翻译】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|【好感】|【想要】|$)/);
-  var affectionMatch   = raw.match(/【好感】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|【翻译】|【想要】|$)/);
-  var wannaMatch       = raw.match(/【想要】\s*([\s\S]*?)(?=【回复】|【动作】|【心声】|【翻译】|【好感】|$)/);
+  // ★ 动态构建 lookahead：包含所有标签 + 字符串结尾
+  var LA = '(?=' + tags.map(function(t) { return '【' + t + '】'; }).join('|') + '|$)';
+
+  var replyMatch       = raw.match(new RegExp('【回复】\\s*([\\s\\S]*?)' + LA));
+  var actionMatch      = raw.match(new RegExp('【动作】\\s*([\\s\\S]*?)' + LA));
+  var thoughtMatch     = raw.match(new RegExp('【心声】\\s*([\\s\\S]*?)' + LA));
+  var translationMatch = raw.match(new RegExp('【翻译】\\s*([\\s\\S]*?)' + LA));
+  var affectionMatch   = raw.match(new RegExp('【好感】\\s*([\\s\\S]*?)' + LA));
+  var wannaMatch       = raw.match(new RegExp('【想要】\\s*([\\s\\S]*?)' + LA));
+  var emotionMatch     = raw.match(new RegExp('【情绪】\\s*([\\s\\S]*?)' + LA));
 
   if (replyMatch)       result.content      = replyMatch[1].trim();
   if (actionMatch)      result.innerAction  = actionMatch[1].trim();
@@ -29,6 +43,7 @@ function parseThreePartReply(raw) {
   if (translationMatch) result.translation  = translationMatch[1].trim();
   if (affectionMatch)   result.affection    = affectionMatch[1].trim();
   if (wannaMatch)       result.wannaDo      = wannaMatch[1].trim();
+  if (emotionMatch)     result.emotions     = emotionMatch[1].trim();
 
   return result;
 }

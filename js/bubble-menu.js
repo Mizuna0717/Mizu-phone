@@ -10,20 +10,45 @@ function initBubbleLongPress(el, msgId) {
 
   el.addEventListener('touchstart', e => {
     longPressTarget = { el, msgId };
+
+    // ★ 长按期间禁用选择 / callout（iOS 必需）
+    //   注意：这里不能 preventDefault，否则会阻止滚动
+    //   依赖 CSS 层 -webkit-touch-callout: none 来禁用系统菜单
+
     longPressTimer = setTimeout(() => {
-      e.preventDefault();
       if (bubbleState.multiMode) return;
+      // ★ 长按触发标志，供 touchend 使用
+      window._bubbleLongPressTriggered = true;
+      setTimeout(() => { window._bubbleLongPressTriggered = false; }, 300);
       showBubbleMenu(el, msgId);
     }, 500);
   }, { passive: false });
-  el.addEventListener('touchend', () => { clearTimeout(longPressTimer); });
-  el.addEventListener('touchmove', () => { clearTimeout(longPressTimer); });
+
+  el.addEventListener('touchend', e => {
+    clearTimeout(longPressTimer);
+    // ★ 如果长按刚触发过，阻止这次合成的 click
+    if (window._bubbleLongPressTriggered) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, { passive: false });
+
+  el.addEventListener('touchmove', () => {
+    clearTimeout(longPressTimer);
+  });
+
   el.addEventListener('contextmenu', e => {
     e.preventDefault();
     if (bubbleState.multiMode) return;
     showBubbleMenu(el, msgId);
   });
+
   el.addEventListener('click', e => {
+    if (window._bubbleLongPressTriggered) {
+      e.stopPropagation();
+      e.preventDefault();
+      return;
+    }
     if (bubbleState.multiMode) {
       e.stopPropagation();
       const realId = getRealMsgId(msgId);
@@ -38,6 +63,7 @@ function getRealMsgId(msgId) {
 }
 
 function showBubbleMenu(el, msgId) {
+    window._lastLongPressTs = Date.now(); 
   const realId = getRealMsgId(msgId);
   const msg = (state.chats[state.currentCharId] || []).find(m => m.id === realId);
   if (!msg) return;
@@ -76,7 +102,7 @@ function showBubbleMenu(el, msgId) {
   }
 
   // 删除
-  items += `<div class="bm-item danger" onclick="deleteBubbleMsg('${realId}')"><svg viewBox="0 0 16 16"><path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4"/></svg>${T('delete')}</div>`;
+  items += `<div class="bm-item danger" onclick="deleteBubbleMsg('${msgId}')"><svg viewBox="0 0 16 16"><path d="M3 4h10M6 4V3a1 1 0 011-1h2a1 1 0 011 1v1M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4"/></svg>${T('delete')}</div>`;
 
   menu.innerHTML = items;
 
@@ -156,9 +182,32 @@ function startEditMsg(msgId) {
     input.placeholder = '';
     document.getElementById('editMsgModal').classList.add('show');
     setTimeout(() => input.focus(), 100);
-  } else {
+    } else {
     const msg = (state.chats[state.currentCharId] || []).find(m => m.id === msgId);
-    if (!msg || (msg.type && msg.type !== 'text')) { showToast('无法编辑'); return; }
+    if (!msg) return;
+
+    // ★ 真实图片：编辑描述
+    if (msg.type === 'image') {
+      bubbleState.editingMsgId = msgId;
+      input.value = _getImageDesc(msg);
+      input.placeholder = '';
+      document.getElementById('editMsgModal').classList.add('show');
+      setTimeout(() => input.focus(), 100);
+      return;
+    }
+
+    // ★ 虚拟图片：编辑文字内容
+    if (msg.type === 'simImage') {
+      bubbleState.editingMsgId = msgId;
+      input.value = msg.content || '';
+      input.placeholder = '';
+      document.getElementById('editMsgModal').classList.add('show');
+      setTimeout(() => input.focus(), 100);
+      return;
+    }
+
+    // 其他类型：原有的检查
+    if (msg.type && msg.type !== 'text') { showToast('无法编辑'); return; }
     bubbleState.editingMsgId = msgId;
     input.value = msg.content || '';
     input.placeholder = '';
@@ -171,7 +220,10 @@ function startEditMsg(msgId) {
 function confirmEditMsg() {
   const newVal = document.getElementById('editMsgInput').value;
   const editId = bubbleState.editingMsgId;
-  if (!editId) return;
+  if (!editId) {
+    closeModal('editMsgModal');
+    return;
+  }
 
   const segMatch = editId.match(/^(.+)__seg(\d+)$/);
 
@@ -179,32 +231,43 @@ function confirmEditMsg() {
     const realId = segMatch[1];
     const segIdx = parseInt(segMatch[2]);
     const msg = (state.chats[state.currentCharId] || []).find(m => m.id === realId);
-    if (!msg) { closeModal('editMsgModal'); return; }
-
-    const segs = parseReplySegments(msg.content, state.stickers || []);
-    if (segIdx < 0 || segIdx >= segs.length) { closeModal('editMsgModal'); return; }
-
-    segs[segIdx].content = newVal;
-
-    msg.content = segs.map(seg => {
-      switch (seg.type) {
-        case 'sticker':  return `[表情:${seg.name}]`;
-        case 'voice':    return `[语音:${seg.content}]`;
-        case 'transfer': return `[转账:${seg.amount}${seg.note ? ':' + seg.note : ''}]`;
-        case 'simImage': return `[图片:${seg.content}]`;
-        case 'call':     return `[通话:${seg.callType === 'video' ? '视频' : '语音'}]`;
-        default:         return seg.content;
+    if (msg) {
+      const segs = parseReplySegments(msg.content, state.stickers || []);
+      if (segIdx >= 0 && segIdx < segs.length) {
+        segs[segIdx].content = newVal;
+        msg.content = segs.map(seg => {
+          switch (seg.type) {
+            case 'sticker':  return `[表情:${seg.name}]`;
+            case 'voice':    return `[语音:${seg.content}]`;
+            case 'transfer': return `[转账:${seg.amount}${seg.note ? ':' + seg.note : ''}]`;
+            case 'simImage': return `[图片:${seg.content}]`;
+            case 'call':     return `[通话:${seg.callType === 'video' ? '视频' : '语音'}]`;
+            default:         return seg.content;
+          }
+        }).join('\n');
       }
-    }).join('\n');
+    }
   } else {
     const msg = (state.chats[state.currentCharId] || []).find(m => m.id === editId);
-    if (msg) msg.content = newVal;
+    if (msg) {
+      if (msg.type === 'image') {
+        msg.desc = newVal;
+        msg.content = newVal ? '[图片: ' + newVal + ']' : '[图片]';
+        msg.edited = true;
+      } else if (msg.type === 'simImage') {
+        msg.content = newVal;
+        msg.edited = true;
+      } else {
+        msg.content = newVal;
+      }
+    }
   }
 
-  bubbleState.editingMsgId = null;
-  saveState();
-  closeModal('editMsgModal');
-  renderChat();
+  // ★ 关键：4 个步骤缺一不可
+  bubbleState.editingMsgId = null;   // 1. 清编辑状态
+  saveState();                       // 2. 落盘
+  renderChat();                      // 3. 刷新聊天界面（即时看到改动）
+  closeModal('editMsgModal');        // 4. 关闭弹窗
 }
 
 // ===== 撤回 =====
@@ -227,12 +290,74 @@ function recallMsg(msgId) {
 function deleteBubbleMsg(msgId) {
   closeBubbleMenu();
   const msgs = state.chats[state.currentCharId] || [];
+
+  // ★ 检查是否带分段后缀
+  const segMatch = msgId.match(/^(.+)__seg(\d+)$/);
+
+  if (segMatch) {
+    const realId = segMatch[1];
+    const segIdx = parseInt(segMatch[2]);
+    const msg = msgs.find(m => m.id === realId);
+    if (!msg) return;
+
+    const segs = parseReplySegments(msg.content, state.stickers || []);
+
+    // 只有 1 段 → 走"删整条"逻辑
+    if (segs.length <= 1) {
+      _deleteWholeMsg(msgs, realId);
+      return;
+    }
+
+    // ★ 多段：只删指定 seg
+    const removedSeg = segs.splice(segIdx, 1)[0];
+    const oldContent = msg.content;
+    const oldTranslation = msg.translation;
+
+    msg.content = _serializeSegs(segs);
+    delete msg.translation;   // 翻译可能错位，清空
+
+    saveState();
+    renderChat();
+    showSnackbar(T('msgDeleted'), () => {
+      segs.splice(segIdx, 0, removedSeg);
+      msg.content = oldContent;
+      if (oldTranslation) msg.translation = oldTranslation;
+      saveState();
+      renderChat();
+    });
+    return;
+  }
+
+  // 无分段后缀 → 删整条
+  _deleteWholeMsg(msgs, msgId);
+}
+
+// ★ 辅助：删整条（原逻辑）
+function _deleteWholeMsg(msgs, msgId) {
   const idx = msgs.findIndex(m => m.id === msgId);
   if (idx === -1) return;
   const del = msgs.splice(idx, 1)[0];
   saveState();
   renderChat();
-  showSnackbar(T('msgDeleted'), () => { msgs.splice(idx, 0, del); saveState(); renderChat(); });
+  showSnackbar(T('msgDeleted'), () => {
+    msgs.splice(idx, 0, del);
+    saveState();
+    renderChat();
+  });
+}
+
+// ★ 辅助：把 segs 序列化回 content
+function _serializeSegs(segs) {
+  return segs.map(seg => {
+    switch (seg.type) {
+      case 'sticker':  return `[表情:${seg.name}]`;
+      case 'voice':    return `[语音:${seg.content}]`;
+      case 'transfer': return `[转账:${seg.amount}${seg.note ? ':' + seg.note : ''}]`;
+      case 'simImage': return `[图片:${seg.content}]`;
+      case 'call':     return `[通话:${seg.callType === 'video' ? '视频' : '语音'}]`;
+      default:         return seg.content;
+    }
+  }).join('\n');
 }
 
 // ★★★ 重回 / 重新生成 ★★★

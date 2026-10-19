@@ -925,6 +925,15 @@
 /* ============================================================
    CHAT MENU
    ============================================================ */
+  /* ★★★ 终极修复：菜单未显示时直接 display: none，从渲染树里移除 ★★★ */
+#chatMenu:not(.show) {
+  display: none !important;
+}
+
+#chatMenu.show {
+  display: flex !important;
+}
+
 div.chat-menu-overlay,
 #chatMenuOverlay {
   position: fixed;
@@ -944,6 +953,7 @@ div.chat-menu-overlay.show,
   pointer-events: auto;
 }
 
+/* 原样不动，只加一行 visibility */
 div.chat-menu,
 #chatMenu {
   all: initial;
@@ -971,16 +981,28 @@ div.chat-menu,
   transform: scale(0.92) translateY(-4px);
   transform-origin: top right;
   pointer-events: none;
-  transition: opacity .14s ease, transform .14s cubic-bezier(.4, 0, .2, 1);
+  visibility: hidden;                    /* ★ 新增 */
+  transition: opacity .14s ease, transform .14s cubic-bezier(.4, 0, .2, 1),
+              visibility 0s linear .14s;  /* ★ 新增：延迟隐藏 visibility */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
+
 div.chat-menu.show,
 #chatMenu.show {
   opacity: 1;
   transform: scale(1) translateY(0);
   pointer-events: auto;
+  visibility: visible;                    /* ★ 新增 */
+  transition: opacity .14s ease, transform .14s cubic-bezier(.4, 0, .2, 1),
+              visibility 0s;              /* ★ 新增：立即显示 */
+}
+
+/* ★★★ 关键新增：菜单未显示时，所有子项一律不接收点击 ★★★ */
+#chatMenu:not(.show) .chat-menu-item,
+#chatMenu:not(.show) .chat-menu-group-item {
+  pointer-events: none !important;
 }
 
 #chatMenu .chat-menu-header,
@@ -1040,4 +1062,124 @@ div.chat-menu > .chat-menu-item > span,
   font-weight: 500;
   color: #1d1d1f;
   line-height: 1.3;
+}
+
+/* ★ 聊天区域加强：禁止长按选中文本 / 系统菜单 */
+.chat-messages,
+.msg-row,
+.msg-bubble,
+.msg-row *,
+.chat-input-bar,
+.chat-header {
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* ★ 但如果气泡里以后有 input/textarea 要能选择 */
+.chat-messages input,
+.chat-messages textarea,
+.msg-bubble input,
+.msg-bubble textarea {
+  -webkit-user-select: text !important;
+  -webkit-touch-callout: default !important;
+  user-select: text !important;
+}
+
+/* ============================================================
+   CoT 思维链气泡（样式对齐角色气泡但更浅更小）
+   ============================================================ */
+.msg-cot-card {
+  display: block;
+  align-self: flex-start;
+  margin-left: 44px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  max-width: calc(100% - 60px);
+  background: #f7f7f9;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #6e6e73;
+  line-height: 1.4;
+  cursor: pointer;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+  text-align: left;
+}
+
+.msg-cot-card:active {
+  background: #f0f0f3;
+}
+
+.msg-cot-card.compact {
+  padding: 5px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  margin-top: 8px;
+  margin-bottom: 1px;
+}
+
+.msg-cot-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #a0a0a5;
+  letter-spacing: .1px;
+  white-space: nowrap;
+}
+
+.msg-cot-card.compact .msg-cot-head {
+  font-size: 10px;
+  gap: 3px;
+}
+
+.msg-cot-head svg {
+  width: 10px;
+  height: 10px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  transition: transform .2s ease;
+  flex-shrink: 0;
+}
+
+.msg-cot-card.compact .msg-cot-head svg {
+  width: 9px;
+  height: 9px;
+}
+
+.msg-cot-card.collapsed .msg-cot-head svg {
+  transform: rotate(-90deg);
+}
+
+.msg-cot-body {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #6e6e73;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 240px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.msg-cot-card.compact .msg-cot-body {
+  font-size: 11px;
+  max-height: 180px;
+  margin-top: 4px;
+}
+
+.msg-cot-card.collapsed .msg-cot-body {
+  display: none;
+}
+
+.msg-cot-card + .msg-row,
+.msg-cot-card + .msg-row.group-first,
+.msg-cot-card + .msg-row.group-solo {
+  margin-top: 2px !important;
 }

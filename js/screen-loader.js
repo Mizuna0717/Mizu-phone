@@ -315,6 +315,8 @@ var scripts = [
     'js/phone-shopping.js',
     'js/together.js',
     'js/shop.js',
+    'js/char-import.js',
+    'js/forum.js',
     'js/mcp.js',
     'js/init.js',
 ];

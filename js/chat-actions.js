@@ -59,6 +59,10 @@ function toggleChatMenu(e) {
   if (isShowing) {
     menu.classList.remove('show');
     if (overlay) overlay.classList.remove('show');
+
+    // ★★★ 关键修复：关闭时直接 display:none，物理移除 ★★★
+    menu.style.display = 'none';
+    menu.style.pointerEvents = 'none';
   } else {
     updateChatMenuItems();
 
@@ -67,6 +71,9 @@ function toggleChatMenu(e) {
       _rebuildMenuDOM(menu);
     }
 
+    // ★★★ 打开时先恢复 display，再加 show 类 ★★★
+    menu.style.display = 'flex';
+    menu.style.pointerEvents = 'auto';
     menu.classList.add('show');
     if (overlay) overlay.classList.add('show');
   }
@@ -75,7 +82,12 @@ function toggleChatMenu(e) {
 function closeChatMenu() {
   var menu    = document.getElementById('chatMenu');
   var overlay = document.getElementById('chatMenuOverlay');
-  if (menu)    menu.classList.remove('show');
+  if (menu) {
+    menu.classList.remove('show');
+    // ★★★ 关键修复：关闭时直接物理移除，不管 CSS 怎么写 ★★★
+    menu.style.display = 'none';
+    menu.style.pointerEvents = 'none';
+  }
   if (overlay) overlay.classList.remove('show');
 }
 
@@ -548,6 +560,9 @@ async function regenerateLastTurn(bubbleId) {
   window.translateMsg         = translateMsg;
   window.toggleMsgTranslation = toggleMsgTranslation;
   window.exportCurrentChat    = exportCurrentChat;
+  // ★★★ 强制覆盖，确保用的一定是新版 ★★★
+window.toggleChatMenu = toggleChatMenu;
+window.closeChatMenu  = closeChatMenu;
 
   // ★★★ 重回 — 整轮重新生成 ★★★
   window.regenerateLastTurn   = regenerateLastTurn;
